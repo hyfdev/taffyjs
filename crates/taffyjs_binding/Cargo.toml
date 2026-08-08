@@ -1,0 +1,17 @@
+[package]
+name = "taffyjs_binding"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi.workspace = true
+napi-derive.workspace = true
+taffy.workspace = true
+
+[build-dependencies]
+napi-build.workspace = true
