@@ -1,0 +1,40 @@
+{
+  "name": "@taffyjs/node",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Native Node-API bindings for the Taffy layout engine.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyfdev/taffyjs.git",
+    "directory": "packages/node"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js index.js --release",
+    "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js index.js",
+    "check": "vp check",
+    "test": "vp test"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "napi": {
+    "binaryName": "taffyjs",
+    "targets": [
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin",
+      "x86_64-pc-windows-msvc",
+      "x86_64-unknown-linux-gnu"
+    ]
+  }
+}
