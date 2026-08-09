@@ -16,6 +16,18 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly confirmed and requested as a vouched project decision in the repository bootstrap discussion.
 
+### Binding design principles
+
+[VOUCHED @hyfdev 2026-08-09]
+
+**Ruling:** The binding must preserve Taffy's Rust semantics and capabilities without mechanically copying Rust syntax; Rust must remain the only source of binding state, with no JavaScript shadow state; implicit costs such as deep copies, object conversion, callbacks across the language boundary, and per-node calls must be treated deliberately; the direct baseline API must remain available when additive batch or higher-performance APIs are introduced; ownership, handle validity, cross-tree misuse, and error behavior must be explicit; and Yoga compatibility, reactive objects, and other higher-level designs must live in @taffyjs/node-yoga or another package above @taffyjs/node.
+
+**Limits:** These principles do not decide the concrete JavaScript API, names, object representations, handle encoding, validation mechanism, callback interface, batching shape, or which optimizations are worthwhile. They also do not require eliminating unavoidable Node-API conversion costs. Those choices must be evaluated from the Rust model, napi-rs's available representations, and measured consumer needs.
+
+**Why:** @taffyjs/node is the direct foundation for other JavaScript APIs. Its state ownership, costs, and failure boundaries therefore need to remain visible and predictable, while optional convenience and performance paths must not make the direct binding unavailable.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly approved these six binding principles and requested that they be vouched before concrete API design.
+
 ### JavaScript integration-first testing
 
 [VOUCHED @hyfdev 2026-08-09]
