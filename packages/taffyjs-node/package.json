@@ -7,7 +7,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hyfdev/taffyjs.git",
-    "directory": "packages/node"
+    "directory": "packages/taffyjs-node"
   },
   "files": [
     "index.js",
@@ -19,7 +19,7 @@
     "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js index.js --release",
     "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js index.js",
     "check": "vp check",
-    "test": "vp test"
+    "test": "vp test --passWithNoTests"
   },
   "devDependencies": {
     "@napi-rs/cli": "catalog:",

@@ -232,11 +232,30 @@ importers:
         specifier: 'catalog:'
         version: 0.2.8(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.8(@types/node@24.13.3)(typescript@7.0.2))(typescript@7.0.2)
 
-  packages/node:
+  packages/taffyjs-node:
     devDependencies:
       '@napi-rs/cli':
         specifier: 'catalog:'
         version: 3.8.2(@emnapi/runtime@1.11.2)(@types/node@24.13.3)
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.13.3
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@0.2.8
+        version: '@voidzero-dev/vite-plus-core@0.2.8(@types/node@24.13.3)(typescript@7.0.2)'
+      vite-plus:
+        specifier: 'catalog:'
+        version: 0.2.8(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.8(@types/node@24.13.3)(typescript@7.0.2))(typescript@7.0.2)
+
+  tests/taffyjs-node:
+    dependencies:
+      '@taffyjs/node':
+        specifier: workspace:*
+        version: link:../../packages/taffyjs-node
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
