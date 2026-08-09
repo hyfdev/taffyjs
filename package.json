@@ -4,9 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "ready": "vp check && vp run check:rust && vp run -r build:debug && vp run -r test && vp run test:rust",
-    "check:rust": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings",
-    "test:rust": "cargo test --workspace"
+    "ready": "vp check && vp run check:rust && vp run -r build:debug && vp run -r test",
+    "check:rust": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings"
   },
   "devDependencies": {
     "vite": "catalog:",

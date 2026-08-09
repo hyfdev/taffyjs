@@ -10,4 +10,4 @@ coverage/
 .env
 .env.*
 !.env.example
-packages/node/npm/
+packages/taffyjs-node/npm/
