@@ -12,6 +12,7 @@ The repository starts as a small Rust and JavaScript monorepo so the native impl
 
 - npm packages live under packages/ and use the Vite+ workflow from the repository root.
 - packages/node owns the @taffyjs/node loader, generated declarations, tests, and npm metadata. The Rust implementation remains in crates/taffyjs_binding so npm packaging does not become the Rust workspace boundary.
+- Platform-specific native packages use the @taffyjs/binding-<platform> naming scheme. @taffyjs/node remains the user-facing entry point that selects the matching native package.
 - A future @taffyjs/node-yoga package should be a JavaScript or TypeScript compatibility layer depending on @taffyjs/node. It should not duplicate the native binding unless new evidence requires a different boundary.
 
 ## Bootstrap boundary

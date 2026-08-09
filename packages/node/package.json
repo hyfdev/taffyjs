@@ -30,6 +30,7 @@
   },
   "napi": {
     "binaryName": "taffyjs",
+    "packageName": "@taffyjs/binding",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",
