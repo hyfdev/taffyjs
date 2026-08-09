@@ -1,5 +1,7 @@
 # Project Context Records
 
 - [Intent](intent.md) — the package family, its intended users, and the questions deliberately left open during bootstrap.
-- [Architecture](architecture.md) — top-level directory intent, Rust and JavaScript workspace boundaries, and testing placement.
-- [@taffyjs/node decisions](taffyjs-node-decisions.md) — vouched rulings for the Node binding's role, API priorities, and testing strategy.
+- [Architecture](architecture.md) — top-level directory intent, Rust and JavaScript workspace boundaries, native distribution, and testing placement.
+- [Technology stack](technology-stack.md) — why napi-rs and Vite+ own different build stages and how repository tasks are composed.
+- [@taffyjs/node decisions](taffyjs-node-decisions.md) — vouched rulings for the Node binding's role, API priorities, module format, distribution, and testing strategy.
+- [Tooling decisions](tooling-decisions.md) — vouched rulings for JavaScript package builds and repository command orchestration.
