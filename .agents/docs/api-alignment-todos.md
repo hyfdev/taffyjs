@@ -15,13 +15,16 @@ This record deliberately does not define the alignment workflow, sequencing, evi
 
 ## Node identity and lifecycle
 
-- [ ] Design the non-constructible opaque native node handle used for every internal `NodeId`.
-- [ ] Choose a safe owner-lifetime mechanism for node handles without raw references or pointers to a `TaffyTree`.
+- [ ] Implement binding-created `External<PrivateNodeHandle>` values for every internal `NodeId`, with a private Node-API type tag, a private branded TypeScript declaration, and no constructible public Node class.
+- [ ] Choose how private Rust handle data records which tree created it and how long that record remains valid, without raw references or pointers to a `TaffyTree`.
 - [ ] Keep TaffyTree as the sole layout-state owner without a JavaScript shadow tree, reimplemented layout abstraction, or JavaScript implementation of Taffy's low-level tree traits.
-- [ ] Define liveness tracking for node creation, `remove`, `clear`, owner destruction, and any future key reuse.
+- [ ] Define how the binding checks that a node still exists after creation, `remove`, `clear`, owner destruction, and any future key reuse.
 - [ ] Align `new_leaf`, `new_leaf_with_context`, and `new_with_children` with complete prevalidation and no partially created public state.
 - [ ] Align `remove` with topology updates, context cleanup, deterministic stale-handle behavior, and controlled errors.
 - [ ] Decide whether a node handle keeps its tree alive or becomes unusable after the tree wrapper is collected.
+- [ ] Add declaration fixtures proving that a returned handle is accepted while an ordinary object and direct construction are rejected.
+- [ ] Add runtime fixtures proving that an ordinary object and an External created by an unrelated native addon become controlled JavaScript errors; check the binding's Node-API type tag before napi-rs reads the external data pointer.
+- [ ] Decide whether consumers need an explicit node-comparison API and, if so, define its placement and its behavior for handles from different trees and handles whose nodes were removed; do not rely on JavaScript `===` or raw NodeId equality.
 
 ## Tree topology
 
@@ -42,13 +45,15 @@ This record deliberately does not define the alignment workflow, sequencing, evi
 
 ## Layout computation and observable state
 
-- [ ] Align `compute_layout` with `Size<AvailableSpace>`, opaque root handles, controlled errors, and explicit layout-validity semantics.
+- [ ] Align `compute_layout` with `Size<AvailableSpace>`, opaque root handles, and controlled errors; keep computation explicit rather than triggering it from layout reads or mutations.
 - [ ] Align `compute_layout_with_measure` with synchronous JavaScript measurement and controlled callback-failure semantics that never expose partially computed native state as valid.
 - [ ] Define callback exception and invalid-result containment after the public measurement model is selected, including the resulting layout, cache, node-context, and external-side-effect semantics without selecting an implementation mechanism in advance.
-- [ ] Align rounded `layout` and `unrounded_layout` as owned output snapshots.
-- [ ] Align `mark_dirty` and `dirty` with handle validation and the binding's layout-validity model.
+- [ ] Align rounded `layout` and `unrounded_layout` as owned snapshots of the values currently stored by Taffy, including zero before the first computation and earlier results until another computation.
+- [ ] Decide whether to expose `mark_dirty` and `dirty`; if exposed, retain Taffy's cache-state behavior and do not present `dirty(node)` as proof that the node's stored layout is current.
+- [ ] Evaluate readonly TypeScript fields and runtime sealing or freezing for owned Layout snapshots without assuming that either runtime cost is free.
+- [ ] Keep any helper that computes before reading or promises a current result separate from the direct baseline API.
 - [ ] Decide whether and how to expose `DetailedLayoutInfo` from the currently enabled feature.
-- [ ] Define reads before a successful compute, after style or topology mutation, after callback failure, and after an unexpected internal failure.
+- [ ] Define reads after callback failure and after an unexpected internal failure; ordinary reads before computation and after style changes follow Taffy's stored-layout behavior.
 
 ## Measurement and node context
 
@@ -78,7 +83,7 @@ This record deliberately does not define the alignment workflow, sequencing, evi
 
 ## Errors, ownership, and environment lifetime
 
-- [ ] Define stable binding-level error categories for malformed values, stale handles, foreign owners, topology violations, indices and ranges, measurement failures, callback access rejected by the chosen re-entry policy, ordinary Taffy errors, and unexpected internal failures.
+- [ ] Define stable binding-level error categories for malformed values, ordinary objects or foreign native Externals presented as node handles, removed-node handles, handles created by another tree, topology violations, indices and ranges, measurement failures, callback access rejected by the chosen re-entry policy, ordinary Taffy errors, and unexpected internal failures.
 - [ ] Audit every selected Taffy method for indexing, `unwrap`, range panic, partial mutation, and other preconditions that `TaffyResult` does not enforce in Taffy 0.13.
 - [ ] Define the native tree's state after every expected and unexpected failure without exposing partially reusable layouts or caches.
 - [ ] Define Node environment and worker boundaries for classes, handles, retained references, destruction, and any future cross-thread API.

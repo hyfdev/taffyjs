@@ -52,6 +52,30 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly approved these six binding principles and requested that they be vouched before concrete API design.
 
+### Direct layout-state behavior
+
+[VOUCHED @hyfdev 2026-08-09]
+
+**Ruling:** The baseline JavaScript API must preserve Taffy's explicit computation and stored-layout behavior: reading layout returns the value currently stored by Taffy, including zero values before the first computation and previous results after inputs change; changing style or tree state must not compute layout automatically; returned Layout values must be owned snapshots rather than live views into the tree; and, if Taffy's dirty-state query is exposed, it must retain Taffy's cache-state meaning without being presented as a guarantee that a node's stored layout is current. APIs that compute automatically or otherwise guarantee a current result may be added only as optional sugar.
+
+**Limits:** This ruling does not decide whether the dirty-state query belongs in the public API, the names of any methods, the shape of Layout values, or whether TypeScript marks snapshots readonly. Runtime sealing or freezing is an open representation and cost choice, not part of this decision. Failure-state layout validity and batch layout reads also remain open.
+
+**Why:** @taffyjs/node is the direct Taffy binding and must not add automatic work or reinterpret Taffy's state by default. Yunfei explicitly accepted Taffy's zero-before-compute, old-value-until-recompute, borrowed-to-owned-copy, and cache-state semantics, while allowing separate sugar APIs when useful.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly vouched the conclusions from the first four outer-layer mapping experiments.
+
+### Opaque External node handles
+
+[VOUCHED @hyfdev 2026-08-09]
+
+**Ruling:** JavaScript node handles must be binding-created Node-API External values with an opaque branded TypeScript type, while the raw Taffy NodeId remains private; before any handle reaches Taffy, the binding must verify that it is the expected native value, came from the target tree, and still names an existing node, and it must turn ordinary objects, foreign-tree handles, and removed-node handles into catchable JavaScript errors rather than wrong-node access or Rust panics. Repeated retrieval of the same Taffy node is not required to return JavaScript values that compare equal with `===`; an explicit node-comparison API may be added if needed.
+
+**Limits:** The TypeScript brand only distinguishes the declared node-handle type from ordinary values at compile time; it cannot prove tree ownership or continued existence. This ruling does not choose how Rust records the issuing tree or live nodes, the error classes and messages, whether handles keep a tree alive, the placement or exact semantics of a future node-comparison API, or whether two removed handles may still compare as representing the same former node.
+
+**Why:** Taffy's NodeId equality compares only its stored number and does not identify a TaffyTree. A foreign NodeId can silently address a different node with the same number, while a removed NodeId can panic when used. Yunfei required those cases to become catchable JavaScript errors, accepted the opaque External behavior, and chose not to require canonical JavaScript object identity.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly vouched the fifth outer-layer mapping experiment and the External handle behavior, and chose no `===` guarantee with an explicit comparison API available if needed.
+
 ### JavaScript integration-first testing
 
 [VOUCHED @hyfdev 2026-08-09]
