@@ -8,19 +8,43 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 [VOUCHED @hyfdev 2026-08-09]
 
-**Ruling:** @taffyjs/node must expose a direct Node.js binding modeled on Taffy's Rust API; APIs aimed at greater performance or JavaScript ergonomics may be added alongside this baseline but must not replace it or make it depend on a higher-level JavaScript abstraction.
+**Ruling:** @taffyjs/node must expose a direct Node.js binding modeled on Taffy's high-level Rust API; APIs aimed at greater performance or JavaScript ergonomics may be added alongside this baseline but must not replace it or make it depend on a higher-level JavaScript abstraction.
 
-**Limits:** This decides the package's role and API priority, not the exact JavaScript names, object shapes, call granularity, type representations, ownership model, error mapping, callbacks, validation, conversion, copying, or batching strategy. Rust alignment means preserving Taffy's capabilities, concepts, and semantics as directly as Node.js permits, not mechanically reproducing every Rust surface detail. Higher-level product and compatibility designs remain outside @taffyjs/node. Necessary Node-API interop costs do not conflict with this ruling. No exception or reopen condition was expressed; changing this direction requires a new explicit project decision.
+**Limits:** This decides the package's role and API priority, not the exact JavaScript names, object shapes, call granularity, type representations, ownership model, error mapping, callbacks, validation, conversion, copying, or batching strategy. Rust alignment means preserving the capabilities, concepts, semantics, and visible costs of Taffy's TaffyTree-centered layout usage as directly as Node.js permits. It does not mean reproducing every public symbol in the Rust crate. Higher-level product and compatibility designs remain outside @taffyjs/node. Necessary Node-API interop costs do not conflict with this ruling. Changing this direction requires a new explicit project decision.
 
-**Why:** @taffyjs/node is the foundation that guarantees access to Taffy without requiring consumers to adopt an additional JavaScript-side design. Keeping this path direct follows a zero-cost-abstraction principle: consumers should not pay for an optional higher-level wrapper they do not use. A raw surface is intentional at this layer, while proven performance or experience improvements can still be offered as additions.
+**Why:** @taffyjs/node is the foundation that guarantees access to Taffy without requiring consumers to adopt an additional JavaScript-side design. Keeping this path direct follows a zero-cost-abstraction principle: consumers should not pay for an optional higher-level wrapper they do not use. A direct surface is intentional at this layer, while proven performance or experience improvements can still be offered as additions.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly confirmed and requested as a vouched project decision in the repository bootstrap discussion.
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly confirmed the direct binding direction and later clarified that Rust alignment applies to Taffy's high-level layout usage rather than complete crate symbol coverage.
+
+### Safe and sound JavaScript boundary
+
+[VOUCHED @hyfdev 2026-08-09]
+
+**Ruling:** Safety and soundness are the binding's second design priority, immediately after preserving Taffy's high-level semantics. Every JavaScript-reachable path must validate values, handles, ownership, lifetime, and operation preconditions before they can violate a Rust or Taffy invariant. Invalid JavaScript usage and expected Taffy failures must produce controlled JavaScript errors rather than Rust panics, internal errors, invalid aliasing, or undefined behavior.
+
+**Limits:** This ruling does not choose the JavaScript error classes, handle representation, validation implementation, callback reentrancy policy, or panic-containment mechanism. It does not claim that the binding can prevent process termination caused by allocation failure, an aborting dependency, or an unknown upstream defect. Panic containment may be a defensive backstop, but it must not replace validation and typed error handling for expected inputs and operations.
+
+**Why:** JavaScript callers can freely construct malformed values, retain stale handles, mix values from different owners, and re-enter callbacks. The public boundary must make those cases safe and predictable before they reach native code whose invariants assume valid Rust values and relationships.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly made safe and sound JavaScript behavior the second design principle and required the API to prevent JavaScript misuse from producing panics or internal errors.
+
+### High-level layout-engine scope
+
+[VOUCHED @hyfdev 2026-08-09]
+
+**Ruling:** @taffyjs/node must bind Taffy's TaffyTree-centered high-level layout-engine usage surface. It must expose what JavaScript consumers need to construct and mutate layout trees, provide styles and measurements, compute layouts, and read results; it must not pursue symbol-for-symbol coverage of Taffy's Rust crate.
+
+**Limits:** The comparison to yoga-layout describes the package boundary and intended completeness of normal layout usage, not a requirement to copy Yoga's API shape. A Yoga-compatible API remains the responsibility of @taffyjs/node-yoga. Taffy's low-level custom-tree traits, trait-dependent single-algorithm compute functions, cache internals, helper traits, and generic implementation infrastructure are outside the default binding scope. A JavaScript-owned custom tree or other low-level algorithm adapter requires a new explicit direction. The exact high-level methods and transitive value types still require systematic mapping.
+
+**Why:** The package is a usable binding for performing layout from JavaScript, not a mirror of every Rust implementation and extension mechanism. Limiting the surface to Taffy's own high-level usage keeps the binding direct while avoiding APIs whose Rust abstraction and cost model do not carry across Node-API.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly confirmed that @taffyjs/node should resemble yoga-layout in binding the usable layout API rather than mapping every Rust detail, and approved this interpretation as a project decision.
 
 ### Binding design principles
 
 [VOUCHED @hyfdev 2026-08-09]
 
-**Ruling:** The binding must preserve Taffy's Rust semantics and capabilities without mechanically copying Rust syntax; Rust must remain the only source of binding state, with no JavaScript shadow state; implicit costs such as deep copies, object conversion, callbacks across the language boundary, and per-node calls must be treated deliberately; the direct baseline API must remain available when additive batch or higher-performance APIs are introduced; ownership, handle validity, cross-tree misuse, and error behavior must be explicit; and Yoga compatibility, reactive objects, and other higher-level designs must live in @taffyjs/node-yoga or another package above @taffyjs/node.
+**Ruling:** The binding must preserve Taffy's high-level Rust semantics and capabilities without mechanically copying Rust syntax; Rust must remain the only source of binding state, with no JavaScript shadow state; implicit costs such as deep copies, object conversion, callbacks across the language boundary, and per-node calls must be treated deliberately; the direct baseline API must remain available when additive batch or higher-performance APIs are introduced; ownership, handle validity, cross-tree misuse, and error behavior must be explicit; and Yoga compatibility, reactive objects, and other higher-level designs must live in @taffyjs/node-yoga or another package above @taffyjs/node.
 
 **Limits:** These principles do not decide the concrete JavaScript API, names, object representations, handle encoding, validation mechanism, callback interface, batching shape, or which optimizations are worthwhile. They also do not require eliminating unavoidable Node-API conversion costs. Those choices must be evaluated from the Rust model, napi-rs's available representations, and measured consumer needs.
 
