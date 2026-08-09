@@ -27,3 +27,27 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 **Why:** The Rust crate binds existing Taffy functionality rather than implementing new behavior, while the package's observable contract exists at the JavaScript and Node-API boundary. Integration and end-to-end tests exercise that contract as a consumer sees it. Yunfei specified that unit tests should be exceptional; no further rationale was given for that limit.
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly approved the testing strategy, package boundary, and directory layout and requested that the decision be vouched in the repository bootstrap discussion.
+
+### ESM-only package entry
+
+[VOUCHED @hyfdev 2026-08-09]
+
+**Ruling:** @taffyjs/node must publish ESM as its only JavaScript module format and must not emit a dedicated CommonJS build.
+
+**Limits:** The napi-rs ESM loader may use createRequire internally to load native addons and optional platform packages; that implementation detail is not a CommonJS public entry. Node.js 22.18 can synchronously require this ESM graph because it has no top-level await, but require(esm) remains release-candidate functionality in that Node release and is not a supported @taffyjs/node contract. This ruling does not decide the broader runtime support matrix. Adding a dedicated CommonJS output requires a new explicit project decision based on a concrete supported-consumer need.
+
+**Why:** ESM is the first-class module system for this package, while CommonJS is secondary and does not justify a separate output. Modern Node.js can already load a synchronous ESM module from require(), so another build would add package and test complexity without changing the primary API.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; requested first-class ESM and no dedicated CommonJS output if modern require(esm) was viable. The verified implementation uses napi-rs's documented [ESM build option](https://napi.rs/docs/cli/build), and the minimum workspace runtime behavior is documented by [Node.js 22.18](https://nodejs.org/download/release/v22.18.0/docs/api/modules.html#loading-ecmascript-modules-using-require).
+
+### napi-rs platform package distribution
+
+[VOUCHED @hyfdev 2026-08-09]
+
+**Ruling:** @taffyjs/node must use napi-rs's maintained root-loader distribution model with optional @taffyjs/binding-<platform> packages and must not introduce a generic intermediate binding package or an additional custom loader build without a concrete need.
+
+**Limits:** This ruling does not freeze the target matrix, package versions, release automation, or support policy. It also does not prevent authored JavaScript packages above @taffyjs/node or a future browser or WASI design. Evidence that the generated loader cannot support a required runtime or package boundary would reopen the custom-loader part of the ruling.
+
+**Why:** The generated root loader plus one optional package per platform is napi-rs's current maintained release model. It already gives @taffyjs/node the required package boundary; another binding package or loader build would add machinery for requirements that TaffyJS does not currently have.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; accepted the current model if it remained the official napi-rs recommendation and preferred avoiding an additional custom packaging layer without a concrete need. The maintained model is described in napi-rs's [native package release documentation](https://napi.rs/docs/deep-dive/release).
