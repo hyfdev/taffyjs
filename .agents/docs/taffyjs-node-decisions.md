@@ -4,17 +4,17 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 ## Decided
 
-### Direct Rust-aligned binding surface
+### Thin high-level TaffyTree binding
 
 [VOUCHED @hyfdev 2026-08-09]
 
-**Ruling:** @taffyjs/node must expose a direct Node.js binding modeled on Taffy's high-level Rust API; APIs aimed at greater performance or JavaScript ergonomics may be added alongside this baseline but must not replace it or make it depend on a higher-level JavaScript abstraction.
+**Ruling:** @taffyjs/node must be a thin native binding to Taffy's high-level TaffyTree usage model. Thin means that layout state and implementation remain in Rust and Taffy, with no JavaScript shadow tree or reimplemented layout abstraction; it does not mean exposing Taffy's low-level traits, internal types, or every public Rust symbol. APIs aimed at greater performance or JavaScript ergonomics may be added alongside this baseline but must not replace it or make it depend on a higher-level JavaScript abstraction.
 
 **Limits:** This decides the package's role and API priority, not the exact JavaScript names, object shapes, call granularity, type representations, ownership model, error mapping, callbacks, validation, conversion, copying, or batching strategy. Rust alignment means preserving the capabilities, concepts, semantics, and visible costs of Taffy's TaffyTree-centered layout usage as directly as Node.js permits. It does not mean reproducing every public symbol in the Rust crate. Higher-level product and compatibility designs remain outside @taffyjs/node. Necessary Node-API interop costs do not conflict with this ruling. Changing this direction requires a new explicit project decision.
 
 **Why:** @taffyjs/node is the foundation that guarantees access to Taffy without requiring consumers to adopt an additional JavaScript-side design. Keeping this path direct follows a zero-cost-abstraction principle: consumers should not pay for an optional higher-level wrapper they do not use. A direct surface is intentional at this layer, while proven performance or experience improvements can still be offered as additions.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly confirmed the direct binding direction and later clarified that Rust alignment applies to Taffy's high-level layout usage rather than complete crate symbol coverage.
+**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly confirmed the direct binding direction, clarified that Rust alignment applies to Taffy's high-level layout usage rather than complete crate symbol coverage, and vouched the thin high-level native binding wording.
 
 ### Safe and sound JavaScript boundary
 
