@@ -14,6 +14,8 @@ Primary upstream references:
 - [iocraft's per-node measurement context](https://github.com/ccbrown/iocraft/blob/ac7a7dd00fa9633becd43388eec4e5159545efb0/packages/iocraft/src/render.rs#L338-L348)
 - [iocraft's compute-time measurement dispatcher](https://github.com/ccbrown/iocraft/blob/ac7a7dd00fa9633becd43388eec4e5159545efb0/packages/iocraft/src/render.rs#L423-L437)
 - [Ink's per-node Yoga measurement callback](https://github.com/vadimdemedes/ink/blob/cdc18fa4942b580cda13304545cc2cf18fdde9b8/src/dom.ts#L76-L91)
+- [Yoga 3.2.1 JavaScript wrapper](https://github.com/facebook/yoga/blob/v3.2.1/javascript/src/wrapAssembly.ts#L266-L329)
+- [Yoga 3.2.1 measurement implementation](https://github.com/facebook/yoga/blob/v3.2.1/yoga/algorithm/CalculateLayout.cpp#L302-L348)
 - [napi-rs type conversions](https://napi.rs/docs/concepts/type-conversions)
 - [napi-rs classes and value shapes](https://napi.rs/docs/concepts/class)
 - [napi-rs enum mappings](https://napi.rs/docs/concepts/enum)
@@ -187,6 +189,8 @@ Measurement state and Taffy's cache need an explicit invalidation contract. Taff
 Taffy's measure closure returns `Size<f32>`, not `Result<Size<f32>, _>`, while a napi-rs `Function` call can fail because JavaScript throws or because its return value cannot be converted. A callback error therefore cannot propagate directly through Taffy's closure with `?`.
 
 Safe Rust also holds an exclusive borrow of the TaffyTree throughout `compute_layout_with_measure`. The closure receives the current node's inputs and context but no tree reference, so Taffy does not provide an inherited high-level capability for same-tree re-entry. JavaScript can still capture the wrapper and attempt access. The public callback type therefore exposes only allowed owned inputs, its documentation states that the same native tree is unavailable until it returns, and actual same-tree re-entry is rejected at the native boundary.
+
+Yoga does not establish the behavior for this boundary. Its JavaScript wrapper and C++ layout path allow a measure function to call back into Yoga without an equivalent checked-borrow rule, but that C++ ownership model does not establish that overlapping Rust access is valid or that Taffy's cache state would remain consistent. The Yoga comparison informed the specific re-entry decision; it is not a separate API-alignment case or a precedent that @taffyjs/node must follow.
 
 The pinned napi-rs receiver code generation does not add a dynamic borrow check for synchronous `&mut self` methods. It unwraps the native pointer and constructs an `&mut` receiver for each call. Ordinary synchronous JavaScript cannot run concurrently with that method, but `compute_layout_with_measure` deliberately calls JavaScript before its mutable borrow ends. If that callback reaches another `&mut self` or `&self` method on the same private native tree, napi-rs can construct another Rust reference while the first exclusive reference is still active. The binding must therefore avoid napi-rs `&mut self` receivers for this state rather than treating documentation as sufficient protection.
 
