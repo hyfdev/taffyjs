@@ -18,15 +18,15 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 ### Safe and sound JavaScript boundary
 
-[VOUCHED @hyfdev 2026-08-09]
+[VOUCHED @hyfdev 2026-08-10]
 
-**Ruling:** Safety and soundness are the binding's second design priority, immediately after preserving Taffy's high-level semantics. Every JavaScript-reachable path must validate values, handles, ownership, lifetime, and operation preconditions before they can violate a Rust or Taffy invariant. Invalid JavaScript usage and expected Taffy failures must produce controlled JavaScript errors rather than Rust panics, internal errors, invalid aliasing, or undefined behavior.
+**Ruling:** Safety and soundness are the binding's second design priority, immediately after preserving Taffy's high-level semantics. Every supported @taffyjs/node API path must validate values, node identities, ownership, lifetime, and operation preconditions before they can violate a Rust or Taffy invariant. Invalid use of @taffyjs/node and expected Taffy failures must produce controlled JavaScript errors rather than Rust panics, internal errors, invalid aliasing, or undefined behavior. Direct imports or calls to @taffyjs/binding-<platform> packages are unsupported implementation access and are outside this public safety contract.
 
-**Limits:** This ruling does not choose the JavaScript error classes, handle representation, validation implementation, callback reentrancy policy, or panic-containment mechanism. It does not claim that the binding can prevent process termination caused by allocation failure, an aborting dependency, or an unknown upstream defect. Panic containment may be a defensive backstop, but it must not replace validation and typed error handling for expected inputs and operations.
+**Limits:** This ruling does not choose the JavaScript error classes for cases not decided separately, validation for non-node values, or panic-containment mechanism. The platform packages remain loadable npm dependencies because the maintained napi-rs loader needs them, but their raw exports must not be re-exported as supported @taffyjs/node operations. This ruling does not claim that the binding can prevent process termination caused by allocation failure, an aborting dependency, direct unsupported platform-package use, or an unknown upstream defect. Panic containment may be a defensive backstop, but it must not replace validation and typed error handling on the supported @taffyjs/node paths.
 
-**Why:** JavaScript callers can freely construct malformed values, retain stale handles, mix values from different owners, and re-enter callbacks. The public boundary must make those cases safe and predictable before they reach native code whose invariants assume valid Rust values and relationships.
+**Why:** JavaScript callers can freely construct malformed values, retain stale NodeIds, mix NodeIds from different trees, and re-enter callbacks. The public boundary must make those cases safe and predictable before they reach native code whose invariants assume valid Rust values and relationships.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly made safe and sound JavaScript behavior the second design principle and required the API to prevent JavaScript misuse from producing panics or internal errors.
+**Source:** Yunfei (`@hyfdev`), 2026-08-09 and 2026-08-10; explicitly made safe and sound JavaScript behavior the second design principle, required the supported @taffyjs/node API to prevent JavaScript misuse from producing panics or internal errors, and explicitly excluded direct @taffyjs/binding-<platform> use from that guarantee.
 
 ### High-level layout-engine scope
 
@@ -42,15 +42,15 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 ### Binding design principles
 
-[VOUCHED @hyfdev 2026-08-09]
+[VOUCHED @hyfdev 2026-08-10]
 
-**Ruling:** The binding must preserve Taffy's high-level Rust semantics and capabilities without mechanically copying Rust syntax; Rust must remain the only source of binding state, with no JavaScript shadow state; implicit costs such as deep copies, object conversion, callbacks across the language boundary, and per-node calls must be treated deliberately; the direct baseline API must remain available when additive batch or higher-performance APIs are introduced; ownership, handle validity, cross-tree misuse, and error behavior must be explicit; and Yoga compatibility, reactive objects, and other higher-level designs must live in @taffyjs/node-yoga or another package above @taffyjs/node.
+**Ruling:** The binding must preserve Taffy's high-level Rust semantics and capabilities without mechanically copying Rust syntax; Rust and Taffy must remain the only source of tree, style, layout, and computation state, while JavaScript may keep private identity and validation metadata that does not mirror that state; implicit costs such as deep copies, object conversion, callbacks across the language boundary, and per-node calls must be treated deliberately; the direct baseline API must remain available when additive batch or higher-performance APIs are introduced; ownership, node validity, cross-tree misuse, and error behavior must be explicit; and Yoga compatibility, reactive objects, and other higher-level designs must live in @taffyjs/node-yoga or another package above @taffyjs/node.
 
-**Limits:** These principles do not decide the concrete JavaScript API, names, object representations, handle encoding, validation mechanism, callback interface, batching shape, or which optimizations are worthwhile. They also do not require eliminating unavoidable Node-API conversion costs. Those choices must be evaluated from the Rust model, napi-rs's available representations, and measured consumer needs.
+**Limits:** Binding metadata may identify the tree that issued a NodeId, associate a current Taffy NodeId with a binding-issued serial, and reject stale or foreign NodeIds. It must not become an authoritative JavaScript copy of parent, children, Style, Layout, cache, or other Taffy state. These principles do not otherwise decide the concrete JavaScript API, names, value representations, callback interface, batching shape, or which optimizations are worthwhile. They also do not require eliminating unavoidable Node-API conversion costs. Those choices must be evaluated from the Rust model, napi-rs's available representations, and measured consumer needs.
 
 **Why:** @taffyjs/node is the direct foundation for other JavaScript APIs. Its state ownership, costs, and failure boundaries therefore need to remain visible and predictable, while optional convenience and performance paths must not make the direct binding unavailable.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly approved these six binding principles and requested that they be vouched before concrete API design.
+**Source:** Yunfei (`@hyfdev`), 2026-08-09 and 2026-08-10; explicitly approved these binding principles before concrete API design and later approved a private JavaScript NodeId registry while keeping Taffy's actual tree and layout state native.
 
 ### Direct layout-state behavior
 
@@ -64,17 +64,77 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly vouched the conclusions from the first four outer-layer mapping experiments.
 
-### Opaque External node handles
+### Direct layout-computation signatures
 
-[VOUCHED @hyfdev 2026-08-09]
+[VOUCHED @hyfdev 2026-08-10]
 
-**Ruling:** JavaScript node handles must be binding-created Node-API External values with an opaque branded TypeScript type, while the raw Taffy NodeId remains private; before any handle reaches Taffy, the binding must verify that it is the expected native value, came from the target tree, and still names an existing node, and it must turn ordinary objects, foreign-tree handles, and removed-node handles into catchable JavaScript errors rather than wrong-node access or Rust panics. Repeated retrieval of the same Taffy node is not required to return JavaScript values that compare equal with `===`; an explicit node-comparison API may be added if needed.
+**Ruling:** The direct API must expose separate `computeLayout(options)` and `computeLayoutWithMeasure(options)` methods that preserve Taffy's `compute_layout` and `compute_layout_with_measure` semantics, use named option objects for their Rust-equivalent inputs, return `void` on success and throw controlled JavaScript errors on failure; the synchronous measure function must receive one owned readonly object containing `knownDimensions`, `availableSpace`, `node`, `context`, and `style`, and return a width-and-height size object. The selected TypeScript shape is recorded in [Taffy-to-Node binding mapping](binding-mapping.md#selected-layout-computation-signatures).
 
-**Limits:** The TypeScript brand only distinguishes the declared node-handle type from ordinary values at compile time; it cannot prove tree ownership or continued existence. This ruling does not choose how Rust records the issuing tree or live nodes, the error classes and messages, whether handles keep a tree alive, the placement or exact semantics of a future node-comparison API, or whether two removed handles may still compare as representing the same former node.
+**Limits:** This decision fixes the two baseline methods, their named-object structure, and their direct semantic correspondence to Taffy. It does not yet fix the concrete `AvailableSpace` or full Style representation, runtime freeze or seal behavior, numeric validation policy, whether a callback may replace context, callback-exception containment, or the native tree's reusable state after callback failure. `TaffyTree<TContext>` is a TypeScript-only context type and does not make Rust aware of the JavaScript value. A measured need may add a positional, batch, retained-callback, or other performance or convenience API, but it must not replace or silently change this direct path.
 
-**Why:** Taffy's NodeId equality compares only its stored number and does not identify a TaffyTree. A foreign NodeId can silently address a different node with the same number, while a removed NodeId can panic when used. Yunfei required those cases to become catchable JavaScript errors, accepted the opaque External behavior, and chose not to require canonical JavaScript object identity.
+**Why:** These signatures retain the capabilities and explicit computation model of Taffy's two high-level methods. Named objects make the outer inputs and the five callback values harder to reorder or misread without adding automatic computation, tree access inside measurement, or another layout abstraction. Rust borrows become owned JavaScript boundary values, and Rust `Result<(), TaffyError>` becomes JavaScript's ordinary `void`-or-throw convention.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly vouched the fifth outer-layer mapping experiment and the External handle behavior, and chose no `===` guarantee with an explicit comparison API available if needed.
+**Source:** Yunfei (`@hyfdev`), 2026-08-10; explicitly accepted the proposed `computeLayout` and `computeLayoutWithMeasure` TypeScript signatures as the direct Rust API mapping with named-object JavaScript ergonomics and asked that they be vouched.
+
+### Value-based NodeId identity
+
+[VOUCHED @hyfdev 2026-08-10]
+
+**Ruling:** @taffyjs/node must expose node identity as an opaque-encoded JavaScript bigint named NodeId with a private TypeScript phantom marker named `phantomMarker` rather than as Taffy's raw `u64` or a JavaScript object. The value must combine enough private binding information to identify the issuing tree, the binding-issued identity of that node creation, and the corresponding raw Taffy NodeId. Repeated retrieval of the same current node must return the same bigint value, so `===`, `Map`, `Set`, and `includes` work without a native call. Each public TaffyTree wrapper must store its private native tree in `#inner` and use a private JavaScript current-node registry to check the bigint's form, tree identity, current binding-issued identity, and raw Taffy NodeId in expected constant time before synchronously calling native code. Each tree must generate an independent, cryptographically secure tree token of at least 128 bits; tree construction must fail if secure generation fails rather than falling back to a module-local counter. A NodeId is valid only for the exact TaffyTree that issued it and is not a persistent or transferable identity across workers or separately evaluated or installed package copies. This JavaScript registry is the sole NodeId-validity registry for the supported API; the initial native layer must not duplicate it or repeat the same owner and liveness check.
+
+**Limits:** The TypeScript phantom marker only helps type checking; JavaScript can still construct arbitrary bigints, so every supported operation must perform the private runtime check. The exact bit layout, field widths, serial allocation, and error classes remain implementation choices, but the encoding must not expose the raw Taffy NodeId as the complete public identity or allow an old NodeId to become valid for a later node when Taffy reuses internal storage. The random tree token provides collision resistance rather than mathematical uniqueness; unsupported transfer does not gain persistence or interoperability semantics, but a target tree should reject a copied or foreign value through its ordinary runtime check. Removing a node deletes its registry entry, clearing a tree clears the registry, and collecting the tree collects the registry. Merely dropping a JavaScript NodeId does not remove its Taffy node or registry entry; explicit `remove`, `clear`, or collection of the whole tree owns that lifetime. A NodeId is a primitive and does not keep its tree alive. The validity guarantee applies to @taffyjs/node, not direct platform-package calls. Any path that can execute application code or mutate the tree between validation and native use, including argument conversion, callback re-entry, or asynchronous work, would reopen the JS-only validation part of this ruling.
+
+**Why:** JavaScript's built-in collections and strict equality can compare bigint values directly, while object-based node handles would require canonical object retention or a separate comparison API. Common tree operations need returned parents and children to work naturally in `Map`, `Set`, and `includes` without crossing the JavaScript-to-native boundary just to compare identity. The tree identity prevents cross-tree confusion, and the binding-issued identity ensures that reuse of a Taffy internal ID does not revive an old JavaScript NodeId. Keeping this check in the public JavaScript wrapper avoids a duplicate native registry while preserving controlled errors on every supported path.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-10; explicitly replaced the earlier External design after identifying ordinary `Map`, `Set`, `includes`, and `===` usage as a core requirement, chose a private composite bigint NodeId with JavaScript-side constant-time validation, required internal Taffy ID reuse not to change JavaScript identity guarantees, approved JS-only validation for the supported @taffyjs/node API, vouched the resulting first-case model and soundness conditions, named the TypeScript marker `phantomMarker`, named the wrapper's private native field `#inner`, and approved an at-least-128-bit secure random per-tree token with tree-local, nonpersistent, and nontransferable NodeId semantics.
+
+### Initial JavaScript data caching
+
+[VOUCHED @hyfdev 2026-08-10]
+
+**Ruling:** The initial @taffyjs/node implementation must not add JavaScript caches for Style, Layout, parent, children, or other Taffy-owned data. The private NodeId registry is required identity metadata, not a data cache.
+
+**Limits:** This does not prohibit a later JavaScript cache. This decision does not choose that cache's representation, population, invalidation, lifetime, or acceptance evidence; those require a separate design decision before adoption.
+
+**Why:** Node identity needs local JavaScript value semantics now, while caching Taffy data is a separable optimization with additional invalidation obligations and no current evidence that it is needed.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-10; explicitly separated node identity from possible JavaScript data caching and chose not to implement the cache initially.
+
+### JavaScript-owned node-context values
+
+[VOUCHED @hyfdev 2026-08-10]
+
+**Ruling:** Arbitrary JavaScript node-context values must remain entirely in JavaScript. Rust and the native binding must not inspect, convert, retain, or otherwise become aware of those values. The native tree must use `TaffyTree<()>`: `Some(())` records only that a node has context, while the public wrapper owns the authoritative JavaScript value in a registry keyed by the current public NodeId. During measurement, the native dispatcher must use the raw NodeId already supplied by Taffy to reconstruct the public NodeId, and the JavaScript dispatcher must use that value to look up the context. No binding-local context ID or custom `NodeContext` struct is needed.
+
+**Limits:** This ruling does not decide the public context method names or whether a measure callback may replace context. A JavaScript context registry is authoritative user-supplied data rather than a cache or shadow copy of Taffy's Style, Layout, topology, or computation state. Context insertion, replacement, removal, node removal, and tree clearing must still keep the JavaScript registry and Taffy's `Some(())` presence marker and dirty state logically consistent. Native `UnknownRef` or equivalent retention of the actual JavaScript value is outside this ruling. A native lookup key may be reconsidered only if a later measured or semantic need cannot be met by the existing public NodeId identity.
+
+**Why:** Taffy's Rust generic argument is fixed at compile time, while JavaScript contexts can be arbitrary dynamic values. Keeping those values in JavaScript avoids unnecessary conversion, environment-affine native references, native-to-JavaScript ownership cycles, and a second runtime representation of user data. Taffy already supplies the node's raw identity to the measure closure, and the NodeId registry already has enough information to recover the wrapper's public identity, so another stored identifier would duplicate that identity and add synchronization work without enabling a new behavior.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-10; explicitly required Rust to have no awareness of the existence or representation of JavaScript-side context values, then vouched `TaffyTree<()>` with NodeId-based JavaScript lookup and no additional context identifier.
+
+### Undefined node-context semantics
+
+[VOUCHED @hyfdev 2026-08-10]
+
+**Ruling:** At the JavaScript boundary, `undefined` must mean that a node has no context and must not be preserved as a distinct present context value; creating or setting context to `undefined` must omit or clear the JavaScript registry entry and Taffy's `Some(())` presence marker, while context reads and measure inputs must return `undefined` for absence. `null` and other JavaScript values remain present context values.
+
+**Limits:** This decision governs presence only. It does not choose the public context method names, whether callback code may replace a context value, the dirtying contract for in-place mutation of a context object, or whether a convenience `hasNodeContext` query is useful. Applications that need an explicit third state may store `null`, a symbol, or an object sentinel as the context value.
+
+**Why:** Taffy invokes the measure function whether node context is present or absent; its presence marker only determines whether the callback receives `Some(context)` or `None`. A present JavaScript `undefined` would therefore add no measurement capability unless the entire API also carried a separate presence flag. Treating `undefined` as absence keeps `context: TContext | undefined` direct and lets applications represent a meaningful extra state explicitly when needed.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-10; concluded that the binding does not need to distinguish missing context from a context value of `undefined`, accepted `undefined` as absence and `null` as an ordinary context value, and explicitly asked that this behavior be vouched.
+
+### Synchronous measurement re-entry
+
+[VOUCHED @hyfdev 2026-08-10]
+
+**Ruling:** A JavaScript measure callback's type must expose only the owned measurement inputs that the callback is allowed to use, and its API documentation must state that native operations on the same TaffyTree are unavailable until the callback returns. If a callback captures that tree and synchronously attempts another native operation, a call that reaches the native access check must throw an ordinary JavaScript `Error` with the stable code `ERR_TAFFY_TREE_BUSY`; it must not silently do nothing or return `undefined`. Its diagnostic message must identify the attempted operation and explain that the same tree cannot be accessed while it is computing layout from a measure callback. The private native class must store `TaffyTree<()>` and any future native state governed by the same access rule behind one `RefCell`, expose shared `&self` napi-rs receivers, and use `try_borrow` or `try_borrow_mut` for every operation instead of relying on napi-rs to protect `&mut self` re-entry. The failed checked borrow must become the controlled JavaScript error rather than a panic. No duplicate JavaScript busy flag is required.
+
+**Limits:** This restriction covers operations that read or mutate the same native tree, including layout reads, style and topology changes, removal, and nested layout computation. NodeId value comparison and use in JavaScript collections do not access the native tree, and a different TaffyTree has independent borrow state and remains usable. JavaScript evaluates argument expressions before entering a method, and wrapper validation or conversion may reject malformed input before the call reaches the native checked borrow; this decision does not add a JavaScript busy precheck or give the re-entry error priority over those earlier failures. This ruling does not decide retained versus per-compute callbacks beyond the selected direct method, callback-result validation, how an exception thrown by the measure callback itself stops an infallible Taffy measure closure, or the native tree's reusable state after such callback failure. A public state getter, `asMutTree`-style access object, or nonthrowing try-access API is not part of the baseline; a later concrete use case may propose one additively without weakening the checked native boundary.
+
+**Why:** Taffy holds exclusive access to its tree throughout `compute_layout_with_measure`, while JavaScript closures can capture the public wrapper and attempt same-tree re-entry. Type declarations and documentation make the intended callback boundary visible but cannot enforce Rust-style borrowing across JavaScript aliases. A single native `RefCell` preserves Rust's access invariant on every actual native entry without duplicating state in JavaScript. Rejecting the invalid call preserves Taffy's semantics. Returning `undefined` from a value-returning method would violate its TypeScript contract, while silently ignoring a void mutation would let layout continue after the caller incorrectly assumes that mutation succeeded; queuing the mutation would instead make the completed layout immediately stale. `ERR_TAFFY_TREE_BUSY` describes the user-visible temporary state without exposing Rust borrowing or re-entry terminology, follows Node.js's stable `error.code` convention, and distinguishes this programming error from unrelated invalid tree states.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-10; explicitly vouched the restricted callback type, documented same-tree unavailability, controlled synchronous re-entry error rather than silent no-op behavior, native `RefCell` implementation direction, and the `ERR_TAFFY_TREE_BUSY` spelling. The selected code follows Node.js's documented [`error.code` stability convention](https://nodejs.org/api/errors.html#errorcode) and subsystem-specific `ERR_*` naming.
 
 ### JavaScript integration-first testing
 
@@ -102,12 +162,12 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 ### napi-rs platform package distribution
 
-[VOUCHED @hyfdev 2026-08-09]
+[VOUCHED @hyfdev 2026-08-10]
 
 **Ruling:** @taffyjs/node must use napi-rs's maintained root-loader distribution model with optional @taffyjs/binding-<platform> packages and must not introduce a generic intermediate binding package or an additional custom loader build without a concrete need.
 
-**Limits:** This ruling does not freeze the target matrix, package versions, release automation, or support policy. It also does not prevent authored JavaScript packages above @taffyjs/node or a future browser or WASI design. Evidence that the generated loader cannot support a required runtime or package boundary would reopen the custom-loader part of the ruling.
+**Limits:** This ruling does not freeze the target matrix, package versions, release automation, or support policy. The platform packages are implementation dependencies loaded by @taffyjs/node, not supported direct-use APIs, even though npm installation makes them importable. It also does not prevent an authored JavaScript public entry inside @taffyjs/node, packages above it, or a future browser or WASI design. Evidence that the generated loader cannot support a required runtime or package boundary would reopen the custom-loader part of the ruling.
 
 **Why:** The generated root loader plus one optional package per platform is napi-rs's current maintained release model. It already gives @taffyjs/node the required package boundary; another binding package or loader build would add machinery for requirements that TaffyJS does not currently have.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-09; accepted the current model if it remained the official napi-rs recommendation and preferred avoiding an additional custom packaging layer without a concrete need. The maintained model is described in napi-rs's [native package release documentation](https://napi.rs/docs/deep-dive/release).
+**Source:** Yunfei (`@hyfdev`), 2026-08-09 and 2026-08-10; accepted the current model if it remained the official napi-rs recommendation, preferred avoiding an additional custom packaging layer without a concrete need, and explicitly excluded direct platform-package use from @taffyjs/node's API and safety contract. The maintained model is described in napi-rs's [native package release documentation](https://napi.rs/docs/deep-dive/release).

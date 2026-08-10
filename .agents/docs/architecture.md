@@ -18,8 +18,8 @@ The repository starts as a small Rust and JavaScript monorepo so the native impl
 ## JavaScript workspace
 
 - npm packages live under packages/ and use the Vite+ workflow from the repository root.
-- packages/taffyjs-node is the independent package published as @taffyjs/node. It owns the napi-rs-generated ESM loader, generated declarations, rare package-local unit tests, and npm metadata. The Rust implementation remains in crates/taffyjs_binding so npm packaging does not become the Rust workspace boundary.
-- @taffyjs/node is both the user-facing package and the napi-rs root loader. It selects an optional platform-specific @taffyjs/binding-<platform> package; there is no intermediate generic binding package or additional custom loader build.
+- packages/taffyjs-node is the independent package published as @taffyjs/node. It owns the authored public ESM wrapper and declarations, the private napi-rs-generated ESM loader and declarations, rare package-local unit tests, and npm metadata. The Rust implementation remains in crates/taffyjs_binding so npm packaging does not become the Rust workspace boundary.
+- @taffyjs/node is the user-facing package and contains the napi-rs root loader as a private implementation module. The authored public wrapper owns JavaScript-only NodeId validation metadata and calls the private native surface. The loader selects an optional platform-specific @taffyjs/binding-<platform> package; there is no intermediate generic binding package or additional custom loader build.
 - A future @taffyjs/node-yoga package should be a JavaScript or TypeScript compatibility layer depending on @taffyjs/node. It should not duplicate the native binding unless new evidence requires a different boundary.
 
 The module format and native distribution model are vouched project direction in [@taffyjs/node decisions](taffyjs-node-decisions.md#esm-only-package-entry) and [@taffyjs/node decisions](taffyjs-node-decisions.md#napi-rs-platform-package-distribution).

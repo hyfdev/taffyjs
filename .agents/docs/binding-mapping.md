@@ -18,6 +18,9 @@ Primary upstream references:
 - [napi-rs classes and value shapes](https://napi.rs/docs/concepts/class)
 - [napi-rs enum mappings](https://napi.rs/docs/concepts/enum)
 - [napi-rs error handling](https://napi.rs/docs/concepts/error-handling)
+- [napi-rs class receiver code generation](https://github.com/napi-rs/napi-rs/blob/napi-v3.12.0/crates/backend/src/codegen/fn.rs)
+- [Node.js ESM cache behavior](https://nodejs.org/download/release/v22.18.0/docs/api/esm.html#file-urls)
+- [Node.js worker cloning and identity](https://nodejs.org/download/release/v22.18.0/docs/api/worker_threads.html)
 
 ## Scope rule
 
@@ -37,6 +40,19 @@ The binding scope is the TaffyTree-centered flow:
 
 Taffy's low-level custom-tree traits, trait-dependent single-algorithm compute functions, cache implementation, helper traits, and generic implementation infrastructure are not binding targets. A new public use case and explicit project decision are required before that boundary expands.
 
+## Lessons from the first mapping case
+
+The first completed mapping case covers TaffyTree layout state and node identity. It supports these reusable rules:
+
+- Start with observable Rust behavior and normal operation sequences, then choose the JavaScript representation. A public Rust declaration or syntax shape is not by itself an API requirement.
+- Preserve state ownership while distinguishing required binding metadata from copied Taffy state. Taffy owns tree structure, Style, Layout, caches, and computation; the NodeId registry records only identity and validity, and a JavaScript cache of Taffy-owned data would be a separate optimization.
+- Choose representations for ordinary JavaScript use while preserving Rust semantics. A Rust newtype does not automatically require a native JavaScript object; NodeId is a bigint because JavaScript identity comparison and keyed collections are normal node operations that should not require a native call.
+- Add private boundary information when the Rust identifier lacks a guarantee required by JavaScript. Taffy's NodeId does not identify its tree, so the public value also records the issuing tree and the binding-issued identity of that node creation without exposing those fields as a persistence or arithmetic format.
+- Treat TypeScript markers and readonly declarations as compile-time guidance rather than runtime validation. The wrapper still checks the form, owner, and current validity of every NodeId that a tree consumes.
+- Separate identity equality from current validity. Equal NodeId bigints name the same binding-issued node identity, but a tree operation still rejects that value after removal.
+- Do not turn a borrowed Rust result into a live JavaScript view. `layout(node)` returns an independent snapshot of the value Taffy currently stores and does not compute a new layout.
+- Keep optional convenience and optimization separate from the direct path. Automatic layout and JavaScript caches require their own semantics and evidence; they must not replace Taffy's direct behavior.
+
 ## Rust usage model
 
 Taffy's basic Rust flow constructs a `TaffyTree`, creates `Style` values, inserts nodes, calls `compute_layout` or `compute_layout_with_measure`, and reads `Layout` snapshots by `NodeId`.
@@ -48,25 +64,67 @@ Taffy's basic Rust flow constructs a `TaffyTree`, creates `Style` values, insert
 | Input state        | `Style<DefaultCheapStr>`                                                                                | An owned value moved into a node when it is created or when `set_style` runs. Its nested fields contain geometry records, closed enums, optional values, vectors, and semantic length or grid values. |
 | Layout constraints | `Size<AvailableSpace>`                                                                                  | An owned width and height pair whose axes are definite lengths, min-content, or max-content constraints.                                                                                              |
 | Output state       | `Layout`                                                                                                | Stored inside the tree and returned by Rust as a borrowed reference tied to that tree. It contains owned numeric geometry values.                                                                     |
-| Node context       | Generic `NodeContext`                                                                                   | Optional owned data stored per node and passed as `Option<&mut NodeContext>` to the measure closure. The binding must choose a concrete bridge context.                                               |
+| Node context       | Generic `NodeContext`                                                                                   | Optional owned data stored per node and passed as `Option<&mut NodeContext>` to the measure closure. The native binding uses `()` as a presence marker while JavaScript owns the actual value.        |
 | Measurement        | `FnMut(Size<Option<f32>>, Size<AvailableSpace>, NodeId, Option<&mut NodeContext>, &Style) -> Size<f32>` | A separate synchronous callback supplied to `compute_layout_with_measure`; it is not inherently the per-node context.                                                                                 |
 | Failure            | `TaffyResult<T>` and `TaffyError`                                                                       | Declares invalid-node variants, but Taffy 0.13 explicitly returns only child-index errors; invalid, stale, or foreign `NodeId` paths generally index storage and may panic.                           |
 
 The public high-level method families are constructors and rounding configuration; node creation and removal; node context access; parent and child mutation; style mutation; layout and dirty-state reads; layout computation; and optional debug or detailed-layout output. The JavaScript API does not have to reproduce every convenience method if the complete normal layout flow remains direct.
 
-Layout reads and computation remain separate operations. A newly created node stores a zero Layout, and `layout(node)` returns it without computing. `set_style` changes the Style and marks the affected cache state dirty, but `layout(node)` continues to return the previously stored result until the caller computes again. If the dirty-state query is exposed, it reports Taffy's cache state; it does not prove that a node's stored layout is current. An API that computes automatically may be added only as a separate convenience. [Case 1](binding-cases.md#case-1-taffytree-layout-state-and-node-handles) shows the observed behavior.
+Layout reads and computation remain separate operations. A newly created node stores a zero Layout, and `layout(node)` returns it without computing. `set_style` changes the Style and marks the affected cache state dirty, but `layout(node)` continues to return the previously stored result until the caller computes again. If the dirty-state query is exposed, it reports Taffy's cache state; it does not prove that a node's stored layout is current. An API that computes automatically may be added only as a separate convenience. [Case 1](binding-cases.md#case-1-taffytree-layout-state-and-node-identities) shows the observed behavior.
 
 Taffy's expected measurement flow treats the callback as a synchronous intrinsic-size function for leaf nodes. One closure is supplied for a compute call; Taffy passes the current node identity, optional per-node context, constraints, and style. The official example stores text or image data in node context and lets the closure borrow an external font registry. A real Taffy-based terminal UI, iocraft, stores a per-component measure function in node context and uses one compute-time closure as the dispatcher. A Yoga-style callback retained directly on each node is therefore a plausible convenience mapping, but it is not the literal shape of Taffy's high-level method.
+
+### Selected layout-computation signatures
+
+The direct JavaScript API keeps Taffy's separate computation methods and changes their positional Rust inputs into named JavaScript objects:
+
+```ts
+type Size<T> = Readonly<{
+  width: T;
+  height: T;
+}>;
+
+type MeasureInput<TContext> = Readonly<{
+  knownDimensions: Size<number | undefined>;
+  availableSpace: Size<AvailableSpace>;
+  node: NodeId;
+  context: TContext | undefined;
+  style: ReadonlyStyle;
+}>;
+
+type MeasureFunction<TContext> = (input: MeasureInput<TContext>) => Size<number>;
+
+interface ComputeLayoutOptions {
+  root: NodeId;
+  availableSpace: Size<AvailableSpace>;
+}
+
+interface ComputeLayoutWithMeasureOptions<TContext> {
+  root: NodeId;
+  availableSpace: Size<AvailableSpace>;
+  measure: MeasureFunction<TContext>;
+}
+
+class TaffyTree<TContext = unknown> {
+  computeLayout(options: ComputeLayoutOptions): void;
+
+  computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
+}
+```
+
+Both methods compute explicitly; neither reads layout, computes automatically, stores a per-node callback, or adds a second layout abstraction. A successful Rust `Result<(), TaffyError>` maps to `void`, while failure maps to a controlled JavaScript exception. The callback is synchronous, and a Promise is not a valid measured size. `knownDimensions`, `availableSpace`, `node`, `context`, and `style` correspond directly to Taffy's five callback inputs, but every Rust borrow becomes an owned JavaScript boundary value. `ReadonlyStyle` records that callback mutation cannot alter Taffy; its concrete representation and any runtime freezing cost remain open.
+
+`TaffyTree<TContext>` is only a TypeScript relationship between a tree and the JavaScript values in its context registry. The native tree remains `TaffyTree<()>`. In `context: TContext | undefined`, `undefined` always means absence: creating or setting an undefined context clears both the registry entry and Taffy's unit presence marker. `null` and other values remain present. Whether callback code may replace a context value remains open.
 
 ## Rust modeling categories
 
 ### Stateful structs
 
-An owned Rust aggregate with identity and mutable state maps to a napi-rs class backed by one private Rust value. `TaffyTree` belongs to this category. JavaScript garbage collection may own the lifetime of the wrapper, but the tree state remains native Rust state.
+An owned Rust aggregate with identity and mutable state maps to one private napi-rs class backed by one Rust value. The public JavaScript `TaffyTree` wrapper owns that private native class and the binding-only NodeId registry. JavaScript garbage collection may own the lifetime of the wrappers, but tree, style, layout, topology, and computation state remain native Rust and Taffy state.
 
-Do not expose native-only fields as writable JavaScript class properties. Mutations go through validated methods so the wrapper can preserve tree invariants.
+Do not expose the private native class, its fields, raw Taffy NodeIds, or raw methods through the supported @taffyjs/node API. Mutations go through validated public methods so the wrapper can preserve the JavaScript and Taffy invariants together.
 
-Methods may map directly to native TaffyTree operations when the JavaScript boundary can preserve their semantics and safety. The class representation must not force lower-level tree traits, internal storage, or Rust borrowing syntax into the public API. Callback re-entry and failure containment remain boundary design questions; they do not determine the public abstraction level or justify an implementation mechanism before the measurement API is chosen.
+Methods may map directly to native TaffyTree operations when the JavaScript boundary can preserve their semantics and safety. The class representation must not force lower-level tree traits, internal storage, or Rust borrowing syntax into the public API. Synchronous same-tree callback re-entry uses the vouched checked-borrow boundary; callback failure containment remains a separate design question and does not determine the public abstraction level.
 
 ### Value structs
 
@@ -120,7 +178,7 @@ Taffy's measure function is synchronous and requires an immediate `Size<f32>` re
 
 Keep node context and the measure function separate in the model. The binding may eventually choose per-node callbacks, shared callbacks plus per-node data, or another concrete context, but that is an API decision rather than a consequence of Taffy's generic parameter.
 
-The binding owns the lifetime of any JavaScript references stored in its concrete node context. Node removal, tree clearing, and owner destruction must explicitly release or unreference those resources. Taffy 0.13 does not remove entries from `node_context_data` in `remove` or `clear`, so the binding must not assume that Taffy releases bridge-owned context for it.
+Actual JavaScript node-context values remain entirely in a wrapper-owned JavaScript registry keyed by the current public NodeId. The native tree uses `TaffyTree<()>`; its optional unit context records presence only and does not own an identifier or the JavaScript value. Context changes on a live node must keep the JavaScript registry and Taffy's presence marker consistent, while node removal and tree clearing must delete the corresponding JavaScript registry entries. Taffy 0.13 leaves `node_context_data` entries behind in `remove` and `clear`, but those native entries contain only `()` under this design and cannot retain a JavaScript value.
 
 Measurement state and Taffy's cache need an explicit invalidation contract. Taffy 0.13's layout cache key does not include the identity or contents of the measure callback or node context. `set_node_context` marks its node dirty, mutable context access does not do so automatically, and changing a callback supplied per compute does not invalidate an existing cache entry. The JavaScript design must decide where dirtying responsibility belongs: binding-owned setters can dirty affected nodes, while a direct per-compute callback may preserve Taffy's caller responsibility for marking nodes dirty when captured measurement inputs change. Supplying a different function must not imply that Taffy will call it during that compute.
 
@@ -128,7 +186,13 @@ Measurement state and Taffy's cache need an explicit invalidation contract. Taff
 
 Taffy's measure closure returns `Size<f32>`, not `Result<Size<f32>, _>`, while a napi-rs `Function` call can fail because JavaScript throws or because its return value cannot be converted. A callback error therefore cannot propagate directly through Taffy's closure with `?`.
 
-Safe Rust also holds an exclusive borrow of the TaffyTree throughout `compute_layout_with_measure`. The closure receives the current node's inputs and context but no tree reference, so Taffy does not provide an inherited high-level capability for same-tree re-entry. JavaScript can still capture the wrapper and attempt access, which means the binding must choose an explicit re-entry policy. Whatever that policy permits or rejects, it must not create overlapping Rust borrows, panic, or corrupt native state.
+Safe Rust also holds an exclusive borrow of the TaffyTree throughout `compute_layout_with_measure`. The closure receives the current node's inputs and context but no tree reference, so Taffy does not provide an inherited high-level capability for same-tree re-entry. JavaScript can still capture the wrapper and attempt access. The public callback type therefore exposes only allowed owned inputs, its documentation states that the same native tree is unavailable until it returns, and actual same-tree re-entry is rejected at the native boundary.
+
+The pinned napi-rs receiver code generation does not add a dynamic borrow check for synchronous `&mut self` methods. It unwraps the native pointer and constructs an `&mut` receiver for each call. Ordinary synchronous JavaScript cannot run concurrently with that method, but `compute_layout_with_measure` deliberately calls JavaScript before its mutable borrow ends. If that callback reaches another `&mut self` or `&self` method on the same private native tree, napi-rs can construct another Rust reference while the first exclusive reference is still active. The binding must therefore avoid napi-rs `&mut self` receivers for this state rather than treating documentation as sufficient protection.
+
+The selected private native representation owns `RefCell<TaffyTree<()>>` and every future native field governed by the same access rule, exposes shared `&self` napi-rs receivers, and uses `try_borrow` or `try_borrow_mut` once per native operation. A same-tree callback entry must turn a failed borrow into an ordinary JavaScript `Error` with stable code `ERR_TAFFY_TREE_BUSY`; the diagnostic message names the attempted operation and explains that the tree cannot be accessed while it is computing layout from a measure callback. The failed operation must not silently do nothing or return `undefined`. A different tree has independent borrow state and remains usable. This checked borrow does not require a duplicate JavaScript busy flag and protects a different invariant from NodeId validation.
+
+An operation that changes both native state and a JavaScript registry must define an order that does not report success with the two sides inconsistent. The exact ordering and failure recovery belong to that operation's implementation. `UnsafeCell` alone is not an alternative to the checked borrow because it permits interior mutation without detecting overlapping access.
 
 The callback is not necessarily pure: `FnMut` may update captured external state, and Taffy deliberately passes mutable node context. The binding must preserve those intended effects while defining what happens to native layout and cache state after a callback exception or invalid result. The mapping rule records this required behavior without selecting an implementation mechanism before the measurement API and its supported behavior are decided.
 
@@ -140,19 +204,19 @@ Rust traits are not mapped to JavaScript interfaces by default. Taffy's high-lev
 
 The binding crate must define local bridge types and explicit `From`, `TryFrom`, or conversion functions around upstream Taffy types. The external Taffy declarations cannot simply receive `#[napi]`, and the runtime direction and validation rules must remain visible in binding code.
 
-| Rust boundary need               | napi-rs tool                                   | Required caution                                                                                                                                                               |
-| -------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Native state and identity        | `#[napi]` class with private Rust fields       | Keep TaffyTree as the sole layout-state owner; validate operations without exposing native fields, storage, or Rust borrowing syntax.                                          |
-| Opaque node handle               | Tagged `External<PrivateNodeHandle>`           | Keep NodeId private; verify the binding's Node-API type tag before decoding the External, then verify the issuing tree and current node existence before calling Taffy.        |
-| Owned input or output record     | `#[napi(object)]`                              | Conversion copies nested values. Optional-field and conversion-direction behavior must be explicit.                                                                            |
-| Positional record                | `#[napi(array)]`                               | Use only when index meaning is stable and clearer than named fields.                                                                                                           |
-| Semantically transparent newtype | `#[napi(transparent)]`                         | Use only when the inner JavaScript value preserves the full semantic distinction.                                                                                              |
-| Fieldless enum                   | numeric or string `#[napi]` enum               | Pick stable values deliberately and validate unknown values.                                                                                                                   |
-| Payload enum                     | structured `#[napi]` enum or manual conversion | Preserve every variant and payload; if a discriminated object is chosen, use a stable discriminator and validate every field before mutation.                                  |
-| Synchronous callback             | `Function<Args, Return>`                       | Scope-bound leaf measurement; callback failure, retained state, and the same-tree re-entry policy need an explicit safe boundary after the public measurement model is chosen. |
-| Retained callback                | `FunctionRef`                                  | Keep it tied to the owning Node environment and release it according to napi-rs's reference contract.                                                                          |
-| Cross-thread callback            | `ThreadsafeFunction`                           | Different scheduling and failure semantics; use only for a separately designed off-thread API.                                                                                 |
-| Expected failure                 | `napi::Result<T>`                              | Convert validation and Taffy failures into stable JavaScript errors.                                                                                                           |
+| Rust boundary need               | napi-rs tool                                   | Required caution                                                                                                                                                             |
+| -------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Native state                     | Private `#[napi]` class with Rust fields       | Keep the native TaffyTree as the sole layout-state owner behind an authored public JavaScript wrapper; do not export raw node operations as supported API.                   |
+| Node identity                    | Branded JavaScript bigint and private JS `Map` | Encode tree identity, binding-issued node identity, and raw Taffy NodeId privately; validate against the current-node registry before the immediate synchronous native call. |
+| Owned input or output record     | `#[napi(object)]`                              | Conversion copies nested values. Optional-field and conversion-direction behavior must be explicit.                                                                          |
+| Positional record                | `#[napi(array)]`                               | Use only when index meaning is stable and clearer than named fields.                                                                                                         |
+| Semantically transparent newtype | `#[napi(transparent)]`                         | Use only when the inner JavaScript value preserves the full semantic distinction.                                                                                            |
+| Fieldless enum                   | numeric or string `#[napi]` enum               | Pick stable values deliberately and validate unknown values.                                                                                                                 |
+| Payload enum                     | structured `#[napi]` enum or manual conversion | Preserve every variant and payload; if a discriminated object is chosen, use a stable discriminator and validate every field before mutation.                                |
+| Synchronous callback             | `Function<Args, Return>`                       | Scope-bound leaf measurement; expose only permitted owned inputs and reject same-tree native re-entry through the checked `RefCell` boundary.                                |
+| Retained callback                | `FunctionRef`                                  | Keep it tied to the owning Node environment and release it according to napi-rs's reference contract.                                                                        |
+| Cross-thread callback            | `ThreadsafeFunction`                           | Different scheduling and failure semantics; use only for a separately designed off-thread API.                                                                               |
+| Expected failure                 | `napi::Result<T>`                              | Convert validation and Taffy failures into stable JavaScript errors.                                                                                                         |
 
 ## Numeric rules
 
@@ -162,22 +226,24 @@ Each numeric field must define whether it permits negative values, zero, infinit
 
 JavaScript indices, counts, and capacities must be safe integers within the supported Rust and practical allocation range. Perform checked arithmetic before allocation, indexing, or range construction.
 
-`NodeId` wraps a `u64`, but that raw value is not part of the JavaScript API. It exists only inside a binding-created Node-API External containing private Rust handle data, with no public construction, read, write, or serialization path for the ID. The binding must mark each handle with a private Node-API type tag and verify that tag before decoding the external data pointer. napi-rs's internal Rust `TypeId` check occurs after it reads that pointer, so it cannot safely identify an External created by an unrelated native addon on its own. The public TypeScript type uses a private brand so an ordinary object is not accepted by type checking, but that brand cannot prove native origin, which tree created the handle, or whether the node still exists. Native code must check all three facts before calling Taffy. The handle must not contain a raw Rust reference or pointer to the TaffyTree; the exact safe way to record its tree and lifetime remains open.
+`NodeId` wraps a `u64`, but that raw value alone is not the JavaScript identity. The public type is a bigint with a private TypeScript phantom marker and a private composite encoding that includes the issuing tree, a binding-issued serial for that node creation, and the raw Taffy NodeId. The phantom marker prevents accidental type compatibility but cannot validate a runtime bigint. Each public TaffyTree wrapper therefore keeps a private `raw NodeId -> current serial` map, checks every incoming NodeId against it in expected constant time, and only then extracts the raw value for an immediate synchronous native call. The initial native layer trusts that supported wrapper path and does not keep a duplicate serial registry.
+
+A bigint can be cloned through Node worker messaging even though its TaffyTree cannot be transferred with it, while Node may evaluate the same ESM source more than once when it resolves to distinct URLs and may install multiple physical copies of one package. A counter stored only in one module evaluation therefore cannot reliably distinguish these unrelated trees. A NodeId is valid only for the exact TaffyTree that issued it and is not a persistent or transferable identity across workers or separately evaluated or installed package copies. Each tree independently generates a cryptographically secure token of at least 128 bits, and tree construction fails if secure generation fails. This avoids shared cross-module coordination and provides collision resistance rather than mathematical uniqueness. A target tree still applies its normal runtime check to a copied or foreign bigint and should reject it rather than accidentally treating unsupported transfer as a local node.
 
 ## Safety and soundness invariants
 
-For this binding, safe means JavaScript misuse produces a documented value or controlled error without crashing or corrupting the native state. Sound means no JavaScript call sequence, callback, garbage-collection event, or worker interaction can violate Rust aliasing, lifetime, thread, or memory invariants.
+For this binding, safe means misuse of the supported @taffyjs/node API produces a documented value or controlled error without crashing or corrupting native state. Sound means no supported @taffyjs/node call sequence, callback, garbage-collection event, or worker interaction can violate Rust aliasing, lifetime, thread, or memory invariants. Direct use of @taffyjs/binding-<platform> is outside this contract.
 
-### Handles
+### Node identities
 
-- JavaScript must receive node handles as binding-created Node-API External values and must not be able to construct an arbitrary valid-looking handle through the normal public API.
-- The raw `NodeId` must never be exposed as a JavaScript number, bigint, string, property, or serialization format.
-- Before decoding any external data pointer, every node operation must use a private Node-API type tag or an equally safe check to confirm that this binding created the External; an External from another native addon must return a controlled error.
-- After that native-origin check, every node operation must decode the private handle data, confirm that the target tree created it, and confirm that the node still exists before calling Taffy.
-- Handles become stale after their node is removed and all handles become stale when the tree is cleared or destroyed; stale use must return a controlled error.
-- A handle created by another tree must return a controlled error; Taffy's numeric key alone cannot provide this check.
-- Validation must happen before any Taffy method that indexes node, parent, child, style, layout, or cache storage.
-- Repeated retrieval of one node does not have to return the same JavaScript External value, so callers must not rely on `===`. A future explicit comparison API must account for the issuing tree rather than copying raw NodeId equality; its behavior for removed handles remains open.
+- JavaScript receives a bigint NodeId with a private TypeScript phantom marker; its private encoding is not an API for serialization, arithmetic, tree access, or extracting Taffy's raw `u64`.
+- A runtime NodeId validator must first require a bigint with the complete supported format, then decode its tree identity, binding-issued serial, and raw Taffy NodeId.
+- The target public TaffyTree must reject a different tree identity and reject any raw NodeId whose current private registry entry does not equal the decoded serial.
+- Validation must happen before any supported call reaches a Taffy method that indexes node, parent, child, style, layout, or cache storage. The implementation must normalize other caller-supplied inputs before the final current-node lookup and then make the synchronous native call with already-normalized values; otherwise the JS-only validity check is not sufficient.
+- Removing a node deletes its registry entry, and clearing a tree clears the registry. If Taffy later reuses an internal ID, the replacement node receives a new serial, so the old public NodeId remains invalid.
+- Keeping a NodeId in JavaScript after removal keeps only a bigint. Dropping a NodeId without removing its node does not remove native state; the TaffyTree and registry retain that node until explicit removal, clearing, or collection of the whole tree.
+- Repeated retrieval of one current node returns the same bigint value. Callers may rely on `===`, `Map`, `Set`, and `includes` for identity, but equality alone does not establish that the node is still present.
+- The JavaScript registry is the supported API's sole NodeId-validity registry. Native code does not repeat the same serial lookup, so a supported path must not permit the tree to change between the final registry lookup and the synchronous native operation. An implementation that cannot maintain that ordering must revisit JS-only validation.
 
 ### Tree topology and indices
 
@@ -198,8 +264,8 @@ For this binding, safe means JavaScript misuse produces a documented value or co
 
 - A measure callback must return synchronously with a fully validated size.
 - Materialize JavaScript callback arguments as owned boundary values; do not expose a Rust borrow or raw owner pointer as callback data.
-- Convert a JavaScript throw or invalid callback result into a controlled error without leaving reusable partial layout or cache state behind.
-- Decide which same-tree operations, if any, a measure callback may perform. Any rejected access must produce controlled behavior rather than aliasing, panic, or corrupted tree state; the policy and enforcement mechanism remain open.
+- Define how a JavaScript throw or invalid callback result becomes a controlled error and whether the affected tree, layout, and cache remain readable or reusable; do not assume rollback, poisoning, or rebuilding before that failure policy is decided.
+- Keep same-tree native operations unavailable during a measure callback and turn checked-borrow failure into `ERR_TAFFY_TREE_BUSY`; NodeId value operations and independent trees remain usable.
 - Define dirtying responsibility for every binding-owned measurement or context change and document when callers must mark nodes dirty after external captured state changes; do not imply that a newly supplied callback will run when Taffy can reuse a prior cache entry.
 - Retained JavaScript references must not outlive their Node environment, run on an arbitrary thread, or keep the process alive accidentally without an explicit policy.
 - Release binding-owned node-context resources as part of node removal, tree clearing, and owner destruction; do not delegate that lifetime to Taffy's context storage.
@@ -208,7 +274,7 @@ For this binding, safe means JavaScript misuse produces a documented value or co
 ### Error and panic boundary
 
 - Binding code must not use unchecked indexing, `unwrap`, `expect`, unchecked narrowing, or raw pointer construction on JavaScript-controlled data.
-- Convert malformed input, stale or foreign handles, invalid relationships, invalid indices, callback failures, and ordinary Taffy errors into stable JavaScript errors.
+- Convert malformed input, stale or foreign-tree NodeIds, invalid relationships, invalid indices, callback failures, and ordinary Taffy errors into stable JavaScript errors.
 - Treat a caught panic as an unexpected internal failure, not as a substitute for an expected validation error.
 - Do not expose a tree for further mutation after an unexpected failure unless the binding can establish that all native invariants still hold.
 
@@ -218,28 +284,28 @@ Taffy 0.13 makes these checks necessary: several public TaffyTree methods index 
 
 This inventory fixes categories and obligations, not final JavaScript spellings.
 
-| Taffy type family                                       | Binding role                       | Direction                                          | Required rule before API design                                                                                                                                                         |
-| ------------------------------------------------------- | ---------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TaffyTree<BridgeNodeContext>`                          | Stateful native owner              | JavaScript holds native class                      | Sole layout-state owner behind TaffyTree-centered high-level operations; controlled destruction and no writable raw fields.                                                             |
-| `NodeId`                                                | Opaque node identity               | Private inside a binding-created Node-API External | Branded TypeScript declaration, no raw JS representation or public construction, a type-tag check before pointer decoding, then checks for the issuing tree and current node existence. |
-| `Style<DefaultCheapStr>`                                | Node input and observable snapshot | Both directions may be useful                      | Complete semantic conversion, explicit defaults, no live JavaScript view; object versus native value wrapper remains open.                                                              |
-| `Size<T>`, `Rect<T>`, `Point<T>`, `Line<T>`             | Geometry value families            | Depends on concrete `T`                            | Concrete Rust wrappers; TypeScript generics allowed only as truthful declarations; checked nested conversion.                                                                           |
-| `Layout`                                                | Stored output snapshot             | Rust to JavaScript                                 | Return an owned copy of Taffy's currently stored value without computing; no mutable view into tree storage.                                                                            |
-| `AvailableSpace`                                        | Layout constraint variant          | JavaScript to Rust, possibly output in callbacks   | Unambiguous semantic variants with a checked definite length; exact JavaScript shape remains open.                                                                                      |
-| `Dimension`, `LengthPercentage`, `LengthPercentageAuto` | Semantic length variants           | Primarily JavaScript to Rust                       | Preserve length, percent, auto, and supported variants without exposing compact storage.                                                                                                |
-| Fieldless style enums                                   | Closed semantic values             | Usually both                                       | Stable chosen representation and unknown-value rejection.                                                                                                                               |
-| Alignment and grid compound types                       | Nested style values                | Primarily JavaScript to Rust                       | Preserve semantic variants and names; validate complete nested arrays and identifiers.                                                                                                  |
-| `BridgeNodeContext`                                     | Per-node native context            | API-dependent                                      | Concrete owned representation, independent from measure callback; explicitly release retained JS resources on node removal, tree clearing, and owner destruction.                       |
-| Measure closure                                         | Leaf intrinsic-size extension      | JavaScript function called by Rust                 | Preserve the synchronous compute-time dispatcher and node-context roles; callback retention, failure containment, and exact JavaScript shape remain open.                               |
-| `TaffyError` and binding validation failures            | Controlled failure                 | Rust to JavaScript throw                           | Stable error category and message context; never rely on panic text.                                                                                                                    |
-| `DetailedLayoutInfo`                                    | Optional high-level output         | Rust to JavaScript                                 | Output-only snapshot if included; feature and completeness policy remain open.                                                                                                          |
+| Taffy type family                                       | Binding role                       | Direction                                        | Required rule before API design                                                                                                                             |
+| ------------------------------------------------------- | ---------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TaffyTree<()>`                                         | Stateful native owner              | Private native class behind a public JS wrapper  | Sole layout-state owner behind TaffyTree-centered high-level operations; optional unit context records only the presence of JavaScript-owned context.       |
+| `NodeId`                                                | Value-based node identity          | Branded JavaScript bigint                        | Private composite encoding, stable value equality, and JavaScript validation against the target tree's current-node registry before synchronous native use. |
+| `Style<DefaultCheapStr>`                                | Node input and observable snapshot | Both directions may be useful                    | Complete semantic conversion, explicit defaults, no live JavaScript view; object versus native value wrapper remains open.                                  |
+| `Size<T>`, `Rect<T>`, `Point<T>`, `Line<T>`             | Geometry value families            | Depends on concrete `T`                          | Concrete Rust wrappers; TypeScript generics allowed only as truthful declarations; checked nested conversion.                                               |
+| `Layout`                                                | Stored output snapshot             | Rust to JavaScript                               | Return an owned copy of Taffy's currently stored value without computing; no mutable view into tree storage.                                                |
+| `AvailableSpace`                                        | Layout constraint variant          | JavaScript to Rust, possibly output in callbacks | Unambiguous semantic variants with a checked definite length; exact JavaScript shape remains open.                                                          |
+| `Dimension`, `LengthPercentage`, `LengthPercentageAuto` | Semantic length variants           | Primarily JavaScript to Rust                     | Preserve length, percent, auto, and supported variants without exposing compact storage.                                                                    |
+| Fieldless style enums                                   | Closed semantic values             | Usually both                                     | Stable chosen representation and unknown-value rejection.                                                                                                   |
+| Alignment and grid compound types                       | Nested style values                | Primarily JavaScript to Rust                     | Preserve semantic variants and names; validate complete nested arrays and identifiers.                                                                      |
+| Unit context `()`                                       | Per-node native context            | Rust-internal presence marker                    | Preserve optional context and dirtying; use Taffy's raw NodeId to recover the public NodeId that keys the JavaScript-owned value.                           |
+| Measure closure                                         | Leaf intrinsic-size extension      | JavaScript function called by Rust               | Use the selected synchronous compute-time callback object; retained-callback additions and failure containment remain open.                                 |
+| `TaffyError` and binding validation failures            | Controlled failure                 | Rust to JavaScript throw                         | Stable error category and message context; never rely on panic text.                                                                                        |
+| `DetailedLayoutInfo`                                    | Optional high-level output         | Rust to JavaScript                               | Output-only snapshot if included; feature and completeness policy remain open.                                                                              |
 
 ## Per-type mapping record
 
 Before implementing any new public type, record answers to these questions in the relevant design work or code review:
 
 1. Which agreed high-level layout flow requires the type?
-2. Is it a native owner, opaque handle, input value, output snapshot, callback, or error?
+2. Is it a native owner, node identity, input value, output snapshot, callback, or error?
 3. Which concrete Taffy instantiation is used at runtime?
 4. Is conversion JavaScript-to-Rust, Rust-to-JavaScript, or both?
 5. What is copied, borrowed for one call, or retained across calls?
@@ -268,4 +334,4 @@ When Taffy or napi-rs changes:
 
 ## Open representation choices
 
-This reference intentionally does not decide the JavaScript class and method names, the private Rust records and lifetime mechanism behind node handles, the placement or removed-handle behavior of an explicit node-comparison API, Style representation, geometry representation, enum spelling or numeric values, payload-value shape, nullability conventions, readonly or runtime-frozen output objects, measure and context API, callback failure or re-entry mechanism, error classes, batching API, detailed-layout support, or panic-containment implementation. These choices use the rules above and become decisions only when Yunfei explicitly approves them.
+This reference intentionally does not decide JavaScript class and method names outside the selected layout-computation methods, the private NodeId bit layout and allocation mechanisms, Style representation, geometry representation, enum spelling or numeric values, payload-value shape outside the decided node-context semantics, readonly or runtime-frozen output objects, retained or additional measure APIs, context replacement semantics, callback-failure propagation, error classes outside the vouched re-entry error, batching API, detailed-layout support, or panic-containment implementation. These choices use the rules above and become decisions only when Yunfei explicitly approves them.

@@ -10,26 +10,28 @@ This record deliberately does not define the alignment workflow, sequencing, evi
 
 - [ ] Align construction and capacity configuration from `TaffyTree::new` and `TaffyTree::with_capacity`, including checked JavaScript integer handling and whether capacity belongs in the baseline surface.
 - [ ] Align rounding configuration from `enable_rounding` and `disable_rounding` without exposing writable native fields.
-- [ ] Align `clear` with atomic handle invalidation and explicit release of all bridge-owned node-context resources.
+- [ ] Align `clear` with NodeId-registry clearing and deletion of all wrapper-owned JavaScript context entries.
 - [ ] Align observable tree metadata such as `total_node_count` where it supports normal layout usage.
 
 ## Node identity and lifecycle
 
-- [ ] Implement binding-created `External<PrivateNodeHandle>` values for every internal `NodeId`, with a private Node-API type tag, a private branded TypeScript declaration, and no constructible public Node class.
-- [ ] Choose how private Rust handle data records which tree created it and how long that record remains valid, without raw references or pointers to a `TaffyTree`.
+- [ ] Implement a bigint `NodeId` with the private TypeScript `phantomMarker` and an authored public JavaScript `TaffyTree` wrapper that stores the native tree in `#inner` and keeps all raw native operations private.
+- [ ] Choose the private composite NodeId field layout and allocation mechanism for the binding-issued node serial and raw Taffy NodeId without making any field a public persistence or arithmetic format.
+- [ ] Implement a private per-tree `raw NodeId -> current serial` registry with expected constant-time lookup and one entry for each node still stored in Taffy.
 - [ ] Keep TaffyTree as the sole layout-state owner without a JavaScript shadow tree, reimplemented layout abstraction, or JavaScript implementation of Taffy's low-level tree traits.
-- [ ] Define how the binding checks that a node still exists after creation, `remove`, `clear`, owner destruction, and any future key reuse.
-- [ ] Align `new_leaf`, `new_leaf_with_context`, and `new_with_children` with complete prevalidation and no partially created public state.
-- [ ] Align `remove` with topology updates, context cleanup, deterministic stale-handle behavior, and controlled errors.
-- [ ] Decide whether a node handle keeps its tree alive or becomes unusable after the tree wrapper is collected.
-- [ ] Add declaration fixtures proving that a returned handle is accepted while an ordinary object and direct construction are rejected.
-- [ ] Add runtime fixtures proving that an ordinary object and an External created by an unrelated native addon become controlled JavaScript errors; check the binding's Node-API type tag before napi-rs reads the external data pointer.
-- [ ] Decide whether consumers need an explicit node-comparison API and, if so, define its placement and its behavior for handles from different trees and handles whose nodes were removed; do not rely on JavaScript `===` or raw NodeId equality.
+- [ ] Make every supported NodeId-consuming path validate the bigint's form, tree identity, raw Taffy NodeId, and current serial in JavaScript immediately before its synchronous native call, with no exported bypass through @taffyjs/node.
+- [ ] Normalize every operation's other caller-supplied inputs before its final current-node lookup, then call native synchronously with already-normalized values; otherwise reopen the JS-only validation decision.
+- [ ] Align `new_leaf`, `new_leaf_with_context`, and `new_with_children` so native creation and JavaScript registration produce no partially created public state.
+- [ ] Align `remove` so native topology changes, JavaScript context deletion, and NodeId-registry deletion cannot report success while leaving the wrapper and native tree inconsistent.
+- [ ] Generate an independent, cryptographically secure tree token of at least 128 bits for every tree, fail tree construction if generation fails, and never fall back to a module-local counter; keep the token collision-resistant rather than claiming mathematical uniqueness.
+- [ ] Add declaration fixtures proving that returned NodeIds carry the private phantom type marker and that ordinary bigint variables, numbers, and objects are rejected by TypeScript without an explicit assertion.
+- [ ] Add runtime fixtures for malformed bigints, cross-tree NodeIds, removed NodeIds, raw Taffy ID reuse, `clear`, and an input conversion that changes tree state before the final current-node lookup; assert controlled errors before Taffy receives an invalid ID.
+- [ ] Add identity fixtures proving that repeated retrieval of one current node works with `===`, `Map`, `Set`, and `includes`, while equality alone does not claim that a removed node remains usable.
 
 ## Tree topology
 
 - [ ] Align `add_child`, `insert_child_at_index`, `set_children`, `remove_child`, `remove_child_at_index`, `remove_children_range`, and `replace_child_at_index` by capability rather than mechanically copying Rust overloads and range syntax.
-- [ ] Align `child_at_index`, `parent`, and `children` reads with opaque handles and owned JavaScript collections.
+- [ ] Align `child_at_index`, `parent`, and `children` reads with stable bigint NodeIds and owned JavaScript collections.
 - [ ] Define JavaScript index and range shapes with safe-integer, bounds, and allocation validation.
 - [ ] Define reparenting, duplicate-child, self-parent, cycle, and cross-tree behavior before forwarding any topology mutation to Taffy.
 - [ ] Make every multi-node mutation validate completely before its first state change and define an atomic failure boundary where Taffy's method sequence is not itself atomic.
@@ -45,8 +47,8 @@ This record deliberately does not define the alignment workflow, sequencing, evi
 
 ## Layout computation and observable state
 
-- [ ] Align `compute_layout` with `Size<AvailableSpace>`, opaque root handles, and controlled errors; keep computation explicit rather than triggering it from layout reads or mutations.
-- [ ] Align `compute_layout_with_measure` with synchronous JavaScript measurement and controlled callback-failure semantics that never expose partially computed native state as valid.
+- [ ] Implement the vouched `computeLayout({ root, availableSpace })` signature with a validated root NodeId, controlled errors, and explicit computation rather than triggering it from layout reads or mutations.
+- [ ] Implement the vouched `computeLayoutWithMeasure({ root, availableSpace, measure })` signature and its single owned readonly callback-input object containing `knownDimensions`, `availableSpace`, `node`, `context`, and `style`; keep callback-failure handling on the controlled path and defer the resulting tree, layout, and cache state to the explicit containment decision below.
 - [ ] Define callback exception and invalid-result containment after the public measurement model is selected, including the resulting layout, cache, node-context, and external-side-effect semantics without selecting an implementation mechanism in advance.
 - [ ] Align rounded `layout` and `unrounded_layout` as owned snapshots of the values currently stored by Taffy, including zero before the first computation and earlier results until another computation.
 - [ ] Decide whether to expose `mark_dirty` and `dirty`; if exposed, retain Taffy's cache-state behavior and do not present `dirty(node)` as proof that the node's stored layout is current.
@@ -57,17 +59,19 @@ This record deliberately does not define the alignment workflow, sequencing, evi
 
 ## Measurement and node context
 
-- [ ] Choose the concrete `BridgeNodeContext` without conflating per-node context with Taffy's separately supplied measure closure.
+- [ ] Implement the vouched `TaffyTree<()>` boundary: use `Some(())` only as a context-presence marker, keep actual values in a wrapper-owned registry keyed by public NodeId, reconstruct that NodeId from the raw ID supplied during measurement, and never retain a JavaScript value or a second context identifier in Rust.
+- [ ] Normalize `undefined` context to absence on every creation and update path, clearing both the JavaScript registry entry and Taffy's unit presence marker; return `undefined` for absence while preserving `null` and other values as present contexts.
 - [ ] Decide how the capabilities of `set_node_context`, `get_node_context`, `get_node_context_mut`, and `get_disjoint_node_context_mut` appear at the JavaScript boundary, are absorbed into the measurement design, or are intentionally omitted; direct mutable context access must not bypass dirty propagation or native lifetime rules.
-- [ ] Decide whether measurement is supplied once per compute, retained per node, shared with per-node context, or offered through more than one explicit API.
 - [ ] Preserve Taffy's direct high-level role of one synchronous measure dispatcher per compute call; evaluate a retained per-node callback separately as a convenience pattern demonstrated by iocraft and Ink rather than treating it as the literal Rust API.
 - [ ] Define dirtying responsibility for binding-owned callback or node-context changes and for measurement inputs captured outside the binding, because Taffy's cache key does not include callback or context identity and a per-compute callback change does not invalidate cached measurements automatically.
-- [ ] Align known dimensions, available space, node identity, context, observable style input, and measured size without exposing Rust borrows or raw IDs.
-- [ ] Materialize callback inputs as owned JavaScript boundary values without exposing Rust borrows or raw owner pointers.
+- [ ] Materialize the selected `knownDimensions`, `availableSpace`, public `node`, `context`, and `style` callback fields as owned JavaScript boundary values without exposing Rust borrows, raw Taffy IDs, or raw owner pointers.
 - [ ] Define validation for callback output, including missing axes, NaN, infinity, negative values, and the supported `f32` range and precision policy.
 - [ ] Define how a JavaScript exception or invalid callback result becomes a controlled JavaScript error despite Taffy's infallible measure closure, including when computation stops and when native state may be reused.
-- [ ] Decide which same-tree operations, if any, a JavaScript measure callback may perform, and define controlled behavior for every rejected operation without allowing overlapping Rust borrows, panic, or corrupted native state.
-- [ ] Use scoped `Function` for one-call callbacks and `FunctionRef` only for retained callbacks, with explicit `remove`, `clear`, owner-drop, and Node-environment release behavior.
+- [ ] Define the measure callback type using only allowed owned inputs and document that same-tree native operations are unavailable until it returns; keep NodeId value operations and another tree usable.
+- [ ] Implement the vouched native checked-borrow boundary with shared `&self` napi-rs receivers and one `RefCell` containing `TaffyTree<()>` and any future native state governed by the same access rule; use `try_borrow` or `try_borrow_mut` on every native operation and do not add a duplicate JavaScript busy flag.
+- [ ] Map failed same-tree checked borrows to an ordinary JavaScript `Error` with stable code `ERR_TAFFY_TREE_BUSY` and a diagnostic message naming the attempted operation and explaining that the tree cannot be accessed while it is computing layout from a measure callback; never silently ignore the operation or return `undefined`.
+- [ ] Add integration fixtures for same-tree read, mutation, removal, and nested computation attempts from a measure callback; assert the stable error code, no panic or partial JavaScript registry update, continued use after the callback failure policy permits it, and successful access to a different tree.
+- [ ] Use scoped `Function` for one-call callbacks and consider `FunctionRef` only if a separate retained-callback API is approved; keep actual JavaScript node-context values in the wrapper-owned registry.
 - [ ] Account for per-measurement Node-API crossings and argument/result conversions before proposing additive callback or batching optimizations.
 - [ ] Track whether Taffy gains a fallible measurement mechanism that can represent JavaScript callback failure more directly.
 
@@ -83,10 +87,11 @@ This record deliberately does not define the alignment workflow, sequencing, evi
 
 ## Errors, ownership, and environment lifetime
 
-- [ ] Define stable binding-level error categories for malformed values, ordinary objects or foreign native Externals presented as node handles, removed-node handles, handles created by another tree, topology violations, indices and ranges, measurement failures, callback access rejected by the chosen re-entry policy, ordinary Taffy errors, and unexpected internal failures.
+- [ ] Define stable binding-level error categories for malformed values, malformed bigints presented as NodeIds, removed NodeIds, NodeIds created by another tree, topology violations, indices and ranges, measurement failures other than the vouched `ERR_TAFFY_TREE_BUSY`, ordinary Taffy errors, and unexpected internal failures.
 - [ ] Audit every selected Taffy method for indexing, `unwrap`, range panic, partial mutation, and other preconditions that `TaffyResult` does not enforce in Taffy 0.13.
-- [ ] Define the native tree's state after every expected and unexpected failure without exposing partially reusable layouts or caches.
-- [ ] Define Node environment and worker boundaries for classes, handles, retained references, destruction, and any future cross-thread API.
+- [ ] Define the native tree's state after every expected and unexpected failure, including whether stored layouts and caches remain readable or reusable and what recovery, if any, is required.
+- [ ] Define Node environment and worker boundaries for the public wrapper, private native class, retained references, destruction, and any future cross-thread API; NodeIds themselves remain local to the exact TaffyTree that issued them.
+- [ ] Test that a NodeId cloned to another worker or produced by a separately evaluated or installed @taffyjs/node copy does not gain transfer semantics and is rejected by another tree's ordinary runtime check.
 - [ ] Prove that retained callback and context state cannot cross the originating Node environment or thread, using type-level non-sendability and compile-time assertions where the chosen representation permits them.
 - [ ] Keep panic containment as a defensive backstop rather than the normal path for invalid JavaScript input or callback errors.
 
@@ -95,6 +100,7 @@ This record deliberately does not define the alignment workflow, sequencing, evi
 - [ ] Decide whether `print_tree` belongs in the public package, a debug-only surface, or no JavaScript API.
 - [ ] Treat parsing, serde-based transport, low-level tree traits, trait-dependent algorithms, cache internals, and JavaScript-owned custom trees as out of scope unless a new requirement explicitly expands the package boundary.
 - [ ] Track batch node creation, batch topology mutation, batch layout reads, reusable converted styles, and other measured performance APIs as additive candidates that cannot replace the direct baseline.
+- [ ] Keep JavaScript caches for Style, Layout, parent, children, and other Taffy-owned data out of the initial implementation; require a separate measured design with complete invalidation rules before adding one.
 - [ ] Treat off-thread layout, asynchronous measurement, cancellation, and result delivery as a separate future contract rather than extensions of the synchronous callback API.
 
 ## Deferred alignment design
