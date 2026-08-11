@@ -36,3 +36,11 @@ The testing strategy and placement are vouched project direction in [@taffyjs/no
 ## Bootstrap boundary
 
 The temporary __bootstrap export exists only to prove that the native addon can build and load. It is not a proposed public binding API and should be removed when the first real binding surface is introduced.
+
+## Complete owned snapshots
+
+The initial read boundary uses complete owned snapshots. `getStyle(node)` returns one complete recursively readonly `Style` ordinary plain object, and every actual measure callback receives a complete owned Style snapshot in the same representation. These values are eagerly materialized, independent from native state, and neither frozen, sealed, proxied, nor cached. No live Rust borrow or native-backed view escapes.
+
+The initial implementation has no lazy snapshot, selective query, prepared query, output cache, or batch snapshot facility. Those mechanisms would add new optimization APIs or representations without changing the complete getter's meaning, so they remain outside the initial API and implementation work. Internal field converters may stay composable so later measured work can reuse them, but this does not require a public selector framework now.
+
+The exploratory designs, rejected assumptions, viable query shapes, soundness traps, and evidence required to reopen output optimization are recorded in [Output optimization research](output-optimization-research.md). A future optimization must identify its actual workload first: repeated direct reads, many nodes crossing the boundary, nested collection projection, or measure-callback delivery can require different solutions.
