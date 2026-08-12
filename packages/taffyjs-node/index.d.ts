@@ -561,3 +561,14 @@ export interface Style {
   readonly gridRow: Line<GridPlacement>;
   readonly gridColumn: Line<GridPlacement>;
 }
+
+export interface Layout {
+  readonly order: number;
+  readonly location: Point<number>;
+  readonly size: Size<number>;
+  readonly contentSize: Size<number>;
+  readonly scrollbarSize: Size<number>;
+  readonly border: Rect<number>;
+  readonly padding: Rect<number>;
+  readonly margin: Rect<number>;
+}

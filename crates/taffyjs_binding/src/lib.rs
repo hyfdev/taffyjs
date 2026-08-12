@@ -156,6 +156,11 @@ fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
 #[cfg(feature = "test-hooks")]
 #[napi]
 impl NativeTaffyTree {
+    #[napi(js_name = "__layoutWithOrder")]
+    pub fn layout_with_order(&self, env: Env, order: u32) -> napi::Result<Object<'_>> {
+        layout::output(&env, &taffy::Layout::with_order(order))
+    }
+
     #[napi(js_name = "__triggerError")]
     pub fn trigger_error(&self, env: Env, condition: String) -> napi::Result<()> {
         let error = match condition.as_str() {
