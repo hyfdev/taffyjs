@@ -8,13 +8,15 @@ mod geometry;
 mod grid;
 mod layout;
 mod length;
+mod measure;
 mod number;
 mod owner;
 mod style;
 
 use error::{NativeResult, internal_error, into_napi, type_error};
 use napi::Env;
-use napi::bindgen_prelude::{BigInt, Object, Unknown};
+use napi::Status;
+use napi::bindgen_prelude::{BigInt, Function, Object, Unknown};
 use napi_derive::napi;
 use owner::TreeOwner;
 use taffy::NodeId;
@@ -160,6 +162,47 @@ impl NativeTaffyTree {
                     .map_err(|_| internal_error())
             }),
         )
+    }
+
+    #[napi(js_name = "rawComputeLayoutWithMeasure")]
+    pub fn compute_layout_with_measure<'env>(
+        &self,
+        env: Env,
+        node: BigInt,
+        available_space: Unknown<'env>,
+        measure: Function<'env, Object<'env>, Unknown<'env>>,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        let mut session = measure::MeasureSession::new(env, measure);
+        let result = self.owner.access(&public_method, |tree| {
+            let available_space =
+                geometry::size(available_space, available_space::available_space)?;
+            tree.compute_layout_with_measure(
+                node,
+                available_space,
+                |known_dimensions, available_space, node, _context, style| {
+                    session.invoke(known_dimensions, available_space, node, style)
+                },
+            )
+            .map_err(|_| internal_error())?;
+            if session.has_failed() {
+                measure::invalidate_subtree(tree, node)?;
+            }
+            Ok(())
+        });
+        into_napi(env, result)?;
+        match session.take_failure() {
+            None => Ok(()),
+            Some(measure::MeasureFailure::Callback(value)) => {
+                env.throw(value)?;
+                Err(napi::Error::new(
+                    Status::PendingException,
+                    "Measure callback threw",
+                ))
+            }
+            Some(measure::MeasureFailure::Native(error)) => into_napi(env, Err(error)),
+        }
     }
 }
 

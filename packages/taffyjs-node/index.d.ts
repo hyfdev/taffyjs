@@ -597,3 +597,13 @@ export interface DetailedGridItemInfo {
   readonly columnStart: number;
   readonly columnEnd: number;
 }
+
+export type MeasureArgs<TContext> = Readonly<{
+  knownDimensions: Size<number | undefined>;
+  availableSpace: Size<AvailableSpace>;
+  node: NodeId;
+  context: TContext | undefined;
+  style: Style;
+}>;
+
+export type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInput<number>;

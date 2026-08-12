@@ -10,4 +10,10 @@ export declare class NativeTaffyTree {
   rawComputeLayout(node: bigint, availableSpace: unknown, publicMethod: string): void;
   rawGetLayout(node: bigint, publicMethod: string): object;
   rawGetDetailedLayoutInfo(node: bigint, publicMethod: string): object;
+  rawComputeLayoutWithMeasure(
+    node: bigint,
+    availableSpace: unknown,
+    measure: (arg: object) => unknown,
+    publicMethod: string,
+  ): void;
 }

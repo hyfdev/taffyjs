@@ -6,11 +6,19 @@ type PrivateTreeOptions = Readonly<{
   nextSerial?: bigint;
 }>;
 
+type RawMeasureArgs = {
+  knownDimensions: unknown;
+  availableSpace: unknown;
+  node: bigint;
+  style: object;
+};
+
 const secureRandom: RandomSource = (bytes) => globalThis.crypto.getRandomValues(bytes);
 
 export class TaffyTree<_TContext = unknown> {
   readonly #inner: NativeTaffyTree;
   readonly #nodes: NodeIdRegistry;
+  readonly #contexts = new Map<NodeId, _TContext>();
 
   constructor(options: PrivateTreeOptions = {}) {
     this.#nodes = new NodeIdRegistry(options.randomSource ?? secureRandom, options.nextSerial);
@@ -35,6 +43,37 @@ export class TaffyTree<_TContext = unknown> {
   getStyle(node: NodeId): object {
     const raw = this.#nodes.resolve(node);
     return this.#inner.rawGetStyle(raw, "getStyle");
+  }
+
+  computeLayoutWithMeasure(options: {
+    root: NodeId;
+    availableSpace: unknown;
+    measure: (args: {
+      knownDimensions: unknown;
+      availableSpace: unknown;
+      node: NodeId;
+      context: _TContext | undefined;
+      style: object;
+    }) => unknown;
+  }): void {
+    const rawRoot = this.#nodes.resolve(options.root);
+    const measure = options.measure;
+    this.#inner.rawComputeLayoutWithMeasure(
+      rawRoot,
+      options.availableSpace,
+      (value) => {
+        const args = value as RawMeasureArgs;
+        const node = this.#nodes.fromRaw(args.node);
+        return measure({
+          knownDimensions: args.knownDimensions,
+          availableSpace: args.availableSpace,
+          node,
+          context: this.#contexts.get(node),
+          style: args.style,
+        });
+      },
+      "computeLayoutWithMeasure",
+    );
   }
 }
 
