@@ -32,7 +32,7 @@ type TreeConstructor = new () => Tree;
 function constants() {
   return {
     Detail: Reflect.get(api, "DetailedLayoutInfoKind") as { None: number; Grid: number },
-    Display: Reflect.get(api, "Display") as { Flex: number; Grid: number },
+    Display: Reflect.get(api, "Display") as { None: number; Flex: number; Grid: number },
     AvailableSpace: Reflect.get(api, "AvailableSpace") as { MinContent: object },
   };
 }
@@ -91,7 +91,8 @@ function gridValue(value: Detail): GridInfo {
 contractTest("TYPE-DETAIL-001/variants", () => {
   const { Detail, Display } = constants();
   const tree = new (TaffyTree())();
-  const node = tree.newLeaf({});
+  const hidden = tree.newLeaf({ display: Display.None });
+  const node = tree.newWithChildren({}, [hidden]);
   assert.deepEqual(tree.getDetailedLayoutInfo(node), { kind: Detail.None });
 
   tree.setStyle(node, { display: Display.Grid });
@@ -152,7 +153,8 @@ contractTest("TYPE-DETAIL-001/detached", () => {
 contractTest("TYPE-DETAIL-001/lifecycle", () => {
   const { Detail, Display } = constants();
   const tree = new (TaffyTree())();
-  const node = tree.newLeaf({});
+  const hidden = tree.newLeaf({ display: Display.None });
+  const node = tree.newWithChildren({}, [hidden]);
   assert.deepEqual(tree.getDetailedLayoutInfo(node), { kind: Detail.None });
 
   tree.setStyle(node, { display: Display.Grid });

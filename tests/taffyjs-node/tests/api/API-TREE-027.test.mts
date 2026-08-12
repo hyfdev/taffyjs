@@ -100,7 +100,8 @@ contractTest("API-TREE-027/new-none", () => {
 
 contractTest("API-TREE-027/empty-grid", () => {
   const tree = new (TaffyTree())();
-  const grid = tree.newLeaf({ display: api.Display.Grid });
+  const hidden = tree.newLeaf({ display: api.Display.None });
+  const grid = tree.newWithChildren({ display: api.Display.Grid }, [hidden]);
   compute(tree, grid);
 
   const value = gridValue(tree.getDetailedLayoutInfo(grid));
@@ -119,14 +120,14 @@ contractTest("API-TREE-027/grid-payload", () => {
     negativeImplicitTracks: 0,
     explicitTracks: 2,
     positiveImplicitTracks: 0,
-    gutters: [0],
+    gutters: [0, 0, 0],
     sizes: [Math.fround(12.25), Math.fround(8.5)],
   });
   assert.deepEqual(grid.columns, {
     negativeImplicitTracks: 0,
     explicitTracks: 2,
     positiveImplicitTracks: 0,
-    gutters: [0],
+    gutters: [0, 0, 0],
     sizes: [Math.fround(7.75), Math.fround(3.25)],
   });
   assert.deepEqual(grid.items, [
@@ -161,7 +162,10 @@ contractTest("API-TREE-027/invalid-id", () => {
   const foreign = new Tree().newLeaf({});
 
   assert.equal(captureError(() => tree.getDetailedLayoutInfo(1 as never)).constructor, TypeError);
-  assert.equal(captureError(() => tree.getDetailedLayoutInfo(0n)).code, "ERR_TAFFY_INVALID_NODE_ID");
+  assert.equal(
+    captureError(() => tree.getDetailedLayoutInfo(0n)).code,
+    "ERR_TAFFY_INVALID_NODE_ID",
+  );
   assert.equal(
     captureError(() => tree.getDetailedLayoutInfo(foreign)).code,
     "ERR_TAFFY_FOREIGN_NODE_ID",
@@ -169,7 +173,10 @@ contractTest("API-TREE-027/invalid-id", () => {
 
   const stale = tree.newLeaf({});
   tree.clear();
-  assert.equal(captureError(() => tree.getDetailedLayoutInfo(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
+  assert.equal(
+    captureError(() => tree.getDetailedLayoutInfo(stale)).code,
+    "ERR_TAFFY_STALE_NODE_ID",
+  );
 });
 
 contractTest("API-TREE-027/stale-upstream", () => {
