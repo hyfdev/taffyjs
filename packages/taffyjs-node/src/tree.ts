@@ -41,10 +41,10 @@ export interface ChildRangeInput {
 
 const secureRandom: RandomSource = (bytes) => globalThis.crypto.getRandomValues(bytes);
 
-export class TaffyTree<_TContext = unknown> {
+export class TaffyTree<TContext = unknown> {
   readonly #inner: NativeTree;
   readonly #nodes: NodeIdRegistry;
-  readonly #contexts = new Map<NodeId, _TContext>();
+  readonly #contexts = new Map<NodeId, TContext>();
 
   constructor(...args: PrivateConstructorArgs) {
     const options = args.length === 2 && args[0] === privateConstructor ? args[1] : {};
@@ -104,6 +104,10 @@ export class TaffyTree<_TContext = unknown> {
     return this.#newLeaf(style);
   }
 
+  newLeafWithContext(style: unknown, context: TContext | undefined): NodeId {
+    return this.#newLeafWithContext(style, context);
+  }
+
   newWithChildren(style: unknown, children: readonly NodeId[]): NodeId {
     return this.#newWithChildren(style, children);
   }
@@ -124,6 +128,8 @@ export class TaffyTree<_TContext = unknown> {
   [testAccess]() {
     return {
       newLeaf: (style: unknown) => this.#newLeaf(style),
+      newLeafWithContext: (style: unknown, context: TContext | undefined) =>
+        this.#newLeafWithContext(style, context),
       newWithChildren: (style: unknown, children: readonly NodeId[]) =>
         this.#newWithChildren(style, children),
       clear: () => this.#clear(),
@@ -145,7 +151,7 @@ export class TaffyTree<_TContext = unknown> {
         this.#replaceChildAtIndex(parent, index, newChild),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
-      computeLayoutWithMeasure: (options: PrivateMeasureOptions<_TContext>) =>
+      computeLayoutWithMeasure: (options: PrivateMeasureOptions<TContext>) =>
         this.#computeLayoutWithMeasure(options),
     };
   }
@@ -154,6 +160,15 @@ export class TaffyTree<_TContext = unknown> {
     const serial = this.#nodes.reserveSerial();
     const raw = this.#inner.rawNewLeaf(style, "newLeaf");
     return this.#nodes.register(raw, serial);
+  }
+
+  #newLeafWithContext(style: unknown, context: TContext | undefined): NodeId {
+    const serial = this.#nodes.reserveSerial();
+    const hasContext = context !== undefined;
+    const raw = this.#inner.rawNewLeafWithContext(style, hasContext, "newLeafWithContext");
+    const node = this.#nodes.register(raw, serial);
+    if (context !== undefined) this.#contexts.set(node, context);
+    return node;
   }
 
   #newWithChildren(style: unknown, children: readonly NodeId[]): NodeId {
@@ -197,7 +212,7 @@ export class TaffyTree<_TContext = unknown> {
     return this.#inner.rawGetStyle(raw, "getStyle");
   }
 
-  #computeLayoutWithMeasure(options: PrivateMeasureOptions<_TContext>): void {
+  #computeLayoutWithMeasure(options: PrivateMeasureOptions<TContext>): void {
     const rawRoot = this.#nodes.resolve(options.root);
     const measure = options.measure;
     this.#inner.rawComputeLayoutWithMeasure(

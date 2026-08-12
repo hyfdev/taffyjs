@@ -410,6 +410,9 @@ var TaffyTree = class {
 	newLeaf(style) {
 		return this.#newLeaf(style);
 	}
+	newLeafWithContext(style, context) {
+		return this.#newLeafWithContext(style, context);
+	}
 	newWithChildren(style, children) {
 		return this.#newWithChildren(style, children);
 	}
@@ -426,6 +429,7 @@ var TaffyTree = class {
 	[testAccess]() {
 		return {
 			newLeaf: (style) => this.#newLeaf(style),
+			newLeafWithContext: (style, context) => this.#newLeafWithContext(style, context),
 			newWithChildren: (style, children) => this.#newWithChildren(style, children),
 			clear: () => this.#clear(),
 			getChildCount: (parent) => this.#getChildCount(parent),
@@ -448,6 +452,14 @@ var TaffyTree = class {
 		const serial = this.#nodes.reserveSerial();
 		const raw = this.#inner.rawNewLeaf(style, "newLeaf");
 		return this.#nodes.register(raw, serial);
+	}
+	#newLeafWithContext(style, context) {
+		const serial = this.#nodes.reserveSerial();
+		const hasContext = context !== void 0;
+		const raw = this.#inner.rawNewLeafWithContext(style, hasContext, "newLeafWithContext");
+		const node = this.#nodes.register(raw, serial);
+		if (context !== void 0) this.#contexts.set(node, context);
+		return node;
 	}
 	#newWithChildren(style, children) {
 		if (!Array.isArray(children)) throw new TypeError("children must be an array");

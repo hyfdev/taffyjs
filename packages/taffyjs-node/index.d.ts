@@ -616,6 +616,7 @@ export interface ChildRangeInput {
 export declare class TaffyTree<TContext = unknown> {
   constructor();
   newLeaf(style: StyleInput): NodeId;
+  newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId;
   newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
   clear(): void;
   addChild(parent: NodeId, child: NodeId): void;

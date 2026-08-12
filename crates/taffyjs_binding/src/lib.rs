@@ -377,6 +377,29 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawNewLeafWithContext")]
+    pub fn new_leaf_with_context(
+        &self,
+        env: Env,
+        style: Unknown<'_>,
+        has_context: bool,
+        public_method: String,
+    ) -> napi::Result<BigInt> {
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let style = style::input(style)?;
+                let node = if has_context {
+                    tree.new_leaf_with_context(style, ())
+                } else {
+                    tree.new_leaf(style)
+                };
+                node.map(|node| BigInt::from(u64::from(node)))
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawNewWithChildren")]
     pub fn new_with_children(
         &self,
