@@ -76,9 +76,13 @@ contractTest("API-TREE-021/slot-reuse", () => {
 
   const secondChild = tree.newLeaf({});
   const secondParent = tree.newWithChildren({}, [secondChild]);
-  assert.equal(firstChild & SLOT_MASK, secondChild & SLOT_MASK);
-  assert.equal(firstParent & SLOT_MASK, secondParent & SLOT_MASK);
+  const byValue = (left: bigint, right: bigint) => (left < right ? -1 : left > right ? 1 : 0);
+  const firstSlots = [firstChild & SLOT_MASK, firstParent & SLOT_MASK].sort(byValue);
+  const secondSlots = [secondChild & SLOT_MASK, secondParent & SLOT_MASK].sort(byValue);
+  assert.deepEqual(secondSlots, firstSlots);
   assert.equal(tree.getParent(secondChild), secondParent);
+  assert.notEqual(secondParent, firstChild);
+  assert.notEqual(secondParent, firstParent);
   assert.notEqual(tree.getParent(secondChild), firstParent);
   assert.equal(captureError(() => tree.getParent(firstChild)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

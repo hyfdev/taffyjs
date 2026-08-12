@@ -68,6 +68,24 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawParent")]
+    pub fn parent(
+        &self,
+        env: Env,
+        node: BigInt,
+        public_method: String,
+    ) -> napi::Result<Option<BigInt>> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                Ok(tree
+                    .parent(node)
+                    .map(|parent| BigInt::from(u64::from(parent))))
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(
