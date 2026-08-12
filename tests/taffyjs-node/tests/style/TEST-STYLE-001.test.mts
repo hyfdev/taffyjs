@@ -253,9 +253,10 @@ function assertNamedGridLineSemantics(axis: "column" | "row"): void {
     },
   };
   const underflowTree = new (TaffyTree())();
-  assert.throws(
+  assertExactError(
     () => underflowTree.newLeaf({ [templateField]: [unsafeRepeat], [namesField]: [[]] }),
     RangeError,
+    `${namesField} underflow uses the fixed uncoded RangeError`,
   );
 }
 
@@ -284,7 +285,11 @@ function assertGridPlacementIntegerBoundaries(field: "gridRow" | "gridColumn"): 
     api.GridPlacement.Span(65536),
     api.GridPlacement.NamedSpan("outside", 65536),
   ]) {
-    assert.throws(() => tree.newLeaf({ [field]: { start: placement } }));
+    assertExactError(
+      () => tree.newLeaf({ [field]: { start: placement } }),
+      RangeError,
+      `${field} integer boundary uses the fixed uncoded RangeError`,
+    );
   }
 }
 
@@ -355,21 +360,27 @@ function assertTemplateAreaIntegerBoundaries(): void {
   const countFields = ["rowCount", "columnCount"] as const;
   for (const value of [-1, 65536, 0.5]) {
     for (const field of areaFields) {
-      assert.throws(() =>
-        tree.newLeaf({
-          gridTemplateAreas: {
-            areas: [{ ...maximum.areas[0], [field]: value }],
-            rowCount: 1,
-            columnCount: 1,
-          },
-        }),
+      assertExactError(
+        () =>
+          tree.newLeaf({
+            gridTemplateAreas: {
+              areas: [{ ...maximum.areas[0], [field]: value }],
+              rowCount: 1,
+              columnCount: 1,
+            },
+          }),
+        RangeError,
+        `gridTemplateAreas.${field} boundary uses the fixed uncoded RangeError`,
       );
     }
     for (const field of countFields) {
-      assert.throws(() =>
-        tree.newLeaf({
-          gridTemplateAreas: { areas: [], rowCount: 1, columnCount: 1, [field]: value },
-        }),
+      assertExactError(
+        () =>
+          tree.newLeaf({
+            gridTemplateAreas: { areas: [], rowCount: 1, columnCount: 1, [field]: value },
+          }),
+        RangeError,
+        `gridTemplateAreas.${field} boundary uses the fixed uncoded RangeError`,
       );
     }
   }

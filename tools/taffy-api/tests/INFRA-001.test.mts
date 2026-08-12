@@ -857,7 +857,46 @@ contractTest("INFRA-001/incremental-all", async () => {
     documentedClass,
     "}",
   ].join("\n");
+  const undocumented = [
+    "export interface Fixture {",
+    "  value: number;",
+    "}",
+    `${contract.publicDeclarationContract.classDeclaration.header} {`,
+    contract.publicDeclarationContract.classDeclaration.members
+      .map(([, member]: [string, string]) => `  ${member}`)
+      .join("\n"),
+    "}",
+  ].join("\n");
   checker.validateWholeSurfaceJsDoc(contract, documented);
+  assert.equal(
+    await checker.formatDeclaration(checker.stripDeclarationJsDoc(documented), root),
+    await checker.formatDeclaration(undocumented, root),
+  );
+  const multilineDocumented = documented.replace(
+    "/** Documents this public fixture member for package consumers. */",
+    "/**\n   * Documents this public fixture member for package consumers.\n   */",
+  );
+  assert.equal(
+    await checker.formatDeclaration(checker.stripDeclarationJsDoc(multilineDocumented), root),
+    await checker.formatDeclaration(undocumented, root),
+  );
+
+  const publicDeclaration = await readFile(
+    resolve(root, "packages/taffyjs-node/index.d.ts"),
+    "utf8",
+  );
+  checker.validateNullableStyleJsDoc(contract, publicDeclaration);
+  await expectDiagnostic(
+    () =>
+      checker.validateNullableStyleJsDoc(
+        contract,
+        publicDeclaration.replace(
+          `${contract.publicDeclarationContract.styleGeneration.nullableInputJSDoc} aspectRatio?:`,
+          "aspectRatio?:",
+        ),
+      ),
+    "declaration-jsdoc-nullable-field",
+  );
   await expectDiagnostic(
     () =>
       checker.validateWholeSurfaceJsDoc(

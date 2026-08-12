@@ -1582,7 +1582,23 @@ export function stripDeclarationJsDoc(source) {
         if (/@(?:deprecated|internal|private|protected|experimental)\b/u.test(comment)) {
           fail("declaration-jsdoc-forbidden-tag");
         }
-        output += comment.replace(/[^\r\n]/gu, " ");
+        const lineStart = source.lastIndexOf("\n", index - 1) + 1;
+        const indentation = source.slice(lineStart, index);
+        let after = end + 2;
+        while (source[after] === " " || source[after] === "\t") after += 1;
+        const standalone =
+          /^\s*$/u.test(indentation) &&
+          (after === source.length ||
+            source[after] === "\n" ||
+            source.slice(after, after + 2) === "\r\n");
+        if (standalone) {
+          output = output.slice(0, output.length - indentation.length);
+          if (source.slice(after, after + 2) === "\r\n") after += 2;
+          else if (source[after] === "\n") after += 1;
+          index = after;
+          continue;
+        }
+        output += " ";
       } else {
         output += comment;
       }
@@ -1599,7 +1615,7 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
-function validateNullableStyleJsDoc(contract, actual) {
+export function validateNullableStyleJsDoc(contract, actual) {
   const rule = contract.publicDeclarationContract.styleGeneration;
   const fields = new Map(contract.styleFields);
   const exactComment = escapeRegExp(rule.nullableInputJSDoc);

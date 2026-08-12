@@ -2,7 +2,12 @@ import { spawn } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { assembleDeclaration, formatDeclaration, stripDeclarationJsDoc } from "./index.mjs";
+import {
+  assembleDeclaration,
+  formatDeclaration,
+  stripDeclarationJsDoc,
+  validateNullableStyleJsDoc,
+} from "./index.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const contract = JSON.parse(await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"));
@@ -60,6 +65,12 @@ const expectedRuntimeExports = Object.values(contract.publicRuntimeExportsByOwne
 const actualRuntimeExports = Object.keys(runtimeApi).toSorted((left, right) =>
   left.localeCompare(right),
 );
+let nullableStyleJsDocError = null;
+try {
+  validateNullableStyleJsDoc(contract, actualDeclaration);
+} catch (error) {
+  nullableStyleJsDocError = error instanceof Error ? error.message : String(error);
+}
 const results = [];
 for (const path of await walk(resolve(root, "tests/taffyjs-node/tests/types"))) {
   const relativePath = relative(root, path).replaceAll("\\", "/");
@@ -83,6 +94,8 @@ for (const path of await walk(resolve(root, "tests/taffyjs-node/tests/types"))) 
   const declarationMatches =
     record?.id !== "TEST-TYPES-001/exports-signatures" ||
     actualDeclarationSkeleton === expectedDeclarationSkeleton;
+  const nullableStyleJsDocMatches =
+    record?.id !== "TEST-TYPES-001/context-nullish" || nullableStyleJsDocError === null;
   const output = [
     execution.output,
     ...(runtimeExportsMatch
@@ -93,12 +106,19 @@ for (const path of await walk(resolve(root, "tests/taffyjs-node/tests/types"))) 
     ...(declarationMatches
       ? []
       : ["Packed public declarations differ from the declaration assembled from contract.json\n"]),
+    ...(nullableStyleJsDocMatches
+      ? []
+      : [`Packed public declaration nullable JSDoc differs: ${nullableStyleJsDocError}\n`]),
   ].join("");
   results.push({
     acceptanceId: record?.id ?? `unknown-types:${relativePath}`,
     path: relativePath,
     result:
-      execution.code === 0 && record && runtimeExportsMatch && declarationMatches
+      execution.code === 0 &&
+      record &&
+      runtimeExportsMatch &&
+      declarationMatches &&
+      nullableStyleJsDocMatches
         ? "pass"
         : "failed",
     ...(output ? { output } : {}),
