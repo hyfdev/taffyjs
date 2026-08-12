@@ -53,6 +53,8 @@ contractTest("API-TREE-002/reenable", () => {
   tree.computeLayout(options());
   assert.deepEqual(tree.getLayout(node).size, { width: 10.5, height: 6.25 });
   tree.enableRounding();
+  assert.deepEqual(tree.getLayout(node).size, { width: 0, height: 0 });
+  tree.computeLayout(options());
   assert.deepEqual(tree.getLayout(node).size, { width: 11, height: 6 });
 
   tree.clear();
