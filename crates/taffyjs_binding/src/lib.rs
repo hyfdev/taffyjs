@@ -191,6 +191,47 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawSetChildren")]
+    pub fn set_children(
+        &self,
+        env: Env,
+        parent: BigInt,
+        children: Vec<BigInt>,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        let children = into_napi(
+            env,
+            children
+                .iter()
+                .map(raw_node_id)
+                .collect::<NativeResult<Vec<_>>>(),
+        )?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let mut unique_children = HashSet::with_capacity(children.len());
+                for child in &children {
+                    if !unique_children.insert(*child) {
+                        return Err(invalid_topology_error(
+                            "Children must not contain duplicates",
+                        ));
+                    }
+                    if *child == parent {
+                        return Err(invalid_topology_error("A node cannot be its own child"));
+                    }
+                    if would_create_cycle(tree, parent, *child) {
+                        return Err(invalid_topology_error(
+                            "Setting these children would create a cycle",
+                        ));
+                    }
+                }
+                tree.set_children(parent, &children)
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(
@@ -412,16 +453,23 @@ fn validate_unattached_child(
         ));
     }
 
+    if would_create_cycle(tree, parent, child) {
+        return Err(invalid_topology_error(
+            "Adding this child would create a cycle",
+        ));
+    }
+    Ok(())
+}
+
+fn would_create_cycle(tree: &taffy::TaffyTree<()>, parent: NodeId, child: NodeId) -> bool {
     let mut ancestor = Some(parent);
     while let Some(node) = ancestor {
         if node == child {
-            return Err(invalid_topology_error(
-                "Adding this child would create a cycle",
-            ));
+            return true;
         }
         ancestor = tree.parent(node);
     }
-    Ok(())
+    false
 }
 
 #[cfg(feature = "test-hooks")]

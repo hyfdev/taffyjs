@@ -75,6 +75,10 @@ export class TaffyTree<_TContext = unknown> {
     this.#insertChildAtIndex(parent, index, child);
   }
 
+  setChildren(parent: NodeId, children: readonly NodeId[]): void {
+    this.#setChildren(parent, children);
+  }
+
   newLeaf(style: unknown): NodeId {
     return this.#newLeaf(style);
   }
@@ -109,6 +113,8 @@ export class TaffyTree<_TContext = unknown> {
       addChild: (parent: NodeId, child: NodeId) => this.#addChild(parent, child),
       insertChildAtIndex: (parent: NodeId, index: number, child: NodeId) =>
         this.#insertChildAtIndex(parent, index, child),
+      setChildren: (parent: NodeId, children: readonly NodeId[]) =>
+        this.#setChildren(parent, children),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
       computeLayoutWithMeasure: (options: PrivateMeasureOptions<_TContext>) =>
@@ -200,6 +206,13 @@ export class TaffyTree<_TContext = unknown> {
     const rawParent = this.#nodes.resolve(parent);
     const rawChild = this.#nodes.resolve(child);
     this.#inner.rawInsertChildAtIndex(rawParent, index, rawChild, "insertChildAtIndex");
+  }
+
+  #setChildren(parent: NodeId, children: readonly NodeId[]): void {
+    const rawParent = this.#nodes.resolve(parent);
+    if (!Array.isArray(children)) throw new TypeError("children must be an array");
+    const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
+    this.#inner.rawSetChildren(rawParent, rawChildren, "setChildren");
   }
 }
 
