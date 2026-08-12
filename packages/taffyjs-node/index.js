@@ -380,6 +380,9 @@ var TaffyTree = class {
 	getParent(node) {
 		return this.#getParent(node);
 	}
+	getChildren(parent) {
+		return this.#getChildren(parent);
+	}
 	newLeaf(style) {
 		return this.#newLeaf(style);
 	}
@@ -403,6 +406,7 @@ var TaffyTree = class {
 			clear: () => this.#clear(),
 			getChildCount: (parent) => this.#getChildCount(parent),
 			getParent: (node) => this.#getParent(node),
+			getChildren: (parent) => this.#getChildren(parent),
 			getNodeCount: () => this.#getNodeCount(),
 			getStyle: (node) => this.#getStyle(node),
 			computeLayoutWithMeasure: (options) => this.#computeLayoutWithMeasure(options)
@@ -433,6 +437,10 @@ var TaffyTree = class {
 		const rawNode = this.#nodes.resolve(node);
 		const rawParent = this.#inner.rawParent(rawNode, "getParent");
 		return rawParent === null ? null : this.#nodes.fromRaw(rawParent);
+	}
+	#getChildren(parent) {
+		const rawParent = this.#nodes.resolve(parent);
+		return this.#inner.rawChildren(rawParent, "getChildren").map((child) => this.#nodes.fromRaw(child));
 	}
 	#getNodeCount() {
 		return this.#inner.rawNodeCount("getNodeCount");

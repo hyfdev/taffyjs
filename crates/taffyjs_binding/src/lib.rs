@@ -86,6 +86,29 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawChildren")]
+    pub fn children(
+        &self,
+        env: Env,
+        parent: BigInt,
+        public_method: String,
+    ) -> napi::Result<Vec<BigInt>> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                tree.children(parent)
+                    .map(|children| {
+                        children
+                            .into_iter()
+                            .map(|child| BigInt::from(u64::from(child)))
+                            .collect()
+                    })
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(
