@@ -1,3 +1,5 @@
+declare const phantomMarker: unique symbol;
+
 export type EnumValue<Family extends Readonly<Record<string, number>>> = Family[keyof Family];
 
 export declare const Display: Readonly<{
@@ -175,6 +177,8 @@ export type GridTemplateComponentKind = EnumValue<typeof GridTemplateComponentKi
 export declare const DetailedLayoutInfoKind: Readonly<{ readonly None: 0; readonly Grid: 1 }>;
 
 export type DetailedLayoutInfoKind = EnumValue<typeof DetailedLayoutInfoKind>;
+
+export type NodeId = bigint & { readonly [phantomMarker]: never };
 
 export interface PointInput<T> {
   x: T;

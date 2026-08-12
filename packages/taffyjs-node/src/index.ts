@@ -31,3 +31,4 @@ export {
   TrackSizingFunction,
 } from "./grid.js";
 export { Dimension } from "./length.js";
+export type { NodeId } from "./node-id.js";

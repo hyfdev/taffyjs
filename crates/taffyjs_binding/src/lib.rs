@@ -43,6 +43,17 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawClear")]
+    pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                tree.clear();
+                Ok(())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawNewLeaf")]
     pub fn new_leaf(
         &self,

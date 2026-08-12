@@ -38,7 +38,7 @@ function captureError(body: () => unknown): CodedError {
 
 async function workerRoundTrip(node: bigint) {
   const fixture = new URL("./fixtures/type-nodeid-realm-copy.mjs", import.meta.url);
-  const worker = new Worker(fixture, { type: "module" });
+  const worker = new Worker(fixture);
   try {
     return await new Promise<{
       receivedType: string;

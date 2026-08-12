@@ -3,6 +3,7 @@
 export declare class NativeTaffyTree {
   constructor();
   rawNodeCount(publicMethod: string): number;
+  rawClear(publicMethod: string): void;
   rawNewLeaf(style: unknown, publicMethod: string): bigint;
   rawSetStyle(node: bigint, style: unknown, publicMethod: string): void;
   rawGetStyle(node: bigint, publicMethod: string): object;
