@@ -39,6 +39,11 @@ export interface ChildRangeInput {
   end: number;
 }
 
+export interface ComputeLayoutOptions {
+  root: NodeId;
+  availableSpace: unknown;
+}
+
 const secureRandom: RandomSource = (bytes) => globalThis.crypto.getRandomValues(bytes);
 
 export class TaffyTree<TContext = unknown> {
@@ -133,6 +138,10 @@ export class TaffyTree<TContext = unknown> {
     this.#clear();
   }
 
+  computeLayout(options: ComputeLayoutOptions): void {
+    this.#computeLayout(options);
+  }
+
   [testAccess]() {
     return {
       newLeaf: (style: unknown) => this.#newLeaf(style),
@@ -162,6 +171,7 @@ export class TaffyTree<TContext = unknown> {
         this.#replaceChildAtIndex(parent, index, newChild),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
+      computeLayout: (options: ComputeLayoutOptions) => this.#computeLayout(options),
       computeLayoutWithMeasure: (options: PrivateMeasureOptions<TContext>) =>
         this.#computeLayoutWithMeasure(options),
     };
@@ -233,6 +243,11 @@ export class TaffyTree<TContext = unknown> {
   #getStyle(node: NodeId): object {
     const raw = this.#nodes.resolve(node);
     return this.#inner.rawGetStyle(raw, "getStyle");
+  }
+
+  #computeLayout(options: ComputeLayoutOptions): void {
+    const rawRoot = this.#nodes.resolve(options.root);
+    this.#inner.rawComputeLayout(rawRoot, options.availableSpace, "computeLayout");
   }
 
   #computeLayoutWithMeasure(options: PrivateMeasureOptions<TContext>): void {

@@ -613,6 +613,11 @@ export interface ChildRangeInput {
   end: number;
 }
 
+export interface ComputeLayoutOptions {
+  root: NodeId;
+  availableSpace: SizeInput<AvailableSpaceInput>;
+}
+
 export declare class TaffyTree<TContext = unknown> {
   constructor();
   newLeaf(style: StyleInput): NodeId;
@@ -635,4 +640,5 @@ export declare class TaffyTree<TContext = unknown> {
   getChildren(parent: NodeId): readonly NodeId[];
   setStyle(node: NodeId, style: StyleInput): void;
   getStyle(node: NodeId): Style;
+  computeLayout(options: ComputeLayoutOptions): void;
 }
