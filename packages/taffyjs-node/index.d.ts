@@ -241,3 +241,30 @@ export interface Line<T> {
   readonly start: T;
   readonly end: T;
 }
+
+export type LengthInput = { unit: typeof LengthUnit.Length; value: number };
+
+export type PercentInput = { unit: typeof LengthUnit.Percent; value: number };
+
+export type AutoInput = { unit: typeof LengthUnit.Auto };
+
+export type LengthPercentageInput = LengthInput | PercentInput;
+
+export type LengthPercentageAutoInput = LengthInput | PercentInput | AutoInput;
+
+export type DimensionInput = LengthPercentageAutoInput;
+
+export type LengthPercentage = Readonly<LengthInput> | Readonly<PercentInput>;
+
+export type LengthPercentageAuto =
+  | Readonly<LengthInput>
+  | Readonly<PercentInput>
+  | Readonly<AutoInput>;
+
+export type Dimension = LengthPercentageAuto;
+
+export declare const Dimension: Readonly<{
+  readonly Length: (value: number) => LengthInput;
+  readonly Percent: (value: number) => PercentInput;
+  readonly Auto: Readonly<AutoInput>;
+}>;

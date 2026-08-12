@@ -133,4 +133,22 @@ const DetailedLayoutInfoKind = Object.freeze({
 	Grid: 1
 });
 //#endregion
-export { AlignContent, AlignItems, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacementKind, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCountKind, TextAlign, TrackSizingKind };
+//#region src/length.ts
+const auto = Object.freeze({ unit: LengthUnit.Auto });
+const Dimension = Object.freeze({
+	Length(value) {
+		return {
+			unit: LengthUnit.Length,
+			value
+		};
+	},
+	Percent(value) {
+		return {
+			unit: LengthUnit.Percent,
+			value
+		};
+	},
+	Auto: auto
+});
+//#endregion
+export { AlignContent, AlignItems, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacementKind, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCountKind, TextAlign, TrackSizingKind };
