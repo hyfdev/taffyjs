@@ -1,0 +1,53 @@
+import assert from "node:assert/strict";
+import { TaffyTree } from "@taffyjs/node";
+
+const immediate = () => new Promise((resolve) => setImmediate(resolve));
+
+async function collect(weak) {
+  for (let attempt = 0; attempt < 100 && weak.deref() !== undefined; attempt += 1) {
+    globalThis.gc();
+    await immediate();
+  }
+  return weak.deref() === undefined;
+}
+
+function removedContext() {
+  const tree = new TaffyTree();
+  let context = { label: "removed" };
+  const weak = new WeakRef(context);
+  const node = tree.newLeafWithContext({}, context);
+  context = undefined;
+  tree.remove(node);
+  return { tree, weak };
+}
+
+function clearedContext() {
+  const tree = new TaffyTree();
+  let context = { label: "cleared" };
+  const weak = new WeakRef(context);
+  tree.newLeafWithContext({}, context);
+  context = undefined;
+  tree.clear();
+  return { tree, weak };
+}
+
+function failedConversionContext() {
+  const tree = new TaffyTree();
+  let context = { label: "failed conversion" };
+  const weak = new WeakRef(context);
+  assert.throws(() => tree.newLeafWithContext({ unknownField: true }, context), TypeError);
+  context = undefined;
+  return { tree, weak };
+}
+
+if (typeof globalThis.gc !== "function") throw new Error("This fixture requires --expose-gc");
+const removed = removedContext();
+const cleared = clearedContext();
+const failedConversion = failedConversionContext();
+process.stdout.write(
+  `${JSON.stringify({
+    removedCollected: await collect(removed.weak),
+    clearedCollected: await collect(cleared.weak),
+    failedConversionCollected: await collect(failedConversion.weak),
+  })}\n`,
+);
