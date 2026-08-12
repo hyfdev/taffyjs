@@ -3,6 +3,7 @@
 export declare class NativeTaffyTree {
   constructor();
   rawEnableRounding(publicMethod: string): void;
+  rawDisableRounding(publicMethod: string): void;
   rawNodeCount(publicMethod: string): number;
   rawChildCount(parent: bigint, publicMethod: string): number;
   rawParent(node: bigint, publicMethod: string): bigint | null;

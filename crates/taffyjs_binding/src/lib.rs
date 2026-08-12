@@ -52,6 +52,17 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawDisableRounding")]
+    pub fn disable_rounding(&self, env: Env, public_method: String) -> napi::Result<()> {
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                tree.disable_rounding();
+                Ok(())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawNodeCount")]
     pub fn node_count(&self, env: Env, public_method: String) -> napi::Result<u32> {
         into_napi(
