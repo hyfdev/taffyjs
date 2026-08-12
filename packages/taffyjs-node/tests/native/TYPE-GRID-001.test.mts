@@ -103,6 +103,7 @@ contractTest("TYPE-GRID-001/helper-conversion", () => {
   }
 
   const length = { kind: 0, value: 10 };
+  const semanticLength = { unit: 0, value: 10 };
   const auto = { kind: 2 };
   const tracks: Array<[Track, Track]> = [
     [TrackSizingFunction.Length(10), { min: length, max: length }],
@@ -110,7 +111,10 @@ contractTest("TYPE-GRID-001/helper-conversion", () => {
     [TrackSizingFunction.Auto, { min: auto, max: auto }],
     [TrackSizingFunction.MinContent, { min: { kind: 3 }, max: { kind: 3 } }],
     [TrackSizingFunction.MaxContent, { min: { kind: 4 }, max: { kind: 4 } }],
-    [TrackSizingFunction.FitContent(length), { min: auto, max: { kind: 5, value: length } }],
+    [
+      TrackSizingFunction.FitContent(semanticLength),
+      { min: auto, max: { kind: 5, value: semanticLength } },
+    ],
     [TrackSizingFunction.Fr(2), { min: auto, max: { kind: 6, value: 2 } }],
     [
       TrackSizingFunction.MinMax(length, { kind: 6, value: 2 }),

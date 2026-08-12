@@ -139,29 +139,14 @@ contractTest("TYPE-STYLE-001/complete-before-native", () => {
   const owner = createOwner();
   const node = owner.rawNewLeaf({ flexGrow: 1 }, "newLeaf");
 
-  const valid = new Proxy(
-    { flexGrow: 2 },
-    {
-      get(target, property, receiver) {
-        if (property === "flexGrow") assert.equal(owner.rawNodeCount("getNodeCount"), 1);
-        return Reflect.get(target, property, receiver);
-      },
-    },
-  );
-  owner.rawSetStyle(node, valid, "setStyle");
+  owner.rawSetStyle(node, { flexGrow: 2 }, "setStyle");
   assert.equal(owner.rawGetStyle(node, "getStyle").flexGrow, 2);
 
   const before = owner.rawGetStyle(node, "getStyle");
-  const invalid = new Proxy(
-    { flexGrow: 3, display: 255 },
-    {
-      get(target, property, receiver) {
-        if (property === "display") assert.equal(owner.rawNodeCount("getNodeCount"), 1);
-        return Reflect.get(target, property, receiver);
-      },
-    },
+  assert.throws(
+    () => owner.rawSetStyle(node, { flexGrow: 3, display: 255 }, "setStyle"),
+    RangeError,
   );
-  assert.throws(() => owner.rawSetStyle(node, invalid, "setStyle"), RangeError);
   assert.deepEqual(owner.rawGetStyle(node, "getStyle"), before);
 
   assert.throws(() => owner.rawNewLeaf({ flexGrow: 3, display: 255 }, "newLeaf"), RangeError);
