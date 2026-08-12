@@ -483,6 +483,121 @@ function validateDisposition(disposition, taskIds, exclusionReasons) {
   }
 }
 
+function splitTopLevel(source, separator) {
+  const output = [];
+  let start = 0;
+  const depth = { angle: 0, brace: 0, bracket: 0, paren: 0 };
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    if (character === "<") depth.angle += 1;
+    else if (character === ">") depth.angle -= 1;
+    else if (character === "{") depth.brace += 1;
+    else if (character === "}") depth.brace -= 1;
+    else if (character === "[") depth.bracket += 1;
+    else if (character === "]") depth.bracket -= 1;
+    else if (character === "(") depth.paren += 1;
+    else if (character === ")") depth.paren -= 1;
+    if (character === separator && Object.values(depth).every((value) => value === 0)) {
+      output.push(source.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  output.push(source.slice(start).trim());
+  return output.filter(Boolean);
+}
+
+function declarationParameters(member) {
+  const start = member.indexOf("(");
+  if (start === -1) return new Map();
+  let depth = 0;
+  let end = -1;
+  for (let index = start; index < member.length; index += 1) {
+    if (member[index] === "(") depth += 1;
+    if (member[index] === ")") {
+      depth -= 1;
+      if (depth === 0) {
+        end = index;
+        break;
+      }
+    }
+  }
+  if (end === -1) fail("task-drift/node-id-role-binding");
+  return new Map(
+    splitTopLevel(member.slice(start + 1, end), ",").map((parameter) => {
+      const match = /^([A-Za-z_$][\w$]*)(?:\?)?\s*:\s*(.+)$/u.exec(parameter);
+      if (!match) fail("task-drift/node-id-role-binding", parameter);
+      return [match[1], match[2].trim()];
+    }),
+  );
+}
+
+function fixedInterfaces(contract) {
+  const output = new Map();
+  for (const [owner, statements] of Object.entries(
+    contract.publicDeclarationContract.fixedStatementsByOwner,
+  )) {
+    for (const statement of statements) {
+      const match = /^export interface ([A-Za-z_$][\w$]*)(?:<[^{}]+>)?\s*\{([\s\S]*)\}$/u.exec(
+        statement.trim(),
+      );
+      if (!match) continue;
+      const properties = new Map(
+        splitTopLevel(match[2], ";").map((property) => {
+          const propertyMatch = /^(?:readonly\s+)?([A-Za-z_$][\w$]*)(?:\?)?\s*:\s*(.+)$/u.exec(
+            property,
+          );
+          if (!propertyMatch) fail("task-drift/node-id-role-binding", property);
+          return [propertyMatch[1], propertyMatch[2].trim()];
+        }),
+      );
+      if (output.has(match[1])) fail("task-drift/node-id-role-binding", match[1]);
+      output.set(match[1], { owner, properties });
+    }
+  }
+  return output;
+}
+
+export function validateNodeIdDeclarationBindings(contract) {
+  const classMembers = new Map(contract.publicDeclarationContract.classDeclaration.members);
+  const interfaces = fixedInterfaces(contract);
+  const bindings = contract.nodeIdDeclarationBindingRules.recordBindings;
+  const discovered = new Set();
+  for (const [owner, memberNames] of Object.entries(contract.publicClassMembersByOwner)) {
+    if (memberNames.length !== 1) continue;
+    const parameters = declarationParameters(classMembers.get(memberNames[0]) ?? "");
+    for (const [parameter, type] of parameters) {
+      if (type === "NodeId") discovered.add(`${owner}/${parameter}`);
+      if (type === "readonly NodeId[]") discovered.add(`${owner}/${parameter}[]`);
+      const binding = bindings[`${owner}/${parameter}`];
+      if (!binding) continue;
+      if (type !== binding) fail("task-drift/node-id-role-binding", `${owner}/${parameter}`);
+      const interfaceName = /^([A-Za-z_$][\w$]*)/u.exec(binding)?.[1];
+      const record = interfaces.get(interfaceName);
+      if (!record || record.owner !== owner) {
+        fail("task-drift/node-id-role-binding", binding);
+      }
+      for (const [property, propertyType] of record.properties) {
+        if (propertyType === "NodeId") discovered.add(`${owner}/${parameter}.${property}`);
+        if (propertyType === "readonly NodeId[]") {
+          discovered.add(`${owner}/${parameter}.${property}[]`);
+        }
+      }
+    }
+  }
+  const expected = new Set(
+    Object.entries(contract.nodeIdRolesByOwner).flatMap(([owner, roles]) =>
+      roles.map(({ path }) => `${owner}/${path}`),
+    ),
+  );
+  if (
+    discovered.size !== expected.size ||
+    [...discovered].some((path) => !expected.has(path)) ||
+    [...expected].some((path) => !discovered.has(path))
+  ) {
+    fail("task-drift/node-id-role-binding");
+  }
+}
+
 function validateContractReferences(contract, orderedTaskIds) {
   const taskIds = new Set(orderedTaskIds);
   const ordinaryIds = new Set(
@@ -589,6 +704,7 @@ function validateContractReferences(contract, orderedTaskIds) {
       fail("task-drift/node-id-role-binding");
     }
   }
+  validateNodeIdDeclarationBindings(contract);
 
   const styleIds = contract.styleFields.map(([styleId]) => styleId);
   const styleNames = contract.styleFields.map(([, name]) => name);
@@ -1349,6 +1465,42 @@ function validateNullableStyleJsDoc(contract, actual) {
   }
 }
 
+function meaningfulJsDocBefore(source, offset, diagnostic) {
+  const match = /\/\*\*([\s\S]*?)\*\/\s*$/u.exec(source.slice(0, offset));
+  if (!match) fail(diagnostic);
+  const words =
+    match[1]
+      .replace(/^\s*\*\s?/gmu, " ")
+      .replace(/@[A-Za-z][^\n]*/gu, " ")
+      .match(/[\p{L}\p{N}]+/gu) ?? [];
+  if (words.length < 3 || words.join("").length < 16) fail(diagnostic);
+}
+
+export function validateWholeSurfaceJsDoc(contract, actual) {
+  const tokens = tokenizeJavaScript(actual, "packages/taffyjs-node/index.d.ts");
+  const exports = tokens.filter(
+    (token) =>
+      token.value === "export" && token.brace === 0 && token.bracket === 0 && token.paren === 0,
+  );
+  if (exports.length === 0) fail("declaration-jsdoc-public-symbol");
+  for (const token of exports) {
+    meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-symbol");
+  }
+
+  const classStart = actual.indexOf(
+    `${contract.publicDeclarationContract.classDeclaration.header} {`,
+  );
+  if (classStart === -1) fail("declaration-jsdoc-class");
+  const classEnd = actual.indexOf("\n}", classStart);
+  if (classEnd === -1) fail("declaration-jsdoc-class");
+  const classSource = actual.slice(classStart, classEnd);
+  for (const [name] of contract.publicDeclarationContract.classDeclaration.members) {
+    const member = new RegExp(`^\\s*${escapeRegExp(name)}\\s*\\(`, "mu").exec(classSource);
+    if (!member) fail("declaration-jsdoc-class-member", name);
+    meaningfulJsDocBefore(classSource, member.index, "declaration-jsdoc-class-member");
+  }
+}
+
 async function typecheckDeclaration(root, path, expectedVersion) {
   const compiler = resolve(root, "packages/taffyjs-node/node_modules/.bin/tsc");
   const version = await runCommand(compiler, ["--version"], root);
@@ -1396,6 +1548,9 @@ async function validateRealDeclarations(root, contract, status, completeExpected
   if (actualSkeleton !== expectedSkeleton) fail("declaration-projection-drift");
   if (IMPLEMENTED_STATES.has(status.taskStates["TYPE-STYLE-001"])) {
     validateNullableStyleJsDoc(contract, actual);
+  }
+  if (IMPLEMENTED_STATES.has(status.taskStates["MATURITY-001"])) {
+    validateWholeSurfaceJsDoc(contract, actual);
   }
   await typecheckDeclaration(root, actualPath, contract.pins.typescript);
   if (completeExpectedDeclaration.length === 0) fail("generated-declaration-drift");
@@ -2553,7 +2708,20 @@ export async function extractContractTestCalls(source, path) {
   return calls;
 }
 
-async function collectStaticContractTests(root) {
+function extractRustContractTests(source, path) {
+  const calls = [];
+  const pattern = /((?:\s*#\[[^\]]+\]\s*)*)fn\s+(contract__[A-Za-z0-9_]+)\s*\(/gu;
+  for (const match of source.matchAll(pattern)) {
+    const attributes = match[1];
+    if (!/#\[test\]/u.test(attributes) || /#\[(?:ignore|cfg)\b/u.test(attributes)) {
+      fail("collection-drift/test-conditional", `${match[2]} has invalid attributes in ${path}`);
+    }
+    calls.push({ identity: match[2], path, offset: match.index, modality: "rust-contract" });
+  }
+  return calls;
+}
+
+export async function collectStaticEvidence(root, expanded, status) {
   const roots = [
     resolve(root, "tools/taffy-api/tests"),
     resolve(root, "packages/taffyjs-node/tests"),
@@ -2564,7 +2732,66 @@ async function collectStaticContractTests(root) {
     for (const path of await walkFiles(collectionRoot)) {
       if (!path.endsWith(".test.mts") && !path.endsWith(".test.mjs")) continue;
       const relative = path.slice(root.length + 1).replaceAll("\\", "/");
-      calls.push(...(await extractContractTestCalls(await readFile(path, "utf8"), relative, root)));
+      calls.push(
+        ...(await extractContractTestCalls(await readFile(path, "utf8"), relative, root)).map(
+          (call) => ({ ...call, identity: call.id }),
+        ),
+      );
+    }
+  }
+
+  const expectedByPath = new Map(
+    expanded.evidence.primary
+      .filter(({ modality }) => modality === "types")
+      .map((record) => [record.path, record]),
+  );
+  for (const path of await walkFiles(resolve(root, "tests/taffyjs-node/tests/types"))) {
+    if (!path.endsWith(".test-d.ts")) continue;
+    const relative = path.slice(root.length + 1).replaceAll("\\", "/");
+    const record = expectedByPath.get(relative);
+    calls.push({
+      id: record?.id ?? `unknown-types:${relative}`,
+      identity: record?.identity ?? relative,
+      modality: "types",
+      path: relative,
+      offset: 0,
+    });
+  }
+
+  const rustRecords = expanded.evidence.primary.filter(
+    ({ modality }) => modality === "rust-contract",
+  );
+  for (const path of new Set(rustRecords.map(({ path }) => path))) {
+    let source;
+    try {
+      source = await readFile(resolve(root, path), "utf8");
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      throw error;
+    }
+    const identityToRecord = new Map(
+      rustRecords
+        .filter((record) => record.path === path)
+        .map((record) => [record.identity.split("::").at(-1), record]),
+    );
+    for (const call of extractRustContractTests(source, path)) {
+      const record = identityToRecord.get(call.identity);
+      calls.push({ ...call, id: record?.id ?? `unknown-rust:${call.identity}` });
+    }
+  }
+
+  for (const record of expanded.evidence.primary) {
+    if (
+      record.modality === "command-attestation" &&
+      requiredRegistrationState(status.taskStates[record.owner])
+    ) {
+      calls.push({
+        id: record.id,
+        identity: record.identity,
+        modality: record.modality,
+        path: record.path,
+        offset: 0,
+      });
     }
   }
   return calls;
@@ -2574,17 +2801,33 @@ function requiredRegistrationState(state) {
   return ["tests-authored", ...IMPLEMENTED_STATES].includes(state);
 }
 
-function extractFeatureNames(value, output = new Set()) {
-  if (Array.isArray(value)) {
-    value.forEach((entry) => extractFeatureNames(entry, output));
-  } else if (value !== null && typeof value === "object") {
-    if (typeof value.feature === "string") output.add(value.feature);
-    Object.values(value).forEach((entry) => extractFeatureNames(entry, output));
+function normalizeCfgRule(value) {
+  if (value === true || value === false) return value;
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return value;
+  for (const operator of ["all", "any"]) {
+    if (!Array.isArray(value[operator])) continue;
+    const entries = value[operator]
+      .map(normalizeCfgRule)
+      .flatMap((entry) =>
+        entry && typeof entry === "object" && Array.isArray(entry[operator])
+          ? entry[operator]
+          : [entry],
+      )
+      .filter((entry) => operator !== "all" || entry !== true)
+      .sort((left, right) => asciiCompare(JSON.stringify(left), JSON.stringify(right)));
+    if (entries.length === 0) return operator === "all";
+    if (entries.length === 1) return entries[0];
+    return { [operator]: entries };
   }
-  return output;
+  if (Object.hasOwn(value, "not")) return { not: normalizeCfgRule(value.not) };
+  return deepSort(value);
 }
 
-function validateStaticCollection(contract, expanded, status, calls) {
+function cfgRuleFromFeatures(features) {
+  return normalizeCfgRule({ all: features.map((feature) => ({ feature })) });
+}
+
+export function validateStaticCollection(contract, expanded, status, calls) {
   const byId = new Map();
   for (const call of calls) {
     const records = byId.get(call.id) ?? [];
@@ -2617,6 +2860,20 @@ function validateStaticCollection(contract, expanded, status, calls) {
         "collection-drift/evidence-collection-root",
         `${record.id} is in ${callsForId[0].path}, expected ${record.path}`,
       );
+    }
+    if (
+      shouldExist &&
+      callsForId[0].identity !== record.id &&
+      record.modality !== "rust-contract"
+    ) {
+      fail("collection-drift/test-identity", record.id);
+    }
+    if (
+      shouldExist &&
+      record.modality === "rust-contract" &&
+      callsForId[0].identity !== record.identity.split("::").at(-1)
+    ) {
+      fail("collection-drift/test-identity", record.id);
     }
   }
   for (const id of byId.keys()) {
@@ -2697,6 +2954,51 @@ function validateStatusShape(status, contract, expanded) {
         fail("incremental-all/accepted-invalid-order");
       }
     }
+  }
+  for (let index = activeIndex + 1; index < milestoneOrder.length; index += 1) {
+    for (const taskId of contract.milestones[milestoneOrder[index]]) {
+      if (status.taskStates[taskId] !== "pending") {
+        fail("incremental-all/accepted-invalid-order", taskId);
+      }
+    }
+  }
+  const activeTasks = contract.milestones[status.activeMilestone];
+  const stateIndex = (taskId) => contract.taskStatePolicy.states.indexOf(status.taskStates[taskId]);
+  const implementedIndex = contract.taskStatePolicy.states.indexOf("implemented");
+  if (status.phase === "build") {
+    const currentIndex = activeTasks.indexOf(status.activeTaskId);
+    if (
+      currentIndex === -1 ||
+      !["active", "tests-authored", "implemented"].includes(status.taskStates[status.activeTaskId])
+    ) {
+      fail("loop-status-active-task-state");
+    }
+    if (
+      activeTasks.slice(0, currentIndex).some((taskId) => stateIndex(taskId) < implementedIndex) ||
+      activeTasks.slice(currentIndex + 1).some((taskId) => status.taskStates[taskId] !== "pending")
+    ) {
+      fail("incremental-all/accepted-invalid-order");
+    }
+  }
+  if (status.phase === "review-fix") {
+    if (stateIndex(status.activeTaskId) < implementedIndex) fail("loop-status-active-task-state");
+    if (activeTasks.some((taskId) => stateIndex(taskId) < implementedIndex)) {
+      fail("incremental-all/accepted-invalid-order");
+    }
+  }
+  if (
+    status.phase === "verify" &&
+    activeTasks.some((taskId) => stateIndex(taskId) < implementedIndex)
+  ) {
+    fail("incremental-all/accepted-invalid-order");
+  }
+  if (
+    status.phase === "review" &&
+    activeTasks.some(
+      (taskId) => !["verified", "under-review", "accepted"].includes(status.taskStates[taskId]),
+    )
+  ) {
+    fail("incremental-all/accepted-invalid-order");
   }
   if (
     status.prefixEvidenceCommit !== null &&
@@ -2812,12 +3114,16 @@ function assertBareNativeImport(source, path) {
 
 function lockImporter(lock, importer) {
   const escaped = escapeRegExp(importer);
-  const match = new RegExp(
-    `(?:^|\\n)  ${escaped}:\\n([\\s\\S]*?)(?=\\n  [^ \\n][^\\n]*:\\n|\\npackages:\\n)`,
-    "u",
-  ).exec(lock);
-  if (!match) fail("pin-drift/types-node-target", importer);
-  return match[1];
+  const matches = Array.from(
+    lock.matchAll(
+      new RegExp(
+        `(?:^|\\n)  ${escaped}:\\n([\\s\\S]*?)(?=\\n  [^ \\n][^\\n]*:\\n|\\npackages:\\n)`,
+        "gu",
+      ),
+    ),
+  );
+  if (matches.length === 0) fail("pin-drift/types-node-target", importer);
+  return matches.at(-1)[1];
 }
 
 async function validateRealPackageFoundation(root, contract, status) {
@@ -2855,6 +3161,7 @@ async function validateRealPackageFoundation(root, contract, status) {
   ];
   if (new Set(nodeRanges).size !== 1) fail("pin-drift/packed-engines-node");
   if (
+    rootManifest.devDependencies?.["@types/node"] !== "catalog:" ||
     packageManifest.devDependencies?.["@types/node"] !== "catalog:" ||
     integrationManifest.devDependencies?.["@types/node"] !== "catalog:" ||
     !new RegExp(`(?:^|\\n)  ["']?@types/node["']?: ${escapeRegExp(target)}(?:\\n|$)`, "u").test(
@@ -2867,7 +3174,7 @@ async function validateRealPackageFoundation(root, contract, status) {
   ) {
     fail("pin-drift/types-node-target");
   }
-  for (const importer of ["packages/taffyjs-node", "tests/taffyjs-node"]) {
+  for (const importer of [".", "packages/taffyjs-node", "tests/taffyjs-node"]) {
     const importerSource = lockImporter(lock, importer);
     if (
       !new RegExp(
@@ -2973,8 +3280,135 @@ async function validateRealPackageFoundation(root, contract, status) {
   }
 }
 
+async function validateRealRunnerGraph(root, contract, status) {
+  const [rootConfig, rustRunner, typeRunner, readyRunner, toolConfig, nativeConfig, publicConfig] =
+    await Promise.all([
+      readFile(resolve(root, "vite.config.ts"), "utf8"),
+      readFile(resolve(root, "tools/taffy-api/src/run-rust-tests.mjs"), "utf8"),
+      readFile(resolve(root, "tools/taffy-api/src/run-type-tests.mjs"), "utf8"),
+      readFile(resolve(root, "tools/taffy-api/src/run-ready.mjs"), "utf8"),
+      readFile(resolve(root, "tools/taffy-api/vite.config.ts"), "utf8"),
+      readFile(resolve(root, "packages/taffyjs-node/vite.config.ts"), "utf8"),
+      readFile(resolve(root, "tests/taffyjs-node/vite.config.ts"), "utf8"),
+    ]);
+  const minimumRuntime = contract.pins.minimumNodeTestRuntime;
+  const requiredRootFragments = [
+    '"check:test:native"',
+    '"check:test:wrapper"',
+    '"check:test:integration"',
+    '"check:test:types"',
+    '"check:test:rust-contract"',
+    '"check:test:node-minimum"',
+    "--reporter=tools/taffy-api/src/contract-reporter.mjs",
+    `vp env exec --node ${minimumRuntime} -- node tests/taffyjs-node/minimum-node/run.mjs`,
+    'command: "node tools/taffy-api/src/run-ready.mjs loop"',
+    'command: "node tools/taffy-api/src/run-ready.mjs all"',
+  ];
+  if (
+    requiredRootFragments.some((fragment) => !rootConfig.includes(fragment)) ||
+    rootConfig.includes("--passWithNoTests") ||
+    !rustRunner.includes('"--list"') ||
+    !rustRunner.includes('"--exact"') ||
+    !typeRunner.includes(".test-d.ts") ||
+    !readyRunner.includes(
+      "await checkCandidate({ root });\nawait runBody();\nawait checkCandidate({ root });",
+    ) ||
+    [toolConfig, nativeConfig, publicConfig].some(
+      (source) => !/retry:\s*0/u.test(source) || source.includes("passWithNoTests"),
+    )
+  ) {
+    fail("collection-drift/runner-graph");
+  }
+  if (requiredRegistrationState(status.taskStates["MATURITY-002"])) {
+    const harness = await readFile(
+      resolve(root, "tests/taffyjs-node/minimum-node/run.mjs"),
+      "utf8",
+    );
+    if (
+      !harness.includes(`v${minimumRuntime}`) ||
+      !harness.includes("process.version") ||
+      !harness.includes("@taffyjs/node")
+    ) {
+      fail("collection-drift/minimum-node-wrong-runtime");
+    }
+  }
+}
+
+export function validateParsedSourceInventory(contract, parsed) {
+  if (parsed.parser !== "syn-2.0.119") fail("source-drift/parser-version");
+  if (!parsed.inherentImplMatches) fail("source-drift/impl-header");
+  if ((parsed.inherentMethodDuplicates ?? []).length !== 0) {
+    fail("source-drift/method-added", parsed.inherentMethodDuplicates.join(", "));
+  }
+  const inherentNames = Object.keys(parsed.inherentMethods);
+  const expectedInherentNames = Object.keys(contract.upstream.taffyTree.methods);
+  if (inherentNames.length < expectedInherentNames.length) {
+    fail("source-drift/method-missing");
+  }
+  if (inherentNames.length > expectedInherentNames.length) {
+    fail("source-drift/method-added");
+  }
+  if (
+    JSON.stringify(inherentNames.sort(asciiCompare)) !==
+    JSON.stringify(expectedInherentNames.sort(asciiCompare))
+  ) {
+    fail("source-drift/method-renamed");
+  }
+  for (const [name, method] of Object.entries(parsed.inherentMethods)) {
+    if (!method.signatureMatches) {
+      fail("source-drift/method-signature", `${name}: ${method.normalizedSignature}`);
+    }
+    const expectedCfg = cfgRuleFromFeatures(
+      contract.upstream.taffyTree.methodFeatureOverrides[name] ?? [
+        contract.upstream.taffyTree.feature,
+      ],
+    );
+    if (JSON.stringify(normalizeCfgRule(method.cfg)) !== JSON.stringify(expectedCfg)) {
+      fail("source-drift/method-feature-gate", name);
+    }
+  }
+  if (!parsed.traitImplMatches) fail("source-drift/trait-impl-header");
+  if ((parsed.traitMethodDuplicates ?? []).length !== 0) {
+    fail("source-drift/trait-method-signature", parsed.traitMethodDuplicates.join(", "));
+  }
+  const traitNames = Object.keys(parsed.traitMethods);
+  const expectedTraitNames = Object.keys(contract.upstream.traversePartialTree.methods);
+  if (
+    JSON.stringify(traitNames.sort(asciiCompare)) !==
+      JSON.stringify(expectedTraitNames.sort(asciiCompare)) ||
+    Object.values(parsed.traitMethods).some(({ signatureMatches }) => !signatureMatches)
+  ) {
+    fail("source-drift/trait-method-signature");
+  }
+  const expectedTraitCfg = cfgRuleFromFeatures([contract.upstream.traversePartialTree.feature]);
+  if (
+    Object.values(parsed.traitMethods).some(
+      ({ cfg }) => JSON.stringify(normalizeCfgRule(cfg)) !== JSON.stringify(expectedTraitCfg),
+    )
+  ) {
+    fail("source-drift/trait-method-feature-gate");
+  }
+  if (
+    parsed.adjacentRoots.length !== contract.upstream.adjacentRoots.length ||
+    parsed.adjacentRoots.some(({ matches }) => !matches)
+  ) {
+    fail("source-drift/adjacent-root");
+  }
+  if (Object.keys(parsed.namedData).length !== Object.keys(contract.namedDataShapes).length) {
+    fail("source-drift/named-data-count");
+  }
+  const badNamedData = Object.entries(parsed.namedData).filter(([, value]) => !value.shapeMatches);
+  if (badNamedData.length !== 0) {
+    fail("source-drift/named-data-shape", badNamedData.map(([name]) => name).join(", "));
+  }
+}
+
 async function validateRealPinsAndSource(root, contract) {
-  const metadataResult = await runCommand("cargo", ["metadata", "--format-version", "1"], root);
+  const metadataResult = await runCommand(
+    "cargo",
+    ["metadata", "--locked", "--format-version", "1"],
+    root,
+  );
   const metadata = JSON.parse(metadataResult.stdout);
   const binding = metadata.packages.find(({ name }) => name === "taffyjs_binding");
   if (!binding) fail("pin-drift/binding-package");
@@ -3059,61 +3493,7 @@ async function validateRealPinsAndSource(root, contract) {
   } catch (error) {
     fail("source-drift/parser-output", error.message);
   }
-  if (parsed.parser !== "syn-2.0.119") fail("source-drift/parser-version");
-  if (!parsed.inherentImplMatches) fail("source-drift/impl-header");
-  const inherentNames = Object.keys(parsed.inherentMethods);
-  const expectedInherentNames = Object.keys(contract.upstream.taffyTree.methods);
-  if (inherentNames.length < expectedInherentNames.length) {
-    fail("source-drift/method-missing");
-  }
-  if (inherentNames.length > expectedInherentNames.length) {
-    fail("source-drift/method-added");
-  }
-  if (
-    JSON.stringify(inherentNames.sort(asciiCompare)) !==
-    JSON.stringify(expectedInherentNames.sort(asciiCompare))
-  ) {
-    fail("source-drift/method-renamed");
-  }
-  for (const [name, method] of Object.entries(parsed.inherentMethods)) {
-    if (!method.signatureMatches) {
-      fail("source-drift/method-signature", `${name}: ${method.normalizedSignature}`);
-    }
-    const features = new Set([contract.upstream.taffyTree.feature]);
-    extractFeatureNames(method.cfg, features);
-    const expectedFeatures = contract.upstream.taffyTree.methodFeatureOverrides[name] ?? [
-      contract.upstream.taffyTree.feature,
-    ];
-    if (
-      JSON.stringify([...features].sort(asciiCompare)) !==
-      JSON.stringify([...expectedFeatures].sort(asciiCompare))
-    ) {
-      fail("source-drift/method-feature-gate", name);
-    }
-  }
-  if (!parsed.traitImplMatches) fail("source-drift/trait-impl-header");
-  const traitNames = Object.keys(parsed.traitMethods);
-  const expectedTraitNames = Object.keys(contract.upstream.traversePartialTree.methods);
-  if (
-    JSON.stringify(traitNames.sort(asciiCompare)) !==
-      JSON.stringify(expectedTraitNames.sort(asciiCompare)) ||
-    Object.values(parsed.traitMethods).some(({ signatureMatches }) => !signatureMatches)
-  ) {
-    fail("source-drift/trait-method-signature");
-  }
-  if (
-    parsed.adjacentRoots.length !== contract.upstream.adjacentRoots.length ||
-    parsed.adjacentRoots.some(({ matches }) => !matches)
-  ) {
-    fail("source-drift/adjacent-root");
-  }
-  if (Object.keys(parsed.namedData).length !== 48) {
-    fail("source-drift/named-data-count");
-  }
-  const badNamedData = Object.entries(parsed.namedData).filter(([, value]) => !value.shapeMatches);
-  if (badNamedData.length !== 0) {
-    fail("source-drift/named-data-shape", badNamedData.map(([name]) => name).join(", "));
-  }
+  validateParsedSourceInventory(contract, parsed);
   return { metadata, parsed };
 }
 
@@ -3150,7 +3530,7 @@ async function validateContractBase(root, goal, status) {
   if (ancestry.code !== 0) fail("candidate-ancestry");
 }
 
-function validateCurrentEvidence(expanded, status) {
+export function validateCurrentEvidence(expanded, status, { all = false } = {}) {
   const green = new Map();
   for (const record of status.greenEvidence) {
     if (!record.acceptanceId) continue;
@@ -3158,16 +3538,49 @@ function validateCurrentEvidence(expanded, status) {
     entries.push(record);
     green.set(record.acceptanceId, entries);
   }
+  const required = new Set(
+    expanded.evidence.primary
+      .filter(({ modality }) => modality !== "command-attestation")
+      .filter((evidence) => {
+        if (all) return true;
+        const state = status.taskStates[evidence.owner];
+        return (
+          ["verified", "under-review"].includes(state) ||
+          (status.prefixEvidenceCommit === status.candidateCommit && IMPLEMENTED_STATES.has(state))
+        );
+      })
+      .map(({ id }) => id),
+  );
   for (const evidence of expanded.evidence.primary) {
-    const state = status.taskStates[evidence.owner];
-    if (!["verified", "under-review"].includes(state)) continue;
-    const records = green.get(evidence.id) ?? [];
+    if (!required.has(evidence.id)) continue;
+    const records = (green.get(evidence.id) ?? []).filter(
+      ({ candidateCommit }) => candidateCommit === status.candidateCommit,
+    );
     if (
       records.length !== 1 ||
-      records[0].candidateCommit !== status.candidateCommit ||
-      records[0].result !== "pass"
+      records[0].result !== "pass" ||
+      records[0].runner !== evidence.runner ||
+      records[0].path !== evidence.path
     ) {
       fail("evidence-current-commit", evidence.id);
+    }
+  }
+  const expectedById = new Map(
+    expanded.evidence.primary.map((evidence) => [evidence.id, evidence]),
+  );
+  for (const [id, records] of green) {
+    const evidence = expectedById.get(id);
+    if (!evidence) fail("evidence-additional-id", id);
+    const current = records.filter(
+      ({ candidateCommit }) => candidateCommit === status.candidateCommit,
+    );
+    if (current.length > 1) fail("evidence-current-commit", id);
+    if (
+      current.length === 1 &&
+      !required.has(id) &&
+      !["accepted"].includes(status.taskStates[evidence.owner])
+    ) {
+      fail("evidence-premature", id);
     }
   }
 }
@@ -3197,6 +3610,7 @@ export async function checkRepository({ root, all = false } = {}) {
   validateStatusShape(status, generated.canonical, generated.expanded);
   await validateContractBase(resolvedRoot, goal, status);
   await validateRealPinsAndSource(resolvedRoot, generated.canonical);
+  await validateRealRunnerGraph(resolvedRoot, generated.canonical, status);
   await validateRealPackageFoundation(resolvedRoot, generated.canonical, status);
   await validateRealDeclarations(
     resolvedRoot,
@@ -3204,9 +3618,9 @@ export async function checkRepository({ root, all = false } = {}) {
     status,
     generated.expectedDeclaration,
   );
-  const calls = await collectStaticContractTests(resolvedRoot);
+  const calls = await collectStaticEvidence(resolvedRoot, generated.expanded, status);
   validateStaticCollection(generated.canonical, generated.expanded, status, calls);
-  validateCurrentEvidence(generated.expanded, status);
+  validateCurrentEvidence(generated.expanded, status, { all });
   if (all) {
     const incomplete = Object.entries(status.taskStates).filter(
       ([, state]) => !["implemented", "verified", "under-review", "accepted"].includes(state),
@@ -3290,6 +3704,14 @@ async function validateCandidateHeadAndClean(root, status) {
   if (unexpected.length !== 0) {
     fail("candidate-worktree-dirty", unexpected.join("\n"));
   }
+}
+
+export async function checkCandidate({ root } = {}) {
+  const resolvedRoot = resolve(root ?? process.cwd());
+  const statusSource = await readFile(resolve(resolvedRoot, ".agents/docs/loop-status.md"), "utf8");
+  const status = extractLoopStatus(statusSource);
+  await validateCandidateHeadAndClean(resolvedRoot, status);
+  return status;
 }
 
 export async function checkCompletion({ root } = {}) {
@@ -3397,10 +3819,22 @@ function validateActualReviewRecord(contract, status) {
   const requiredCells = new Set(
     expectedTasks.flatMap((taskId) => expectedSlots.map((slot) => `${taskId}\0${slot}`)),
   );
+  const milestoneNames = Object.keys(contract.milestones);
+  const activeMilestoneIndex = milestoneNames.indexOf(status.activeMilestone);
+  const priorTasks = new Set(
+    milestoneNames
+      .slice(0, activeMilestoneIndex)
+      .flatMap((milestone) => contract.milestones[milestone]),
+  );
+  const earlierImpact = new Set();
   for (const report of status.reports) {
     for (const taskId of report.earlierImpact) {
-      requiredCells.add(`${taskId}\0${report.slot}`);
+      if (!priorTasks.has(taskId)) fail("review-earlier-impact-task", taskId);
+      earlierImpact.add(taskId);
     }
+  }
+  for (const taskId of earlierImpact) {
+    for (const slot of expectedSlots) requiredCells.add(`${taskId}\0${slot}`);
   }
   const seenCells = new Set();
   for (const verdict of status.verdicts) {
@@ -3408,6 +3842,8 @@ function validateActualReviewRecord(contract, status) {
     if (seenCells.has(cell)) fail("review-verdict-duplicate");
     seenCells.add(cell);
     if (
+      !expectedSlots.includes(verdict.slot) ||
+      (!expectedTasks.includes(verdict.taskId) && !earlierImpact.has(verdict.taskId)) ||
       !["PASS", "FAIL"].includes(verdict.verdict) ||
       verdict.candidateCommit !== status.candidateCommit ||
       verdict.reviewInputStatusHash !== expectedHash
@@ -3529,6 +3965,11 @@ async function cli() {
     process.stdout.write(
       `taffy contract check passed: ${result.collectedPrimaryIds.length} primary IDs currently registered\n`,
     );
+    return;
+  }
+  if (command === "candidate") {
+    await checkCandidate({ root });
+    process.stdout.write("candidate commit and worktree passed\n");
     return;
   }
   if (command === "completion") {

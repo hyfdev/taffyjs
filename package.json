@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
+    "@types/node": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
   },

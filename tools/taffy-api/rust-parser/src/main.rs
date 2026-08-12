@@ -17,9 +17,12 @@ struct ParserOutput {
     parser: &'static str,
     taffy_root: String,
     file_features: BTreeMap<String, Vec<String>>,
+    file_cfg: BTreeMap<String, Value>,
     inherent_impl_matches: bool,
+    inherent_method_duplicates: Vec<String>,
     inherent_methods: BTreeMap<String, MethodOutput>,
     trait_impl_matches: bool,
+    trait_method_duplicates: Vec<String>,
     trait_methods: BTreeMap<String, MethodOutput>,
     adjacent_roots: Vec<AdjacentRootOutput>,
     named_data: BTreeMap<String, NamedDataOutput>,
@@ -50,6 +53,7 @@ struct NamedDataOutput {
     source: String,
     kind: String,
     effective_features: Vec<String>,
+    effective_cfg: Value,
     shape_matches: bool,
     actual_shape: Value,
 }
@@ -220,14 +224,56 @@ fn cfg_value(attributes: &[Attribute]) -> Value {
                 .unwrap_or_else(|_| json!({ "unparsed": token_string(attribute) }))
         })
         .collect::<Vec<_>>();
-    match values.as_slice() {
+    normalize_cfg(match values.as_slice() {
         [] => Value::Bool(true),
         [only] => only.clone(),
         _ => json!({ "all": values }),
-    }
+    })
 }
 
-fn cfg_features(attributes: &[Attribute]) -> Vec<String> {
+fn normalize_cfg(value: Value) -> Value {
+    let Value::Object(mut object) = value else {
+        return value;
+    };
+    for key in ["all", "any"] {
+        if let Some(Value::Array(values)) = object.remove(key) {
+            let mut normalized = values
+                .into_iter()
+                .map(normalize_cfg)
+                .flat_map(|value| match value {
+                    Value::Object(mut nested) => match nested.remove(key) {
+                        Some(Value::Array(values)) if nested.is_empty() => values,
+                        _ => vec![Value::Object(nested)],
+                    },
+                    value => vec![value],
+                })
+                .collect::<Vec<_>>();
+            if key == "all" {
+                normalized.retain(|value| value != &Value::Bool(true));
+            }
+            normalized.sort_by_key(|value| serde_json::to_string(value).unwrap_or_default());
+            return match normalized.as_slice() {
+                [] => Value::Bool(key == "all"),
+                [only] => only.clone(),
+                _ => json!({ key: normalized }),
+            };
+        }
+    }
+    if let Some(value) = object.remove("not") {
+        return json!({ "not": normalize_cfg(value) });
+    }
+    Value::Object(object)
+}
+
+fn combine_cfg(values: impl IntoIterator<Item = Value>) -> Value {
+    normalize_cfg(json!({ "all": values.into_iter().collect::<Vec<_>>() }))
+}
+
+fn cfg_from_features(features: &[String]) -> Value {
+    combine_cfg(features.iter().map(|feature| json!({ "feature": feature })))
+}
+
+fn cfg_features(value: &Value) -> Vec<String> {
     fn visit(value: &Value, features: &mut BTreeSet<String>) {
         match value {
             Value::Object(object) => {
@@ -241,7 +287,7 @@ fn cfg_features(attributes: &[Attribute]) -> Vec<String> {
         }
     }
     let mut features = BTreeSet::new();
-    visit(&cfg_value(attributes), &mut features);
+    visit(value, &mut features);
     features.into_iter().collect()
 }
 
@@ -274,11 +320,11 @@ fn resolve_module_file(current: &Path, module: &syn::ItemMod) -> Option<PathBuf>
     }
 }
 
-fn collect_file_features(
+fn collect_file_cfg(
     root: &Path,
     current: &Path,
-    inherited: &[String],
-    output: &mut BTreeMap<String, Vec<String>>,
+    inherited: &Value,
+    output: &mut BTreeMap<String, Value>,
     visited: &mut HashSet<PathBuf>,
 ) -> Result<(), String> {
     let canonical = current
@@ -292,18 +338,15 @@ fn collect_file_features(
         .map_err(|_| format!("{} is outside {}", canonical.display(), root.display()))?
         .to_string_lossy()
         .replace('\\', "/");
-    output.insert(relative, inherited.to_vec());
+    output.insert(relative, inherited.clone());
     let file = parse_rust_file(&canonical)?;
     for item in file.items {
         if let Item::Mod(module) = item
             && module.content.is_none()
             && let Some(path) = resolve_module_file(&canonical, &module)
         {
-            let mut features = inherited.to_vec();
-            features.extend(cfg_features(&module.attrs));
-            features.sort();
-            features.dedup();
-            collect_file_features(root, &path, &features, output, visited)?;
+            let effective = combine_cfg([inherited.clone(), cfg_value(&module.attrs)]);
+            collect_file_cfg(root, &path, &effective, output, visited)?;
         }
     }
     Ok(())
@@ -333,18 +376,20 @@ fn parse_expected_signature(value: &str) -> Option<Signature> {
 }
 
 fn method_outputs(
-    item_impl: &ItemImpl,
+    item_impls: &[&ItemImpl],
     expected_methods: &Map<String, Value>,
-) -> BTreeMap<String, MethodOutput> {
-    item_impl
-        .items
-        .iter()
-        .filter_map(|item| {
+    file_cfg: &Value,
+) -> (BTreeMap<String, MethodOutput>, Vec<String>) {
+    let mut output = BTreeMap::new();
+    let mut duplicates = BTreeSet::new();
+    for item_impl in item_impls {
+        let impl_cfg = combine_cfg([file_cfg.clone(), cfg_value(&item_impl.attrs)]);
+        for item in &item_impl.items {
             let ImplItem::Fn(method) = item else {
-                return None;
+                continue;
             };
             if item_impl.trait_.is_none() && !matches!(method.vis, Visibility::Public(_)) {
-                return None;
+                continue;
             }
             let name = method.sig.ident.to_string();
             let expected = expected_methods
@@ -357,17 +402,21 @@ fn method_outputs(
             let signature_matches = expected_normalized
                 .as_ref()
                 .is_some_and(|value| value == &normalized);
-            Some((
+            let previous = output.insert(
                 name,
                 MethodOutput {
                     normalized_signature: normalized,
                     expected_normalized_signature: expected_normalized,
                     signature_matches,
-                    cfg: cfg_value(&method.attrs),
+                    cfg: combine_cfg([impl_cfg.clone(), cfg_value(&method.attrs)]),
                 },
-            ))
-        })
-        .collect()
+            );
+            if previous.is_some() {
+                duplicates.insert(method.sig.ident.to_string());
+            }
+        }
+    }
+    (output, duplicates.into_iter().collect())
 }
 
 fn normalize_impl_header(item_impl: &ItemImpl) -> String {
@@ -385,24 +434,27 @@ fn expected_impl_header(value: &str) -> Option<String> {
         .map(|item| normalize_impl_header(&item))
 }
 
-fn find_impl<'a>(
+fn find_impls<'a>(
     file: &'a syn::File,
     self_name: &str,
     wanted_trait: Option<&str>,
-) -> Option<&'a ItemImpl> {
-    file.items.iter().find_map(|item| {
-        let Item::Impl(item_impl) = item else {
-            return None;
-        };
-        if owned_type_name(&item_impl.self_ty).as_deref() != Some(self_name) {
-            return None;
-        }
-        if trait_name(item_impl).as_deref() == wanted_trait {
-            Some(item_impl)
-        } else {
-            None
-        }
-    })
+) -> Vec<&'a ItemImpl> {
+    file.items
+        .iter()
+        .filter_map(|item| {
+            let Item::Impl(item_impl) = item else {
+                return None;
+            };
+            if owned_type_name(&item_impl.self_ty).as_deref() != Some(self_name) {
+                return None;
+            }
+            if trait_name(item_impl).as_deref() == wanted_trait {
+                Some(item_impl)
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 fn expected_generics(shape: &Value) -> Vec<String> {
@@ -454,6 +506,18 @@ fn field_cfg_shape(fields: &Fields) -> Value {
         }
     }
     Value::Object(output)
+}
+
+fn normalize_cfg_map(value: Value) -> Value {
+    match value {
+        Value::Object(values) => Value::Object(
+            values
+                .into_iter()
+                .map(|(name, cfg)| (name, normalize_cfg(cfg)))
+                .collect(),
+        ),
+        value => value,
+    }
 }
 
 fn variant_shape(item: &ItemEnum) -> (Value, Value) {
@@ -553,43 +617,49 @@ fn shape_for_item(item: &Item, expected: &Value) -> (String, Value, bool) {
             let wanted_generics = expected_generics(expected);
             let expected_kind = expected.get("kind").and_then(Value::as_str).unwrap_or("");
             if expected_kind == "opaqueTupleStruct" {
-                let public_fields = match &item_struct.fields {
-                    Fields::Unnamed(fields) => fields
-                        .unnamed
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, field)| matches!(field.vis, Visibility::Public(_)))
-                        .map(|(index, field)| {
-                            json!({
-                                "index": index,
-                                "type": normalize_type(&field.ty, &item_struct.generics),
+                let (is_tuple, public_fields) = match &item_struct.fields {
+                    Fields::Unnamed(fields) => (
+                        true,
+                        fields
+                            .unnamed
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, field)| matches!(field.vis, Visibility::Public(_)))
+                            .map(|(index, field)| {
+                                json!({
+                                    "index": index,
+                                    "type": normalize_type(&field.ty, &item_struct.generics),
+                                })
                             })
-                        })
-                        .collect::<Vec<_>>(),
-                    _ => Vec::new(),
+                            .collect::<Vec<_>>(),
+                    ),
+                    _ => (false, Vec::new()),
                 };
                 let actual = json!({
                     "kind": "opaqueTupleStruct",
                     "generics": actual_generics,
-                    "publicFields": public_fields,
+                    "publicFields": public_fields.clone(),
                 });
-                let expected_public_count = expected
+                let expected_public_fields = expected
                     .get("publicFields")
                     .and_then(Value::as_array)
-                    .map_or(0, Vec::len);
-                let matches = wanted_generics == actual_generics
-                    && actual["publicFields"].as_array().map_or(0, Vec::len)
-                        == expected_public_count;
+                    .cloned()
+                    .unwrap_or_default();
+                let matches = is_tuple
+                    && wanted_generics == actual_generics
+                    && public_fields == expected_public_fields;
                 ("opaqueTupleStruct".to_string(), actual, matches)
             } else {
                 let fields = named_fields_shape(&item_struct.fields, &item_struct.generics);
                 let field_cfg = field_cfg_shape(&item_struct.fields);
                 let expected_fields =
                     normalize_expected_field_map(expected, "fields", &item_struct.generics);
-                let expected_cfg = expected
-                    .get("fieldCfg")
-                    .cloned()
-                    .unwrap_or_else(|| json!({}));
+                let expected_cfg = normalize_cfg_map(
+                    expected
+                        .get("fieldCfg")
+                        .cloned()
+                        .unwrap_or_else(|| json!({})),
+                );
                 let actual = json!({
                     "kind": "struct",
                     "generics": actual_generics,
@@ -608,10 +678,12 @@ fn shape_for_item(item: &Item, expected: &Value) -> (String, Value, bool) {
             let wanted_generics = expected_generics(expected);
             let (variants, variant_cfg) = variant_shape(item_enum);
             let expected_variants = normalize_expected_variants(expected, &item_enum.generics);
-            let expected_cfg = expected
-                .get("variantCfg")
-                .cloned()
-                .unwrap_or_else(|| json!({}));
+            let expected_cfg = normalize_cfg_map(
+                expected
+                    .get("variantCfg")
+                    .cloned()
+                    .unwrap_or_else(|| json!({})),
+            );
             let actual = json!({
                 "kind": "enum",
                 "generics": actual_generics,
@@ -666,7 +738,7 @@ fn item_attributes(item: &Item) -> &[Attribute] {
 fn build_named_data(
     taffy_root: &Path,
     contract: &Value,
-    file_features: &BTreeMap<String, Vec<String>>,
+    file_cfg: &BTreeMap<String, Value>,
 ) -> Result<BTreeMap<String, NamedDataOutput>, String> {
     let groups = contract
         .get("namedDataGroups")
@@ -710,13 +782,12 @@ fn build_named_data(
                 .get(name)
                 .ok_or_else(|| format!("missing namedDataShapes.{name}"))?;
             if let Some(item) = indexed.get(name) {
-                let mut effective_features = file_features.get(source).cloned().unwrap_or_default();
-                effective_features.extend(cfg_features(item_attributes(item)));
-                effective_features.sort();
-                effective_features.dedup();
-                let mut sorted_expected_features = expected_features.clone();
-                sorted_expected_features.sort();
-                sorted_expected_features.dedup();
+                let effective_cfg = combine_cfg([
+                    file_cfg.get(source).cloned().unwrap_or(Value::Bool(true)),
+                    cfg_value(item_attributes(item)),
+                ]);
+                let effective_features = cfg_features(&effective_cfg);
+                let expected_cfg = cfg_from_features(&expected_features);
                 let (kind, actual_shape, shape_matches) = shape_for_item(item, expected);
                 output.insert(
                     name.to_string(),
@@ -724,8 +795,8 @@ fn build_named_data(
                         source: source.to_string(),
                         kind,
                         effective_features: effective_features.clone(),
-                        shape_matches: shape_matches
-                            && effective_features == sorted_expected_features,
+                        effective_cfg: effective_cfg.clone(),
+                        shape_matches: shape_matches && effective_cfg == expected_cfg,
                         actual_shape,
                     },
                 );
@@ -735,7 +806,11 @@ fn build_named_data(
                     NamedDataOutput {
                         source: source.to_string(),
                         kind: "missing".to_string(),
-                        effective_features: file_features.get(source).cloned().unwrap_or_default(),
+                        effective_features: file_cfg
+                            .get(source)
+                            .map(cfg_features)
+                            .unwrap_or_default(),
+                        effective_cfg: file_cfg.get(source).cloned().unwrap_or(Value::Bool(true)),
                         shape_matches: false,
                         actual_shape: json!({}),
                     },
@@ -764,7 +839,86 @@ fn derived_traits(item_struct: &ItemStruct) -> BTreeSet<String> {
     output
 }
 
-fn build_adjacent_roots(file: &syn::File, contract: &Value) -> Vec<AdjacentRootOutput> {
+fn generic_argument(parameter: &GenericParam) -> String {
+    match parameter {
+        GenericParam::Type(parameter) => parameter.ident.to_string(),
+        GenericParam::Lifetime(parameter) => token_string(&parameter.lifetime),
+        GenericParam::Const(parameter) => parameter.ident.to_string(),
+    }
+}
+
+fn declared_type(name: &str, generics: &Generics) -> Option<Type> {
+    let arguments = generics
+        .params
+        .iter()
+        .map(generic_argument)
+        .collect::<Vec<_>>();
+    let source = if arguments.is_empty() {
+        name.to_string()
+    } else {
+        format!("{name}<{}>", arguments.join(", "))
+    };
+    syn::parse_str(&source).ok()
+}
+
+fn type_source_matches(actual: &Type, expected: &str, generics: &Generics) -> bool {
+    syn::parse_str::<Type>(expected)
+        .ok()
+        .is_some_and(|expected| {
+            normalize_type(actual, generics) == normalize_type(&expected, generics)
+        })
+}
+
+fn impl_header_for(trait_name: &str, self_type: &str) -> Option<String> {
+    syn::parse_str::<ItemImpl>(&format!("impl {trait_name} for {self_type} {{}}"))
+        .ok()
+        .map(|item| normalize_impl_header(&item))
+}
+
+fn public_tuple_fields(item: &ItemStruct) -> Option<Vec<Value>> {
+    let Fields::Unnamed(fields) = &item.fields else {
+        return None;
+    };
+    Some(
+        fields
+            .unnamed
+            .iter()
+            .enumerate()
+            .filter(|(_, field)| matches!(field.vis, Visibility::Public(_)))
+            .map(|(index, field)| {
+                json!({
+                    "index": index,
+                    "type": normalize_type(&field.ty, &item.generics),
+                })
+            })
+            .collect(),
+    )
+}
+
+fn iterator_item(file: &syn::File, self_name: &str) -> Option<String> {
+    let implementations = find_impls(file, self_name, Some("Iterator"));
+    if implementations.len() != 1 {
+        return None;
+    }
+    let item_impl = implementations[0];
+    let items = item_impl
+        .items
+        .iter()
+        .filter_map(|item| match item {
+            ImplItem::Type(item) if item.ident == "Item" => {
+                Some(normalize_type(&item.ty, &item_impl.generics))
+            }
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    (items.len() == 1).then(|| items[0].clone())
+}
+
+fn build_adjacent_roots(
+    file: &syn::File,
+    contract: &Value,
+    file_cfg: &Value,
+) -> Vec<AdjacentRootOutput> {
     let roots = contract
         .pointer("/upstream/adjacentRoots")
         .and_then(Value::as_array)
@@ -779,6 +933,12 @@ fn build_adjacent_roots(file: &syn::File, contract: &Value) -> Vec<AdjacentRootO
         _ => None,
     });
     let derives = tree_struct.map(derived_traits).unwrap_or_default();
+    let expected_derives = roots
+        .iter()
+        .filter(|root| root.get("kind").and_then(Value::as_str) == Some("derivedTraitImpl"))
+        .filter_map(|root| root.get("trait").and_then(Value::as_str))
+        .map(str::to_string)
+        .collect::<BTreeSet<_>>();
     roots
         .into_iter()
         .map(|root| {
@@ -789,28 +949,56 @@ fn build_adjacent_roots(file: &syn::File, contract: &Value) -> Vec<AdjacentRootO
                 .and_then(Value::as_str)
                 .unwrap_or("")
                 .to_string();
+            let expected_cfg = root
+                .get("cfg")
+                .cloned()
+                .map(normalize_cfg)
+                .unwrap_or(Value::Bool(true));
+            let expected_for = root.get("for").and_then(Value::as_str).unwrap_or("");
             let matches = match kind {
-                "traitImpl" => find_impl(file, "TaffyTree", Some(&name)).is_some(),
-                "derivedTraitImpl" => derives.contains(&name),
+                "traitImpl" => {
+                    let implementations = find_impls(file, "TaffyTree", Some(&name));
+                    implementations.len() == 1
+                        && impl_header_for(&name, expected_for).is_some_and(|expected| {
+                            normalize_impl_header(implementations[0]) == expected
+                        })
+                        && combine_cfg([file_cfg.clone(), cfg_value(&implementations[0].attrs)])
+                            == expected_cfg
+                }
+                "derivedTraitImpl" => tree_struct.is_some_and(|item| {
+                    let declared = declared_type("TaffyTree", &item.generics);
+                    derives == expected_derives
+                        && derives.contains(&name)
+                        && matches!(item.vis, Visibility::Public(_))
+                        && declared.is_some_and(|actual| {
+                            type_source_matches(&actual, expected_for, &item.generics)
+                        })
+                        && combine_cfg([file_cfg.clone(), cfg_value(&item.attrs)]) == expected_cfg
+                }),
                 "struct" => child_iter.is_some_and(|item| {
-                    let public_fields = match &item.fields {
-                        Fields::Unnamed(fields) => fields
-                            .unnamed
-                            .iter()
-                            .filter(|field| matches!(field.vis, Visibility::Public(_)))
-                            .count(),
-                        Fields::Named(fields) => fields
-                            .named
-                            .iter()
-                            .filter(|field| matches!(field.vis, Visibility::Public(_)))
-                            .count(),
-                        Fields::Unit => 0,
-                    };
-                    public_fields
-                        == root
-                            .get("publicFields")
-                            .and_then(Value::as_array)
-                            .map_or(0, Vec::len)
+                    let expected_path = root.get("rustPath").and_then(Value::as_str).unwrap_or("");
+                    let expected_item = root
+                        .get("iteratorItem")
+                        .and_then(Value::as_str)
+                        .and_then(|value| syn::parse_str::<Type>(value).ok())
+                        .map(|value| normalize_type(&value, &Generics::default()));
+                    let actual_declared = declared_type("TaffyTreeChildIter", &item.generics);
+                    matches!(item.vis, Visibility::Public(_))
+                        && actual_declared.is_some_and(|actual| {
+                            let expected_short =
+                                expected_path.rsplit("::").next().unwrap_or(expected_path);
+                            type_source_matches(&actual, expected_short, &item.generics)
+                        })
+                        && public_tuple_fields(item).is_some_and(|fields| {
+                            fields
+                                == root
+                                    .get("publicFields")
+                                    .and_then(Value::as_array)
+                                    .cloned()
+                                    .unwrap_or_default()
+                        })
+                        && combine_cfg([file_cfg.clone(), cfg_value(&item.attrs)]) == expected_cfg
+                        && iterator_item(file, "TaffyTreeChildIter") == expected_item
                 }),
                 _ => false,
             };
@@ -847,14 +1035,18 @@ fn run() -> Result<(), String> {
     let canonical_root = taffy_root
         .canonicalize()
         .map_err(|error| format!("failed to resolve {}: {error}", taffy_root.display()))?;
-    let mut file_features = BTreeMap::new();
-    collect_file_features(
+    let mut file_cfg = BTreeMap::new();
+    collect_file_cfg(
         &canonical_root,
         &canonical_root.join("src/lib.rs"),
-        &[],
-        &mut file_features,
+        &Value::Bool(true),
+        &mut file_cfg,
         &mut HashSet::new(),
     )?;
+    let file_features = file_cfg
+        .iter()
+        .map(|(source, cfg)| (source.clone(), cfg_features(cfg)))
+        .collect::<BTreeMap<_, _>>();
 
     let taffy_tree = contract
         .pointer("/upstream/taffyTree")
@@ -865,21 +1057,30 @@ fn run() -> Result<(), String> {
         .and_then(Value::as_str)
         .ok_or("taffyTree source missing")?;
     let tree_file = parse_rust_file(&canonical_root.join(tree_source))?;
-    let inherent_impl =
-        find_impl(&tree_file, "TaffyTree", None).ok_or("TaffyTree inherent impl missing")?;
+    let inherent_impls = find_impls(&tree_file, "TaffyTree", None);
+    if inherent_impls.is_empty() {
+        return Err("TaffyTree inherent impl missing".to_string());
+    }
     let expected_inherent_header = taffy_tree
         .get("implHeader")
         .and_then(Value::as_str)
         .and_then(expected_impl_header);
-    let inherent_impl_matches = expected_inherent_header
-        .as_ref()
-        .is_some_and(|expected| expected == &normalize_impl_header(inherent_impl));
-    let inherent_methods = method_outputs(
-        inherent_impl,
+    let inherent_impl_matches = expected_inherent_header.as_ref().is_some_and(|expected| {
+        inherent_impls
+            .iter()
+            .all(|item_impl| expected == &normalize_impl_header(item_impl))
+    });
+    let tree_file_cfg = file_cfg
+        .get(tree_source)
+        .cloned()
+        .unwrap_or(Value::Bool(true));
+    let (inherent_methods, inherent_method_duplicates) = method_outputs(
+        &inherent_impls,
         taffy_tree
             .get("methods")
             .and_then(Value::as_object)
             .ok_or("taffyTree methods missing")?,
+        &tree_file_cfg,
     );
 
     let traverse = contract
@@ -890,31 +1091,38 @@ fn run() -> Result<(), String> {
         .get("trait")
         .and_then(Value::as_str)
         .ok_or("traversePartialTree trait missing")?;
-    let trait_impl = find_impl(&tree_file, "TaffyTree", Some(wanted_trait))
-        .ok_or("TaffyTree TraversePartialTree impl missing")?;
+    let trait_impls = find_impls(&tree_file, "TaffyTree", Some(wanted_trait));
+    if trait_impls.is_empty() {
+        return Err("TaffyTree TraversePartialTree impl missing".to_string());
+    }
     let expected_trait_header = traverse
         .get("implHeader")
         .and_then(Value::as_str)
         .and_then(expected_impl_header);
-    let trait_impl_matches = expected_trait_header
-        .as_ref()
-        .is_some_and(|expected| expected == &normalize_impl_header(trait_impl));
-    let trait_methods = method_outputs(
-        trait_impl,
+    let trait_impl_matches = trait_impls.len() == 1
+        && expected_trait_header
+            .as_ref()
+            .is_some_and(|expected| expected == &normalize_impl_header(trait_impls[0]));
+    let (trait_methods, trait_method_duplicates) = method_outputs(
+        &trait_impls,
         traverse
             .get("methods")
             .and_then(Value::as_object)
             .ok_or("traversePartialTree methods missing")?,
+        &tree_file_cfg,
     );
-    let adjacent_roots = build_adjacent_roots(&tree_file, &contract);
-    let named_data = build_named_data(&canonical_root, &contract, &file_features)?;
+    let adjacent_roots = build_adjacent_roots(&tree_file, &contract, &tree_file_cfg);
+    let named_data = build_named_data(&canonical_root, &contract, &file_cfg)?;
     let output = ParserOutput {
         parser: "syn-2.0.119",
         taffy_root: canonical_root.display().to_string(),
         file_features,
+        file_cfg,
         inherent_impl_matches,
+        inherent_method_duplicates,
         inherent_methods,
         trait_impl_matches,
+        trait_method_duplicates,
         trait_methods,
         adjacent_roots,
         named_data,
@@ -931,5 +1139,59 @@ fn main() {
     if let Err(error) = run() {
         eprintln!("{error}");
         std::process::exit(1);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn aggregates_public_methods_from_every_matching_impl() {
+        let file = syn::parse_file(
+            "impl<T> TaffyTree<T> { pub fn first(&self) {} }\nimpl<T> TaffyTree<T> { pub fn added(&self) {} }",
+        )
+        .expect("fixture parses");
+        let implementations = find_impls(&file, "TaffyTree", None);
+        let expected = serde_json::from_value::<Map<String, Value>>(json!({
+            "first": { "signature": "fn first(&self)" }
+        }))
+        .expect("expected methods parse");
+        let (methods, duplicates) = method_outputs(&implementations, &expected, &Value::Bool(true));
+        assert_eq!(implementations.len(), 2);
+        assert_eq!(
+            methods.keys().cloned().collect::<Vec<_>>(),
+            ["added", "first"]
+        );
+        assert!(duplicates.is_empty());
+        assert!(!methods["added"].signature_matches);
+    }
+
+    #[test]
+    fn preserves_cfg_boolean_structure() {
+        let any: ItemStruct =
+            syn::parse_str("#[cfg(any(feature = \"a\", feature = \"b\"))] pub struct Example;")
+                .expect("fixture parses");
+        let all: ItemStruct =
+            syn::parse_str("#[cfg(all(feature = \"a\", feature = \"b\"))] pub struct Example;")
+                .expect("fixture parses");
+        let not: ItemStruct = syn::parse_str("#[cfg(not(feature = \"a\"))] pub struct Example;")
+            .expect("fixture parses");
+        assert_ne!(cfg_value(&any.attrs), cfg_value(&all.attrs));
+        assert_ne!(cfg_value(&not.attrs), json!({ "feature": "a" }));
+    }
+
+    #[test]
+    fn opaque_tuple_shape_rejects_named_and_unit_structs() {
+        let expected = json!({ "kind": "opaqueTupleStruct", "publicFields": [] });
+        let tuple =
+            Item::Struct(syn::parse_str("pub struct NodeId(u64);").expect("fixture parses"));
+        let named = Item::Struct(
+            syn::parse_str("pub struct NodeId { value: u64 }").expect("fixture parses"),
+        );
+        let unit = Item::Struct(syn::parse_str("pub struct NodeId;").expect("fixture parses"));
+        assert!(shape_for_item(&tuple, &expected).2);
+        assert!(!shape_for_item(&named, &expected).2);
+        assert!(!shape_for_item(&unit, &expected).2);
     }
 }

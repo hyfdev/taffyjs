@@ -23,6 +23,12 @@ export function assembleDeclaration(
 ): string;
 export function formatDeclaration(source: string, root: string): Promise<string>;
 export function stripDeclarationJsDoc(source: string): string;
+export function validateWholeSurfaceJsDoc(contract: Record<string, unknown>, actual: string): void;
+export function validateNodeIdDeclarationBindings(contract: Record<string, unknown>): void;
+export function validateParsedSourceInventory(
+  contract: Record<string, unknown>,
+  parsed: Record<string, unknown>,
+): void;
 export function generateArtifacts(options: {
   root: string;
   goal: string;
@@ -35,12 +41,31 @@ export function extractContractTestCalls(
   path: string,
   root: string,
 ): Promise<Array<{ id: string; path: string; offset: number }>>;
+export function collectStaticEvidence(
+  root: string,
+  expanded: Record<string, unknown>,
+  status: Record<string, unknown>,
+): Promise<
+  Array<{ id: string; path: string; offset: number; identity: string; modality?: string }>
+>;
+export function validateStaticCollection(
+  contract: Record<string, unknown>,
+  expanded: Record<string, unknown>,
+  status: Record<string, unknown>,
+  calls: Array<Record<string, unknown>>,
+): void;
+export function validateCurrentEvidence(
+  expanded: Record<string, unknown>,
+  status: Record<string, unknown>,
+  options?: { all?: boolean },
+): void;
 export function serializeReviewInputProjection(projection: Record<string, unknown>): string;
 export function checkRepository(options?: {
   root?: string;
   all?: boolean;
 }): Promise<Record<string, unknown>>;
 export function checkCompletion(options?: { root?: string }): Promise<Record<string, unknown>>;
+export function checkCandidate(options?: { root?: string }): Promise<Record<string, unknown>>;
 export function checkReviewCompletion(options?: {
   root?: string;
 }): Promise<Record<string, unknown>>;

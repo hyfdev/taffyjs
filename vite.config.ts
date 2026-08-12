@@ -20,7 +20,11 @@ const testTasks = {
     dependsOn: ["build", "check:contract"],
   },
   "check:test:node-minimum": {
-    command: "node tests/taffyjs-node/minimum-node/run.mjs",
+    command: "vp env exec --node 22.18.0 -- node tests/taffyjs-node/minimum-node/run.mjs",
+    dependsOn: ["build", "check:contract"],
+  },
+  "check:test:rust-contract": {
+    command: "node tools/taffy-api/src/run-rust-tests.mjs",
     dependsOn: ["build", "check:contract"],
   },
 };
@@ -46,7 +50,8 @@ export default defineConfig({
         command: "node tools/taffy-api/src/index.mjs generate --check",
       },
       "check:contract:self-test": {
-        command: "vp test --config tools/taffy-api/vite.config.ts --reporter=default",
+        command:
+          "vp test --config tools/taffy-api/vite.config.ts --reporter=tools/taffy-api/src/contract-reporter.mjs",
       },
       "check:contract": {
         command: "node tools/taffy-api/src/index.mjs check",
@@ -79,7 +84,7 @@ export default defineConfig({
       },
       "check:rust": {
         command:
-          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings",
+          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings && cargo test --workspace --all-features",
       },
       ...testTasks,
       "check:test": {
@@ -90,8 +95,8 @@ export default defineConfig({
         command: "echo check ok",
         dependsOn: ["check:contract:all", "check:format", "check:lint", "check:rust", "check:test"],
       },
-      "ready:loop": {
-        command: "echo ready:loop",
+      "ready:loop:body": {
+        command: "echo ready:loop checks passed",
         dependsOn: [
           "check:contract",
           "check:format",
@@ -100,9 +105,15 @@ export default defineConfig({
           "check:test:integration",
         ],
       },
-      ready: {
-        command: "echo ready",
+      "ready:loop": {
+        command: "node tools/taffy-api/src/run-ready.mjs loop",
+      },
+      "ready:body": {
+        command: "echo ready checks passed",
         dependsOn: ["check"],
+      },
+      ready: {
+        command: "node tools/taffy-api/src/run-ready.mjs all",
       },
     },
   },

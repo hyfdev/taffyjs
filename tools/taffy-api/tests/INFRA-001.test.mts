@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { contractTest } from "./contract-test.mts";
@@ -155,6 +156,42 @@ contractTest("INFRA-001/task-drift", async () => {
       `task-drift/acceptance-path/${acceptanceId}`,
     );
   }
+
+  const contract = JSON.parse(
+    await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
+  );
+  checker.validateNodeIdDeclarationBindings(contract);
+  for (const mutate of [
+    (copy: typeof contract) => {
+      const member = copy.publicDeclarationContract.classDeclaration.members.find(
+        ([name]: [string]) => name === "remove",
+      );
+      member[1] = "remove(node: bigint): void;";
+    },
+    (copy: typeof contract) => {
+      copy.publicDeclarationContract.fixedStatementsByOwner["API-TREE-031"][0] =
+        "export interface ComputeLayoutOptions { root: bigint; availableSpace: SizeInput<AvailableSpaceInput>; }";
+    },
+    (copy: typeof contract) => {
+      const member = copy.publicDeclarationContract.classDeclaration.members.find(
+        ([name]: [string]) => name === "setChildren",
+      );
+      member[1] = "setChildren(parent: NodeId, children: readonly bigint[]): void;";
+    },
+    (copy: typeof contract) => {
+      const member = copy.publicDeclarationContract.classDeclaration.members.find(
+        ([name]: [string]) => name === "clear",
+      );
+      member[1] = "clear(unbound: NodeId): void;";
+    },
+  ]) {
+    const copy = structuredClone(contract);
+    mutate(copy);
+    await expectDiagnostic(
+      () => checker.validateNodeIdDeclarationBindings(copy),
+      "task-drift/node-id-role-binding",
+    );
+  }
 });
 
 contractTest("INFRA-001/collection-drift", async () => {
@@ -204,6 +241,73 @@ contractTest("INFRA-001/collection-drift", async () => {
     ),
     [{ id: "INFRA-001/generate", path: "top-level.test.mts", offset: 0 }],
   );
+
+  const temporaryRoot = await mkdtemp(resolve(tmpdir(), "taffy-static-evidence-"));
+  try {
+    const records = [
+      {
+        id: "FIXTURE-JS/one",
+        identity: "contractTest(FIXTURE-JS/one, fn)",
+        modality: "machine-check",
+        owner: "FIXTURE-JS",
+        path: "tools/taffy-api/tests/FIXTURE-JS.test.mts",
+      },
+      {
+        id: "FIXTURE-TYPES/one",
+        identity: "FIXTURE-TYPES/one",
+        modality: "types",
+        owner: "FIXTURE-TYPES",
+        path: "tests/taffyjs-node/tests/types/FIXTURE-TYPES/one.test-d.ts",
+      },
+      {
+        id: "FIXTURE-RUST/one",
+        identity: "contract_tests::contract__fixture_rust__one",
+        modality: "rust-contract",
+        owner: "FIXTURE-RUST",
+        path: "crates/taffyjs_binding/src/contract_tests.rs",
+      },
+      {
+        id: "FIXTURE-COMMAND/one",
+        identity: "FIXTURE-COMMAND/one",
+        modality: "command-attestation",
+        owner: "FIXTURE-COMMAND",
+        path: "loop-status.md::commandEvidence.<ACCEPTANCE-ID>",
+      },
+    ];
+    await Promise.all([
+      mkdir(resolve(temporaryRoot, "tools/taffy-api/tests"), { recursive: true }),
+      mkdir(resolve(temporaryRoot, "tests/taffyjs-node/tests/types/FIXTURE-TYPES"), {
+        recursive: true,
+      }),
+      mkdir(resolve(temporaryRoot, "crates/taffyjs_binding/src"), { recursive: true }),
+    ]);
+    await Promise.all([
+      writeFile(
+        resolve(temporaryRoot, records[0].path),
+        'contractTest("FIXTURE-JS/one", () => {});\n',
+      ),
+      writeFile(resolve(temporaryRoot, records[1].path), "export {};\n"),
+      writeFile(
+        resolve(temporaryRoot, records[2].path),
+        "#[test]\nfn contract__fixture_rust__one() {}\n",
+      ),
+    ]);
+    const fixtureStatus = {
+      taskStates: Object.fromEntries(records.map(({ owner }) => [owner, "tests-authored"])),
+    };
+    const calls = await checker.collectStaticEvidence(
+      temporaryRoot,
+      { evidence: { primary: records } },
+      fixtureStatus,
+    );
+    assert.deepEqual(
+      calls.map(({ id }: { id: string }) => id).sort(),
+      records.map(({ id }) => id).sort(),
+    );
+    checker.validateStaticCollection({}, { evidence: { primary: records } }, fixtureStatus, calls);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
 });
 
 contractTest("INFRA-001/incremental-all", async () => {
@@ -256,4 +360,55 @@ contractTest("INFRA-001/incremental-all", async () => {
       `incremental-all/${mutation}`,
     );
   }
+
+  const evidence = {
+    id: "FIXTURE/green",
+    modality: "public-js",
+    owner: "FIXTURE",
+    path: "fixture.test.mts",
+    runner: "vp run fixture",
+  };
+  await expectDiagnostic(
+    () =>
+      checker.validateCurrentEvidence(
+        { evidence: { primary: [evidence] } },
+        {
+          candidateCommit: "candidate",
+          prefixEvidenceCommit: "candidate",
+          taskStates: { FIXTURE: "accepted" },
+          greenEvidence: [],
+        },
+      ),
+    "evidence-current-commit",
+  );
+
+  const contract = JSON.parse(
+    await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
+  );
+  const documentedClass = contract.publicDeclarationContract.classDeclaration.members
+    .map(
+      ([, member]: [string, string]) =>
+        `  /** Documents this public tree operation for package consumers. */\n  ${member}`,
+    )
+    .join("\n");
+  const documented = [
+    "/** Documents this public fixture symbol for package consumers. */",
+    "export interface Fixture {}",
+    "/** Documents the public TaffyTree class for package consumers. */",
+    `${contract.publicDeclarationContract.classDeclaration.header} {`,
+    documentedClass,
+    "}",
+  ].join("\n");
+  checker.validateWholeSurfaceJsDoc(contract, documented);
+  await expectDiagnostic(
+    () =>
+      checker.validateWholeSurfaceJsDoc(
+        contract,
+        documented.replace(
+          "/** Documents this public tree operation for package consumers. */\n  constructor",
+          "  constructor",
+        ),
+      ),
+    "declaration-jsdoc-class-member",
+  );
 });

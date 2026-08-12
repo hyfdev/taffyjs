@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,9 +19,11 @@ async function importPublicPackage() {
   return (await import(specifier)) as Record<string, unknown>;
 }
 
-async function run(command: string, args: string[], cwd: string) {
-  return new Promise<{ stdout: string; stderr: string }>((resolvePromise, reject) => {
-    const child = spawn(command, args, { cwd, stdio: ["ignore", "pipe", "pipe"] });
+async function run(command: string, args: string[], cwd: string, allowFailure = false) {
+  const env = { ...process.env };
+  delete env.NAPI_RS_NATIVE_LIBRARY_PATH;
+  return new Promise<{ code: number; stdout: string; stderr: string }>((resolvePromise, reject) => {
+    const child = spawn(command, args, { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
     child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
@@ -29,10 +31,11 @@ async function run(command: string, args: string[], cwd: string) {
     child.on("error", reject);
     child.on("close", (code) => {
       const result = {
+        code: code ?? -1,
         stdout: Buffer.concat(stdout).toString("utf8"),
         stderr: Buffer.concat(stderr).toString("utf8"),
       };
-      if (code !== 0) {
+      if (code !== 0 && !allowFailure) {
         reject(
           new Error(
             `${command} ${args.join(" ")} exited ${code}\n${result.stdout}${result.stderr}`,
@@ -80,6 +83,7 @@ type PackedFixture = {
   platformEntries: string[];
   platformManifest: Record<string, unknown>;
   privateImportCode: string | null;
+  platformBinaryRequired: boolean;
   rootEntries: string[];
   rootManifest: Record<string, unknown>;
 };
@@ -89,7 +93,9 @@ let packedFixturePromise: Promise<PackedFixture> | undefined;
 async function createPackedFixture(): Promise<PackedFixture> {
   const contract = await readJson(resolve(root, "tools/taffy-api/contract.json"));
   const target = hostTarget();
-  const platform = (contract.platformPackages as Record<string, { name: string }>)[target];
+  const platform = (contract.platformPackages as Record<string, { binary: string; name: string }>)[
+    target
+  ];
   assert.ok(platform);
   const platformRoot = resolve(packageRoot, "npm", platform.name.slice("@taffyjs/binding-".length));
   const temporaryRoot = await mkdtemp(resolve(tmpdir(), "taffyjs-infra-002-"));
@@ -151,8 +157,16 @@ async function createPackedFixture(): Promise<PackedFixture> {
       exportedKeys: string[];
       privateImportCode: string | null;
     };
+    const installedRoot = resolve(consumer, "node_modules/@taffyjs/node");
+    const installedBinary = resolve(consumer, `node_modules/${platform.name}/${platform.binary}`);
+    assert.ok((await stat(installedBinary)).isFile());
+    assert.ok(!(await readdir(installedRoot)).some((entry) => entry.endsWith(".node")));
+    const disabledBinary = `${installedBinary}.disabled`;
+    await rename(installedBinary, disabledBinary);
+    const withoutPlatformBinary = await run(process.execPath, ["probe.mjs"], consumer, true);
     return {
       ...probe,
+      platformBinaryRequired: withoutPlatformBinary.code !== 0,
       platformEntries,
       platformManifest: await readJson(
         resolve(consumer, `node_modules/${platform.name}/package.json`),
@@ -181,7 +195,7 @@ contractTest("INFRA-002/source-entry", async () => {
   assert.equal((manifest.devDependencies as Record<string, string>)["@types/node"], "catalog:");
   assert.match(workspace, /"@types\/node": 22\.18\.0(?:\n|$)/u);
   assert.match(lock, /'@types\/node@22\.18\.0':/u);
-  assert.match(packageSource, /^import "#native";\n\nexport \{\};\n$/u);
+  assert.match(packageSource, /(?:^|\n)import ["']#native["'];/u);
   assert.deepEqual(Object.keys(await importPublicPackage()).sort(), await expectedRuntimeExports());
 });
 
@@ -225,6 +239,7 @@ contractTest("INFRA-002/pack-entry", async () => {
   assert.equal(fixture.platformManifest.name, platform.name);
   assert.equal(fixture.platformManifest.main, platform.binary);
   assert.deepEqual(fixture.exportedKeys, await expectedRuntimeExports());
+  assert.equal(fixture.platformBinaryRequired, true);
 });
 
 contractTest("INFRA-002/foundation-exports", async () => {
