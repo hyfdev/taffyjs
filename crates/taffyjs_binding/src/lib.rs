@@ -160,6 +160,37 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawInsertChildAtIndex")]
+    pub fn insert_child_at_index(
+        &self,
+        env: Env,
+        parent: BigInt,
+        index: Unknown<'_>,
+        child: BigInt,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        let child = into_napi(env, raw_node_id(&child))?;
+        let index = into_napi(
+            env,
+            number::from_unknown(index, "Child index").and_then(number::to_safe_usize),
+        )?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let child_count = tree.child_count(parent);
+                if index > child_count {
+                    return Err(child_index_out_of_bounds_error(format!(
+                        "Child index {index} is outside the insertion range for {child_count} children"
+                    )));
+                }
+                validate_unattached_child(tree, parent, child)?;
+                tree.insert_child_at_index(parent, index, child)
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(
