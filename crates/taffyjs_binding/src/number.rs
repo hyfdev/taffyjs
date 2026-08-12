@@ -1,9 +1,20 @@
-use crate::error::{NativeResult, range_error};
+use napi::bindgen_prelude::Unknown;
+
+use crate::error::{NativeResult, range_error, type_error};
 
 const I64_UPPER_EXCLUSIVE: f64 = 9_223_372_036_854_775_808.0;
+const JS_MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
 
 pub(crate) fn to_f32(value: f64) -> f32 {
     value as f32
+}
+
+pub(crate) fn from_unknown(value: Unknown<'_>, name: &str) -> NativeResult<f64> {
+    unsafe {
+        value
+            .cast::<f64>()
+            .map_err(|_| type_error(format!("{name} must be a number")))
+    }
 }
 
 pub(crate) fn to_integer<T>(value: f64) -> NativeResult<T>
@@ -19,6 +30,13 @@ where
     }
 
     T::try_from(value as i64).map_err(|_| range_error("Expected a finite integer in range"))
+}
+
+pub(crate) fn to_safe_usize(value: f64) -> NativeResult<usize> {
+    if value > JS_MAX_SAFE_INTEGER {
+        return Err(range_error("Expected a non-negative safe integer"));
+    }
+    to_integer(value).map_err(|_| range_error("Expected a non-negative safe integer"))
 }
 
 #[cfg(test)]

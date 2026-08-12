@@ -613,6 +613,7 @@ export declare class TaffyTree<TContext = unknown> {
   newLeaf(style: StyleInput): NodeId;
   newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
   clear(): void;
+  getChildAtIndex(parent: NodeId, index: number): NodeId;
   getChildCount(parent: NodeId): number;
   getNodeCount(): number;
   getParent(node: NodeId): NodeId | null;

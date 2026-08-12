@@ -15,7 +15,10 @@ mod style;
 
 use std::collections::HashSet;
 
-use error::{NativeResult, internal_error, into_napi, invalid_topology_error, type_error};
+use error::{
+    NativeResult, child_index_out_of_bounds_error, internal_error, into_napi,
+    invalid_topology_error, type_error,
+};
 use napi::Env;
 use napi::Status;
 use napi::bindgen_prelude::{BigInt, Function, Object, Unknown};
@@ -104,6 +107,35 @@ impl NativeTaffyTree {
                             .map(|child| BigInt::from(u64::from(child)))
                             .collect()
                     })
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
+    #[napi(js_name = "rawChildAtIndex")]
+    pub fn child_at_index(
+        &self,
+        env: Env,
+        parent: BigInt,
+        index: Unknown<'_>,
+        public_method: String,
+    ) -> napi::Result<BigInt> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        let index = into_napi(
+            env,
+            number::from_unknown(index, "Child index").and_then(number::to_safe_usize),
+        )?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let child_count = tree.child_count(parent);
+                if index >= child_count {
+                    return Err(child_index_out_of_bounds_error(format!(
+                        "Child index {index} is outside a list of {child_count} children"
+                    )));
+                }
+                tree.child_at_index(parent, index)
+                    .map(|child| BigInt::from(u64::from(child)))
                     .map_err(|_| internal_error())
             }),
         )
