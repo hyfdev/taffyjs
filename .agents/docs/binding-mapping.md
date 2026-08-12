@@ -186,6 +186,10 @@ A binding-local `#[napi(object)]`, `#[napi(array)]`, `#[napi(transparent)]`, or 
 
 Choose conversion direction explicitly. Input-only shapes may disable Rust-to-JavaScript conversion, and output-only snapshots may disable JavaScript-to-Rust conversion. napi-rs object conversion owns and copies the fields; it does not create a live view of the Rust value.
 
+### Private input transport performance TODO
+
+Keep public inputs as readable records and tagged unions and keep user-observable outputs as readable owned values. Separately from maturity work, benchmark replacing direct Node-API object-field conversion with JavaScript-side input conversion: pass small fixed inputs to private native methods as positional primitive values, and encode large or deeply nested inputs such as `StyleInput` into a reusable compact `Buffer`. Choose the actual cutoff from retained end-to-end Taffy workloads, include JavaScript validation and buffer-writing cost, preserve the existing public errors and mutation behavior, and do not expose or retain the private transport format. Leave native-to-JavaScript output transport unchanged until it is measured as a separate problem.
+
 A borrowed Rust return such as `&Style` or `&Layout` must not escape as a JavaScript borrow. Return an owned snapshot or another explicitly owned native value. Mutating that JavaScript result must not mutate the tree.
 
 ### Closed enums
