@@ -179,10 +179,12 @@ fn result_size(value: Unknown<'_>) -> NativeResult<Size<f32>> {
 }
 
 pub(crate) fn invalidate_subtree(tree: &mut TaffyTree<()>, root: NodeId) -> NativeResult<()> {
-    for child in tree.children(root).map_err(|_| internal_error())? {
-        invalidate_subtree(tree, child)?;
+    let mut pending = vec![root];
+    while let Some(node) = pending.pop() {
+        tree.mark_dirty(node).map_err(|_| internal_error())?;
+        pending.extend(tree.children(node).map_err(|_| internal_error())?);
     }
-    tree.mark_dirty(root).map_err(|_| internal_error())
+    Ok(())
 }
 
 #[cfg(test)]

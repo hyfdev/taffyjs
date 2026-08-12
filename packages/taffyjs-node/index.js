@@ -366,7 +366,6 @@ var NodeIdRegistry = class {
 //#region src/tree.ts
 const { NativeTaffyTree } = createRequire(import.meta.url)("#native");
 const privateConstructor = Symbol();
-const testAccess = Symbol();
 const secureRandom = (bytes) => globalThis.crypto.getRandomValues(bytes);
 var TaffyTree = class {
 	#inner;
@@ -467,39 +466,6 @@ var TaffyTree = class {
 	}
 	computeLayoutWithMeasure(options) {
 		this.#computeLayoutWithMeasure(options);
-	}
-	[testAccess]() {
-		return {
-			enableRounding: () => this.#inner.rawEnableRounding("enableRounding"),
-			disableRounding: () => this.#inner.rawDisableRounding("disableRounding"),
-			newLeaf: (style) => this.#newLeaf(style),
-			newLeafWithContext: (style, context) => this.#newLeafWithContext(style, context),
-			newWithChildren: (style, children) => this.#newWithChildren(style, children),
-			remove: (node) => this.#remove(node),
-			getNodeContext: (node) => this.#getNodeContext(node),
-			setNodeContext: (node, context) => this.#setNodeContext(node, context),
-			clear: () => this.#clear(),
-			getChildCount: (parent) => this.#getChildCount(parent),
-			getParent: (node) => this.#getParent(node),
-			getChildren: (parent) => this.#getChildren(parent),
-			getChildAtIndex: (parent, index) => this.#getChildAtIndex(parent, index),
-			addChild: (parent, child) => this.#addChild(parent, child),
-			insertChildAtIndex: (parent, index, child) => this.#insertChildAtIndex(parent, index, child),
-			setChildren: (parent, children) => this.#setChildren(parent, children),
-			removeChild: (parent, child) => this.#removeChild(parent, child),
-			removeChildAtIndex: (parent, index) => this.#removeChildAtIndex(parent, index),
-			removeChildrenRange: (parent, range) => this.#removeChildrenRange(parent, range),
-			replaceChildAtIndex: (parent, index, newChild) => this.#replaceChildAtIndex(parent, index, newChild),
-			getNodeCount: () => this.#getNodeCount(),
-			getStyle: (node) => this.#getStyle(node),
-			getLayout: (node) => this.#getLayout(node),
-			getUnroundedLayout: (node) => this.#getUnroundedLayout(node),
-			getDetailedLayoutInfo: (node) => this.#getDetailedLayoutInfo(node),
-			markDirty: (node) => this.#markDirty(node),
-			isDirty: (node) => this.#isDirty(node),
-			computeLayout: (options) => this.#computeLayout(options),
-			computeLayoutWithMeasure: (options) => this.#computeLayoutWithMeasure(options)
-		};
 	}
 	#newLeaf(style) {
 		const serial = this.#nodes.reserveSerial();

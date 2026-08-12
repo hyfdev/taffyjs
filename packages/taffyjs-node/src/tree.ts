@@ -12,7 +12,6 @@ type PrivateTreeOptions = Readonly<{
 }>;
 
 const privateConstructor = Symbol();
-const testAccess = Symbol();
 type PrivateConstructorArgs = [] | [key: typeof privateConstructor, options: PrivateTreeOptions];
 
 type RawMeasureArgs = {
@@ -176,49 +175,6 @@ export class TaffyTree<TContext = unknown> {
 
   computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void {
     this.#computeLayoutWithMeasure(options);
-  }
-
-  [testAccess]() {
-    return {
-      enableRounding: () => this.#inner.rawEnableRounding("enableRounding"),
-      disableRounding: () => this.#inner.rawDisableRounding("disableRounding"),
-      newLeaf: (style: unknown) => this.#newLeaf(style),
-      newLeafWithContext: (style: unknown, context: TContext | undefined) =>
-        this.#newLeafWithContext(style, context),
-      newWithChildren: (style: unknown, children: readonly NodeId[]) =>
-        this.#newWithChildren(style, children),
-      remove: (node: NodeId) => this.#remove(node),
-      getNodeContext: (node: NodeId) => this.#getNodeContext(node),
-      setNodeContext: (node: NodeId, context: TContext | undefined) =>
-        this.#setNodeContext(node, context),
-      clear: () => this.#clear(),
-      getChildCount: (parent: NodeId) => this.#getChildCount(parent),
-      getParent: (node: NodeId) => this.#getParent(node),
-      getChildren: (parent: NodeId) => this.#getChildren(parent),
-      getChildAtIndex: (parent: NodeId, index: number) => this.#getChildAtIndex(parent, index),
-      addChild: (parent: NodeId, child: NodeId) => this.#addChild(parent, child),
-      insertChildAtIndex: (parent: NodeId, index: number, child: NodeId) =>
-        this.#insertChildAtIndex(parent, index, child),
-      setChildren: (parent: NodeId, children: readonly NodeId[]) =>
-        this.#setChildren(parent, children),
-      removeChild: (parent: NodeId, child: NodeId) => this.#removeChild(parent, child),
-      removeChildAtIndex: (parent: NodeId, index: number) =>
-        this.#removeChildAtIndex(parent, index),
-      removeChildrenRange: (parent: NodeId, range: ChildRangeInput) =>
-        this.#removeChildrenRange(parent, range),
-      replaceChildAtIndex: (parent: NodeId, index: number, newChild: NodeId) =>
-        this.#replaceChildAtIndex(parent, index, newChild),
-      getNodeCount: () => this.#getNodeCount(),
-      getStyle: (node: NodeId) => this.#getStyle(node),
-      getLayout: (node: NodeId) => this.#getLayout(node),
-      getUnroundedLayout: (node: NodeId) => this.#getUnroundedLayout(node),
-      getDetailedLayoutInfo: (node: NodeId) => this.#getDetailedLayoutInfo(node),
-      markDirty: (node: NodeId) => this.#markDirty(node),
-      isDirty: (node: NodeId) => this.#isDirty(node),
-      computeLayout: (options: ComputeLayoutOptions) => this.#computeLayout(options),
-      computeLayoutWithMeasure: (options: ComputeLayoutWithMeasureOptions<TContext>) =>
-        this.#computeLayoutWithMeasure(options),
-    };
   }
 
   #newLeaf(style: unknown): NodeId {
@@ -403,7 +359,7 @@ export class TaffyTree<TContext = unknown> {
 }
 
 export function createTaffyTreeForTesting(options: PrivateTreeOptions = {}) {
-  return new TaffyTree(privateConstructor, options)[testAccess]();
+  return new TaffyTree(privateConstructor, options);
 }
 
 export type { NodeId };

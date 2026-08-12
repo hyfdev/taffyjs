@@ -70,8 +70,9 @@ function wrapperState(tree: Tree, nodes: readonly bigint[]) {
 }
 
 contractTest("API-TREE-031/algorithms", () => {
-  // Independent fixture using pinned Taffy directly, without binding conversion code:
-  // crates/taffyjs_binding/src/contract_tests.rs::contract__api_tree_031__direct_taffy_parity
+  // Pinned upstream routing, cache, and hidden-layout sources for these values:
+  // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/tree/taffy_tree.rs#L250-L323
+  // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/compute/mod.rs#L275-L303
   const cases = [
     ["Flex", api.Display.Flex, {}],
     ["Grid", api.Display.Grid, {}],
@@ -125,8 +126,8 @@ contractTest("API-TREE-031/algorithms", () => {
 });
 
 contractTest("API-TREE-031/percentage-content", () => {
-  // Independent fixture using pinned Taffy directly, without binding conversion code:
-  // crates/taffyjs_binding/src/contract_tests.rs::contract__api_tree_031__direct_taffy_parity
+  // Pinned upstream block percentage and content-size source for these values:
+  // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/compute/block.rs#L548-L707
   const tree = new (TaffyTree())();
   const child = tree.newLeaf({
     size: { width: api.Dimension.Percent(50), height: api.Dimension.Length(80) },
