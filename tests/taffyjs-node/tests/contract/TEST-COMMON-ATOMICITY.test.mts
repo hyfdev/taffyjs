@@ -456,7 +456,8 @@ function runNontransactional(failureKind: "measure-result-shape" | "callback-thr
   assert.equal(calls, 1, `${id} must stop calling JavaScript after the first failure`);
   if (failureKind === "callback-throw") assert.equal(received, thrown, id);
   else {
-    assert.ok(received instanceof TypeError, id);
+    assert.ok(received instanceof Error, id);
+    assert.equal(received.constructor, TypeError, id);
     assert.equal((received as CodedError).code, undefined, id);
   }
   assert.deepEqual(snapshotWrapperRegistry(fixture), wrapperBefore, id);

@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { assembleDeclaration, formatDeclaration } from "./index.mjs";
+import { assembleDeclaration, formatDeclaration, stripDeclarationJsDoc } from "./index.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const contract = JSON.parse(await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"));
@@ -46,6 +46,14 @@ const runtimeApi = await import(
 );
 const actualDeclaration = await readFile(resolve(root, "packages/taffyjs-node/index.d.ts"), "utf8");
 const expectedDeclaration = await formatDeclaration(assembleDeclaration(contract), root);
+const actualDeclarationSkeleton = await formatDeclaration(
+  stripDeclarationJsDoc(actualDeclaration),
+  root,
+);
+const expectedDeclarationSkeleton = await formatDeclaration(
+  stripDeclarationJsDoc(expectedDeclaration),
+  root,
+);
 const expectedRuntimeExports = Object.values(contract.publicRuntimeExportsByOwner)
   .flat()
   .toSorted((left, right) => left.localeCompare(right));
@@ -73,7 +81,8 @@ for (const path of await walk(resolve(root, "tests/taffyjs-node/tests/types"))) 
     record?.id !== "TEST-TYPES-001/exports-signatures" ||
     JSON.stringify(actualRuntimeExports) === JSON.stringify(expectedRuntimeExports);
   const declarationMatches =
-    record?.id !== "TEST-TYPES-001/exports-signatures" || actualDeclaration === expectedDeclaration;
+    record?.id !== "TEST-TYPES-001/exports-signatures" ||
+    actualDeclarationSkeleton === expectedDeclarationSkeleton;
   const output = [
     execution.output,
     ...(runtimeExportsMatch

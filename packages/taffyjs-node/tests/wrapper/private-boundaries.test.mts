@@ -68,7 +68,8 @@ function assertSerialExhaustionIsAtomic(owner: "API-TREE-004" | "API-TREE-005" |
     "API-TREE-006": () => tree.newWithChildren({}, [node]),
   }[owner];
   assert.throws(operation, (error: unknown) => {
-    assert.ok(error instanceof RangeError);
+    assert.ok(error instanceof Error);
+    assert.equal(error.constructor, RangeError);
     assert.equal((error as RangeError & { code?: string }).code, undefined);
     return true;
   });

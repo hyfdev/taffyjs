@@ -240,6 +240,7 @@ contractTest("TEST-ALGORITHMS-001/topology-cache", () => {
   const tree = new TaffyTree<Context>();
   const first = tree.newLeafWithContext({}, { width: 10, height: 5 });
   const root = tree.newWithChildren({ display: Display.Flex }, [first]);
+  assert.equal(tree.getNodeCount(), 2);
   let calls = 0;
   const options = {
     root,
@@ -258,7 +259,9 @@ contractTest("TEST-ALGORITHMS-001/topology-cache", () => {
   assert.equal(calls, firstCalls, "an unchanged tree reuses its cached measurements");
 
   const second = tree.newLeafWithContext({}, { width: 20, height: 10 });
+  assert.equal(tree.getNodeCount(), 3);
   tree.addChild(root, second);
+  assert.equal(tree.getNodeCount(), 3);
   assert.equal(tree.isDirty(root), true);
   tree.computeLayoutWithMeasure(options);
   assert.equal(calls > firstCalls, true, "a new child is measured");
@@ -266,11 +269,16 @@ contractTest("TEST-ALGORITHMS-001/topology-cache", () => {
   assert.deepEqual(tree.getUnroundedLayout(root).contentSize, { width: 30, height: 10 });
 
   tree.removeChild(root, first);
+  assert.equal(tree.getNodeCount(), 3);
   assert.equal(tree.isDirty(root), true);
   tree.computeLayoutWithMeasure(options);
   assert.equal(tree.isDirty(root), false);
   assert.deepEqual(tree.getChildren(root), [second]);
   assert.deepEqual(tree.getUnroundedLayout(root).contentSize, { width: 20, height: 10 });
+
+  tree.remove(first);
+  assert.equal(tree.getNodeCount(), 2);
+  assert.deepEqual(tree.getChildren(root), [second]);
 });
 
 contractTest("TEST-ALGORITHMS-001/public-only", async () => {

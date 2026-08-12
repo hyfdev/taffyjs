@@ -137,21 +137,61 @@ function computeChildren(
   return children.map((child) => tree.getUnroundedLayout(child));
 }
 
-function measuredBlockChild(field: "itemIsTable" | "itemIsReplaced", value: boolean): number {
+function tableBlockChildLayout(value: boolean): Layout {
   const tree = new (TaffyTree())();
-  const child = tree.newLeafWithContext({ display: api.Display.Block, [field]: value }, "measured");
-  const root = tree.newWithChildren({ display: api.Display.Block, size: { width: length(100) } }, [
-    child,
+  const grandchild = tree.newLeaf({
+    display: api.Display.Block,
+    size: { width: length(10), height: length(10) },
+    margin: { top: length(20) },
+  });
+  const child = tree.newWithChildren({ display: api.Display.Block, itemIsTable: value }, [
+    grandchild,
   ]);
-  tree.computeLayoutWithMeasure({
+  const root = tree.newWithChildren(
+    {
+      display: api.Display.Block,
+      size: { width: length(100) },
+      padding: { top: length(1) },
+    },
+    [child],
+  );
+  tree.computeLayout({
     root,
     availableSpace: {
       width: api.AvailableSpace.Definite(100),
       height: api.AvailableSpace.MaxContent,
     },
-    measure: () => ({ width: 30, height: 10 }),
   });
-  return tree.getUnroundedLayout(child).size.width;
+  return tree.getUnroundedLayout(child);
+}
+
+function replacedGridChildLayout(value: boolean): Layout {
+  const tree = new (TaffyTree())();
+  const child = tree.newLeafWithContext(
+    {
+      itemIsReplaced: value,
+      maxSize: { width: percent(50) },
+    },
+    "measured",
+  );
+  const root = tree.newWithChildren(
+    {
+      display: api.Display.Grid,
+      size: { width: length(40) },
+      gridTemplateRows: [api.GridTemplateComponent.Single(api.TrackSizingFunction.Auto)],
+      gridTemplateColumns: [api.GridTemplateComponent.Single(api.TrackSizingFunction.Auto)],
+    },
+    [child],
+  );
+  tree.computeLayoutWithMeasure({
+    root,
+    availableSpace: {
+      width: api.AvailableSpace.Definite(40),
+      height: api.AvailableSpace.MaxContent,
+    },
+    measure: () => ({ width: 100, height: 10 }),
+  });
+  return tree.getUnroundedLayout(child);
 }
 
 function gridChild(parentStyle: StyleRecord, childStyle: StyleRecord): Layout {
@@ -832,6 +872,46 @@ const nullableFields = new Set([
   "justifyContent",
   "gridTemplateAreas",
 ]);
+const rangeErrorInvalidIds = new Set([
+  "STYLE-F01",
+  "STYLE-F04",
+  "STYLE-F05",
+  "STYLE-F06",
+  "STYLE-F08",
+  "STYLE-F09",
+  "STYLE-F10",
+  "STYLE-F11",
+  "STYLE-F12",
+  "STYLE-F13",
+  "STYLE-F14",
+  "STYLE-F16",
+  "STYLE-F19",
+  "STYLE-F20",
+  "STYLE-F21",
+  "STYLE-F22",
+  "STYLE-F23",
+  "STYLE-F24",
+  "STYLE-F26",
+  "STYLE-F27",
+  "STYLE-F28",
+  "STYLE-F29",
+  "STYLE-F36",
+  "STYLE-F40",
+  "STYLE-F41",
+]);
+
+function assertExactError(
+  body: () => unknown,
+  ErrorClass: ErrorConstructor,
+  message: string,
+): void {
+  assert.throws(body, (error: unknown) => {
+    assert.ok(error instanceof Error, message);
+    assert.equal(error.constructor, ErrorClass, message);
+    assert.equal((error as Error & { code?: unknown }).code, undefined, message);
+    return true;
+  });
+}
 
 function nativeCases(spec: StyleSpec): NativeCase[] {
   const cases = [spec.sample(), ...(spec.nativeCases?.() ?? [])];
@@ -917,12 +997,21 @@ function runStyleCase(id: string, suffix: string): void {
   if (suffix === "invalid") {
     const tree = new Tree();
     const node = tree.newLeaf({});
-    assert.throws(() => tree.setStyle(node, { [spec.field]: spec.invalidValue() }));
+    const ErrorClass = rangeErrorInvalidIds.has(spec.id) ? RangeError : TypeError;
+    assertExactError(
+      () => tree.setStyle(node, { [spec.field]: spec.invalidValue() }),
+      ErrorClass,
+      `${spec.id}/invalid invalid value`,
+    );
     if (nullableFields.has(spec.field)) {
       tree.setStyle(node, { [spec.field]: null });
       assert.equal(tree.getStyle(node)[spec.field], null);
     } else {
-      assert.throws(() => tree.setStyle(node, { [spec.field]: null }));
+      assertExactError(
+        () => tree.setStyle(node, { [spec.field]: null }),
+        TypeError,
+        `${spec.id}/invalid null`,
+      );
     }
     return;
   }
@@ -934,7 +1023,11 @@ function runStyleCase(id: string, suffix: string): void {
     const beforeStyle = tree.getStyle(node);
     const beforeDirty = tree.isDirty(node);
     const sentinel = spec.field === "flexGrow" ? { itemIsTable: true } : { flexGrow: 7 };
-    assert.throws(() => tree.setStyle(node, { ...sentinel, [spec.field]: spec.invalidValue() }));
+    assertExactError(
+      () => tree.setStyle(node, { ...sentinel, [spec.field]: spec.invalidValue() }),
+      rangeErrorInvalidIds.has(spec.id) ? RangeError : TypeError,
+      `${spec.id}/atomic invalid value`,
+    );
     assert.deepEqual(tree.getStyle(node), beforeStyle);
     assert.equal(tree.isDirty(node), beforeDirty);
     return;
@@ -986,14 +1079,26 @@ function runSemanticCase(field: string): void {
       }
       return;
     }
-    case "itemIsTable":
-      assert.equal(measuredBlockChild("itemIsTable", false), 100);
-      assert.equal(measuredBlockChild("itemIsTable", true), 30);
+    case "itemIsTable": {
+      const normal = tableBlockChildLayout(false);
+      const table = tableBlockChildLayout(true);
+      assert.deepEqual(
+        { location: normal.location, size: normal.size },
+        { location: { x: 0, y: 21 }, size: { width: 100, height: 10 } },
+      );
+      assert.deepEqual(
+        { location: table.location, size: table.size },
+        { location: { x: 0, y: 1 }, size: { width: 10, height: 30 } },
+      );
       return;
-    case "itemIsReplaced":
-      assert.equal(measuredBlockChild("itemIsReplaced", false), 100);
-      assert.equal(measuredBlockChild("itemIsReplaced", true), 30);
+    }
+    case "itemIsReplaced": {
+      const normal = replacedGridChildLayout(false);
+      const replaced = replacedGridChildLayout(true);
+      assert.deepEqual(normal.size, { width: 50, height: 10 });
+      assert.deepEqual(replaced.size, { width: 20, height: 10 });
       return;
+    }
     case "boxSizing":
       assert.deepEqual(
         computeLeaf({

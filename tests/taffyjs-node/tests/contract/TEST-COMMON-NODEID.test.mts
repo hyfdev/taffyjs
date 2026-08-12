@@ -55,12 +55,12 @@ const CASE_ORDER: readonly CaseKind[] = [
 const INVALID_CASE_ORDER = CASE_ORDER.slice(1) as readonly Exclude<CaseKind, "valid">[];
 const POSITIONS: readonly Position[] = ["first", "middle", "last"];
 const ERROR_BY_CASE = {
-  "wrong-type": { className: "TypeError", code: undefined },
-  malformed: { className: "Error", code: "ERR_TAFFY_INVALID_NODE_ID" },
-  foreign: { className: "Error", code: "ERR_TAFFY_FOREIGN_NODE_ID" },
-  "stale-removed": { className: "Error", code: "ERR_TAFFY_STALE_NODE_ID" },
-  "stale-cleared": { className: "Error", code: "ERR_TAFFY_STALE_NODE_ID" },
-  "slot-reuse": { className: "Error", code: "ERR_TAFFY_STALE_NODE_ID" },
+  "wrong-type": { ErrorClass: TypeError, code: undefined },
+  malformed: { ErrorClass: Error, code: "ERR_TAFFY_INVALID_NODE_ID" },
+  foreign: { ErrorClass: Error, code: "ERR_TAFFY_FOREIGN_NODE_ID" },
+  "stale-removed": { ErrorClass: Error, code: "ERR_TAFFY_STALE_NODE_ID" },
+  "stale-cleared": { ErrorClass: Error, code: "ERR_TAFFY_STALE_NODE_ID" },
+  "slot-reuse": { ErrorClass: Error, code: "ERR_TAFFY_STALE_NODE_ID" },
 } as const;
 const ROLE_BINDINGS = [
   ["API-TREE-006", "children-element", "children[]", "newWithChildren"],
@@ -336,7 +336,7 @@ function runNodeIdCase(id: string) {
       invokeCase(tree, nodes, owner, role, caseKind, position, invalidNode),
     );
     const expected = ERROR_BY_CASE[caseKind];
-    assert.equal(error.constructor.name, expected.className, id);
+    assert.equal(error.constructor, expected.ErrorClass, id);
     assert.equal(error.code, expected.code, id);
     assert.notEqual(error.code, "ERR_TAFFY_PANIC", id);
   }
