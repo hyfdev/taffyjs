@@ -23,3 +23,4 @@ export {
   TrackSizingKind,
   type EnumValue,
 } from "./generated/numeric-families.js";
+export { Dimension } from "./length.js";
