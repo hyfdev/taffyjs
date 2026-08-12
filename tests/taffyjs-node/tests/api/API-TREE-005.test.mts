@@ -79,10 +79,11 @@ contractTest("API-TREE-005/primitive-null-undefined", () => {
   const absent = tree.newLeafWithContext({}, undefined);
   let absentCalls = 0;
   assert.equal(tree.getNodeContext(absent), undefined);
-  measure(tree, absent, () => {
+  measure(tree, absent, ({ context }) => {
     absentCalls += 1;
+    assert.equal(context, undefined);
   });
-  assert.equal(absentCalls, 0);
+  assert.equal(absentCalls > 0, true);
 });
 
 contractTest("API-TREE-005/removal-cleanup", () => {

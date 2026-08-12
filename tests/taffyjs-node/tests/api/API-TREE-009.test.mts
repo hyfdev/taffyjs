@@ -75,10 +75,11 @@ contractTest("API-TREE-009/undefined-clears", () => {
   tree.setNodeContext(node, undefined);
   assert.equal(tree.getNodeContext(node), undefined);
   let calls = 0;
-  computeWithMeasure(tree, node, () => {
+  computeWithMeasure(tree, node, ({ context }) => {
     calls += 1;
+    assert.equal(context, undefined);
   });
-  assert.equal(calls, 0);
+  assert.equal(calls > 0, true);
 });
 
 contractTest("API-TREE-009/null-present", () => {
