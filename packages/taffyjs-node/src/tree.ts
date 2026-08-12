@@ -134,6 +134,10 @@ export class TaffyTree<TContext = unknown> {
     return this.#getStyle(node);
   }
 
+  getLayout(node: NodeId): object {
+    return this.#getLayout(node);
+  }
+
   clear(): void {
     this.#clear();
   }
@@ -175,6 +179,7 @@ export class TaffyTree<TContext = unknown> {
         this.#replaceChildAtIndex(parent, index, newChild),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
+      getLayout: (node: NodeId) => this.#getLayout(node),
       computeLayout: (options: ComputeLayoutOptions) => this.#computeLayout(options),
       computeLayoutWithMeasure: (options: ComputeLayoutWithMeasureOptions<TContext>) =>
         this.#computeLayoutWithMeasure(options),
@@ -247,6 +252,11 @@ export class TaffyTree<TContext = unknown> {
   #getStyle(node: NodeId): object {
     const raw = this.#nodes.resolve(node);
     return this.#inner.rawGetStyle(raw, "getStyle");
+  }
+
+  #getLayout(node: NodeId): object {
+    const raw = this.#nodes.resolve(node);
+    return this.#inner.rawGetLayout(raw, "getLayout");
   }
 
   #computeLayout(options: ComputeLayoutOptions): void {
