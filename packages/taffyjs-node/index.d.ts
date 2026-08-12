@@ -624,6 +624,7 @@ export declare class TaffyTree<TContext = unknown> {
   removeChild(parent: NodeId, child: NodeId): void;
   removeChildAtIndex(parent: NodeId, index: number): NodeId;
   removeChildrenRange(parent: NodeId, range: ChildRangeInput): void;
+  replaceChildAtIndex(parent: NodeId, index: number, newChild: NodeId): NodeId;
   getChildAtIndex(parent: NodeId, index: number): NodeId;
   getChildCount(parent: NodeId): number;
   getNodeCount(): number;

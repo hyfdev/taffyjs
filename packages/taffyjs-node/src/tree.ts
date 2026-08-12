@@ -96,6 +96,10 @@ export class TaffyTree<_TContext = unknown> {
     this.#removeChildrenRange(parent, range);
   }
 
+  replaceChildAtIndex(parent: NodeId, index: number, newChild: NodeId): NodeId {
+    return this.#replaceChildAtIndex(parent, index, newChild);
+  }
+
   newLeaf(style: unknown): NodeId {
     return this.#newLeaf(style);
   }
@@ -137,6 +141,8 @@ export class TaffyTree<_TContext = unknown> {
         this.#removeChildAtIndex(parent, index),
       removeChildrenRange: (parent: NodeId, range: ChildRangeInput) =>
         this.#removeChildrenRange(parent, range),
+      replaceChildAtIndex: (parent: NodeId, index: number, newChild: NodeId) =>
+        this.#replaceChildAtIndex(parent, index, newChild),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
       computeLayoutWithMeasure: (options: PrivateMeasureOptions<_TContext>) =>
@@ -252,6 +258,18 @@ export class TaffyTree<_TContext = unknown> {
   #removeChildrenRange(parent: NodeId, range: ChildRangeInput): void {
     const rawParent = this.#nodes.resolve(parent);
     this.#inner.rawRemoveChildrenRange(rawParent, range, "removeChildrenRange");
+  }
+
+  #replaceChildAtIndex(parent: NodeId, index: number, newChild: NodeId): NodeId {
+    const rawParent = this.#nodes.resolve(parent);
+    const rawNewChild = this.#nodes.resolve(newChild);
+    const rawOldChild = this.#inner.rawReplaceChildAtIndex(
+      rawParent,
+      index,
+      rawNewChild,
+      "replaceChildAtIndex",
+    );
+    return this.#nodes.fromRaw(rawOldChild);
   }
 }
 

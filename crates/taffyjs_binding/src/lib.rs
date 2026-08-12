@@ -310,6 +310,44 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawReplaceChildAtIndex")]
+    pub fn replace_child_at_index(
+        &self,
+        env: Env,
+        parent: BigInt,
+        index: Unknown<'_>,
+        new_child: BigInt,
+        public_method: String,
+    ) -> napi::Result<BigInt> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        let new_child = into_napi(env, raw_node_id(&new_child))?;
+        let index = into_napi(
+            env,
+            number::from_unknown(index, "Child index").and_then(number::to_safe_usize),
+        )?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let child_count = tree.child_count(parent);
+                if index >= child_count {
+                    return Err(child_index_out_of_bounds_error(format!(
+                        "Child index {index} is outside a list of {child_count} children"
+                    )));
+                }
+                let old_child = tree
+                    .child_at_index(parent, index)
+                    .map_err(|_| internal_error())?;
+                if old_child == new_child {
+                    return Ok(BigInt::from(u64::from(old_child)));
+                }
+                validate_unattached_child(tree, parent, new_child)?;
+                tree.replace_child_at_index(parent, index, new_child)
+                    .map(|child| BigInt::from(u64::from(child)))
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(

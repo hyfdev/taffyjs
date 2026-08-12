@@ -404,6 +404,9 @@ var TaffyTree = class {
 	removeChildrenRange(parent, range) {
 		this.#removeChildrenRange(parent, range);
 	}
+	replaceChildAtIndex(parent, index, newChild) {
+		return this.#replaceChildAtIndex(parent, index, newChild);
+	}
 	newLeaf(style) {
 		return this.#newLeaf(style);
 	}
@@ -435,6 +438,7 @@ var TaffyTree = class {
 			removeChild: (parent, child) => this.#removeChild(parent, child),
 			removeChildAtIndex: (parent, index) => this.#removeChildAtIndex(parent, index),
 			removeChildrenRange: (parent, range) => this.#removeChildrenRange(parent, range),
+			replaceChildAtIndex: (parent, index, newChild) => this.#replaceChildAtIndex(parent, index, newChild),
 			getNodeCount: () => this.#getNodeCount(),
 			getStyle: (node) => this.#getStyle(node),
 			computeLayoutWithMeasure: (options) => this.#computeLayoutWithMeasure(options)
@@ -526,6 +530,12 @@ var TaffyTree = class {
 	#removeChildrenRange(parent, range) {
 		const rawParent = this.#nodes.resolve(parent);
 		this.#inner.rawRemoveChildrenRange(rawParent, range, "removeChildrenRange");
+	}
+	#replaceChildAtIndex(parent, index, newChild) {
+		const rawParent = this.#nodes.resolve(parent);
+		const rawNewChild = this.#nodes.resolve(newChild);
+		const rawOldChild = this.#inner.rawReplaceChildAtIndex(rawParent, index, rawNewChild, "replaceChildAtIndex");
+		return this.#nodes.fromRaw(rawOldChild);
 	}
 };
 //#endregion
