@@ -141,6 +141,25 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawAddChild")]
+    pub fn add_child(
+        &self,
+        env: Env,
+        parent: BigInt,
+        child: BigInt,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        let child = into_napi(env, raw_node_id(&child))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                validate_unattached_child(tree, parent, child)?;
+                tree.add_child(parent, child).map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(
@@ -346,6 +365,32 @@ fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
         return Err(type_error("Raw node ID must be a non-negative u64 bigint"));
     }
     Ok(NodeId::from(value))
+}
+
+fn validate_unattached_child(
+    tree: &taffy::TaffyTree<()>,
+    parent: NodeId,
+    child: NodeId,
+) -> NativeResult<()> {
+    if parent == child {
+        return Err(invalid_topology_error("A node cannot be its own child"));
+    }
+    if tree.parent(child).is_some() {
+        return Err(invalid_topology_error(
+            "Child is already attached to a parent",
+        ));
+    }
+
+    let mut ancestor = Some(parent);
+    while let Some(node) = ancestor {
+        if node == child {
+            return Err(invalid_topology_error(
+                "Adding this child would create a cycle",
+            ));
+        }
+        ancestor = tree.parent(node);
+    }
+    Ok(())
 }
 
 #[cfg(feature = "test-hooks")]

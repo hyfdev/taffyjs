@@ -67,6 +67,10 @@ export class TaffyTree<_TContext = unknown> {
     return this.#getChildAtIndex(parent, index);
   }
 
+  addChild(parent: NodeId, child: NodeId): void {
+    this.#addChild(parent, child);
+  }
+
   newLeaf(style: unknown): NodeId {
     return this.#newLeaf(style);
   }
@@ -98,6 +102,7 @@ export class TaffyTree<_TContext = unknown> {
       getParent: (node: NodeId) => this.#getParent(node),
       getChildren: (parent: NodeId) => this.#getChildren(parent),
       getChildAtIndex: (parent: NodeId, index: number) => this.#getChildAtIndex(parent, index),
+      addChild: (parent: NodeId, child: NodeId) => this.#addChild(parent, child),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
       computeLayoutWithMeasure: (options: PrivateMeasureOptions<_TContext>) =>
@@ -177,6 +182,12 @@ export class TaffyTree<_TContext = unknown> {
     const rawParent = this.#nodes.resolve(parent);
     const rawChild = this.#inner.rawChildAtIndex(rawParent, index, "getChildAtIndex");
     return this.#nodes.fromRaw(rawChild);
+  }
+
+  #addChild(parent: NodeId, child: NodeId): void {
+    const rawParent = this.#nodes.resolve(parent);
+    const rawChild = this.#nodes.resolve(child);
+    this.#inner.rawAddChild(rawParent, rawChild, "addChild");
   }
 }
 
