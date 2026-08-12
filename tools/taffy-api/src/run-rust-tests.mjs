@@ -65,6 +65,7 @@ for (const identity of identities) {
     "taffyjs_binding",
     "--lib",
     "--",
+    "--include-ignored",
     "--exact",
     identity,
   ]);

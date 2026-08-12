@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const CONTRACT_START = "<!-- taffy-contract-json:start -->";
 const CONTRACT_END = "<!-- taffy-contract-json:end -->";
@@ -2996,6 +2996,42 @@ export function validateStatusShape(status, contract, expanded) {
     if (blockedTasks.length !== 1 || !activeTasks.includes(blockedTasks[0])) {
       fail("loop-status-blocked-task");
     }
+    if (!Array.isArray(status.blockers) || status.blockers.length !== 1) {
+      fail("loop-status-blocker-record");
+    }
+    const blocker = status.blockers[0];
+    exactKeys(
+      blocker,
+      ["taskId", "category", "evidence", "attempts", "requiredDecision"],
+      "loop-status-blocker-record",
+    );
+    const allowedCategories = new Set([
+      "contract-source-conflict",
+      "unauthorized-scope-change",
+      "uncontainable-upstream-defect",
+      "review-contract-conflict",
+      "external-tool-barrier",
+    ]);
+    const nonemptyStrings = (values) =>
+      Array.isArray(values) &&
+      values.length !== 0 &&
+      values.every((value) => typeof value === "string" && value.trim().length !== 0);
+    if (
+      blocker.taskId !== blockedTasks[0] ||
+      !allowedCategories.has(blocker.category) ||
+      !nonemptyStrings(blocker.evidence) ||
+      !Array.isArray(blocker.attempts) ||
+      blocker.attempts.some(
+        (attempt) => typeof attempt !== "string" || attempt.trim().length === 0,
+      ) ||
+      (blocker.category === "external-tool-barrier" &&
+        (blocker.attempts.length !== 3 || new Set(blocker.attempts).size !== 3)) ||
+      typeof blocker.requiredDecision !== "string" ||
+      blocker.requiredDecision.trim().length === 0 ||
+      status.nextAction !== blocker.requiredDecision
+    ) {
+      fail("loop-status-blocker-record");
+    }
     const blockedIndex = activeTasks.indexOf(blockedTasks[0]);
     if (
       activeTasks
@@ -3327,10 +3363,106 @@ async function validateRealPackageFoundation(root, contract, status) {
   }
 }
 
-async function validateRealRunnerGraph(root, contract, status) {
+function prefixTaskNames(contract, expanded, status) {
+  const modalities = new Set(
+    expanded.evidence.primary
+      .filter(
+        ({ modality, owner }) =>
+          modality !== "machine-check" &&
+          modality !== "command-attestation" &&
+          IMPLEMENTED_STATES.has(status.taskStates[owner]),
+      )
+      .map(({ modality }) => modality),
+  );
+  return [...modalities].map((modality) => {
+    if (modality === "rust-contract") return "check:test:rust-contract";
+    const runner = contract.primaryEvidenceRules.modalities[modality]?.runner;
+    const match = /^vp run (check:test:[a-z-]+)$/u.exec(runner ?? "");
+    if (!match) fail("collection-drift/runner-graph", modality);
+    return match[1];
+  });
+}
+
+export function validateRunnerTaskGraph(contract, expanded, status, tasks) {
+  const minimumRuntime = contract.pins.minimumNodeTestRuntime;
+  const testTasks = {
+    "check:test:native":
+      "vp test --config packages/taffyjs-node/vite.config.ts --reporter=tools/taffy-api/src/contract-reporter.mjs packages/taffyjs-node/tests/native",
+    "check:test:wrapper":
+      "vp test --config packages/taffyjs-node/vite.config.ts --reporter=tools/taffy-api/src/contract-reporter.mjs packages/taffyjs-node/tests/wrapper",
+    "check:test:integration": "vp run @taffyjs/node-integration-tests#test",
+    "check:test:types": "node tools/taffy-api/src/run-type-tests.mjs",
+    "check:test:node-minimum": `vp env exec --node ${minimumRuntime} -- node tests/taffyjs-node/minimum-node/run.mjs`,
+    "check:test:rust-contract": "node tools/taffy-api/src/run-rust-tests.mjs",
+  };
+  for (const [name, command] of Object.entries(testTasks)) {
+    if (
+      canonicalJson(tasks[name]) !==
+      canonicalJson({ command, dependsOn: ["build", "check:contract"] })
+    ) {
+      fail("collection-drift/runner-graph", name);
+    }
+  }
+  const readyDependencies = [
+    "check:contract",
+    "check:format",
+    "check:lint",
+    "check:rust",
+    ...prefixTaskNames(contract, expanded, status),
+  ];
+  const expectedTasks = {
+    "check:contract:generate": { command: "node tools/taffy-api/src/index.mjs generate --check" },
+    "check:contract:self-test": {
+      command:
+        "vp test --config tools/taffy-api/vite.config.ts --reporter=tools/taffy-api/src/contract-reporter.mjs",
+    },
+    "check:contract": {
+      command: "node tools/taffy-api/src/index.mjs check",
+      dependsOn: ["build", "check:contract:generate", "check:contract:self-test"],
+    },
+    "check:contract:all": {
+      command: "node tools/taffy-api/src/index.mjs check --all",
+      dependsOn: ["build", "check:contract:generate", "check:contract:self-test"],
+    },
+    "check:format": { command: "vp fmt --check", dependsOn: ["build"] },
+    "check:lint": { command: "vp lint --deny-warnings", dependsOn: ["build"] },
+    "check:rust": {
+      command:
+        "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings && cargo test --workspace --all-features -- --list && cargo test --workspace --all-features",
+    },
+    "check:test": {
+      command: "echo tests ok",
+      dependsOn: Object.keys(testTasks),
+    },
+    check: {
+      command: "echo check ok",
+      dependsOn: ["check:contract:all", "check:format", "check:lint", "check:rust", "check:test"],
+    },
+    "ready:loop:body": {
+      command: "echo ready:loop checks passed",
+      dependsOn: readyDependencies,
+    },
+    "ready:loop": { command: "node tools/taffy-api/src/run-ready.mjs loop" },
+    "ready:body": { command: "echo ready checks passed", dependsOn: ["check"] },
+    ready: { command: "node tools/taffy-api/src/run-ready.mjs all" },
+  };
+  for (const [name, expected] of Object.entries(expectedTasks)) {
+    if (canonicalJson(tasks[name]) !== canonicalJson(expected)) {
+      fail("collection-drift/runner-graph", name);
+    }
+  }
+  if (
+    Object.hasOwn(tasks, "check:test:prefix") ||
+    Object.values(tasks).some(({ command }) => command?.includes("--passWithNoTests"))
+  ) {
+    fail("collection-drift/runner-graph");
+  }
+}
+
+async function validateRealRunnerGraph(root, contract, expanded, status) {
+  const minimumRuntime = contract.pins.minimumNodeTestRuntime;
   const [
-    rootConfig,
-    prefixRunner,
+    rootConfigModule,
     rustRunner,
     typeRunner,
     readyRunner,
@@ -3338,8 +3470,9 @@ async function validateRealRunnerGraph(root, contract, status) {
     nativeConfig,
     publicConfig,
   ] = await Promise.all([
-    readFile(resolve(root, "vite.config.ts"), "utf8"),
-    readFile(resolve(root, "tools/taffy-api/src/run-prefix-tests.mjs"), "utf8"),
+    import(
+      `${pathToFileURL(resolve(root, "vite.config.ts")).href}?candidate=${status.candidateCommit}`
+    ),
     readFile(resolve(root, "tools/taffy-api/src/run-rust-tests.mjs"), "utf8"),
     readFile(resolve(root, "tools/taffy-api/src/run-type-tests.mjs"), "utf8"),
     readFile(resolve(root, "tools/taffy-api/src/run-ready.mjs"), "utf8"),
@@ -3347,56 +3480,13 @@ async function validateRealRunnerGraph(root, contract, status) {
     readFile(resolve(root, "packages/taffyjs-node/vite.config.ts"), "utf8"),
     readFile(resolve(root, "tests/taffyjs-node/vite.config.ts"), "utf8"),
   ]);
-  const minimumRuntime = contract.pins.minimumNodeTestRuntime;
-  const requiredRootFragments = [
-    '"check:test:native"',
-    '"check:test:wrapper"',
-    '"check:test:integration"',
-    '"check:test:types"',
-    '"check:test:rust-contract"',
-    '"check:test:node-minimum"',
-    '"check:test:prefix"',
-    "--reporter=tools/taffy-api/src/contract-reporter.mjs",
-    `vp env exec --node ${minimumRuntime} -- node tests/taffyjs-node/minimum-node/run.mjs`,
-    'command: "node tools/taffy-api/src/run-ready.mjs loop"',
-    'command: "node tools/taffy-api/src/run-ready.mjs all"',
-  ];
-  const readyBody = /"ready:loop:body":\s*\{([\s\S]*?)\n\s*\},\n\s*"ready:loop"/u.exec(
-    rootConfig,
-  )?.[1];
-  const prefixTask = /"check:test:prefix":\s*\{([\s\S]*?)\n\s*\},\n\s*"check:completion"/u.exec(
-    rootConfig,
-  )?.[1];
-  const requiredReadyDependencies = [
-    "check:contract",
-    "check:format",
-    "check:lint",
-    "check:rust",
-    "check:test:prefix",
-  ];
-  const requiredPrefixModalities = [
-    "public-js",
-    "native-js",
-    "wrapper-js",
-    "types",
-    "rust-contract",
-    "minimum-node-js",
-  ];
+  validateRunnerTaskGraph(contract, expanded, status, rootConfigModule.default.run?.tasks ?? {});
   if (
-    requiredRootFragments.some((fragment) => !rootConfig.includes(fragment)) ||
-    rootConfig.includes("--passWithNoTests") ||
     !rustRunner.includes('"--list"') ||
     !rustRunner.includes('"--exact"') ||
+    !rustRunner.includes('"--include-ignored"') ||
     !rustRunner.includes("JSON.stringify(identities) !== JSON.stringify(expectedIdentities)") ||
     !typeRunner.includes(".test-d.ts") ||
-    !readyBody ||
-    !prefixTask ||
-    !prefixTask.includes('command: "node tools/taffy-api/src/run-prefix-tests.mjs"') ||
-    !prefixTask.includes('dependsOn: ["build", "check:contract"]') ||
-    requiredReadyDependencies.some((dependency) => !readyBody.includes(`"${dependency}"`)) ||
-    requiredPrefixModalities.some((modality) => !prefixRunner.includes(`"${modality}"`)) ||
-    !prefixRunner.includes('modality !== "machine-check"') ||
-    !prefixRunner.includes('modality !== "command-attestation"') ||
     !readyRunner.includes(
       "await checkCandidate({ root });\nawait runBody();\nawait checkCandidate({ root });",
     ) ||
@@ -3490,6 +3580,30 @@ export function validateParsedSourceInventory(contract, parsed) {
   }
 }
 
+export async function validateRealSourceInventory(root, contract, taffyRoot) {
+  const parserResult = await runCommand(
+    "cargo",
+    [
+      "run",
+      "--quiet",
+      "-p",
+      "taffy-api-parser",
+      "--",
+      taffyRoot,
+      resolve(root, "tools/taffy-api/contract.json"),
+    ],
+    root,
+  );
+  let parsed;
+  try {
+    parsed = JSON.parse(parserResult.stdout);
+  } catch (error) {
+    fail("source-drift/parser-output", error.message);
+  }
+  validateParsedSourceInventory(contract, parsed);
+  return parsed;
+}
+
 export async function validateRealPinsAndSource(root, contract) {
   const metadataResult = await runCommand(
     "cargo",
@@ -3561,26 +3675,7 @@ export async function validateRealPinsAndSource(root, contract) {
     fail("pin-drift/oxfmt-version");
   }
   const taffyRoot = dirname(taffyPackage.manifest_path);
-  const parserResult = await runCommand(
-    "cargo",
-    [
-      "run",
-      "--quiet",
-      "-p",
-      "taffy-api-parser",
-      "--",
-      taffyRoot,
-      resolve(root, "tools/taffy-api/contract.json"),
-    ],
-    root,
-  );
-  let parsed;
-  try {
-    parsed = JSON.parse(parserResult.stdout);
-  } catch (error) {
-    fail("source-drift/parser-output", error.message);
-  }
-  validateParsedSourceInventory(contract, parsed);
+  const parsed = await validateRealSourceInventory(root, contract, taffyRoot);
   return { metadata, parsed };
 }
 
@@ -3697,7 +3792,7 @@ export async function checkRepository({ root, all = false } = {}) {
   validateStatusShape(status, generated.canonical, generated.expanded);
   await validateContractBase(resolvedRoot, goal, status);
   await validateRealPinsAndSource(resolvedRoot, generated.canonical);
-  await validateRealRunnerGraph(resolvedRoot, generated.canonical, status);
+  await validateRealRunnerGraph(resolvedRoot, generated.canonical, generated.expanded, status);
   await validateRealPackageFoundation(resolvedRoot, generated.canonical, status);
   await validateRealDeclarations(
     resolvedRoot,

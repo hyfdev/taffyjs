@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
@@ -85,12 +86,102 @@ contractTest("INFRA-001/source-drift", async () => {
   );
   const realSource = await checker.validateRealPinsAndSource(root, contract);
   checker.validateParsedSourceInventory(contract, realSource.parsed);
-  const badRealSource = structuredClone(realSource.parsed);
-  badRealSource.inherentImplMatches = false;
-  await expectDiagnostic(
-    () => checker.validateParsedSourceInventory(contract, badRealSource),
-    "source-drift/impl-header",
+  const metadata = realSource.metadata as {
+    packages: Array<{ name: string; version: string; manifest_path: string }>;
+  };
+  const taffyPackage = metadata.packages.find(
+    ({ name, version }: { name: string; version: string }) =>
+      name === "taffy" && version === contract.pins.taffyVersion,
   );
+  assert.ok(taffyPackage);
+  const temporaryRoot = await mkdtemp(resolve(tmpdir(), "taffy-api-source-"));
+  const taffyRoot = resolve(temporaryRoot, "taffy");
+  await cp(dirname(taffyPackage.manifest_path), taffyRoot, { recursive: true });
+  const mutations = [
+    {
+      path: "src/tree/taffy_tree.rs",
+      find: "    pub fn clear(&mut self) {",
+      replace: "    fn clear(&mut self) {",
+      diagnostic: "source-drift/method-missing",
+    },
+    {
+      path: "src/tree/taffy_tree.rs",
+      find: "    pub fn new() -> Self {",
+      replace: "    pub fn contract_extra(&self) {}\n\n    pub fn new() -> Self {",
+      diagnostic: "source-drift/method-added",
+    },
+    {
+      path: "src/tree/taffy_tree.rs",
+      find: "    pub fn clear(&mut self) {",
+      replace: "    pub fn clear_renamed(&mut self) {",
+      diagnostic: "source-drift/method-renamed",
+    },
+    {
+      path: "src/tree/taffy_tree.rs",
+      find: "    pub fn with_capacity(capacity: usize) -> Self {",
+      replace: "    pub fn with_capacity(capacity: u64) -> Self {",
+      diagnostic: "source-drift/method-signature",
+    },
+    {
+      path: "src/tree/taffy_tree.rs",
+      find: "    pub fn total_node_count(&self) -> usize {",
+      replace: "    pub fn total_node_count(&self) -> u64 {",
+      diagnostic: "source-drift/method-signature",
+    },
+    {
+      path: "src/tree/taffy_tree.rs",
+      find: "    pub fn clear(&mut self) {",
+      replace: '    #[cfg_attr(not(feature = "grid"), cfg(any()))]\n    pub fn clear(&mut self) {',
+      diagnostic: "source-drift/method-feature-gate",
+    },
+    {
+      path: "src/tree/layout.rs",
+      find: "    pub order: u32,",
+      replace: "    pub contract_extra: f32,\n    pub order: u32,",
+      diagnostic: "source-drift/named-data-shape",
+    },
+    {
+      path: "src/style/mod.rs",
+      find: "    /// The node is hidden, and it's children will also be hidden\n    None,",
+      replace:
+        "    Extra,\n    /// The node is hidden, and it's children will also be hidden\n    None,",
+      diagnostic: "source-drift/named-data-shape",
+    },
+    {
+      path: "src/style/available_space.rs",
+      find: "    Definite(f32),",
+      replace: "    Definite(f64),",
+      diagnostic: "source-drift/named-data-shape",
+    },
+    {
+      path: "src/style/mod.rs",
+      find: '    /// The children will follow the CSS Grid layout algorithm\n    #[cfg(feature = "grid")]\n    Grid,',
+      replace:
+        '    /// The children will follow the CSS Grid layout algorithm\n    #[cfg(feature = "flexbox")]\n    Grid,',
+      diagnostic: "source-drift/named-data-shape",
+    },
+    {
+      path: "src/tree/taffy_tree.rs",
+      find: "pub struct TaffyTreeChildIter<'a>(core::slice::Iter<'a, NodeId>);",
+      replace: "pub(crate) struct TaffyTreeChildIter<'a>(core::slice::Iter<'a, NodeId>);",
+      diagnostic: "source-drift/adjacent-root",
+    },
+  ];
+  try {
+    for (const mutation of mutations) {
+      const path = resolve(taffyRoot, mutation.path);
+      const source = await readFile(path, "utf8");
+      assert.equal(source.split(mutation.find).length, 2, mutation.path);
+      await writeFile(path, source.replace(mutation.find, mutation.replace));
+      await expectDiagnostic(
+        () => checker.validateRealSourceInventory(root, contract, taffyRoot),
+        mutation.diagnostic,
+      );
+      await writeFile(path, source);
+    }
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
   const fixture = await checker.createRepositoryFixture(root);
   await expectDiagnostic(
     () => checker.checkRepositoryFixture(fixture.mutate("contract-unknown-field")),
@@ -411,6 +502,34 @@ contractTest("INFRA-001/incremental-all", async () => {
   const status = checker.extractLoopStatus(
     await readFile(resolve(root, ".agents/docs/loop-status.md"), "utf8"),
   ) as MutableStatus;
+  const validBlocked = structuredClone(status);
+  validBlocked.phase = "blocked";
+  validBlocked.activeTaskId = null;
+  validBlocked.taskStates["INFRA-001"] = "blocked";
+  validBlocked.taskStates["INFRA-002"] = "pending";
+  validBlocked.blockers = [
+    {
+      taskId: "INFRA-001",
+      category: "external-tool-barrier",
+      evidence: ["The same external service failed in three distinct attempts."],
+      attempts: ["attempt one evidence", "attempt two evidence", "attempt three evidence"],
+      requiredDecision: "Restore the external service, then resume INFRA-001.",
+    },
+  ];
+  validBlocked.nextAction = "Restore the external service, then resume INFRA-001.";
+  checker.validateStatusShape(validBlocked, contract, contract.generated);
+  const missingBlockerEvidence = structuredClone(validBlocked);
+  missingBlockerEvidence.blockers = [];
+  await expectDiagnostic(
+    () => checker.validateStatusShape(missingBlockerEvidence, contract, contract.generated),
+    "loop-status-blocker-record",
+  );
+  const tooFewAttempts = structuredClone(validBlocked);
+  (tooFewAttempts.blockers[0] as { attempts: string[] }).attempts.pop();
+  await expectDiagnostic(
+    () => checker.validateStatusShape(tooFewAttempts, contract, contract.generated),
+    "loop-status-blocker-record",
+  );
   const blockedOrder = structuredClone(status);
   blockedOrder.phase = "build";
   blockedOrder.activeTaskId = "INFRA-002";
@@ -422,11 +541,52 @@ contractTest("INFRA-001/incremental-all", async () => {
   );
 
   const review = structuredClone(status);
-  Object.assign(review, review.reviewInputProjection as Record<string, unknown>);
-  review.verdicts = review.verdicts.map((verdict: { verdict: string }) => ({
-    ...verdict,
-    verdict: "PASS",
+  const reviewCandidate = "a".repeat(40);
+  const reviewTasks = [...contract.milestones.M0];
+  const reviewSlots = contract.reviewPolicy.perTaskVerdictMatrix.ordinaryReviewerSlots.map(
+    ({ slot }: { slot: string }) => slot,
+  );
+  const reviewProjection = {
+    contractBaseCommit: review.contractBaseCommit,
+    candidateCommit: reviewCandidate,
+    previousAcceptedMilestoneCommit: null,
+    activeMilestone: "M0",
+    reviewRoundId: "M0-fixture-round",
+    currentTaskIds: reviewTasks,
+    reviewerSlots: reviewSlots,
+    inspectionCommands: ["git diff --check"],
+  };
+  const reviewHash = createHash("sha256")
+    .update(checker.serializeReviewInputProjection(reviewProjection))
+    .digest("hex");
+  Object.assign(review, reviewProjection, {
+    reviewedCommits: {
+      contractBaseCommit: reviewProjection.contractBaseCommit,
+      previousCommit: null,
+      candidateCommit: reviewCandidate,
+    },
+    reviewInputProjection: reviewProjection,
+    reviewInputStatusHash: reviewHash,
+  });
+  review.reports = reviewSlots.map((slot: string, index: number) => ({
+    slot,
+    reviewerIdentity: `fixture-reviewer-${index}`,
+    startCandidateCommit: reviewCandidate,
+    endCandidateCommit: reviewCandidate,
+    startReviewInputStatusHash: reviewHash,
+    endReviewInputStatusHash: reviewHash,
+    earlierImpact: [],
+    inspectedEvidence: ["fixture evidence"],
   }));
+  review.verdicts = reviewTasks.flatMap((taskId: string) =>
+    reviewSlots.map((slot: string) => ({
+      taskId,
+      slot,
+      verdict: "PASS",
+      candidateCommit: reviewCandidate,
+      reviewInputStatusHash: reviewHash,
+    })),
+  );
   review.findings = [];
   review.closures = [];
   review.blockers = [];
@@ -453,6 +613,19 @@ contractTest("INFRA-001/incremental-all", async () => {
   await expectDiagnostic(
     () => checker.validateActualReviewRecord(contract, review),
     "review-finding-fix-commit",
+  );
+
+  const rootConfig = (await import("../../../vite.config.ts")).default;
+  assert.ok(rootConfig.run?.tasks);
+  const tasks = structuredClone(rootConfig.run.tasks) as Record<
+    string,
+    { command: string; dependsOn?: string[] }
+  >;
+  checker.validateRunnerTaskGraph(contract, contract.generated, status, tasks);
+  tasks["check:test:integration"].command = "node --version";
+  await expectDiagnostic(
+    () => checker.validateRunnerTaskGraph(contract, contract.generated, status, tasks),
+    "collection-drift/runner-graph",
   );
 
   const documentedClass = contract.publicDeclarationContract.classDeclaration.members

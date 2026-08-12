@@ -221,15 +221,42 @@ fn cfg_meta_value(meta: &Meta) -> Value {
     }
 }
 
+fn meta_contains_attribute(meta: &Meta, name: &str) -> bool {
+    if meta.path().is_ident(name) {
+        return true;
+    }
+    let Meta::List(list) = meta else {
+        return false;
+    };
+    if !list.path.is_ident("cfg_attr") {
+        return false;
+    }
+    list.parse_args_with(syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated)
+        .is_ok_and(|items| {
+            items
+                .iter()
+                .skip(1)
+                .any(|item| meta_contains_attribute(item, name))
+        })
+}
+
+fn cfg_attr_contains(attribute: &Attribute, name: &str) -> bool {
+    attribute.path().is_ident("cfg_attr") && meta_contains_attribute(&attribute.meta, name)
+}
+
 fn cfg_value(attributes: &[Attribute]) -> Value {
     let values = attributes
         .iter()
-        .filter(|attribute| attribute.path().is_ident("cfg"))
+        .filter(|attribute| attribute.path().is_ident("cfg") || cfg_attr_contains(attribute, "cfg"))
         .map(|attribute| {
-            attribute
-                .parse_args::<Meta>()
-                .map(|meta| cfg_meta_value(&meta))
-                .unwrap_or_else(|_| json!({ "unparsed": token_string(attribute) }))
+            if attribute.path().is_ident("cfg") {
+                attribute
+                    .parse_args::<Meta>()
+                    .map(|meta| cfg_meta_value(&meta))
+                    .unwrap_or_else(|_| json!({ "unparsed": token_string(attribute) }))
+            } else {
+                json!({ "cfgAttr": token_string(attribute) })
+            }
         })
         .collect::<Vec<_>>();
     normalize_cfg(match values.as_slice() {
@@ -1061,7 +1088,9 @@ fn contract_test_inventory(path: &Path) -> Result<Vec<ContractTestOutput>, Strin
                     .count()
                     == 1,
                 forbidden_attribute: function.attrs.iter().any(|attribute| {
-                    attribute.path().is_ident("cfg") || attribute.path().is_ident("ignore")
+                    attribute.path().is_ident("cfg")
+                        || attribute.path().is_ident("ignore")
+                        || attribute.path().is_ident("cfg_attr")
                 }),
             })
         })
@@ -1256,6 +1285,15 @@ mod tests {
             .expect("fixture parses");
         assert_ne!(cfg_value(&any.attrs), cfg_value(&all.attrs));
         assert_ne!(cfg_value(&not.attrs), json!({ "feature": "a" }));
+
+        let cfg_attr: Item = syn::parse_str(
+            "#[cfg(feature = \"a\")] #[cfg_attr(not(feature = \"b\"), cfg(any()))] fn item() {}",
+        )
+        .expect("fixture parses");
+        let Item::Fn(cfg_attr) = cfg_attr else {
+            panic!("fixture is a function");
+        };
+        assert_ne!(cfg_value(&cfg_attr.attrs), json!({ "feature": "a" }));
     }
 
     #[test]
@@ -1311,16 +1349,18 @@ mod tests {
         let source = root.join("contract_tests.rs");
         fs::write(
             &source,
-            "// #[test]\n// fn contract__commented() {}\n#[test]\nfn contract__real() {}\n#[ignore]\n#[test]\nfn contract__ignored() {}\n",
+            "// #[test]\n// fn contract__commented() {}\n#[test]\nfn contract__real() {}\n#[ignore]\n#[test]\nfn contract__ignored() {}\n#[cfg_attr(all(), ignore)]\n#[test]\nfn contract__conditionally_ignored() {}\n",
         )
         .expect("fixture is written");
         let inventory = contract_test_inventory(&source).expect("inventory is parsed");
-        assert_eq!(inventory.len(), 2);
+        assert_eq!(inventory.len(), 3);
         assert_eq!(inventory[0].identity, "contract__real");
         assert!(inventory[0].is_test);
         assert!(!inventory[0].forbidden_attribute);
         assert_eq!(inventory[1].identity, "contract__ignored");
         assert!(inventory[1].forbidden_attribute);
+        assert_eq!(inventory[2].identity, "contract__conditionally_ignored");
+        assert!(inventory[2].forbidden_attribute);
         fs::remove_dir_all(root).expect("temporary directory is removed");
     }
 }

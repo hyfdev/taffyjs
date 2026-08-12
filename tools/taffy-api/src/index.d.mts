@@ -33,6 +33,17 @@ export function validateRealPinsAndSource(
   root: string,
   contract: Record<string, unknown>,
 ): Promise<{ metadata: Record<string, unknown>; parsed: Record<string, unknown> }>;
+export function validateRealSourceInventory(
+  root: string,
+  contract: Record<string, unknown>,
+  taffyRoot: string,
+): Promise<Record<string, unknown>>;
+export function validateRunnerTaskGraph(
+  contract: Record<string, unknown>,
+  expanded: Record<string, unknown>,
+  status: Record<string, unknown>,
+  tasks: Record<string, unknown>,
+): void;
 export function validateStatusShape(
   status: Record<string, unknown>,
   contract: Record<string, unknown>,

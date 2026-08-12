@@ -1,4 +1,54 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite-plus";
+
+const root = dirname(fileURLToPath(import.meta.url));
+type EvidenceRecord = { modality: string; owner: string; runner: string };
+type PrefixTestTask =
+  | "check:test:native"
+  | "check:test:wrapper"
+  | "check:test:integration"
+  | "check:test:types"
+  | "check:test:node-minimum"
+  | "check:test:rust-contract";
+const contract = JSON.parse(
+  readFileSync(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
+) as { generated: { evidence: { primary: EvidenceRecord[] } } };
+const statusSource = (() => {
+  try {
+    return readFileSync(resolve(root, ".agents/docs/loop-status.md"), "utf8");
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") return null;
+    throw error;
+  }
+})();
+const statusMatch = statusSource?.match(
+  /<!-- loop-status-json:start -->\s*```json\s*([\s\S]*?)\s*```\s*<!-- loop-status-json:end -->/u,
+);
+const status = statusMatch
+  ? (JSON.parse(statusMatch[1]) as { taskStates: Record<string, string> })
+  : null;
+const prefixStates = new Set(["implemented", "verified", "under-review", "accepted"]);
+const prefixTestTasks: PrefixTestTask[] = status
+  ? [
+      ...new Set(
+        contract.generated.evidence.primary
+          .filter(
+            ({ modality, owner }) =>
+              modality !== "machine-check" &&
+              modality !== "command-attestation" &&
+              prefixStates.has(status.taskStates[owner]),
+          )
+          .map(({ modality, runner }) => {
+            if (modality === "rust-contract") return "check:test:rust-contract" as const;
+            const match = /^vp run (check:test:[a-z-]+)$/u.exec(runner);
+            if (!match) throw new Error(`No canonical root task for ${modality}: ${runner}`);
+            return match[1] as PrefixTestTask;
+          }),
+      ),
+    ]
+  : [];
 
 const testTasks = {
   "check:test:native": {
@@ -61,10 +111,6 @@ export default defineConfig({
         command: "node tools/taffy-api/src/index.mjs check --all",
         dependsOn: ["build", "check:contract:generate", "check:contract:self-test"],
       },
-      "check:test:prefix": {
-        command: "node tools/taffy-api/src/run-prefix-tests.mjs",
-        dependsOn: ["build", "check:contract"],
-      },
       "check:completion": {
         command: "node tools/taffy-api/src/index.mjs completion",
       },
@@ -88,7 +134,7 @@ export default defineConfig({
       },
       "check:rust": {
         command:
-          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings && cargo test --workspace --all-features",
+          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings && cargo test --workspace --all-features -- --list && cargo test --workspace --all-features",
       },
       ...testTasks,
       "check:test": {
@@ -106,7 +152,7 @@ export default defineConfig({
           "check:format",
           "check:lint",
           "check:rust",
-          "check:test:prefix",
+          ...prefixTestTasks,
         ],
       },
       "ready:loop": {
