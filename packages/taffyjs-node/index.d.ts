@@ -175,3 +175,69 @@ export type GridTemplateComponentKind = EnumValue<typeof GridTemplateComponentKi
 export declare const DetailedLayoutInfoKind: Readonly<{ readonly None: 0; readonly Grid: 1 }>;
 
 export type DetailedLayoutInfoKind = EnumValue<typeof DetailedLayoutInfoKind>;
+
+export interface PointInput<T> {
+  x: T;
+  y: T;
+}
+
+export interface PartialPointInput<T> {
+  x?: T | undefined;
+  y?: T | undefined;
+}
+
+export interface Point<T> {
+  readonly x: T;
+  readonly y: T;
+}
+
+export interface SizeInput<T> {
+  width: T;
+  height: T;
+}
+
+export interface PartialSizeInput<T> {
+  width?: T | undefined;
+  height?: T | undefined;
+}
+
+export interface Size<T> {
+  readonly width: T;
+  readonly height: T;
+}
+
+export interface RectInput<T> {
+  left: T;
+  right: T;
+  top: T;
+  bottom: T;
+}
+
+export interface PartialRectInput<T> {
+  left?: T | undefined;
+  right?: T | undefined;
+  top?: T | undefined;
+  bottom?: T | undefined;
+}
+
+export interface Rect<T> {
+  readonly left: T;
+  readonly right: T;
+  readonly top: T;
+  readonly bottom: T;
+}
+
+export interface LineInput<T> {
+  start: T;
+  end: T;
+}
+
+export interface PartialLineInput<T> {
+  start?: T | undefined;
+  end?: T | undefined;
+}
+
+export interface Line<T> {
+  readonly start: T;
+  readonly end: T;
+}
