@@ -371,6 +371,9 @@ var TaffyTree = class {
 		this.#nodes = new NodeIdRegistry(options.randomSource ?? secureRandom, options.nextSerial);
 		this.#inner = new NativeTaffyTree();
 	}
+	enableRounding() {
+		this.#inner.rawEnableRounding("enableRounding");
+	}
 	getNodeCount() {
 		return this.#getNodeCount();
 	}
@@ -446,6 +449,7 @@ var TaffyTree = class {
 	}
 	[testAccess]() {
 		return {
+			enableRounding: () => this.#inner.rawEnableRounding("enableRounding"),
 			newLeaf: (style) => this.#newLeaf(style),
 			newLeafWithContext: (style, context) => this.#newLeafWithContext(style, context),
 			newWithChildren: (style, children) => this.#newWithChildren(style, children),

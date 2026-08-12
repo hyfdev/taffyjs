@@ -57,6 +57,10 @@ export class TaffyTree<TContext = unknown> {
     this.#inner = new NativeTaffyTree();
   }
 
+  enableRounding(): void {
+    this.#inner.rawEnableRounding("enableRounding");
+  }
+
   getNodeCount(): number {
     return this.#getNodeCount();
   }
@@ -156,6 +160,7 @@ export class TaffyTree<TContext = unknown> {
 
   [testAccess]() {
     return {
+      enableRounding: () => this.#inner.rawEnableRounding("enableRounding"),
       newLeaf: (style: unknown) => this.#newLeaf(style),
       newLeafWithContext: (style: unknown, context: TContext | undefined) =>
         this.#newLeafWithContext(style, context),

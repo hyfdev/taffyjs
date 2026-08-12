@@ -626,6 +626,7 @@ export interface ComputeLayoutOptions {
 
 export declare class TaffyTree<TContext = unknown> {
   constructor();
+  enableRounding(): void;
   newLeaf(style: StyleInput): NodeId;
   newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId;
   newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
