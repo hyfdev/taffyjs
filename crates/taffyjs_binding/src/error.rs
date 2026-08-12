@@ -5,6 +5,7 @@ enum NativeErrorKind {
     Error,
     #[allow(dead_code, reason = "used by the remaining M1 converters")]
     RangeError,
+    TypeError,
 }
 
 #[derive(Debug)]
@@ -28,6 +29,14 @@ fn coded_error(code: &'static str, message: impl Into<String>) -> NativeError {
 pub(crate) fn range_error(message: impl Into<String>) -> NativeError {
     NativeError {
         kind: NativeErrorKind::RangeError,
+        code: None,
+        message: message.into(),
+    }
+}
+
+pub(crate) fn type_error(message: impl Into<String>) -> NativeError {
+    NativeError {
+        kind: NativeErrorKind::TypeError,
         code: None,
         message: message.into(),
     }
@@ -63,6 +72,7 @@ pub(crate) fn into_napi<T>(env: Env, result: NativeResult<T>) -> Result<T> {
             match error.kind {
                 NativeErrorKind::Error => env.throw_error(&error.message, error.code),
                 NativeErrorKind::RangeError => env.throw_range_error(&error.message, error.code),
+                NativeErrorKind::TypeError => env.throw_type_error(&error.message, error.code),
             }?;
             Err(Error::new(Status::PendingException, error.message))
         }
