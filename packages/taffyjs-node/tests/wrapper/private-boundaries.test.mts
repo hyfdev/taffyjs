@@ -4,21 +4,35 @@ import { contractTest } from "../contract-test.mts";
 
 const U64_MAX = (1n << 64n) - 1n;
 
-contractTest("TYPE-NODEID-001/rng", () => {
+function assertRandomFailureIsAtomic() {
   const failure = new Error("injected random failure");
+  let tree: TaffyTree | undefined;
+  let calls = 0;
   assert.throws(
-    () =>
-      new TaffyTree({
+    () => {
+      tree = new TaffyTree({
         randomSource() {
+          calls += 1;
           throw failure;
         },
-      }),
+      });
+    },
     (error) => error === failure,
   );
+  assert.equal(calls, 1);
+  assert.equal(tree, undefined, "a failed constructor does not return a tree");
 
-  const tree = new TaffyTree();
-  assert.equal(tree.getNodeCount(), 0);
-  assert.equal(typeof tree.newLeaf({}), "bigint");
+  const healthyTree = new TaffyTree();
+  assert.equal(healthyTree.getNodeCount(), 0);
+  assert.equal(typeof healthyTree.newLeaf({}), "bigint");
+}
+
+contractTest("TYPE-NODEID-001/rng", () => {
+  assertRandomFailureIsAtomic();
+});
+
+contractTest("API-TREE-001/rng-failure", () => {
+  assertRandomFailureIsAtomic();
 });
 
 contractTest("TYPE-NODEID-001/serial-boundary", () => {
