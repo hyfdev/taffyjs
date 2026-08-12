@@ -40,8 +40,16 @@ function computeChildren(rootStyle: StyleInput, childStyles: readonly StyleInput
   };
 }
 
+// Every fixed layout value below is pinned to the exact Taffy 0.13.0 sources at:
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/block.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/float.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/flexbox.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/mod.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/placement.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/track_sizing.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/mod.rs
+
 contractTest("TEST-ALGORITHMS-001/block-float", () => {
-  // These fixed values follow the pinned Taffy block and float fixtures.
   const block = computeChildren(
     { display: Display.Block, size: { width: Dimension.Length(100) } },
     [

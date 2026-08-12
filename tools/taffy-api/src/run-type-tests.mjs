@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { assembleDeclaration, formatDeclaration } from "./index.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const contract = JSON.parse(await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"));
@@ -43,6 +44,8 @@ const compiler = resolve(root, "packages/taffyjs-node/node_modules/.bin/tsc");
 const runtimeApi = await import(
   pathToFileURL(resolve(root, "packages/taffyjs-node/index.js")).href
 );
+const actualDeclaration = await readFile(resolve(root, "packages/taffyjs-node/index.d.ts"), "utf8");
+const expectedDeclaration = await formatDeclaration(assembleDeclaration(contract), root);
 const expectedRuntimeExports = Object.values(contract.publicRuntimeExportsByOwner)
   .flat()
   .toSorted((left, right) => left.localeCompare(right));
@@ -69,6 +72,8 @@ for (const path of await walk(resolve(root, "tests/taffyjs-node/tests/types"))) 
   const runtimeExportsMatch =
     record?.id !== "TEST-TYPES-001/exports-signatures" ||
     JSON.stringify(actualRuntimeExports) === JSON.stringify(expectedRuntimeExports);
+  const declarationMatches =
+    record?.id !== "TEST-TYPES-001/exports-signatures" || actualDeclaration === expectedDeclaration;
   const output = [
     execution.output,
     ...(runtimeExportsMatch
@@ -76,11 +81,17 @@ for (const path of await walk(resolve(root, "tests/taffyjs-node/tests/types"))) 
       : [
           `Runtime exports differ: expected ${JSON.stringify(expectedRuntimeExports)}, received ${JSON.stringify(actualRuntimeExports)}\n`,
         ]),
+    ...(declarationMatches
+      ? []
+      : ["Packed public declarations differ from the declaration assembled from contract.json\n"]),
   ].join("");
   results.push({
     acceptanceId: record?.id ?? `unknown-types:${relativePath}`,
     path: relativePath,
-    result: execution.code === 0 && record && runtimeExportsMatch ? "pass" : "failed",
+    result:
+      execution.code === 0 && record && runtimeExportsMatch && declarationMatches
+        ? "pass"
+        : "failed",
     ...(output ? { output } : {}),
   });
 }

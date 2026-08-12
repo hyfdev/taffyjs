@@ -173,6 +173,7 @@ function gridChild(parentStyle: StyleRecord, childStyle: StyleRecord): Layout {
 function assertNamedGridLineSemantics(axis: "column" | "row"): void {
   const namesField = axis === "column" ? "gridTemplateColumnNames" : "gridTemplateRowNames";
   const placementField = axis === "column" ? "gridColumn" : "gridRow";
+  const templateField = axis === "column" ? "gridTemplateColumns" : "gridTemplateRows";
   const coordinate = axis === "column" ? "x" : "y";
   const unicodeName = axis === "column" ? "列-😀-é" : "行-😀-é";
   const inputNames = [[], [unicodeName, "\ud800"], []];
@@ -203,26 +204,18 @@ function assertNamedGridLineSemantics(axis: "column" | "row"): void {
   assert.deepEqual(tree.getStyle(root)[namesField], expectedNames);
   assert.equal(tree.getUnroundedLayout(child).location[coordinate], axis === "column" ? 20 : 10);
 
+  const unsafeRepeat = {
+    kind: api.GridTemplateComponentKind.Repeat,
+    value: {
+      count: api.RepetitionCount.Count(1),
+      tracks: [fixedTrack(10)],
+      lineNames: [],
+    },
+  };
   const underflowTree = new (TaffyTree())();
-  const underflowChild = underflowTree.newLeaf({
-    [placementField]: {
-      start: api.GridPlacement.NamedLine("missing", -32768),
-      end: api.GridPlacement.Span(1),
-    },
-  });
-  const underflowRoot = underflowTree.newWithChildren(
-    {
-      display: api.Display.Grid,
-      gridTemplateRows: [singleTrack(10), singleTrack(15)],
-      gridTemplateColumns: [singleTrack(20), singleTrack(30)],
-      [namesField]: [[], [], []],
-    },
-    [underflowChild],
-  );
-  underflowTree.computeLayout({ root: underflowRoot, availableSpace: maxContentSpace() });
-  assert.equal(
-    underflowTree.getUnroundedLayout(underflowChild).location[coordinate],
-    axis === "column" ? 50 : 25,
+  assert.throws(
+    () => underflowTree.newLeaf({ [templateField]: [unsafeRepeat], [namesField]: [[]] }),
+    RangeError,
   );
 }
 
@@ -252,6 +245,93 @@ function assertGridPlacementIntegerBoundaries(field: "gridRow" | "gridColumn"): 
     api.GridPlacement.NamedSpan("outside", 65536),
   ]) {
     assert.throws(() => tree.newLeaf({ [field]: { start: placement } }));
+  }
+}
+
+function assertTemplateComponentSemantics(axis: "column" | "row"): void {
+  const templateField = axis === "column" ? "gridTemplateColumns" : "gridTemplateRows";
+  const coordinate = axis === "column" ? "x" : "y";
+  const extent = axis === "column" ? "width" : "height";
+  const single = singleTrack(20);
+  const repeat = repeatTrack(api.RepetitionCount.Count(2));
+  const components = [single, repeat];
+  const tree = new (TaffyTree())();
+  const children = [{}, {}, {}].map((style) => tree.newLeaf(style));
+  const root = tree.newWithChildren(
+    {
+      display: api.Display.Grid,
+      gridTemplateRows: [singleTrack(100)],
+      gridTemplateColumns: [singleTrack(100)],
+      [templateField]: components,
+    },
+    children,
+  );
+
+  single.value.min.value = 99;
+  repeat.value.tracks[0].min.value = 99;
+  repeat.value.lineNames[0][0] = "changed";
+  const expectedComponents = [singleTrack(20), repeatTrack(api.RepetitionCount.Count(2))];
+  assert.deepEqual(tree.getStyle(root)[templateField], expectedComponents);
+
+  tree.computeLayout({ root, availableSpace: finiteSpace(100, 100) });
+  assert.deepEqual(
+    children.map((child) => {
+      const layout = tree.getUnroundedLayout(child);
+      return [layout.location[coordinate], layout.size[extent]];
+    }),
+    [
+      [0, 20],
+      [20, 10],
+      [30, 10],
+    ],
+  );
+
+  const firstOutput = tree.getStyle(root)[templateField] as Array<{
+    value: { lineNames?: string[][] };
+  }>;
+  firstOutput[1].value.lineNames?.[0].splice(0, 1, "output");
+  assert.deepEqual(tree.getStyle(root)[templateField], expectedComponents);
+}
+
+function assertTemplateAreaIntegerBoundaries(): void {
+  const tree = new (TaffyTree())();
+  const maximum = {
+    areas: [
+      {
+        name: "maximum",
+        rowStart: 65535,
+        rowEnd: 65535,
+        columnStart: 65535,
+        columnEnd: 65535,
+      },
+    ],
+    rowCount: 65535,
+    columnCount: 65535,
+  };
+  const maximumNode = tree.newLeaf({ gridTemplateAreas: maximum });
+  assert.deepEqual(tree.getStyle(maximumNode).gridTemplateAreas, maximum);
+
+  const areaFields = ["rowStart", "rowEnd", "columnStart", "columnEnd"] as const;
+  const countFields = ["rowCount", "columnCount"] as const;
+  for (const value of [-1, 65536, 0.5]) {
+    for (const field of areaFields) {
+      assert.throws(() =>
+        tree.newLeaf({
+          gridTemplateAreas: {
+            areas: [{ ...maximum.areas[0], [field]: value }],
+            rowCount: 1,
+            columnCount: 1,
+          },
+        }),
+      );
+    }
+    for (const field of countFields) {
+      assert.throws(() =>
+        tree.newLeaf({
+          gridTemplateAreas: { areas: [], rowCount: 1, columnCount: 1, [field]: value },
+        }),
+      );
+    }
   }
 }
 
@@ -868,6 +948,16 @@ function runStyleCase(id: string, suffix: string): void {
   assert.fail(`Unknown Style acceptance suffix: ${suffix}`);
 }
 
+// Every numeric layout expectation below is pinned to the exact Taffy 0.13.0 sources at:
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/block.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/float.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/flexbox.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/common/alignment.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/mod.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/alignment.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/placement.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/track_sizing.rs
+// https://docs.rs/crate/taffy/0.13.0/source/src/compute/leaf.rs
 function runSemanticCase(field: string): void {
   switch (field) {
     case "display": {
@@ -1116,7 +1206,7 @@ function runSemanticCase(field: string): void {
       assert.deepEqual(layout.margin, { left: 12, right: 0, top: 7, bottom: 0 });
       return;
     }
-    case "padding":
+    case "padding": {
       assert.deepEqual(
         computeLeaf({
           size: { width: length(50), height: length(40) },
@@ -1124,7 +1214,24 @@ function runSemanticCase(field: string): void {
         }).padding,
         { left: 3, right: 4, top: 5, bottom: 6 },
       );
+      assert.deepEqual(
+        computeLeaf({
+          boxSizing: api.BoxSizing.BorderBox,
+          size: { width: length(50), height: length(40) },
+          padding: length(5),
+        }).size,
+        { width: 50, height: 40 },
+      );
+      assert.deepEqual(
+        computeLeaf({
+          boxSizing: api.BoxSizing.ContentBox,
+          size: { width: length(50), height: length(40) },
+          padding: length(5),
+        }).size,
+        { width: 60, height: 50 },
+      );
       return;
+    }
     case "border":
       assert.deepEqual(
         computeLeaf({
@@ -1274,7 +1381,7 @@ function runSemanticCase(field: string): void {
       return;
     }
     case "justifyContent": {
-      const layout = computeChildren(
+      const flexLayout = computeChildren(
         {
           display: api.Display.Flex,
           justifyContent: api.AlignContent.End,
@@ -1283,7 +1390,22 @@ function runSemanticCase(field: string): void {
         [{ size: { width: length(20), height: length(10) } }],
         finiteSpace(100, 50),
       )[0];
-      assert.equal(layout.location.x, 80);
+      assert.equal(flexLayout.location.x, 80);
+      const gridLayouts = computeChildren(
+        {
+          display: api.Display.Grid,
+          justifyContent: api.AlignContent.End,
+          size: { width: length(100), height: length(20) },
+          gridTemplateRows: [singleTrack(10)],
+          gridTemplateColumns: [singleTrack(20), singleTrack(20)],
+        },
+        [{}, {}],
+        finiteSpace(100, 20),
+      );
+      assert.deepEqual(
+        gridLayouts.map(({ location }) => location.x),
+        [60, 80],
+      );
       return;
     }
     case "gap": {
@@ -1300,6 +1422,25 @@ function runSemanticCase(field: string): void {
         finiteSpace(100, 50),
       );
       assert.equal(layouts[1].location.x, 15);
+      const gridLayouts = computeChildren(
+        {
+          display: api.Display.Grid,
+          gap: { width: length(7), height: length(9) },
+          size: { width: length(100), height: length(100) },
+          gridTemplateRows: [singleTrack(10), singleTrack(10)],
+          gridTemplateColumns: [singleTrack(20), singleTrack(20)],
+        },
+        [{}, {}, {}, {}],
+      );
+      assert.deepEqual(
+        gridLayouts.map(({ location }) => location),
+        [
+          { x: 0, y: 0 },
+          { x: 27, y: 0 },
+          { x: 0, y: 19 },
+          { x: 27, y: 19 },
+        ],
+      );
       return;
     }
     case "textAlign": {
@@ -1375,16 +1516,18 @@ function runSemanticCase(field: string): void {
       ]);
       return;
     }
-    case "flexBasis":
-      assert.equal(
+    case "flexBasis": {
+      const width = (flexBasis: unknown) =>
         computeChildren(
           { display: api.Display.Flex, size: { width: length(100), height: length(20) } },
-          [{ size: { width: length(10) }, flexBasis: length(30) }],
+          [{ size: { width: length(10) }, flexBasis }],
           finiteSpace(100, 20),
-        )[0].size.width,
-        30,
-      );
+        )[0].size.width;
+      assert.equal(width(length(30)), 30);
+      assert.equal(width(percent(25)), 25);
+      assert.equal(width(auto()), 10);
       return;
+    }
     case "flexGrow": {
       const layouts = computeChildren(
         { display: api.Display.Flex, size: { width: length(100), height: length(20) } },
@@ -1416,39 +1559,11 @@ function runSemanticCase(field: string): void {
       return;
     }
     case "gridTemplateRows": {
-      const layouts = computeChildren(
-        {
-          display: api.Display.Grid,
-          gridTemplateRows: [singleTrack(20), singleTrack(30)],
-          gridTemplateColumns: [singleTrack(100)],
-        },
-        [{}, {}],
-      );
-      assert.deepEqual(
-        layouts.map(({ location, size: itemSize }) => [location.y, itemSize.height]),
-        [
-          [0, 20],
-          [20, 30],
-        ],
-      );
+      assertTemplateComponentSemantics("row");
       return;
     }
     case "gridTemplateColumns": {
-      const layouts = computeChildren(
-        {
-          display: api.Display.Grid,
-          gridTemplateRows: [singleTrack(100)],
-          gridTemplateColumns: [singleTrack(20), singleTrack(30)],
-        },
-        [{}, {}],
-      );
-      assert.deepEqual(
-        layouts.map(({ location, size: itemSize }) => [location.x, itemSize.width]),
-        [
-          [0, 20],
-          [20, 30],
-        ],
-      );
+      assertTemplateComponentSemantics("column");
       return;
     }
     case "gridAutoRows": {
@@ -1536,6 +1651,7 @@ function runSemanticCase(field: string): void {
       return;
     }
     case "gridTemplateAreas": {
+      assertTemplateAreaIntegerBoundaries();
       const result = gridChild(
         {
           gridTemplateAreas: {
