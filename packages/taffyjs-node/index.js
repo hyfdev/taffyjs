@@ -133,6 +133,20 @@ const DetailedLayoutInfoKind = Object.freeze({
 	Grid: 1
 });
 //#endregion
+//#region src/available-space.ts
+const minContent = Object.freeze({ kind: AvailableSpaceKind.MinContent });
+const maxContent = Object.freeze({ kind: AvailableSpaceKind.MaxContent });
+const AvailableSpace = Object.freeze({
+	Definite(value) {
+		return {
+			kind: AvailableSpaceKind.Definite,
+			value
+		};
+	},
+	MinContent: minContent,
+	MaxContent: maxContent
+});
+//#endregion
 //#region src/length.ts
 const auto = Object.freeze({ unit: LengthUnit.Auto });
 const Dimension = Object.freeze({
@@ -151,4 +165,4 @@ const Dimension = Object.freeze({
 	Auto: auto
 });
 //#endregion
-export { AlignContent, AlignItems, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacementKind, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCountKind, TextAlign, TrackSizingKind };
+export { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacementKind, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCountKind, TextAlign, TrackSizingKind };

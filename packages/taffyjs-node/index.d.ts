@@ -268,3 +268,19 @@ export declare const Dimension: Readonly<{
   readonly Percent: (value: number) => PercentInput;
   readonly Auto: Readonly<AutoInput>;
 }>;
+
+export type AvailableSpaceInput =
+  | { kind: typeof AvailableSpaceKind.Definite; value: number }
+  | { kind: typeof AvailableSpaceKind.MinContent }
+  | { kind: typeof AvailableSpaceKind.MaxContent };
+
+export type AvailableSpace =
+  | Readonly<{ kind: typeof AvailableSpaceKind.Definite; value: number }>
+  | Readonly<{ kind: typeof AvailableSpaceKind.MinContent }>
+  | Readonly<{ kind: typeof AvailableSpaceKind.MaxContent }>;
+
+export declare const AvailableSpace: Readonly<{
+  readonly Definite: (value: number) => { kind: typeof AvailableSpaceKind.Definite; value: number };
+  readonly MinContent: Readonly<{ kind: typeof AvailableSpaceKind.MinContent }>;
+  readonly MaxContent: Readonly<{ kind: typeof AvailableSpaceKind.MaxContent }>;
+}>;
