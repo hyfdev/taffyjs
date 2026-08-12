@@ -64,14 +64,24 @@ contractTest("TYPE-LENGTH-001/percent-scale", () => {
     unit: 1,
     value: 50,
   });
+
+  const value = 1e39;
+  const result = storedStyle({ flexBasis: { unit: 1, value } }).flexBasis as { value: number };
+  assert.equal(result.value, Math.fround(value / 100) * 100);
+  assert.equal(Number.isFinite(result.value), true);
 });
 
 contractTest("TYPE-LENGTH-001/f32-special", () => {
   for (const value of [-1, Number.MAX_VALUE, Number.MIN_VALUE, NaN, Infinity, -Infinity]) {
-    const result = storedStyle({ flexBasis: { unit: 0, value } }).flexBasis as {
+    const length = storedStyle({ flexBasis: { unit: 0, value } }).flexBasis as {
       value: number;
     };
-    assert.ok(Object.is(result.value, Math.fround(value)), `${value}`);
+    assert.ok(Object.is(length.value, Math.fround(value)), `length ${value}`);
+
+    const percent = storedStyle({ flexBasis: { unit: 1, value } }).flexBasis as {
+      value: number;
+    };
+    assert.ok(Object.is(percent.value, Math.fround(value / 100) * 100), `percent ${value}`);
   }
 });
 

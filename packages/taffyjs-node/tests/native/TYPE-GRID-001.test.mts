@@ -128,6 +128,34 @@ contractTest("TYPE-GRID-001/helper-conversion", () => {
     );
   }
 
+  const largePercent = 1e39;
+  const expectedPercent = Math.fround(largePercent / 100) * 100;
+  const percentTrack = (
+    storedStyle({
+      gridAutoRows: [
+        {
+          min: { kind: 1, value: largePercent },
+          max: { kind: 1, value: largePercent },
+        },
+      ],
+    }).gridAutoRows as Track[]
+  )[0];
+  assert.equal(percentTrack.min.value, expectedPercent);
+  assert.equal(percentTrack.max.value, expectedPercent);
+  assert.equal(Number.isFinite(percentTrack.min.value), true);
+
+  const fitContentTrack = (
+    storedStyle({
+      gridAutoRows: [
+        {
+          min: auto,
+          max: { kind: 5, value: { unit: 1, value: largePercent } },
+        },
+      ],
+    }).gridAutoRows as Track[]
+  )[0];
+  assert.equal((fitContentTrack.max.value as { value: number }).value, expectedPercent);
+
   for (const [helper, direct] of [
     [RepetitionCount.Count(2), { kind: 0, value: 2 }],
     [RepetitionCount.AutoFill, { kind: 1 }],
@@ -155,9 +183,25 @@ contractTest("TYPE-GRID-001/helper-conversion", () => {
 
 contractTest("TYPE-GRID-001/panic-guard", () => {
   const track = { min: { kind: 0, value: 10 }, max: { kind: 0, value: 10 } };
-  const unsafeRepeat = repeat({ kind: 0, value: 1 }, [track], []);
-  rejectsWithoutNode({ gridTemplateRows: [unsafeRepeat] }, RangeError);
-  rejectsWithoutNode({ gridTemplateColumns: [unsafeRepeat] }, RangeError);
+  const safeRepeat = repeat({ kind: 0, value: 1 }, [track], []);
+  storedStyle({ gridTemplateRows: [safeRepeat] });
+  storedStyle({ gridTemplateColumns: [safeRepeat] });
+
+  for (const count of [{ kind: 0, value: 1 }, { kind: 1 }, { kind: 2 }] as Count[]) {
+    const unsafeRepeat = repeat(count, [track], []);
+    rejectsWithoutNode(
+      { gridTemplateRows: [unsafeRepeat], gridTemplateRowNames: [[]] },
+      RangeError,
+    );
+    rejectsWithoutNode(
+      { gridTemplateColumns: [unsafeRepeat], gridTemplateColumnNames: [[]] },
+      RangeError,
+    );
+  }
+
+  const zeroRepeat = repeat({ kind: 0, value: 0 }, [track], []);
+  storedStyle({ gridTemplateRows: [zeroRepeat], gridTemplateRowNames: [[]] });
+  storedStyle({ gridTemplateColumns: [zeroRepeat], gridTemplateColumnNames: [[]] });
 });
 
 contractTest("TYPE-GRID-001/integers", () => {

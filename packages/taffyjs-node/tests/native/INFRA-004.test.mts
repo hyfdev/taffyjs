@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import * as native from "../../native.js";
 import { contractTest } from "../contract-test.mts";
 
@@ -12,14 +12,36 @@ type NativeTaffyTree = {
   rawSetStyle(node: bigint, style: object, publicMethod: string): void;
 };
 type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
+type NativeTestHooksTree = {
+  __throwValue(value: unknown): void;
+  __triggerError(condition: string): void;
+};
+type NativeTestHooksTreeConstructor = new () => NativeTestHooksTree;
 
 const NativeTaffyTree = Reflect.get(native, "NativeTaffyTree") as NativeTaffyTreeConstructor;
+const testHooksPath = resolve(
+  fileURLToPath(new URL("../../", import.meta.url)),
+  "node_modules/.cache/taffyjs-test-hooks/test-hooks.js",
+);
+const testHooksModule = (await import(pathToFileURL(testHooksPath).href)) as {
+  NativeTaffyTree: NativeTestHooksTreeConstructor;
+};
+const NativeTestHooksTree = testHooksModule.NativeTaffyTree;
 
 function captureError(body: () => unknown): CodedError {
   try {
     body();
   } catch (error) {
     assert.ok(error instanceof Error);
+    return error;
+  }
+  assert.fail("Expected operation to throw");
+}
+
+function captureThrown(body: () => unknown): unknown {
+  try {
+    body();
+  } catch (error) {
     return error;
   }
   assert.fail("Expected operation to throw");
@@ -56,6 +78,25 @@ function runPanicChild() {
 }
 
 contractTest("INFRA-004/taxonomy", () => {
+  const hooks = new NativeTestHooksTree();
+  const cases = [
+    ["wrong-type-or-shape", TypeError, undefined],
+    ["discrete-range-or-enum", RangeError, undefined],
+    ["child-index-out-of-bounds", RangeError, "ERR_TAFFY_CHILD_INDEX_OUT_OF_BOUNDS"],
+    ["node-id-not-bigint", TypeError, undefined],
+    ["malformed-node-id", Error, "ERR_TAFFY_INVALID_NODE_ID"],
+    ["foreign-node-id", Error, "ERR_TAFFY_FOREIGN_NODE_ID"],
+    ["stale-node-id", Error, "ERR_TAFFY_STALE_NODE_ID"],
+    ["random-source-failure", Error, undefined],
+    ["node-id-serial-exhaustion", RangeError, undefined],
+    ["invalid-topology", Error, "ERR_TAFFY_INVALID_TOPOLOGY"],
+  ] as const;
+  for (const [condition, errorClass, code] of cases) {
+    const error = captureError(() => hooks.__triggerError(condition));
+    assert.equal(error.constructor, errorClass, condition);
+    assert.equal(error.code, code, condition);
+  }
+
   const owner = new NativeTaffyTree();
   const node = owner.rawNewLeaf({}, "newLeaf");
   const busy = captureError(() =>
@@ -67,6 +108,12 @@ contractTest("INFRA-004/taxonomy", () => {
   const panic = runPanicChild();
   assert.deepEqual(panic.first, { class: "Error", code: "ERR_TAFFY_INTERNAL" });
   assert.deepEqual(panic.second, { class: "Error", code: "ERR_TAFFY_TREE_POISONED" });
+
+  const callbackValue = { reason: "callback failed" };
+  assert.equal(
+    captureThrown(() => hooks.__throwValue(callbackValue)),
+    callbackValue,
+  );
 });
 
 contractTest("INFRA-004/busy-unit", () => {
