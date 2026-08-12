@@ -808,7 +808,73 @@ export function serializeReviewInputProjection(projection) {
   return JSON.stringify(sortNestedObjects(projection, true));
 }
 
-function extractMarkedJson(source, start, end, diagnostic) {
+function rejectDuplicateJsonKeys(source, diagnostic) {
+  let index = 0;
+  const skipWhitespace = () => {
+    while (/\s/u.test(source[index] ?? "")) index += 1;
+  };
+  const parseString = () => {
+    const start = index;
+    index += 1;
+    while (index < source.length) {
+      if (source[index] === "\\") index += 2;
+      else if (source[index] === '"') {
+        index += 1;
+        try {
+          return JSON.parse(source.slice(start, index));
+        } catch {
+          return null;
+        }
+      } else index += 1;
+    }
+    return null;
+  };
+  const parseValue = () => {
+    skipWhitespace();
+    if (source[index] === "{") {
+      index += 1;
+      const keys = new Set();
+      skipWhitespace();
+      while (index < source.length && source[index] !== "}") {
+        if (source[index] !== '"') return;
+        const key = parseString();
+        if (key === null) return;
+        if (keys.has(key)) fail(diagnostic, key);
+        keys.add(key);
+        skipWhitespace();
+        if (source[index] !== ":") return;
+        index += 1;
+        parseValue();
+        skipWhitespace();
+        if (source[index] !== ",") break;
+        index += 1;
+        skipWhitespace();
+      }
+      if (source[index] === "}") index += 1;
+      return;
+    }
+    if (source[index] === "[") {
+      index += 1;
+      skipWhitespace();
+      while (index < source.length && source[index] !== "]") {
+        parseValue();
+        skipWhitespace();
+        if (source[index] !== ",") break;
+        index += 1;
+      }
+      if (source[index] === "]") index += 1;
+      return;
+    }
+    if (source[index] === '"') {
+      parseString();
+      return;
+    }
+    while (index < source.length && !/[\s,\]}]/u.test(source[index])) index += 1;
+  };
+  parseValue();
+}
+
+function extractMarkedJson(source, start, end, diagnostic, duplicateDiagnostic = null) {
   const starts = source.split(start).length - 1;
   const ends = source.split(end).length - 1;
   if (starts !== 1 || ends !== 1) fail(diagnostic);
@@ -818,6 +884,7 @@ function extractMarkedJson(source, start, end, diagnostic) {
   const body = source.slice(startAt, endAt).trim();
   const match = /^```json\s*\n([\s\S]*?)\n```$/.exec(body);
   if (!match) fail(diagnostic);
+  if (duplicateDiagnostic) rejectDuplicateJsonKeys(match[1], duplicateDiagnostic);
   try {
     return JSON.parse(match[1]);
   } catch (error) {
@@ -832,7 +899,13 @@ export function extractCanonicalContract(goal) {
 }
 
 export function extractLoopStatus(statusSource) {
-  return extractMarkedJson(statusSource, STATUS_START, STATUS_END, "loop-status-markers");
+  return extractMarkedJson(
+    statusSource,
+    STATUS_START,
+    STATUS_END,
+    "loop-status-markers",
+    "loop-status-duplicate-field",
+  );
 }
 
 function validateCanonicalContract(contract) {
@@ -3041,8 +3114,11 @@ export function validateStatusShape(status, contract, expanded) {
     ) {
       fail("incremental-all/accepted-invalid-order");
     }
-  } else if (blockedTasks.length !== 0) {
-    fail("loop-status-blocked-task");
+  } else {
+    if (blockedTasks.length !== 0) fail("loop-status-blocked-task");
+    if (!Array.isArray(status.blockers) || status.blockers.length !== 0) {
+      fail("loop-status-blocker-record");
+    }
   }
   if (status.phase === "build") {
     const currentIndex = activeTasks.indexOf(status.activeTaskId);
@@ -3112,6 +3188,23 @@ function lockVersion(lock, name, expected) {
   const matches = cargoLockPackage(lock, name).filter(({ version }) => version === expected);
   if (matches.length !== 1) fail("pin-drift/cargo-lock-version");
   return matches[0];
+}
+
+export function validateWorkspaceCatalog(contract, workspace) {
+  const catalogEntry = (name) => {
+    const escaped = escapeRegExp(name);
+    const matches = Array.from(
+      workspace.matchAll(new RegExp(`^\\s{2}["']?${escaped}["']?:\\s*([^\\s#]+)\\s*$`, "gmu")),
+      (match) => match[1],
+    );
+    return matches.length === 1 ? matches[0] : null;
+  };
+  if (catalogEntry("typescript") !== `^${contract.pins.typescript}`) {
+    fail("pin-drift/typescript-version");
+  }
+  if (catalogEntry("@napi-rs/cli") !== contract.pins.napiCli) {
+    fail("pin-drift/napi-cli-version");
+  }
 }
 
 function exportedRuntimeNames(source, path) {
@@ -3424,6 +3517,12 @@ export function validateRunnerTaskGraph(contract, expanded, status, tasks) {
       command: "node tools/taffy-api/src/index.mjs check --all",
       dependsOn: ["build", "check:contract:generate", "check:contract:self-test"],
     },
+    "check:completion": { command: "node tools/taffy-api/src/index.mjs completion" },
+    "check:review-completion": {
+      command: "node tools/taffy-api/src/index.mjs review-completion",
+    },
+    "build:binding": { command: "vp run @taffyjs/node#build" },
+    build: { command: "echo build ok", dependsOn: ["build:binding"] },
     "check:format": { command: "vp fmt --check", dependsOn: ["build"] },
     "check:lint": { command: "vp lint --deny-warnings", dependsOn: ["build"] },
     "check:rust": {
@@ -3656,6 +3755,8 @@ export async function validateRealPinsAndSource(root, contract) {
     fail("pin-drift/node-range");
   }
   const pnpmLock = await readFile(resolve(root, "pnpm-lock.yaml"), "utf8");
+  const workspace = await readFile(resolve(root, "pnpm-workspace.yaml"), "utf8");
+  validateWorkspaceCatalog(contract, workspace);
   if (
     !new RegExp(
       `typescript:\\n\\s+specifier: [^\\n]+\\n\\s+version: ${contract.pins.typescript.replaceAll(".", "\\.")}(?:\\n|$)`,

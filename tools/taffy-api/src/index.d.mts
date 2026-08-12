@@ -25,6 +25,10 @@ export function formatDeclaration(source: string, root: string): Promise<string>
 export function stripDeclarationJsDoc(source: string): string;
 export function validateWholeSurfaceJsDoc(contract: Record<string, unknown>, actual: string): void;
 export function validateNodeIdDeclarationBindings(contract: Record<string, unknown>): void;
+export function validateWorkspaceCatalog(
+  contract: Record<string, unknown>,
+  workspace: string,
+): void;
 export function validateParsedSourceInventory(
   contract: Record<string, unknown>,
   parsed: Record<string, unknown>,

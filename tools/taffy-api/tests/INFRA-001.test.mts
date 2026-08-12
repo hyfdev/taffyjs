@@ -49,6 +49,19 @@ contractTest("INFRA-001/generate", async () => {
 
 contractTest("INFRA-001/pin-drift", async () => {
   const checker = await loadChecker();
+  const contract = JSON.parse(
+    await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
+  );
+  const workspace = await readFile(resolve(root, "pnpm-workspace.yaml"), "utf8");
+  checker.validateWorkspaceCatalog(contract, workspace);
+  await expectDiagnostic(
+    () =>
+      checker.validateWorkspaceCatalog(
+        contract,
+        workspace.replace(`typescript: ^${contract.pins.typescript}`, "typescript: ^7.0.3"),
+      ),
+    "pin-drift/typescript-version",
+  );
   const fixture = await checker.createRepositoryFixture(root);
   const mutations = [
     "cargo-napi-requirement",
@@ -393,6 +406,10 @@ contractTest("INFRA-001/collection-drift", async () => {
         resolve(temporaryRoot, records[2].path),
         "// #[test]\n// fn contract__commented() {}\n#[test]\nfn contract__fixture_rust__one() {}\n",
       ),
+      writeFile(
+        resolve(temporaryRoot, "crates/taffyjs_binding/src/lib.rs"),
+        "mod contract_tests;\n",
+      ),
     ]);
     const fixtureStatus = {
       taskStates: Object.fromEntries(records.map(({ owner }) => [owner, "tests-authored"])),
@@ -407,6 +424,19 @@ contractTest("INFRA-001/collection-drift", async () => {
       records.map(({ id }) => id).sort(),
     );
     checker.validateStaticCollection({}, { evidence: { primary: records } }, fixtureStatus, calls);
+    await writeFile(
+      resolve(temporaryRoot, "crates/taffyjs_binding/src/lib.rs"),
+      '#[cfg(target_os = "linux")] mod contract_tests;\n',
+    );
+    await assert.rejects(
+      () =>
+        checker.collectStaticEvidence(
+          temporaryRoot,
+          { evidence: { primary: records } },
+          fixtureStatus,
+        ),
+      /contract-test module must be registered exactly once without cfg/u,
+    );
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }
@@ -530,6 +560,12 @@ contractTest("INFRA-001/incremental-all", async () => {
     () => checker.validateStatusShape(tooFewAttempts, contract, contract.generated),
     "loop-status-blocker-record",
   );
+  const blockerOutsideBlockedPhase = structuredClone(status);
+  blockerOutsideBlockedPhase.blockers = validBlocked.blockers;
+  await expectDiagnostic(
+    () => checker.validateStatusShape(blockerOutsideBlockedPhase, contract, contract.generated),
+    "loop-status-blocker-record",
+  );
   const blockedOrder = structuredClone(status);
   blockedOrder.phase = "build";
   blockedOrder.activeTaskId = "INFRA-002";
@@ -626,6 +662,33 @@ contractTest("INFRA-001/incremental-all", async () => {
   await expectDiagnostic(
     () => checker.validateRunnerTaskGraph(contract, contract.generated, status, tasks),
     "collection-drift/runner-graph",
+  );
+  const missingBuild = structuredClone(rootConfig.run.tasks) as Record<
+    string,
+    { command: string; dependsOn?: string[] }
+  >;
+  missingBuild.build.dependsOn = [];
+  await expectDiagnostic(
+    () => checker.validateRunnerTaskGraph(contract, contract.generated, status, missingBuild),
+    "collection-drift/runner-graph",
+  );
+  const noOpReviewCompletion = structuredClone(rootConfig.run.tasks) as Record<
+    string,
+    { command: string; dependsOn?: string[] }
+  >;
+  noOpReviewCompletion["check:review-completion"].command = "echo ok";
+  await expectDiagnostic(
+    () =>
+      checker.validateRunnerTaskGraph(contract, contract.generated, status, noOpReviewCompletion),
+    "collection-drift/runner-graph",
+  );
+
+  await expectDiagnostic(
+    () =>
+      checker.extractLoopStatus(
+        `<!-- loop-status-json:start -->\n\n\`\`\`json\n{"verdict":"FAIL","verdict":"PASS"}\n\`\`\`\n\n<!-- loop-status-json:end -->\n`,
+      ),
+    "loop-status-duplicate-field",
   );
 
   const documentedClass = contract.publicDeclarationContract.classDeclaration.members

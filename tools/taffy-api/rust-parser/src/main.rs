@@ -1097,6 +1097,31 @@ fn contract_test_inventory(path: &Path) -> Result<Vec<ContractTestOutput>, Strin
         .collect())
 }
 
+fn contract_test_module_is_unconditional(path: &Path) -> Result<bool, String> {
+    let parent = path.parent().ok_or("contract-test path has no parent")?;
+    let module = path
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .ok_or("contract-test path has no module name")?;
+    let crate_root = [parent.join("lib.rs"), parent.join("main.rs")]
+        .into_iter()
+        .find(|candidate| candidate.is_file())
+        .ok_or("contract-test crate root is missing")?;
+    let file = parse_rust_file(&crate_root)?;
+    let registrations = file
+        .items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Mod(item) if item.ident == module && item.content.is_none() => Some(item),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    Ok(registrations.len() == 1
+        && registrations[0].attrs.iter().all(|attribute| {
+            !attribute.path().is_ident("cfg") && !attribute.path().is_ident("cfg_attr")
+        }))
+}
+
 fn run() -> Result<(), String> {
     let mut arguments = env::args_os().skip(1);
     let first = arguments
@@ -1110,6 +1135,11 @@ fn run() -> Result<(), String> {
         );
         if arguments.next().is_some() {
             return Err("unexpected extra argument".to_string());
+        }
+        if !contract_test_module_is_unconditional(&path)? {
+            return Err(
+                "contract-test module must be registered exactly once without cfg".to_string(),
+            );
         }
         println!(
             "{}",
@@ -1346,6 +1376,7 @@ mod tests {
     #[test]
     fn inventories_real_contract_tests_without_comments() {
         let root = temporary_directory("contract-tests");
+        fs::write(root.join("lib.rs"), "mod contract_tests;\n").expect("crate root is written");
         let source = root.join("contract_tests.rs");
         fs::write(
             &source,
@@ -1361,6 +1392,13 @@ mod tests {
         assert!(inventory[1].forbidden_attribute);
         assert_eq!(inventory[2].identity, "contract__conditionally_ignored");
         assert!(inventory[2].forbidden_attribute);
+        assert!(contract_test_module_is_unconditional(&source).expect("module is inspected"));
+        fs::write(
+            root.join("lib.rs"),
+            "#[cfg(target_os = \"linux\")] mod contract_tests;\n",
+        )
+        .expect("conditional crate root is written");
+        assert!(!contract_test_module_is_unconditional(&source).expect("module is inspected"));
         fs::remove_dir_all(root).expect("temporary directory is removed");
     }
 }
