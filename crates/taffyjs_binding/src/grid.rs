@@ -1,9 +1,7 @@
-#![allow(dead_code, reason = "used by the M1 Style converter")]
-
 use napi::bindgen_prelude::{FromNapiValue, Object, Unknown};
-use napi::{JsValue, ValueType};
+use napi::{Env, JsValue, ValueType};
 use taffy::style::{
-    GridPlacement, GridTemplateArea, GridTemplateAreas, GridTemplateComponent,
+    CompactLength, GridPlacement, GridTemplateArea, GridTemplateAreas, GridTemplateComponent,
     GridTemplateRepetition, MaxTrackSizingFunction, MinTrackSizingFunction, RepetitionCount,
     TrackSizingFunction,
 };
@@ -221,4 +219,202 @@ pub(crate) fn template_areas(value: Unknown<'_>) -> NativeResult<GridTemplateAre
         row_count: to_integer::<u16>(required(&object, "rowCount")?)?,
         column_count: to_integer::<u16>(required(&object, "columnCount")?)?,
     })
+}
+
+fn tagged_output<'env>(env: &Env, kind: u8) -> napi::Result<Object<'env>> {
+    let mut output = Object::new(env)?;
+    output.set("kind", kind)?;
+    Ok(output)
+}
+
+pub(crate) fn placement_output<'env>(
+    env: &Env,
+    value: &GridPlacement<String>,
+) -> napi::Result<Object<'env>> {
+    match value {
+        GridPlacement::Auto => tagged_output(env, GridPlacementKindCode::Auto as u8),
+        GridPlacement::Line(index) => {
+            let mut output = tagged_output(env, GridPlacementKindCode::Line as u8)?;
+            output.set("index", index.as_i16())?;
+            Ok(output)
+        }
+        GridPlacement::NamedLine(name, index) => {
+            let mut output = tagged_output(env, GridPlacementKindCode::NamedLine as u8)?;
+            output.set("name", name.as_str())?;
+            output.set("index", *index)?;
+            Ok(output)
+        }
+        GridPlacement::Span(span) => {
+            let mut output = tagged_output(env, GridPlacementKindCode::Span as u8)?;
+            output.set("span", *span)?;
+            Ok(output)
+        }
+        GridPlacement::NamedSpan(name, span) => {
+            let mut output = tagged_output(env, GridPlacementKindCode::NamedSpan as u8)?;
+            output.set("name", name.as_str())?;
+            output.set("span", *span)?;
+            Ok(output)
+        }
+    }
+}
+
+fn min_track_output<'env>(env: &Env, value: MinTrackSizingFunction) -> napi::Result<Object<'env>> {
+    let raw = value.into_raw();
+    match raw.tag() {
+        CompactLength::LENGTH_TAG => {
+            let mut output = tagged_output(env, TrackSizingKindCode::Length as u8)?;
+            output.set("value", f64::from(raw.value()))?;
+            Ok(output)
+        }
+        CompactLength::PERCENT_TAG => {
+            let mut output = tagged_output(env, TrackSizingKindCode::Percent as u8)?;
+            output.set("value", f64::from(raw.value()) * 100.0)?;
+            Ok(output)
+        }
+        CompactLength::AUTO_TAG => tagged_output(env, TrackSizingKindCode::Auto as u8),
+        CompactLength::MIN_CONTENT_TAG => tagged_output(env, TrackSizingKindCode::MinContent as u8),
+        CompactLength::MAX_CONTENT_TAG => tagged_output(env, TrackSizingKindCode::MaxContent as u8),
+        _ => panic!("unsupported Taffy minimum track tag"),
+    }
+}
+
+fn fit_content_output<'env>(env: &Env, raw: CompactLength) -> napi::Result<Object<'env>> {
+    let mut output = Object::new(env)?;
+    match raw.tag() {
+        CompactLength::FIT_CONTENT_PX_TAG => {
+            output.set(
+                "unit",
+                crate::generated_numeric::LengthUnitCode::Length as u8,
+            )?;
+            output.set("value", f64::from(raw.value()))?;
+        }
+        CompactLength::FIT_CONTENT_PERCENT_TAG => {
+            output.set(
+                "unit",
+                crate::generated_numeric::LengthUnitCode::Percent as u8,
+            )?;
+            output.set("value", f64::from(raw.value()) * 100.0)?;
+        }
+        _ => panic!("unsupported Taffy fit-content tag"),
+    }
+    Ok(output)
+}
+
+fn max_track_output<'env>(env: &Env, value: MaxTrackSizingFunction) -> napi::Result<Object<'env>> {
+    let raw = value.into_raw();
+    match raw.tag() {
+        CompactLength::LENGTH_TAG => {
+            let mut output = tagged_output(env, TrackSizingKindCode::Length as u8)?;
+            output.set("value", f64::from(raw.value()))?;
+            Ok(output)
+        }
+        CompactLength::PERCENT_TAG => {
+            let mut output = tagged_output(env, TrackSizingKindCode::Percent as u8)?;
+            output.set("value", f64::from(raw.value()) * 100.0)?;
+            Ok(output)
+        }
+        CompactLength::AUTO_TAG => tagged_output(env, TrackSizingKindCode::Auto as u8),
+        CompactLength::MIN_CONTENT_TAG => tagged_output(env, TrackSizingKindCode::MinContent as u8),
+        CompactLength::MAX_CONTENT_TAG => tagged_output(env, TrackSizingKindCode::MaxContent as u8),
+        CompactLength::FIT_CONTENT_PX_TAG | CompactLength::FIT_CONTENT_PERCENT_TAG => {
+            let mut output = tagged_output(env, TrackSizingKindCode::FitContent as u8)?;
+            output.set("value", fit_content_output(env, raw)?)?;
+            Ok(output)
+        }
+        CompactLength::FR_TAG => {
+            let mut output = tagged_output(env, TrackSizingKindCode::Fr as u8)?;
+            output.set("value", f64::from(raw.value()))?;
+            Ok(output)
+        }
+        _ => panic!("unsupported Taffy maximum track tag"),
+    }
+}
+
+pub(crate) fn track_sizing_output<'env>(
+    env: &Env,
+    value: &TrackSizingFunction,
+) -> napi::Result<Object<'env>> {
+    let mut output = Object::new(env)?;
+    output.set("min", min_track_output(env, value.min)?)?;
+    output.set("max", max_track_output(env, value.max)?)?;
+    Ok(output)
+}
+
+fn repetition_count_output<'env>(env: &Env, value: RepetitionCount) -> napi::Result<Object<'env>> {
+    match value {
+        RepetitionCount::Count(value) => {
+            let mut output = tagged_output(env, RepetitionCountKindCode::Count as u8)?;
+            output.set("value", value)?;
+            Ok(output)
+        }
+        RepetitionCount::AutoFill => tagged_output(env, RepetitionCountKindCode::AutoFill as u8),
+        RepetitionCount::AutoFit => tagged_output(env, RepetitionCountKindCode::AutoFit as u8),
+    }
+}
+
+fn template_repetition_output<'env>(
+    env: &Env,
+    value: &GridTemplateRepetition<String>,
+) -> napi::Result<Object<'env>> {
+    let mut output = Object::new(env)?;
+    output.set("count", repetition_count_output(env, value.count)?)?;
+    output.set(
+        "tracks",
+        value
+            .tracks
+            .iter()
+            .map(|track| track_sizing_output(env, track))
+            .collect::<napi::Result<Vec<_>>>()?,
+    )?;
+    output.set("lineNames", value.line_names.clone())?;
+    Ok(output)
+}
+
+pub(crate) fn template_component_output<'env>(
+    env: &Env,
+    value: &GridTemplateComponent<String>,
+) -> napi::Result<Object<'env>> {
+    match value {
+        GridTemplateComponent::Single(value) => {
+            let mut output = tagged_output(env, GridTemplateComponentKindCode::Single as u8)?;
+            output.set("value", track_sizing_output(env, value)?)?;
+            Ok(output)
+        }
+        GridTemplateComponent::Repeat(value) => {
+            let mut output = tagged_output(env, GridTemplateComponentKindCode::Repeat as u8)?;
+            output.set("value", template_repetition_output(env, value)?)?;
+            Ok(output)
+        }
+    }
+}
+
+fn template_area_output<'env>(
+    env: &Env,
+    value: &GridTemplateArea<String>,
+) -> napi::Result<Object<'env>> {
+    let mut output = Object::new(env)?;
+    output.set("name", value.name.as_str())?;
+    output.set("rowStart", value.row_start)?;
+    output.set("rowEnd", value.row_end)?;
+    output.set("columnStart", value.column_start)?;
+    output.set("columnEnd", value.column_end)?;
+    Ok(output)
+}
+
+pub(crate) fn template_areas_output<'env>(
+    env: &Env,
+    value: &GridTemplateAreas<String>,
+) -> napi::Result<Object<'env>> {
+    let mut output = Object::new(env)?;
+    output.set(
+        "areas",
+        value
+            .areas
+            .iter()
+            .map(|area| template_area_output(env, area))
+            .collect::<napi::Result<Vec<_>>>()?,
+    )?;
+    output.set("rowCount", value.row_count)?;
+    output.set("columnCount", value.column_count)?;
+    Ok(output)
 }

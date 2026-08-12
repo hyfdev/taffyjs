@@ -1,6 +1,5 @@
-#![allow(dead_code, reason = "used by the remaining M1 converters")]
-
-use napi::bindgen_prelude::{Object, Unknown};
+use napi::Env;
+use napi::bindgen_prelude::{Object, ToNapiValue, Unknown};
 use napi::{JsValue, ValueType};
 use taffy::geometry::{Line, Point, Rect, Size};
 
@@ -61,6 +60,7 @@ impl<'env> GeometryObject<'env> {
     }
 }
 
+#[allow(dead_code, reason = "used by M2 complete Point inputs")]
 pub(crate) fn point<'env, T>(
     value: Unknown<'env>,
     mut convert: impl FnMut(Unknown<'env>) -> NativeResult<T>,
@@ -111,6 +111,7 @@ pub(crate) fn partial_size<'env, T>(
     })
 }
 
+#[allow(dead_code, reason = "used by M2 complete Rect inputs")]
 pub(crate) fn rect<'env, T>(
     value: Unknown<'env>,
     mut convert: impl FnMut(Unknown<'env>) -> NativeResult<T>,
@@ -144,6 +145,7 @@ pub(crate) fn partial_rect<'env, T>(
     })
 }
 
+#[allow(dead_code, reason = "used by M2 complete Line inputs")]
 pub(crate) fn line<'env, T>(
     value: Unknown<'env>,
     mut convert: impl FnMut(Unknown<'env>) -> NativeResult<T>,
@@ -167,4 +169,62 @@ pub(crate) fn partial_line<'env, T>(
             .unwrap_or(default.start),
         end: object.optional("end", &mut convert)?.unwrap_or(default.end),
     })
+}
+
+pub(crate) fn point_output<'env, T, V>(
+    env: &Env,
+    value: &Point<T>,
+    mut convert: impl FnMut(&T) -> napi::Result<V>,
+) -> napi::Result<Object<'env>>
+where
+    V: ToNapiValue,
+{
+    let mut output = Object::new(env)?;
+    output.set("x", convert(&value.x)?)?;
+    output.set("y", convert(&value.y)?)?;
+    Ok(output)
+}
+
+pub(crate) fn size_output<'env, T, V>(
+    env: &Env,
+    value: &Size<T>,
+    mut convert: impl FnMut(&T) -> napi::Result<V>,
+) -> napi::Result<Object<'env>>
+where
+    V: ToNapiValue,
+{
+    let mut output = Object::new(env)?;
+    output.set("width", convert(&value.width)?)?;
+    output.set("height", convert(&value.height)?)?;
+    Ok(output)
+}
+
+pub(crate) fn rect_output<'env, T, V>(
+    env: &Env,
+    value: &Rect<T>,
+    mut convert: impl FnMut(&T) -> napi::Result<V>,
+) -> napi::Result<Object<'env>>
+where
+    V: ToNapiValue,
+{
+    let mut output = Object::new(env)?;
+    output.set("left", convert(&value.left)?)?;
+    output.set("right", convert(&value.right)?)?;
+    output.set("top", convert(&value.top)?)?;
+    output.set("bottom", convert(&value.bottom)?)?;
+    Ok(output)
+}
+
+pub(crate) fn line_output<'env, T, V>(
+    env: &Env,
+    value: &Line<T>,
+    mut convert: impl FnMut(&T) -> napi::Result<V>,
+) -> napi::Result<Object<'env>>
+where
+    V: ToNapiValue,
+{
+    let mut output = Object::new(env)?;
+    output.set("start", convert(&value.start)?)?;
+    output.set("end", convert(&value.end)?)?;
+    Ok(output)
 }

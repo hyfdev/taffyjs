@@ -1,5 +1,3 @@
-#![allow(dead_code, reason = "used by the remaining M1 converters")]
-
 use crate::error::{NativeResult, range_error};
 
 const I64_UPPER_EXCLUSIVE: f64 = 9_223_372_036_854_775_808.0;

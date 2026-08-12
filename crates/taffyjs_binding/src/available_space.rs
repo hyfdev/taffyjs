@@ -1,5 +1,3 @@
-#![allow(dead_code, reason = "used by the M1 raw compute operation")]
-
 use napi::bindgen_prelude::{Object, Unknown};
 use napi::{JsValue, ValueType};
 use taffy::style::AvailableSpace;
@@ -48,6 +46,7 @@ pub(crate) fn available_space(value: Unknown<'_>) -> NativeResult<AvailableSpace
     })
 }
 
+#[allow(dead_code, reason = "used by the M2 measure callback")]
 pub(crate) fn available_space_output(value: AvailableSpace) -> (u8, Option<f64>) {
     match value {
         AvailableSpace::Definite(value) => (

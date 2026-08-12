@@ -1,7 +1,5 @@
-#![allow(dead_code, reason = "used by the M1 Style converter")]
-
 use napi::bindgen_prelude::{Object, Unknown};
-use napi::{JsValue, ValueType};
+use napi::{Env, JsValue, ValueType};
 use taffy::style::{CompactLength, Dimension, LengthPercentage, LengthPercentageAuto};
 
 use crate::error::{NativeResult, type_error};
@@ -98,6 +96,33 @@ pub(crate) fn length_percentage_output(value: LengthPercentage) -> (u8, Option<f
 
 pub(crate) fn length_percentage_auto_output(value: LengthPercentageAuto) -> (u8, Option<f64>) {
     output(value.into_raw())
+}
+
+fn object_output<'env>(env: &Env, (unit, value): (u8, Option<f64>)) -> napi::Result<Object<'env>> {
+    let mut output = Object::new(env)?;
+    output.set("unit", unit)?;
+    if let Some(value) = value {
+        output.set("value", value)?;
+    }
+    Ok(output)
+}
+
+pub(crate) fn dimension_object<'env>(env: &Env, value: Dimension) -> napi::Result<Object<'env>> {
+    object_output(env, dimension_output(value))
+}
+
+pub(crate) fn length_percentage_object<'env>(
+    env: &Env,
+    value: LengthPercentage,
+) -> napi::Result<Object<'env>> {
+    object_output(env, length_percentage_output(value))
+}
+
+pub(crate) fn length_percentage_auto_object<'env>(
+    env: &Env,
+    value: LengthPercentageAuto,
+) -> napi::Result<Object<'env>> {
+    object_output(env, length_percentage_auto_output(value))
 }
 
 #[cfg(test)]

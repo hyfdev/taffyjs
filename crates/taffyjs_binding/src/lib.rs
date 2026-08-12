@@ -5,14 +5,18 @@ mod error;
 mod generated_numeric;
 mod geometry;
 mod grid;
+mod layout;
 mod length;
 mod number;
 mod owner;
+mod style;
 
-use error::into_napi;
+use error::{NativeResult, internal_error, into_napi, type_error};
 use napi::Env;
+use napi::bindgen_prelude::{BigInt, Object, Unknown};
 use napi_derive::napi;
 use owner::TreeOwner;
+use taffy::NodeId;
 
 mod contract_tests;
 
@@ -38,6 +42,104 @@ impl NativeTaffyTree {
                 .access(&public_method, |tree| Ok(tree.total_node_count() as u32)),
         )
     }
+
+    #[napi(js_name = "rawNewLeaf")]
+    pub fn new_leaf(
+        &self,
+        env: Env,
+        style: Unknown<'_>,
+        public_method: String,
+    ) -> napi::Result<BigInt> {
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let style = style::input(style)?;
+                tree.new_leaf(style)
+                    .map(|node| BigInt::from(u64::from(node)))
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
+    #[napi(js_name = "rawSetStyle")]
+    pub fn set_style(
+        &self,
+        env: Env,
+        node: BigInt,
+        style: Unknown<'_>,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let style = style::input(style)?;
+                tree.set_style(node, style).map_err(|_| internal_error())
+            }),
+        )
+    }
+
+    #[napi(js_name = "rawGetStyle")]
+    pub fn get_style<'env>(
+        &self,
+        env: Env,
+        node: BigInt,
+        public_method: String,
+    ) -> napi::Result<Object<'env>> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let value = tree.style(node).map_err(|_| internal_error())?;
+                style::output(&env, value).map_err(|_| internal_error())
+            }),
+        )
+    }
+
+    #[napi(js_name = "rawComputeLayout")]
+    pub fn compute_layout(
+        &self,
+        env: Env,
+        node: BigInt,
+        available_space: Unknown<'_>,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let available_space =
+                    geometry::size(available_space, available_space::available_space)?;
+                tree.compute_layout(node, available_space)
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
+    #[napi(js_name = "rawGetLayout")]
+    pub fn get_layout<'env>(
+        &self,
+        env: Env,
+        node: BigInt,
+        public_method: String,
+    ) -> napi::Result<Object<'env>> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let value = tree.layout(node).map_err(|_| internal_error())?;
+                layout::output(&env, value).map_err(|_| internal_error())
+            }),
+        )
+    }
+}
+
+fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
+    let (negative, value, lossless) = value.get_u64();
+    if negative || !lossless {
+        return Err(type_error("Raw node ID must be a non-negative u64 bigint"));
+    }
+    Ok(NodeId::from(value))
 }
 
 #[cfg(feature = "test-hooks")]

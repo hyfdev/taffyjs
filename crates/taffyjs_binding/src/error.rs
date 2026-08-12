@@ -3,7 +3,6 @@ use napi::{Env, Error, Result, Status};
 #[derive(Clone, Copy, Debug)]
 enum NativeErrorKind {
     Error,
-    #[allow(dead_code, reason = "used by the remaining M1 converters")]
     RangeError,
     TypeError,
 }
@@ -25,7 +24,6 @@ fn coded_error(code: &'static str, message: impl Into<String>) -> NativeError {
     }
 }
 
-#[allow(dead_code, reason = "used by the remaining M1 converters")]
 pub(crate) fn range_error(message: impl Into<String>) -> NativeError {
     NativeError {
         kind: NativeErrorKind::RangeError,
