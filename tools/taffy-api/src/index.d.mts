@@ -30,6 +30,7 @@ export function validatePnpmPins(
   workspace: string,
   lock: string,
   manifests: Record<string, Record<string, unknown>>,
+  options?: { includeTypesNode?: boolean },
 ): void;
 export function validatePackageBuildScript(packageManifest: Record<string, unknown>): void;
 export function validateParsedSourceInventory(
@@ -39,6 +40,7 @@ export function validateParsedSourceInventory(
 export function validateRealPinsAndSource(
   root: string,
   contract: Record<string, unknown>,
+  status: { taskStates: Record<string, string> },
 ): Promise<{
   metadata: Record<string, unknown>;
   parsed: Record<string, unknown>;

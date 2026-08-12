@@ -3213,6 +3213,7 @@ function yamlScalar(value) {
 function yamlScalarPaths(source, diagnostic) {
   const stack = [];
   const values = new Map();
+  const paths = new Set();
   for (const rawLine of source.split(/\r?\n/u)) {
     if (/^\s*(?:#.*)?$/u.test(rawLine) || rawLine === "---") continue;
     const indentation = /^ */u.exec(rawLine)[0].length;
@@ -3224,6 +3225,7 @@ function yamlScalarPaths(source, diagnostic) {
     if (!pair || pair[0].length === 0) continue;
     const [key, value] = pair;
     const path = [...stack.map((entry) => entry.key), key];
+    paths.add(JSON.stringify(path));
     if (value.length === 0) {
       stack.push({ indentation, key });
       continue;
@@ -3233,10 +3235,12 @@ function yamlScalarPaths(source, diagnostic) {
     entries.push(yamlScalar(value));
     values.set(encoded, entries);
   }
-  return (path) => {
+  const read = (path) => {
     const entries = values.get(JSON.stringify(path)) ?? [];
     return entries.length === 1 ? entries[0] : null;
   };
+  read.has = (path) => paths.has(JSON.stringify(path));
+  return read;
 }
 
 function requireYamlScalar(readScalar, path, expected, diagnostic, peerSuffix = false) {
@@ -3247,7 +3251,18 @@ function requireYamlScalar(readScalar, path, expected, diagnostic, peerSuffix = 
   if (!matches) fail(diagnostic, path.join("."));
 }
 
-export function validatePnpmPins(contract, workspace, lock, manifests) {
+function validSha512Resolution(value) {
+  const match = /^\{integrity: (sha512-([A-Za-z0-9+/]{86}==))\}$/u.exec(value ?? "");
+  return match !== null && Buffer.from(match[2], "base64").length === 64;
+}
+
+export function validatePnpmPins(
+  contract,
+  workspace,
+  lock,
+  manifests,
+  { includeTypesNode = false } = {},
+) {
   const workspaceValue = yamlScalarPaths(workspace, "pin-drift/workspace-yaml");
   const lockValue = yamlScalarPaths(lock, "pin-drift/lock-yaml");
   const dependencies = [
@@ -3276,7 +3291,9 @@ export function validatePnpmPins(contract, workspace, lock, manifests) {
       peerSuffix: false,
     },
   ];
-  for (const dependency of dependencies) {
+  for (const dependency of dependencies.filter(
+    ({ name }) => name !== "@types/node" || includeTypesNode,
+  )) {
     requireYamlScalar(
       workspaceValue,
       ["catalog", dependency.name],
@@ -3296,7 +3313,9 @@ export function validatePnpmPins(contract, workspace, lock, manifests) {
       dependency.diagnostic,
     );
     if (
-      lockValue(["packages", `${dependency.name}@${dependency.version}`, "resolution"]) === null
+      !validSha512Resolution(
+        lockValue(["packages", `${dependency.name}@${dependency.version}`, "resolution"]),
+      )
     ) {
       fail(dependency.diagnostic, `${dependency.name} package resolution`);
     }
@@ -3317,6 +3336,16 @@ export function validatePnpmPins(contract, workspace, lock, manifests) {
         dependency.diagnostic,
         dependency.peerSuffix,
       );
+      const lockedVersion = lockValue([
+        "importers",
+        importer,
+        "devDependencies",
+        dependency.name,
+        "version",
+      ]);
+      if (!lockValue.has(["snapshots", `${dependency.name}@${lockedVersion}`])) {
+        fail(dependency.diagnostic, `${dependency.name} snapshot`);
+      }
     }
   }
 }
@@ -3801,7 +3830,7 @@ async function verifiedTaffyArchiveSources(contract, archivePath) {
       fail("pin-drift/taffy-source-archive", archivePath);
     }
     const type = header[156];
-    if ((type === 0 || type === 48) && name.startsWith(`${prefix}src/`) && name.endsWith(".rs")) {
+    if ((type === 0 || type === 48) && name.startsWith(prefix)) {
       const relative = name.slice(prefix.length);
       if (sources.has(relative)) fail("pin-drift/taffy-source-archive", archivePath);
       sources.set(relative, Buffer.from(tar.subarray(offset + 512, offset + 512 + size)));
@@ -3817,6 +3846,29 @@ async function verifiedTaffyArchiveSources(contract, archivePath) {
 
 async function validateTaffySourceArchive(contract, taffyRoot, archivePath) {
   const archiveSources = await verifiedTaffyArchiveSources(contract, archivePath);
+  const listFiles = async (prefix = "") => {
+    const entries = await readdir(resolve(taffyRoot, prefix), { withFileTypes: true });
+    const paths = [];
+    for (const entry of entries) {
+      const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (path === ".cargo-ok") continue;
+      if (entry.isDirectory()) paths.push(...(await listFiles(path)));
+      else if (entry.isFile()) paths.push(path);
+      else fail("source-drift/named-data-binding", `unsupported extracted entry ${path}`);
+    }
+    return paths;
+  };
+  let actualEntries;
+  try {
+    actualEntries = (await listFiles()).sort(asciiCompare);
+  } catch (error) {
+    if (error instanceof DiagnosticError) throw error;
+    fail("source-drift/named-data-binding", "failed to inspect extracted Taffy package");
+  }
+  const expectedEntries = [...archiveSources.keys()].sort(asciiCompare);
+  if (canonicalJson(actualEntries) !== canonicalJson(expectedEntries)) {
+    fail("source-drift/named-data-binding", "Taffy extracted file set differs from its archive");
+  }
   let matches;
   try {
     matches = await Promise.all(
@@ -3857,7 +3909,7 @@ export async function validateRealSourceInventory(root, contract, taffyRoot, arc
   return parsed;
 }
 
-export async function validateRealPinsAndSource(root, contract) {
+export async function validateRealPinsAndSource(root, contract, status) {
   const metadataResult = await runCommand(
     "cargo",
     ["metadata", "--locked", "--format-version", "1"],
@@ -3917,11 +3969,19 @@ export async function validateRealPinsAndSource(root, contract) {
   }
   const pnpmLock = await readFile(resolve(root, "pnpm-lock.yaml"), "utf8");
   const workspace = await readFile(resolve(root, "pnpm-workspace.yaml"), "utf8");
-  validatePnpmPins(contract, workspace, pnpmLock, {
-    ".": rootManifest,
-    "packages/taffyjs-node": packageManifest,
-    "tests/taffyjs-node": integrationManifest,
-  });
+  validatePnpmPins(
+    contract,
+    workspace,
+    pnpmLock,
+    {
+      ".": rootManifest,
+      "packages/taffyjs-node": packageManifest,
+      "tests/taffyjs-node": integrationManifest,
+    },
+    {
+      includeTypesNode: IMPLEMENTED_STATES.has(status.taskStates["INFRA-002"]),
+    },
+  );
   const vpVersion = await runCommand("vp", ["--version"], root);
   if (!vpVersion.stdout.includes(`oxfmt            v${contract.pins.oxfmt}`)) {
     fail("pin-drift/oxfmt-version");
@@ -4044,7 +4104,7 @@ export async function checkRepository({ root, all = false } = {}) {
   const status = extractLoopStatus(statusSource);
   validateStatusShape(status, generated.canonical, generated.expanded);
   await validateContractBase(resolvedRoot, goal, status);
-  await validateRealPinsAndSource(resolvedRoot, generated.canonical);
+  await validateRealPinsAndSource(resolvedRoot, generated.canonical, status);
   await validateRealRunnerGraph(resolvedRoot, generated.canonical, generated.expanded, status);
   await validateRealPackageFoundation(resolvedRoot, generated.canonical, status);
   await validateRealDeclarations(

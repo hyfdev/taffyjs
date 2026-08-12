@@ -63,7 +63,8 @@ contractTest("INFRA-001/pin-drift", async () => {
       await readFile(resolve(root, "tests/taffyjs-node/package.json"), "utf8"),
     ),
   };
-  checker.validatePnpmPins(contract, workspace, lock, manifests);
+  const withTypesNode = { includeTypesNode: true };
+  checker.validatePnpmPins(contract, workspace, lock, manifests, withTypesNode);
   await expectDiagnostic(
     () =>
       checker.validatePnpmPins(
@@ -71,6 +72,7 @@ contractTest("INFRA-001/pin-drift", async () => {
         workspace.replace(`typescript: ^${contract.pins.typescript}`, "typescript: ^7.0.3"),
         lock,
         manifests,
+        withTypesNode,
       ),
     "pin-drift/typescript-version",
   );
@@ -78,7 +80,7 @@ contractTest("INFRA-001/pin-drift", async () => {
     .replace(`  typescript: ^${contract.pins.typescript}\n`, "")
     .replace("overrides:\n", `overrides:\n  typescript: ^${contract.pins.typescript}\n`);
   await expectDiagnostic(
-    () => checker.validatePnpmPins(contract, misplacedWorkspace, lock, manifests),
+    () => checker.validatePnpmPins(contract, misplacedWorkspace, lock, manifests, withTypesNode),
     "pin-drift/typescript-version",
   );
   const driftedLock = lock.replace(
@@ -87,8 +89,38 @@ contractTest("INFRA-001/pin-drift", async () => {
   );
   assert.notEqual(driftedLock, lock);
   await expectDiagnostic(
-    () => checker.validatePnpmPins(contract, workspace, driftedLock, manifests),
+    () => checker.validatePnpmPins(contract, workspace, driftedLock, manifests, withTypesNode),
     "pin-drift/typescript-version",
+  );
+  const typescriptPackage = new RegExp(
+    `(\\n  typescript@${contract.pins.typescript.replaceAll(".", "\\.")}:\\n)    resolution: \\{integrity: [^\\n]+\\}`,
+    "u",
+  );
+  for (const resolution of ["null", "{integrity: sha512-fabricated}"]) {
+    const corruptedLock = lock.replace(typescriptPackage, `$1    resolution: ${resolution}`);
+    assert.notEqual(corruptedLock, lock);
+    await expectDiagnostic(
+      () => checker.validatePnpmPins(contract, workspace, corruptedLock, manifests, withTypesNode),
+      "pin-drift/typescript-version",
+    );
+  }
+  const missingSnapshot = lock.replace(
+    `\n  typescript@${contract.pins.typescript}:\n    optionalDependencies:`,
+    `\n  typescript@7.0.3:\n    optionalDependencies:`,
+  );
+  assert.notEqual(missingSnapshot, lock);
+  await expectDiagnostic(
+    () => checker.validatePnpmPins(contract, workspace, missingSnapshot, manifests, withTypesNode),
+    "pin-drift/typescript-version",
+  );
+  const beforeInfra002 = structuredClone(manifests);
+  for (const manifest of Object.values(beforeInfra002)) {
+    delete manifest.devDependencies["@types/node"];
+  }
+  checker.validatePnpmPins(contract, workspace, lock, beforeInfra002);
+  await expectDiagnostic(
+    () => checker.validatePnpmPins(contract, workspace, lock, beforeInfra002, withTypesNode),
+    "pin-drift/types-node-target",
   );
   const fixture = await checker.createRepositoryFixture(root);
   const mutations = [
@@ -124,7 +156,9 @@ contractTest("INFRA-001/source-drift", async () => {
   const contract = JSON.parse(
     await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
   );
-  const realSource = await checker.validateRealPinsAndSource(root, contract);
+  const realSource = await checker.validateRealPinsAndSource(root, contract, {
+    taskStates: { "INFRA-002": "implemented" },
+  });
   checker.validateParsedSourceInventory(contract, realSource.parsed);
   const metadata = realSource.metadata as {
     packages: Array<{ name: string; version: string; manifest_path: string }>;
@@ -220,15 +254,23 @@ contractTest("INFRA-001/source-drift", async () => {
       );
       await writeFile(path, source);
     }
+    const cargoPath = resolve(taffyRoot, "Cargo.toml");
+    const cargoSource = await readFile(cargoPath, "utf8");
+    const decoyPath = resolve(taffyRoot, "src/contract_decoy.rs");
+    await writeFile(cargoPath, `${cargoSource}\n[lib]\npath = "src/contract_decoy.rs"\n`);
+    await writeFile(decoyPath, "");
+    await expectDiagnostic(
+      () => checker.validateRealSourceInventory(root, contract, taffyRoot, realSource.archivePath),
+      "source-drift/named-data-binding",
+    );
+    await writeFile(cargoPath, cargoSource);
+    await rm(decoyPath);
     const libPath = resolve(taffyRoot, "src/lib.rs");
     const treePath = resolve(taffyRoot, "src/tree/taffy_tree.rs");
     const libSource = await readFile(libPath, "utf8");
     const treeSource = await readFile(treePath, "utf8");
     await writeFile(libPath, `${libSource}\npub mod contract_decoy;\n`);
-    await writeFile(
-      resolve(taffyRoot, "src/contract_decoy.rs"),
-      "pub struct Size<T> { pub width: T, pub height: T }\n",
-    );
+    await writeFile(decoyPath, "pub struct Size<T> { pub width: T, pub height: T }\n");
     await writeFile(
       treePath,
       treeSource.replace("use crate::geometry::Size;", "use crate::contract_decoy::Size;"),
