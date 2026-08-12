@@ -1,5 +1,7 @@
 # @taffyjs/node Maturity Loop Goal
 
+[VOUCHED @hyfdev 2026-08-12]
+
 This is a draft unattended-run contract. The run must not start until Yunfei vouches this entire file with a stamp immediately below the title. Once vouched, no AI may edit this file, tick its checkboxes, weaken its criteria, or add a replacement contract. Progress belongs only in `loop-status.md`. A contract conflict must stop the run for Yunfei rather than being repaired in place.
 
 ## Goal
