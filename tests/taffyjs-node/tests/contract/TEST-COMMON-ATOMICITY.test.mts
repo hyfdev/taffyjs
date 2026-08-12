@@ -360,6 +360,7 @@ function runControlCompute(owner: keyof typeof MEMBER_BY_OWNER, id: string) {
   assert.equal(controlCalls > 0, true, `${id} control callback`);
   assert.equal(attemptedCalls, controlCalls, `${id} callback count`);
   assert.ok(busyError, `${id} must attempt the busy operation exactly once`);
+  assert.equal(Object.getPrototypeOf(busyError), Error.prototype, `${id} error class`);
   assert.equal(busyError.code, "ERR_TAFFY_TREE_BUSY", id);
   assert.equal(
     busyError.message,
@@ -415,9 +416,21 @@ function runNontransactional(failureKind: "measure-result-shape" | "callback-thr
     assert.equal(tree.isDirty(node), false, `${id} warm computation`);
   }
 
-  tree.markDirty(nodes.childA);
+  for (const node of [nodes.childA, nodes.childB]) tree.markDirty(node);
+  let controlCalls = 0;
+  tree.computeLayoutWithMeasure({
+    root: nodes.root,
+    availableSpace: maxContentSpace(),
+    measure(args) {
+      controlCalls += 1;
+      return measurement(args);
+    },
+  });
+  assert.equal(controlCalls >= 2, true, `${id} control must request later callbacks`);
+
+  for (const node of [nodes.childA, nodes.childB]) tree.markDirty(node);
   assert.equal(tree.isDirty(nodes.childA), true);
-  assert.equal(tree.isDirty(nodes.childB), false);
+  assert.equal(tree.isDirty(nodes.childB), true);
   assert.equal(tree.isDirty(nodes.childC), false);
   const wrapperBefore = snapshotWrapperRegistry(fixture);
   const outsideBefore = {

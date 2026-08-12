@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const contract = JSON.parse(await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"));
@@ -40,6 +40,15 @@ function run(command, args) {
 }
 
 const compiler = resolve(root, "packages/taffyjs-node/node_modules/.bin/tsc");
+const runtimeApi = await import(
+  pathToFileURL(resolve(root, "packages/taffyjs-node/index.js")).href
+);
+const expectedRuntimeExports = Object.values(contract.publicRuntimeExportsByOwner)
+  .flat()
+  .toSorted((left, right) => left.localeCompare(right));
+const actualRuntimeExports = Object.keys(runtimeApi).toSorted((left, right) =>
+  left.localeCompare(right),
+);
 const results = [];
 for (const path of await walk(resolve(root, "tests/taffyjs-node/tests/types"))) {
   const relativePath = relative(root, path).replaceAll("\\", "/");
@@ -57,11 +66,22 @@ for (const path of await walk(resolve(root, "tests/taffyjs-node/tests/types"))) 
     "NodeNext",
     path,
   ]);
+  const runtimeExportsMatch =
+    record?.id !== "TEST-TYPES-001/exports-signatures" ||
+    JSON.stringify(actualRuntimeExports) === JSON.stringify(expectedRuntimeExports);
+  const output = [
+    execution.output,
+    ...(runtimeExportsMatch
+      ? []
+      : [
+          `Runtime exports differ: expected ${JSON.stringify(expectedRuntimeExports)}, received ${JSON.stringify(actualRuntimeExports)}\n`,
+        ]),
+  ].join("");
   results.push({
     acceptanceId: record?.id ?? `unknown-types:${relativePath}`,
     path: relativePath,
-    result: execution.code === 0 && record ? "pass" : "failed",
-    ...(execution.output ? { output: execution.output } : {}),
+    result: execution.code === 0 && record && runtimeExportsMatch ? "pass" : "failed",
+    ...(output ? { output } : {}),
   });
 }
 
