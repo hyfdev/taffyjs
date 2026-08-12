@@ -395,6 +395,9 @@ var TaffyTree = class {
 	setChildren(parent, children) {
 		this.#setChildren(parent, children);
 	}
+	removeChild(parent, child) {
+		this.#removeChild(parent, child);
+	}
 	newLeaf(style) {
 		return this.#newLeaf(style);
 	}
@@ -423,6 +426,7 @@ var TaffyTree = class {
 			addChild: (parent, child) => this.#addChild(parent, child),
 			insertChildAtIndex: (parent, index, child) => this.#insertChildAtIndex(parent, index, child),
 			setChildren: (parent, children) => this.#setChildren(parent, children),
+			removeChild: (parent, child) => this.#removeChild(parent, child),
 			getNodeCount: () => this.#getNodeCount(),
 			getStyle: (node) => this.#getStyle(node),
 			computeLayoutWithMeasure: (options) => this.#computeLayoutWithMeasure(options)
@@ -500,6 +504,11 @@ var TaffyTree = class {
 		if (!Array.isArray(children)) throw new TypeError("children must be an array");
 		const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
 		this.#inner.rawSetChildren(rawParent, rawChildren, "setChildren");
+	}
+	#removeChild(parent, child) {
+		const rawParent = this.#nodes.resolve(parent);
+		const rawChild = this.#nodes.resolve(child);
+		this.#inner.rawRemoveChild(rawParent, rawChild, "removeChild");
 	}
 };
 //#endregion

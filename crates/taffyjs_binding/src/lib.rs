@@ -232,6 +232,31 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawRemoveChild")]
+    pub fn remove_child(
+        &self,
+        env: Env,
+        parent: BigInt,
+        child: BigInt,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        let child = into_napi(env, raw_node_id(&child))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                if tree.parent(child) != Some(parent) {
+                    return Err(invalid_topology_error(
+                        "Node is not a direct child of parent",
+                    ));
+                }
+                tree.remove_child(parent, child)
+                    .map(|_| ())
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(
