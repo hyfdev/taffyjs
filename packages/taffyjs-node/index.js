@@ -384,6 +384,9 @@ var TaffyTree = class {
 	getStyle(node) {
 		return this.#getStyle(node);
 	}
+	clear() {
+		this.#clear();
+	}
 	[testAccess]() {
 		return {
 			newLeaf: (style) => this.#newLeaf(style),
@@ -401,6 +404,7 @@ var TaffyTree = class {
 	#clear() {
 		this.#inner.rawClear("clear");
 		this.#nodes.clear();
+		this.#contexts.clear();
 	}
 	#getNodeCount() {
 		return this.#inner.rawNodeCount("getNodeCount");

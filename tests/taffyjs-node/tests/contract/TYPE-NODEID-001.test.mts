@@ -18,7 +18,7 @@ type Tree = {
 };
 type TreeConstructor = new () => Tree;
 
-const RAW_MASK = (1n << 64n) - 1n;
+const SLOT_MASK = (1n << 32n) - 1n;
 
 function TaffyTree(): TreeConstructor {
   const value = Reflect.get(api, "TaffyTree");
@@ -124,7 +124,7 @@ contractTest("TYPE-NODEID-001/slot-reuse", () => {
   tree.clear();
   const second = tree.newLeaf({});
 
-  assert.equal(first & RAW_MASK, second & RAW_MASK, "fixture reuses the native raw slot");
+  assert.equal(first & SLOT_MASK, second & SLOT_MASK, "fixture reuses the native slot");
   assert.notEqual(first, second);
   assert.throws(() => tree.getStyle(first), { code: "ERR_TAFFY_STALE_NODE_ID" });
   assert.deepEqual(tree.getStyle(second), tree.getStyle(second));

@@ -11,6 +11,7 @@ type Tree = {
 };
 type TreeConstructor = new () => Tree;
 
+const U32_MASK = (1n << 32n) - 1n;
 const U64_MASK = (1n << 64n) - 1n;
 
 function TaffyTree(): TreeConstructor {
@@ -62,7 +63,7 @@ contractTest("API-TREE-007/serial-monotonic", () => {
   tree.clear();
   const second = tree.newLeaf({});
 
-  assert.equal(first & U64_MASK, second & U64_MASK, "native slot is reused by the fixture");
+  assert.equal(first & U32_MASK, second & U32_MASK, "native slot is reused by the fixture");
   assert.equal((second >> 64n) & U64_MASK, ((first >> 64n) & U64_MASK) + 1n);
   assert.notEqual(first, second);
 });

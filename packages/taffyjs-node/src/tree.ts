@@ -64,6 +64,10 @@ export class TaffyTree<_TContext = unknown> {
     return this.#getStyle(node);
   }
 
+  clear(): void {
+    this.#clear();
+  }
+
   [testAccess]() {
     return {
       newLeaf: (style: unknown) => this.#newLeaf(style),
@@ -84,6 +88,7 @@ export class TaffyTree<_TContext = unknown> {
   #clear(): void {
     this.#inner.rawClear("clear");
     this.#nodes.clear();
+    this.#contexts.clear();
   }
 
   #getNodeCount(): number {
