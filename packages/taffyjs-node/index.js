@@ -432,6 +432,9 @@ var TaffyTree = class {
 	getLayout(node) {
 		return this.#getLayout(node);
 	}
+	getUnroundedLayout(node) {
+		return this.#getUnroundedLayout(node);
+	}
 	clear() {
 		this.#clear();
 	}
@@ -463,6 +466,7 @@ var TaffyTree = class {
 			getNodeCount: () => this.#getNodeCount(),
 			getStyle: (node) => this.#getStyle(node),
 			getLayout: (node) => this.#getLayout(node),
+			getUnroundedLayout: (node) => this.#getUnroundedLayout(node),
 			computeLayout: (options) => this.#computeLayout(options),
 			computeLayoutWithMeasure: (options) => this.#computeLayoutWithMeasure(options)
 		};
@@ -525,6 +529,10 @@ var TaffyTree = class {
 	#getLayout(node) {
 		const raw = this.#nodes.resolve(node);
 		return this.#inner.rawGetLayout(raw, "getLayout");
+	}
+	#getUnroundedLayout(node) {
+		const raw = this.#nodes.resolve(node);
+		return this.#inner.rawGetUnroundedLayout(raw, "getUnroundedLayout");
 	}
 	#computeLayout(options) {
 		const rawRoot = this.#nodes.resolve(options.root);

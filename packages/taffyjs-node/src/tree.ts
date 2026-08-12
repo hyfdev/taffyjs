@@ -138,6 +138,10 @@ export class TaffyTree<TContext = unknown> {
     return this.#getLayout(node);
   }
 
+  getUnroundedLayout(node: NodeId): object {
+    return this.#getUnroundedLayout(node);
+  }
+
   clear(): void {
     this.#clear();
   }
@@ -180,6 +184,7 @@ export class TaffyTree<TContext = unknown> {
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
       getLayout: (node: NodeId) => this.#getLayout(node),
+      getUnroundedLayout: (node: NodeId) => this.#getUnroundedLayout(node),
       computeLayout: (options: ComputeLayoutOptions) => this.#computeLayout(options),
       computeLayoutWithMeasure: (options: ComputeLayoutWithMeasureOptions<TContext>) =>
         this.#computeLayoutWithMeasure(options),
@@ -257,6 +262,11 @@ export class TaffyTree<TContext = unknown> {
   #getLayout(node: NodeId): object {
     const raw = this.#nodes.resolve(node);
     return this.#inner.rawGetLayout(raw, "getLayout");
+  }
+
+  #getUnroundedLayout(node: NodeId): object {
+    const raw = this.#nodes.resolve(node);
+    return this.#inner.rawGetUnroundedLayout(raw, "getUnroundedLayout");
   }
 
   #computeLayout(options: ComputeLayoutOptions): void {

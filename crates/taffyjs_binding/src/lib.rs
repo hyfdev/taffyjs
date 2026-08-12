@@ -529,6 +529,22 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawGetUnroundedLayout")]
+    pub fn get_unrounded_layout<'env>(
+        &self,
+        env: Env,
+        node: BigInt,
+        public_method: String,
+    ) -> napi::Result<Object<'env>> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                layout::output(&env, tree.unrounded_layout(node)).map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawGetDetailedLayoutInfo")]
     pub fn get_detailed_layout_info<'env>(
         &self,
