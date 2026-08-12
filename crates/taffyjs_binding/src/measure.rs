@@ -184,3 +184,22 @@ pub(crate) fn invalidate_subtree(tree: &mut TaffyTree<()>, root: NodeId) -> Nati
     }
     tree.mark_dirty(root).map_err(|_| internal_error())
 }
+
+#[cfg(test)]
+mod tests {
+    use taffy::TaffyTree;
+    use taffy::style::Style;
+
+    use super::invalidate_subtree;
+
+    #[test]
+    fn invalidate_subtree_handles_deep_trees() {
+        let mut tree = TaffyTree::new();
+        let mut root = tree.new_leaf(Style::default()).unwrap();
+        for _ in 0..16_384 {
+            root = tree.new_with_children(Style::default(), &[root]).unwrap();
+        }
+
+        invalidate_subtree(&mut tree, root).unwrap();
+    }
+}

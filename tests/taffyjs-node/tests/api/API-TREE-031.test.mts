@@ -70,6 +70,8 @@ function wrapperState(tree: Tree, nodes: readonly bigint[]) {
 }
 
 contractTest("API-TREE-031/algorithms", () => {
+  // Independent fixture using pinned Taffy directly, without binding conversion code:
+  // crates/taffyjs_binding/src/contract_tests.rs::contract__api_tree_031__direct_taffy_parity
   const cases = [
     ["Flex", api.Display.Flex, {}],
     ["Grid", api.Display.Grid, {}],
@@ -123,6 +125,8 @@ contractTest("API-TREE-031/algorithms", () => {
 });
 
 contractTest("API-TREE-031/percentage-content", () => {
+  // Independent fixture using pinned Taffy directly, without binding conversion code:
+  // crates/taffyjs_binding/src/contract_tests.rs::contract__api_tree_031__direct_taffy_parity
   const tree = new (TaffyTree())();
   const child = tree.newLeaf({
     size: { width: api.Dimension.Percent(50), height: api.Dimension.Length(80) },
@@ -154,16 +158,22 @@ contractTest("API-TREE-031/stored-output", () => {
 
 contractTest("API-TREE-031/cache", () => {
   const tree = new (TaffyTree())();
-  const child = tree.newLeaf({
-    size: { width: api.Dimension.Length(30), height: api.Dimension.Length(10) },
+  const root = tree.newLeafWithContext({}, true);
+  const availableSpace = maxContentSpace();
+  let calls = 0;
+  tree.computeLayoutWithMeasure({
+    root,
+    availableSpace,
+    measure() {
+      calls += 1;
+      return { width: 30, height: 10 };
+    },
   });
-  const root = tree.newWithChildren({}, [child]);
-  const options = { root, availableSpace: maxContentSpace() };
+  assert.equal(calls > 0, true);
+  const first = tree.getUnroundedLayout(root);
 
-  tree.computeLayout(options);
-  const first = [tree.getUnroundedLayout(root), tree.getUnroundedLayout(child)];
-  tree.computeLayout(options);
-  const second = [tree.getUnroundedLayout(root), tree.getUnroundedLayout(child)];
+  tree.computeLayout({ root, availableSpace });
+  const second = tree.getUnroundedLayout(root);
   assert.deepEqual(second, first);
 });
 
