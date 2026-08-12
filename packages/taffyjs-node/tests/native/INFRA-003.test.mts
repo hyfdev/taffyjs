@@ -59,7 +59,10 @@ contractTest("INFRA-003/codes", async () => {
 contractTest("INFRA-003/frozen", async () => {
   const { numericFamilies } = await contract();
   for (const family of Object.keys(numericFamilies)) {
-    assert.equal(Object.isFrozen(Reflect.get(publicApi, family)), true, family);
+    const value = Reflect.get(publicApi, family);
+    assert.equal(typeof value, "object", `${family} is exported`);
+    assert.notEqual(value, null, `${family} is exported`);
+    assert.equal(Object.isFrozen(value), true, family);
   }
 });
 
