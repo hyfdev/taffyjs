@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/taffyjs_binding"]
+members = ["crates/taffyjs_binding", "tools/taffy-api/rust-parser"]
 resolver = "2"
 
 [workspace.package]
@@ -7,10 +7,10 @@ edition = "2024"
 rust-version = "1.88"
 
 [workspace.dependencies]
-napi = { version = "3.12.0", features = ["napi8"] }
-napi-build = "2.4.0"
-napi-derive = "3.6.2"
-taffy = "0.13.0"
+napi = { version = "=3.12.0", features = ["napi8"] }
+napi-build = "=2.4.0"
+napi-derive = "=3.6.2"
+taffy = "=0.13.0"
 
 [profile.release]
 lto = true

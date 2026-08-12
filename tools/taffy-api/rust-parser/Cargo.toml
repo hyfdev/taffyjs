@@ -1,0 +1,12 @@
+[package]
+name = "taffy-api-parser"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+quote = "=1.0.47"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+syn = { version = "=2.0.119", features = ["full", "parsing", "printing", "visit-mut"] }
