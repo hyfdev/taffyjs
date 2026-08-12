@@ -24,4 +24,10 @@ export {
   TrackSizingKind,
   type EnumValue,
 } from "./generated/numeric-families.js";
+export {
+  GridPlacement,
+  GridTemplateComponent,
+  RepetitionCount,
+  TrackSizingFunction,
+} from "./grid.js";
 export { Dimension } from "./length.js";

@@ -4,6 +4,7 @@ mod available_space;
 mod error;
 mod generated_numeric;
 mod geometry;
+mod grid;
 mod length;
 mod number;
 mod owner;
