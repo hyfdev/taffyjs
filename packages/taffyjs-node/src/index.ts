@@ -1,5 +1,6 @@
 import "#native";
 
+export { AvailableSpace } from "./available-space.js";
 export {
   AlignContent,
   AlignItems,

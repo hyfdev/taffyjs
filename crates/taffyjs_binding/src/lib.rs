@@ -1,5 +1,6 @@
 #![deny(clippy::all)]
 
+mod available_space;
 mod error;
 mod generated_numeric;
 mod geometry;
