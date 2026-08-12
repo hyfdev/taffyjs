@@ -445,3 +445,115 @@ export declare const GridTemplateComponent: Readonly<{
     lineNames?: string[][],
   ) => { kind: typeof GridTemplateComponentKind.Repeat; value: GridTemplateRepetitionInput };
 }>;
+
+export interface StyleInput {
+  display?: Display | undefined;
+  itemIsTable?: boolean | undefined;
+  itemIsReplaced?: boolean | undefined;
+  boxSizing?: BoxSizing | undefined;
+  direction?: Direction | undefined;
+  overflow?: PartialPointInput<Overflow> | undefined;
+  scrollbarWidth?: number | undefined;
+  float?: Float | undefined;
+  clear?: Clear | undefined;
+  position?: Position | undefined;
+  inset?: LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput> | undefined;
+  size?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
+  minSize?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
+  maxSize?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
+  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ aspectRatio?:
+    | number
+    | null
+    | undefined;
+  margin?: LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput> | undefined;
+  padding?: LengthPercentageInput | PartialRectInput<LengthPercentageInput> | undefined;
+  border?: LengthPercentageInput | PartialRectInput<LengthPercentageInput> | undefined;
+  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ alignItems?:
+    | AlignItems
+    | null
+    | undefined;
+  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ alignSelf?:
+    | AlignItems
+    | null
+    | undefined;
+  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ justifyItems?:
+    | AlignItems
+    | null
+    | undefined;
+  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ justifySelf?:
+    | AlignItems
+    | null
+    | undefined;
+  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ alignContent?:
+    | AlignContent
+    | null
+    | undefined;
+  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ justifyContent?:
+    | AlignContent
+    | null
+    | undefined;
+  gap?: LengthPercentageInput | PartialSizeInput<LengthPercentageInput> | undefined;
+  textAlign?: TextAlign | undefined;
+  flexDirection?: FlexDirection | undefined;
+  flexWrap?: FlexWrap | undefined;
+  flexBasis?: DimensionInput | undefined;
+  flexGrow?: number | undefined;
+  flexShrink?: number | undefined;
+  gridTemplateRows?: GridTemplateComponentInput[] | undefined;
+  gridTemplateColumns?: GridTemplateComponentInput[] | undefined;
+  gridAutoRows?: TrackSizingFunctionInput[] | undefined;
+  gridAutoColumns?: TrackSizingFunctionInput[] | undefined;
+  gridAutoFlow?: GridAutoFlow | undefined;
+  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ gridTemplateAreas?:
+    | GridTemplateAreasInput
+    | null
+    | undefined;
+  gridTemplateColumnNames?: string[][] | undefined;
+  gridTemplateRowNames?: string[][] | undefined;
+  gridRow?: PartialLineInput<GridPlacementInput> | undefined;
+  gridColumn?: PartialLineInput<GridPlacementInput> | undefined;
+}
+
+export interface Style {
+  readonly display: Display;
+  readonly itemIsTable: boolean;
+  readonly itemIsReplaced: boolean;
+  readonly boxSizing: BoxSizing;
+  readonly direction: Direction;
+  readonly overflow: Point<Overflow>;
+  readonly scrollbarWidth: number;
+  readonly float: Float;
+  readonly clear: Clear;
+  readonly position: Position;
+  readonly inset: Rect<LengthPercentageAuto>;
+  readonly size: Size<Dimension>;
+  readonly minSize: Size<Dimension>;
+  readonly maxSize: Size<Dimension>;
+  readonly aspectRatio: number | null;
+  readonly margin: Rect<LengthPercentageAuto>;
+  readonly padding: Rect<LengthPercentage>;
+  readonly border: Rect<LengthPercentage>;
+  readonly alignItems: AlignItems | null;
+  readonly alignSelf: AlignItems | null;
+  readonly justifyItems: AlignItems | null;
+  readonly justifySelf: AlignItems | null;
+  readonly alignContent: AlignContent | null;
+  readonly justifyContent: AlignContent | null;
+  readonly gap: Size<LengthPercentage>;
+  readonly textAlign: TextAlign;
+  readonly flexDirection: FlexDirection;
+  readonly flexWrap: FlexWrap;
+  readonly flexBasis: Dimension;
+  readonly flexGrow: number;
+  readonly flexShrink: number;
+  readonly gridTemplateRows: readonly GridTemplateComponent[];
+  readonly gridTemplateColumns: readonly GridTemplateComponent[];
+  readonly gridAutoRows: readonly TrackSizingFunction[];
+  readonly gridAutoColumns: readonly TrackSizingFunction[];
+  readonly gridAutoFlow: GridAutoFlow;
+  readonly gridTemplateAreas: GridTemplateAreas | null;
+  readonly gridTemplateColumnNames: readonly (readonly string[])[];
+  readonly gridTemplateRowNames: readonly (readonly string[])[];
+  readonly gridRow: Line<GridPlacement>;
+  readonly gridColumn: Line<GridPlacement>;
+}
