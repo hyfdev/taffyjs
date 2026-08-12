@@ -6,10 +6,10 @@
 {
   "schemaVersion": 1,
   "contractBaseCommit": "d1966aac42d90a11fa477598de5fd24838c1a9e7",
-  "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-  "activeMilestone": "M3",
-  "phase": "review-fix",
-  "activeTaskId": "TEST-STYLE-001",
+  "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+  "activeMilestone": "M4",
+  "phase": "build",
+  "activeTaskId": "MATURITY-001",
   "taskStates": {
     "INFRA-001": "accepted",
     "INFRA-002": "accepted",
@@ -56,18 +56,18 @@
     "API-TREE-028": "accepted",
     "API-TREE-029": "accepted",
     "API-TREE-008": "accepted",
-    "TEST-STYLE-001": "implemented",
-    "TEST-COMMON-NODEID": "implemented",
-    "TEST-COMMON-ATOMICITY": "implemented",
-    "TEST-TYPES-001": "implemented",
-    "TEST-ALGORITHMS-001": "implemented",
-    "MATURITY-001": "pending",
+    "TEST-STYLE-001": "accepted",
+    "TEST-COMMON-NODEID": "accepted",
+    "TEST-COMMON-ATOMICITY": "accepted",
+    "TEST-TYPES-001": "accepted",
+    "TEST-ALGORITHMS-001": "accepted",
+    "MATURITY-001": "active",
     "MATURITY-002": "pending",
     "MATURITY-003": "pending"
   },
-  "prefixEvidenceCommit": null,
-  "milestoneReviewCommit": null,
-  "previousAcceptedMilestoneCommit": "a51e27ee8c757fc8a45110f17c837080e9873d2d",
+  "prefixEvidenceCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+  "milestoneReviewCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+  "previousAcceptedMilestoneCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
   "redEvidence": [
     {
       "taskId": "INFRA-001",
@@ -914,40 +914,6403 @@
       "acceptanceIds": ["TYPE-MEASURE-001/failure-state"]
     }
   ],
-  "greenEvidence": [],
+  "greenEvidence": [
+    {
+      "acceptanceId": "API-TREE-001/construct",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-001.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-001/export-boundary",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-001.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-001/generic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-001/generic.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-001/rng-failure",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:wrapper",
+      "path": "packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-002/no-compute",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-002.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-002/reenable",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-002.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-002/select-rounded",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-002.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-003/no-compute",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-003.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-003/repeat-toggle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-003.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-003/select-unrounded",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-003.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-004/conversion-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-004.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-004/default-style",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-004.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-004/nondefault-style",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-004.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-004/stable-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-004.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-005/callback-delivery",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-005.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-005/conversion-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-005.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-005/identity",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-005.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-005/primitive-null-undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-005.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-005/removal-cleanup",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-005.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-006/attached",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-006.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-006/duplicate",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-006.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-006/empty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-006.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-006/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-006.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-006/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-006.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-006/ordered-children",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-006.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-007/empty-tree",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-007.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-007/ids-stale",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-007.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-007/leaf-tree",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-007.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-007/serial-monotonic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-007.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-008/id-stale",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-008.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-008/invalid-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-008.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-008/parent-not-dirtied",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-008.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-008/remove-child",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-008.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-008/remove-root",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-008.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-009/always-dirty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-009.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-009/invalid-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-009.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-009/measure-delivery",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-009.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-009/null-present",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-009.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-009/replace-identity",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-009.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-009/undefined-clears",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-009.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-010/absence",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-010.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-010/generic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-010/generic.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-010/identity",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-010.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-010/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-010.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-010/manual-dirty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-010.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-011/append",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-011.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-011/dirty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-011.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-011/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-011.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-011/id-roles",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-011.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-011/topology-reject",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-011.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-012/end-bound",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-012.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-012/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-012.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-012/id-roles",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-012.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-012/index-errors",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-012.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-012/positions",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-012.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-013/detach-omitted",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-013.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-013/dirty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-013.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-013/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-013.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-013/invalid-middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-013.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-013/reparent",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-013.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-013/replace-order",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-013.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-013/topology-reject",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-013.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-014/detach",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-014.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-014/dirty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-014.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-014/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-014.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-014/id-roles",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-014.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-014/nonchild",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-014.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-015/bounds",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-015.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-015/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-015.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-015/integer",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-015.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-015/positions",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-015.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-015/returned-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-015.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-016/detached-live",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-016.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-016/extra-properties",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-016.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-016/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-016.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-016/range-errors",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-016.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-016/ranges",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-016.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-017/dirty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-017.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-017/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-017.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-017/id-roles",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-017.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-017/reject",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-017.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-017/replace",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-017.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-017/returned-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-017.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-017/same-noop",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-017.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-018/bounds",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-018.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-018/declaration",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-018/declaration.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-018/integer",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-018.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-018/invalid-parent",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-018.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-018/positions",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-018.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-019/empty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-019.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-019/invalid-parent",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-019.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-019/number-result",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-019.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-019/topology-sequence",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-019.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-020/initial",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-020.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-020/leaf-clear",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-020.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-020/number-result",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-020.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-021/attached",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-021.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-021/declaration",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-021/declaration.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-021/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-021.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-021/root-null",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-021.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-021/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-021.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-021/transitions",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-021.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-022/detached-array",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-022.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-022/empty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-022.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-022/invalid-parent",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-022.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-022/ordered",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-022.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-022/readonly",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-022/readonly.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-022/stable-ids",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-022.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-023/complete-replace",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-023.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-023/conversion-families",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-023.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-023/dirty",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-023.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-023/failure-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-023.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-023/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-023.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-023/undefined-null",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-023.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-023/unknown-calc",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-023.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-024/deep-detached",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-024.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-024/exact-keys",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-024.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-024/independent-snapshots",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-024.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-024/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-024.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-024/null-output",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-024.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-024/readonly",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-024/readonly.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-024/reusable-input",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-024/reusable-input.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-024/stored-f32",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-024.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-025/detached",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-025.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-025/exact-zero",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-025.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-025/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-025.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-025/numeric-widening",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-025.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-025/readonly",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-025/readonly.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-025/rounding-selection",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-025.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-025/stale-stored",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-025.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-026/detached",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-026.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-026/exact-zero",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-026.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-026/fractional",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-026.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-026/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-026.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-026/readonly",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-026/readonly.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-026/stale-stored",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-026.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-027/deep-detached",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-027.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-027/empty-grid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-027.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-027/grid-payload",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-027.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-027/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-027.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-027/narrowing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/API-TREE-027/narrowing.test-d.ts"
+    },
+    {
+      "acceptanceId": "API-TREE-027/new-none",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-027.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-027/stale-upstream",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-027.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-028/any-node",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-028.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-028/child-nuance",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-028.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-028/idempotent",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-028.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-028/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-028.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-028/layout-retained",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-028.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-028/propagation",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-028.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-029/child-nuance",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-029.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-029/context",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-029.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-029/explicit",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-029.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-029/invalid-id",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-029.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-029/lifecycle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-029.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-029/style",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-029.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-029/topology",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-029.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/cache-calls",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/callback-args",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/context-identity",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/different-tree",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/js-only-reentry",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/layout-nontransactional",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/malformed-result",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/recovery",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/result-f32",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/same-tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/throw-identity",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-030/zero-drain",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-030.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/algorithms",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/cache",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/invalid-root",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/invalid-space",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/no-measure",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/percentage-content",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/rounding",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/stored-output",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "API-TREE-031/wrapper-atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/api/API-TREE-031.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-002/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-003/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-004/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-004/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-004/node-id-serial-exhaustion",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:wrapper",
+      "path": "packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-004/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-005/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-005/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-005/node-id-serial-exhaustion",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:wrapper",
+      "path": "packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-005/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-006/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-006/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-006/invalid-topology",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-006/node-id-serial-exhaustion",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:wrapper",
+      "path": "packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-006/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-007/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-008/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-009/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-011/invalid-topology",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-011/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-012/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-012/child-index-out-of-bounds",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-012/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-012/invalid-topology",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-012/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-013/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-013/invalid-topology",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-013/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-014/invalid-topology",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-014/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-015/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-015/child-index-out-of-bounds",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-015/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-015/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-016/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-016/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-016/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-017/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-017/child-index-out-of-bounds",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-017/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-017/invalid-topology",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-017/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-023/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-023/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-023/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-028/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-030/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-030/callback-throw",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-030/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-030/measure-result-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-030/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-031/argument-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-031/discrete-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "ATOMICITY/API-TREE-031/tree-busy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-001/collection-drift",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:contract:self-test",
+      "path": "tools/taffy-api/tests/INFRA-001.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-001/generate",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:contract:self-test",
+      "path": "tools/taffy-api/tests/INFRA-001.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-001/incremental-all",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:contract:self-test",
+      "path": "tools/taffy-api/tests/INFRA-001.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-001/pin-drift",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:contract:self-test",
+      "path": "tools/taffy-api/tests/INFRA-001.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-001/source-drift",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:contract:self-test",
+      "path": "tools/taffy-api/tests/INFRA-001.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-001/task-drift",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:contract:self-test",
+      "path": "tools/taffy-api/tests/INFRA-001.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-002/foundation-exports",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/package/INFRA-002.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-002/pack-entry",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/package/INFRA-002.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-002/private-native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/package/INFRA-002.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-002/source-entry",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/package/INFRA-002.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-003/codes",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-003.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-003/frozen",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-003.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-003/generate-check",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-003.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-003/invalid-code",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-003.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-003/narrowing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/INFRA-003/narrowing.test-d.ts"
+    },
+    {
+      "acceptanceId": "INFRA-003/raw-literal",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-003.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-004/busy-unit",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-004.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-004/expected-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-004.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-004/owner-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "cargo test -p taffyjs_binding --lib",
+      "path": "crates/taffyjs_binding/src/contract_tests.rs"
+    },
+    {
+      "acceptanceId": "INFRA-004/panic-poisons",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-004.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-004/process-survives",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-004.test.mts"
+    },
+    {
+      "acceptanceId": "INFRA-004/taxonomy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/INFRA-004.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/foreign/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/foreign/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/foreign/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/malformed/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/malformed/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/malformed/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/slot-reuse/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/slot-reuse/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/slot-reuse/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/stale-cleared/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/stale-cleared/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/stale-cleared/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/stale-removed/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/stale-removed/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/stale-removed/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/wrong-type/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/wrong-type/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-006/children-element/wrong-type/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-008/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-008/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-008/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-008/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-008/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-008/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-008/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-009/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-009/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-009/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-009/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-009/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-009/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-009/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-010/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-010/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-010/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-010/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-010/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-010/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-010/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/child/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/child/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/child/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/child/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/child/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/child/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/child/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-011/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/child/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/child/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/child/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/child/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/child/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/child/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/child/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-012/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/foreign/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/foreign/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/foreign/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/malformed/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/malformed/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/malformed/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/slot-reuse/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/slot-reuse/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/slot-reuse/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/stale-cleared/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/stale-cleared/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/stale-cleared/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/stale-removed/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/stale-removed/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/stale-removed/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/wrong-type/first",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/wrong-type/last",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/children-element/wrong-type/middle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-013/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/child/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/child/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/child/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/child/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/child/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/child/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/child/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-014/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-015/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-015/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-015/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-015/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-015/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-015/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-015/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-016/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-016/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-016/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-016/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-016/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-016/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-016/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/new-child/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/new-child/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/new-child/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/new-child/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/new-child/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/new-child/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/new-child/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-017/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-018/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-018/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-018/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-018/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-018/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-018/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-018/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-019/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-019/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-019/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-019/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-019/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-019/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-019/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-021/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-021/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-021/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-021/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-021/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-021/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-021/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-022/parent/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-022/parent/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-022/parent/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-022/parent/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-022/parent/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-022/parent/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-022/parent/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-023/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-023/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-023/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-023/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-023/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-023/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-023/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-024/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-024/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-024/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-024/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-024/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-024/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-024/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-025/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-025/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-025/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-025/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-025/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-025/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-025/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-026/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-026/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-026/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-026/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-026/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-026/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-026/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-027/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-027/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-027/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-027/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-027/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-027/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-027/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-028/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-028/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-028/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-028/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-028/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-028/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-028/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-029/node/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-029/node/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-029/node/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-029/node/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-029/node/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-029/node/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-029/node/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-030/root/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-030/root/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-030/root/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-030/root/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-030/root/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-030/root/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-030/root/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-031/root/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-031/root/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-031/root/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-031/root/stale-cleared",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-031/root/stale-removed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-031/root/valid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "NODEID/API-TREE-031/root/wrong-type",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F01/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F01/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F01/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F01/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F01/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F01/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F01/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F01/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F02/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F02/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F02/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F02/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F02/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F02/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F02/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F02/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F03/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F03/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F03/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F03/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F03/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F03/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F03/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F03/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F04/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F04/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F04/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F04/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F04/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F04/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F04/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F04/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F05/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F05/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F05/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F05/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F05/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F05/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F05/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F05/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F06/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F06/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F06/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F06/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F06/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F06/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F06/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F06/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F07/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F07/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F07/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F07/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F07/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F07/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F07/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F07/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F08/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F08/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F08/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F08/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F08/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F08/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F08/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F08/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F09/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F09/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F09/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F09/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F09/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F09/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F09/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F09/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F10/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F10/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F10/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F10/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F10/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F10/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F10/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F10/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F11/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F11/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F11/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F11/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F11/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F11/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F11/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F11/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F12/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F12/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F12/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F12/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F12/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F12/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F12/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F12/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F13/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F13/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F13/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F13/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F13/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F13/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F13/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F13/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F14/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F14/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F14/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F14/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F14/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F14/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F14/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F14/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F15/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F15/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F15/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F15/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F15/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F15/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F15/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F15/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F16/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F16/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F16/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F16/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F16/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F16/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F16/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F16/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F17/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F17/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F17/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F17/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F17/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F17/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F17/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F17/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F18/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F18/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F18/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F18/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F18/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F18/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F18/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F18/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F19/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F19/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F19/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F19/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F19/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F19/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F19/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F19/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F20/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F20/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F20/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F20/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F20/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F20/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F20/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F20/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F21/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F21/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F21/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F21/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F21/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F21/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F21/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F21/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F22/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F22/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F22/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F22/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F22/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F22/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F22/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F22/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F23/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F23/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F23/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F23/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F23/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F23/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F23/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F23/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F24/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F24/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F24/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F24/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F24/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F24/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F24/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F24/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F25/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F25/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F25/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F25/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F25/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F25/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F25/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F25/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F26/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F26/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F26/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F26/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F26/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F26/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F26/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F26/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F27/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F27/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F27/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F27/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F27/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F27/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F27/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F27/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F28/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F28/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F28/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F28/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F28/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F28/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F28/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F28/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F29/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F29/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F29/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F29/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F29/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F29/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F29/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F29/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F30/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F30/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F30/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F30/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F30/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F30/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F30/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F30/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F31/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F31/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F31/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F31/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F31/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F31/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F31/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F31/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F32/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F32/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F32/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F32/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F32/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F32/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F32/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F32/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F33/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F33/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F33/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F33/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F33/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F33/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F33/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F33/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F34/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F34/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F34/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F34/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F34/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F34/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F34/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F34/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F35/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F35/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F35/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F35/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F35/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F35/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F35/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F35/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F36/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F36/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F36/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F36/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F36/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F36/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F36/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F36/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F37/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F37/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F37/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F37/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F37/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F37/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F37/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F37/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F38/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F38/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F38/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F38/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F38/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F38/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F38/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F38/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F39/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F39/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F39/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F39/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F39/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F39/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F39/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F39/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F40/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F40/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F40/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F40/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F40/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F40/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F40/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F40/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F41/atomic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F41/default",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F41/invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F41/missing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F41/native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F41/roundtrip",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F41/semantic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "STYLE-F41/undefined",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-ALGORITHMS-001/block-float",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-ALGORITHMS-001/flex",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-ALGORITHMS-001/grid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-ALGORITHMS-001/measure-context",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-ALGORITHMS-001/public-only",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-ALGORITHMS-001/topology-cache",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-COMMON-ATOMICITY/callback-exception",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-COMMON-ATOMICITY/mutation-bijection",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-COMMON-ATOMICITY/state-equality",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-COMMON-NODEID/controlled-errors",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-COMMON-NODEID/no-panic",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-COMMON-NODEID/role-bijection",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-STYLE-001/bijection",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-STYLE-001/callback-equivalence",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-STYLE-001/enum-members",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-STYLE-001/no-freeze-cache",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TEST-TYPES-001/context-nullish",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TEST-TYPES-001/context-nullish.test-d.ts"
+    },
+    {
+      "acceptanceId": "TEST-TYPES-001/exports-signatures",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TEST-TYPES-001/exports-signatures.test-d.ts"
+    },
+    {
+      "acceptanceId": "TEST-TYPES-001/mutability",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TEST-TYPES-001/mutability.test-d.ts"
+    },
+    {
+      "acceptanceId": "TEST-TYPES-001/node-enum",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TEST-TYPES-001/node-enum.test-d.ts"
+    },
+    {
+      "acceptanceId": "TEST-TYPES-001/private-absent",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TEST-TYPES-001/private-absent.test-d.ts"
+    },
+    {
+      "acceptanceId": "TEST-TYPES-001/valid-invalid",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TEST-TYPES-001/valid-invalid.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/axis-record",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-AVAILABLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/content-extra",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-AVAILABLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/definite-value",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-AVAILABLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/f32-special",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-AVAILABLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/helper-conversion",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-AVAILABLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/helper-materialization",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-AVAILABLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/narrowing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TYPE-AVAILABLE-001/narrowing.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/readonly-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TYPE-AVAILABLE-001/readonly-reuse.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/variants",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-AVAILABLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-AVAILABLE-001/whole-value-errors",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-AVAILABLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-DETAIL-001/detached",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-DETAIL-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-DETAIL-001/lifecycle",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-DETAIL-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-DETAIL-001/narrowing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TYPE-DETAIL-001/narrowing.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-DETAIL-001/numeric-widening",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-DETAIL-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-DETAIL-001/variants",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-DETAIL-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GEOMETRY-001/components",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GEOMETRY-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GEOMETRY-001/declarations",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TYPE-GEOMETRY-001/declarations.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-GEOMETRY-001/detached-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GEOMETRY-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GEOMETRY-001/readonly",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TYPE-GEOMETRY-001/readonly.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-GEOMETRY-001/scalar-scope",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GEOMETRY-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GEOMETRY-001/style-partial",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GEOMETRY-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GEOMETRY-001/style-shape-errors",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GEOMETRY-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/areas-null",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/canonical",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/extra-fields",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/families",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/helper-conversion",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/helper-materialization",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/integers",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/minmax",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/no-css-validation",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/ownership",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/panic-guard",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/repeat-lines",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-GRID-001/strings",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-GRID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LAYOUT-001/detached",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-LAYOUT-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LAYOUT-001/exact-keys",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-LAYOUT-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LAYOUT-001/f32-special",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-LAYOUT-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LAYOUT-001/order-u32",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-LAYOUT-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LAYOUT-001/readonly",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TYPE-LAYOUT-001/readonly.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-LAYOUT-001/shared-converter",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-LAYOUT-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LAYOUT-001/zero",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-LAYOUT-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/aggregate",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/auto-extra",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/canonical",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/f32-special",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/forms",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/helper-conversion",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/helper-materialization",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/invalid-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/narrowing",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TYPE-LENGTH-001/narrowing.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-LENGTH-001/percent-scale",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-LENGTH-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-MEASURE-001/args-owned",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-MEASURE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-MEASURE-001/env-lifetime",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-MEASURE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-MEASURE-001/failure-state",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-MEASURE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-MEASURE-001/no-retention",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-MEASURE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-MEASURE-001/non-send",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "cargo test -p taffyjs_binding --lib",
+      "path": "crates/taffyjs_binding/src/contract_tests.rs"
+    },
+    {
+      "acceptanceId": "TYPE-MEASURE-001/result-sync",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-MEASURE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/foreign",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-NODEID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/js-identity",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-NODEID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/malformed",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-NODEID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/opaque",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:types",
+      "path": "tests/taffyjs-node/tests/types/TYPE-NODEID-001/opaque.test-d.ts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/realm-copy",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-NODEID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/rng",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:wrapper",
+      "path": "packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/serial-boundary",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:wrapper",
+      "path": "packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/slot-reuse",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-NODEID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NODEID-001/stale-clear",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:integration",
+      "path": "tests/taffyjs-node/tests/contract/TYPE-NODEID-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NUMBER-001/f32-special",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-NUMBER-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NUMBER-001/f32-truth",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-NUMBER-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NUMBER-001/integer-bounds",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-NUMBER-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NUMBER-001/no-coercion",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-NUMBER-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-NUMBER-001/number-only",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-NUMBER-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-STYLE-001/complete-before-native",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-STYLE-001/container-shape",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-STYLE-001/default-dispatch",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-STYLE-001/eager-output",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-STYLE-001/field-set",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-STYLE-001/nullable-dispatch",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-STYLE-001.test.mts"
+    },
+    {
+      "acceptanceId": "TYPE-STYLE-001/unknown-calc",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "result": "pass",
+      "runner": "vp run check:test:native",
+      "path": "packages/taffyjs-node/tests/native/TYPE-STYLE-001.test.mts"
+    }
+  ],
   "commandEvidence": {},
   "finalOutputs": {},
-  "reviewRoundId": "M3-round-3-aca55f0",
+  "reviewRoundId": "M3-round-5-f1f79e3",
   "reviewerSlots": ["broad-1", "broad-2", "quality"],
   "reviewedCommits": {
     "contractBaseCommit": "d1966aac42d90a11fa477598de5fd24838c1a9e7",
     "previousCommit": "a51e27ee8c757fc8a45110f17c837080e9873d2d",
-    "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615"
+    "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
   },
   "inspectionCommands": [
-    "git cat-file -e aca55f06a3301843f37dace481304ef1275df615^{commit}",
-    "git diff --check 7468b5092419324ea7b43b5d6e1ace06e7d71865 aca55f06a3301843f37dace481304ef1275df615",
-    "git diff --stat 7468b5092419324ea7b43b5d6e1ace06e7d71865 aca55f06a3301843f37dace481304ef1275df615",
-    "git diff --find-renames 7468b5092419324ea7b43b5d6e1ace06e7d71865 aca55f06a3301843f37dace481304ef1275df615",
-    "git diff --check a51e27ee8c757fc8a45110f17c837080e9873d2d aca55f06a3301843f37dace481304ef1275df615",
-    "git diff --stat a51e27ee8c757fc8a45110f17c837080e9873d2d aca55f06a3301843f37dace481304ef1275df615",
-    "git diff --find-renames a51e27ee8c757fc8a45110f17c837080e9873d2d aca55f06a3301843f37dace481304ef1275df615",
-    "git diff --check d1966aac42d90a11fa477598de5fd24838c1a9e7 aca55f06a3301843f37dace481304ef1275df615",
-    "git show aca55f06a3301843f37dace481304ef1275df615:.agents/docs/loop-goal.md",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tools/taffy-api/contract.json",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tools/taffy-api/src/run-type-tests.mjs",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/contract/fixtures/complete-public-state.mts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/exports-signatures.test-d.ts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/valid-invalid.test-d.ts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/node-enum.test-d.ts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/mutability.test-d.ts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/context-nullish.test-d.ts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/private-absent.test-d.ts",
-    "git show aca55f06a3301843f37dace481304ef1275df615:packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts"
+    "git cat-file -e f1f79e32dbde7a5546c3231471e6fdd4a70770e7^{commit}",
+    "git diff --check 98db236db4969c60fb096e1f2cb71c2c8097ea96 f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+    "git diff --stat 98db236db4969c60fb096e1f2cb71c2c8097ea96 f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+    "git diff --find-renames 98db236db4969c60fb096e1f2cb71c2c8097ea96 f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+    "git diff --check a51e27ee8c757fc8a45110f17c837080e9873d2d f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+    "git diff --stat a51e27ee8c757fc8a45110f17c837080e9873d2d f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+    "git diff --find-renames a51e27ee8c757fc8a45110f17c837080e9873d2d f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+    "git diff --check d1966aac42d90a11fa477598de5fd24838c1a9e7 f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:.agents/docs/loop-goal.md",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:.agents/docs/binding-mapping.md",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/contract.json",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/src/index.mjs",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/src/index.d.mts",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/src/run-type-tests.mjs",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/tests/INFRA-001.test.mts",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/contract/fixtures/complete-public-state.mts",
+    "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts",
+    "git ls-tree -r --name-only f1f79e32dbde7a5546c3231471e6fdd4a70770e7 tests/taffyjs-node/tests/types/TEST-TYPES-001"
   ],
   "currentTaskIds": [
     "TEST-STYLE-001",
@@ -958,10 +7321,10 @@
   ],
   "reviewInputProjection": {
     "contractBaseCommit": "d1966aac42d90a11fa477598de5fd24838c1a9e7",
-    "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+    "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
     "previousAcceptedMilestoneCommit": "a51e27ee8c757fc8a45110f17c837080e9873d2d",
     "activeMilestone": "M3",
-    "reviewRoundId": "M3-round-3-aca55f0",
+    "reviewRoundId": "M3-round-5-f1f79e3",
     "currentTaskIds": [
       "TEST-STYLE-001",
       "TEST-COMMON-NODEID",
@@ -971,40 +7334,39 @@
     ],
     "reviewerSlots": ["broad-1", "broad-2", "quality"],
     "inspectionCommands": [
-      "git cat-file -e aca55f06a3301843f37dace481304ef1275df615^{commit}",
-      "git diff --check 7468b5092419324ea7b43b5d6e1ace06e7d71865 aca55f06a3301843f37dace481304ef1275df615",
-      "git diff --stat 7468b5092419324ea7b43b5d6e1ace06e7d71865 aca55f06a3301843f37dace481304ef1275df615",
-      "git diff --find-renames 7468b5092419324ea7b43b5d6e1ace06e7d71865 aca55f06a3301843f37dace481304ef1275df615",
-      "git diff --check a51e27ee8c757fc8a45110f17c837080e9873d2d aca55f06a3301843f37dace481304ef1275df615",
-      "git diff --stat a51e27ee8c757fc8a45110f17c837080e9873d2d aca55f06a3301843f37dace481304ef1275df615",
-      "git diff --find-renames a51e27ee8c757fc8a45110f17c837080e9873d2d aca55f06a3301843f37dace481304ef1275df615",
-      "git diff --check d1966aac42d90a11fa477598de5fd24838c1a9e7 aca55f06a3301843f37dace481304ef1275df615",
-      "git show aca55f06a3301843f37dace481304ef1275df615:.agents/docs/loop-goal.md",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tools/taffy-api/contract.json",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tools/taffy-api/src/run-type-tests.mjs",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/contract/fixtures/complete-public-state.mts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/exports-signatures.test-d.ts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/valid-invalid.test-d.ts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/node-enum.test-d.ts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/mutability.test-d.ts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/context-nullish.test-d.ts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:tests/taffyjs-node/tests/types/TEST-TYPES-001/private-absent.test-d.ts",
-      "git show aca55f06a3301843f37dace481304ef1275df615:packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts"
+      "git cat-file -e f1f79e32dbde7a5546c3231471e6fdd4a70770e7^{commit}",
+      "git diff --check 98db236db4969c60fb096e1f2cb71c2c8097ea96 f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+      "git diff --stat 98db236db4969c60fb096e1f2cb71c2c8097ea96 f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+      "git diff --find-renames 98db236db4969c60fb096e1f2cb71c2c8097ea96 f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+      "git diff --check a51e27ee8c757fc8a45110f17c837080e9873d2d f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+      "git diff --stat a51e27ee8c757fc8a45110f17c837080e9873d2d f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+      "git diff --find-renames a51e27ee8c757fc8a45110f17c837080e9873d2d f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+      "git diff --check d1966aac42d90a11fa477598de5fd24838c1a9e7 f1f79e32dbde7a5546c3231471e6fdd4a70770e7 -- . \":(exclude).agents/docs/loop-status.md\"",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:.agents/docs/loop-goal.md",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:.agents/docs/binding-mapping.md",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/contract.json",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/src/index.mjs",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/src/index.d.mts",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/src/run-type-tests.mjs",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tools/taffy-api/tests/INFRA-001.test.mts",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/style/TEST-STYLE-001.test.mts",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/contract/TEST-COMMON-NODEID.test.mts",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/contract/TEST-COMMON-ATOMICITY.test.mts",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/contract/TEST-ALGORITHMS-001.test.mts",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:tests/taffyjs-node/tests/contract/fixtures/complete-public-state.mts",
+      "git show f1f79e32dbde7a5546c3231471e6fdd4a70770e7:packages/taffyjs-node/tests/wrapper/private-boundaries.test.mts",
+      "git ls-tree -r --name-only f1f79e32dbde7a5546c3231471e6fdd4a70770e7 tests/taffyjs-node/tests/types/TEST-TYPES-001"
     ]
   },
-  "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca",
+  "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912",
   "reports": [
     {
       "slot": "broad-1",
       "reviewerIdentity": "/root/m3_broad_1",
-      "startCandidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "endCandidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "startReviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca",
-      "endReviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca",
+      "startCandidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "endCandidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "startReviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912",
+      "endReviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912",
       "earlierImpact": [
         "INFRA-001",
         "INFRA-003",
@@ -1025,18 +7387,18 @@
         "API-TREE-027"
       ],
       "inspectedEvidence": [
-        "Full committed M3 diff and final fix diff, with endpoint and whitespace checks.",
-        "Canonical contract and goal plus every M3 test, fixture, declaration, runner, and relevant converter source.",
-        "All 17 earlier tasks affected by the shared type runner."
+        "The complete accepted-M2-to-candidate M3 diff and the final repair diff, including endpoint and whitespace checks.",
+        "The frozen contract, mapping, checker, type runner, all five M3 evidence surfaces, declaration fixtures, full-state fixture, and private wrapper boundaries.",
+        "All 17 earlier tasks affected by the shared checker and type runner."
       ]
     },
     {
       "slot": "broad-2",
       "reviewerIdentity": "/root/m3_broad_2",
-      "startCandidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "endCandidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "startReviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca",
-      "endReviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca",
+      "startCandidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "endCandidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "startReviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912",
+      "endReviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912",
       "earlierImpact": [
         "INFRA-001",
         "INFRA-003",
@@ -1057,18 +7419,18 @@
         "API-TREE-027"
       ],
       "inspectedEvidence": [
-        "Full committed M3 diff and final fix diff, with endpoint and whitespace checks.",
-        "Canonical contract and goal plus every M3 test, fixture, declaration generator, checker, and runner graph.",
-        "All 17 earlier tasks affected by the shared type runner."
+        "The complete accepted-M2-to-candidate M3 diff and the final repair diff, including endpoint and whitespace checks.",
+        "The frozen contract, mapping, checker, declaration projection, all five M3 evidence surfaces, full-state fixture, private wrapper boundaries, and all six type fixtures.",
+        "All 17 earlier tasks affected by the shared checker and type runner."
       ]
     },
     {
       "slot": "quality",
       "reviewerIdentity": "/root/m3_quality",
-      "startCandidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "endCandidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "startReviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca",
-      "endReviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca",
+      "startCandidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "endCandidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "startReviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912",
+      "endReviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912",
       "earlierImpact": [
         "INFRA-001",
         "INFRA-003",
@@ -1089,9 +7451,9 @@
         "API-TREE-027"
       ],
       "inspectedEvidence": [
-        "Full committed M3 diff and final fix diff, with endpoint and whitespace checks.",
-        "Canonical contract and goal plus every M3 test, fixture, declaration assembler, type runner, and wrapper boundary test.",
-        "All 17 earlier tasks affected by the shared type runner."
+        "The complete accepted-M2-to-candidate M3 diff and the final repair diff, including endpoint and whitespace checks.",
+        "The frozen contract, mapping, checker, type runner and self-tests, all five M3 evidence surfaces, complete state fixture, wrapper tests, and type fixtures.",
+        "All 17 earlier tasks affected by the shared checker and type runner, with focused checks for ownership, duplication, and exact error behavior."
       ]
     }
   ],
@@ -1099,464 +7461,464 @@
     {
       "taskId": "TEST-STYLE-001",
       "slot": "broad-1",
-      "verdict": "FAIL",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "verdict": "PASS",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-COMMON-NODEID",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-COMMON-ATOMICITY",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-TYPES-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-ALGORITHMS-001",
       "slot": "broad-1",
-      "verdict": "FAIL",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "verdict": "PASS",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "INFRA-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "INFRA-003",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-GEOMETRY-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-LENGTH-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-AVAILABLE-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-NODEID-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-LAYOUT-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-DETAIL-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-001",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-010",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-018",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-021",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-022",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-024",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-025",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-026",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-027",
       "slot": "broad-1",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-STYLE-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-COMMON-NODEID",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-COMMON-ATOMICITY",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-TYPES-001",
       "slot": "broad-2",
-      "verdict": "FAIL",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "verdict": "PASS",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-ALGORITHMS-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "INFRA-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "INFRA-003",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-GEOMETRY-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-LENGTH-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-AVAILABLE-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-NODEID-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-LAYOUT-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-DETAIL-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-001",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-010",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-018",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-021",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-022",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-024",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-025",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-026",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-027",
       "slot": "broad-2",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-STYLE-001",
       "slot": "quality",
-      "verdict": "FAIL",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "verdict": "PASS",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-COMMON-NODEID",
       "slot": "quality",
-      "verdict": "FAIL",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "verdict": "PASS",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-COMMON-ATOMICITY",
       "slot": "quality",
-      "verdict": "FAIL",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "verdict": "PASS",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-TYPES-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TEST-ALGORITHMS-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "INFRA-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "INFRA-003",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-GEOMETRY-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-LENGTH-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-AVAILABLE-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-NODEID-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-LAYOUT-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "TYPE-DETAIL-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-001",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-010",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-018",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-021",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-022",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-024",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-025",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-026",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     },
     {
       "taskId": "API-TREE-027",
       "slot": "quality",
       "verdict": "PASS",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
-      "reviewInputStatusHash": "aa032491e118eb5b9835ac6efcbf5b37969dd00968c2b4ab47cf96848770d3ca"
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "reviewInputStatusHash": "4a57c17272181c033e954889795d7e3b3ac6ff84003eda90e3b1b7e577f4c912"
     }
   ],
   "findings": [
@@ -1566,7 +7928,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Style semantic fixtures can stay green when dense placement, Unicode conversion, deep copy, or row and column underflow behavior is wrong.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R1-B1-2",
@@ -1574,7 +7936,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "The declaration fixture does not assert every public runtime helper signature.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R1-B2-1",
@@ -1582,7 +7944,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Style semantic fixtures omit Right clearing, observable dense placement, Unicode and surrogate conversion, deep copy, underflow, and integer boundaries.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R1-B2-2",
@@ -1590,7 +7952,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Callback-failure atomicity does not prove that no later measure callback runs after the first failure.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R1-B2-3",
@@ -1598,7 +7960,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "The declaration fixture does not reference the complete public type inventory and excludes a possible phantomMarker value export.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R1-Q-1",
@@ -1606,7 +7968,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Style semantic fixtures do not independently distinguish all AlignItems and AlignContent members or dense placement.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R1-Q-2",
@@ -1614,7 +7976,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "The declaration fixture samples helper signatures instead of asserting every public runtime helper signature.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R1-Q-3",
@@ -1622,7 +7984,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Tree-busy atomicity checks code and message but not the canonical Error class.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R2-B1-2",
@@ -1630,7 +7992,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Layout parity assertions do not cite a stable pinned Taffy source or use a direct Rust Taffy fixture.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R2-B1-3",
@@ -1638,7 +8000,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "The gridTemplateAreas row does not prove its required u16 boundaries.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R2-B2-1",
@@ -1646,7 +8008,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Several Style semantic fixtures omit required Grid, flex-basis, nested-copy, padding, and area-boundary behavior.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R2-B2-2",
@@ -1654,7 +8016,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Algorithm parity literals lack stable pinned Taffy source locations or direct Rust fixtures.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R2-Q-1",
@@ -1662,7 +8024,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "Style semantics omit Grid justifyContent and gap behavior plus Percent and Auto flexBasis interactions.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R2-Q-2",
@@ -1670,7 +8032,7 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "The gridTemplateAreas row does not prove its required u16 boundaries.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R2-Q-3",
@@ -1678,140 +8040,223 @@
       "severity": "major",
       "disposition": "fixed",
       "summary": "The declaration identity references type-only exports without independently checking their exact structures.",
-      "fixCommit": "aca55f06a3301843f37dace481304ef1275df615"
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R3-B1-1",
       "reviewerIdentity": "/root/m3_broad_1",
       "severity": "major",
-      "disposition": "pending",
-      "summary": "The itemIsTable and itemIsReplaced Style rows use indistinguishable samples and semantic layouts, so swapping the two bindings can leave their evidence green."
+      "disposition": "fixed",
+      "summary": "The itemIsTable and itemIsReplaced Style rows use indistinguishable samples and semantic layouts, so swapping the two bindings can leave their evidence green.",
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R3-B1-2",
       "reviewerIdentity": "/root/m3_broad_1",
       "severity": "major",
-      "disposition": "pending",
-      "summary": "The algorithm consumer test omits the required mixed create, attach, detach, remove, and getNodeCount sequence."
+      "disposition": "fixed",
+      "summary": "The algorithm consumer test omits the required mixed create, attach, detach, remove, and getNodeCount sequence.",
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R3-B2-1",
       "reviewerIdentity": "/root/m3_broad_2",
       "severity": "major",
-      "disposition": "pending",
-      "summary": "The type runner compares declaration bytes including JSDoc, which would reject the additional public JSDoc required by M4."
+      "disposition": "fixed",
+      "summary": "The type runner compares declaration bytes including JSDoc, which would reject the additional public JSDoc required by M4.",
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R3-Q-1",
       "reviewerIdentity": "/root/m3_quality",
       "severity": "major",
-      "disposition": "pending",
-      "summary": "Style invalid-value evidence only requires some exception and does not verify the contractually fixed built-in error class and code."
+      "disposition": "fixed",
+      "summary": "Style invalid-value evidence only requires some exception and does not verify the contractually fixed built-in error class and code.",
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R3-Q-2",
       "reviewerIdentity": "/root/m3_quality",
       "severity": "major",
-      "disposition": "pending",
-      "summary": "Generated NodeId evidence compares constructor names instead of exact built-in error constructors."
+      "disposition": "fixed",
+      "summary": "Generated NodeId evidence compares constructor names instead of exact built-in error constructors.",
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
     },
     {
       "id": "M3-R3-Q-3",
       "reviewerIdentity": "/root/m3_quality",
       "severity": "major",
-      "disposition": "pending",
-      "summary": "Two atomicity paths use instanceof and therefore allow subclasses where the contract requires exact built-in error constructors."
+      "disposition": "fixed",
+      "summary": "Two atomicity paths use instanceof and therefore allow subclasses where the contract requires exact built-in error constructors.",
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
+    },
+    {
+      "id": "M3-R4-B1-1",
+      "reviewerIdentity": "/root/m3_broad_1",
+      "severity": "major",
+      "disposition": "fixed",
+      "summary": "Nested Grid integer and line-name underflow checks do not require the exact uncoded RangeError taxonomy.",
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
+    },
+    {
+      "id": "M3-R4-Q-1",
+      "reviewerIdentity": "/root/m3_quality",
+      "severity": "major",
+      "disposition": "fixed",
+      "summary": "The context-nullish identity does not independently verify the eight canonical nullable Style JSDoc comments.",
+      "fixCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7"
+    },
+    {
+      "id": "M3-R4-B2-1",
+      "reviewerIdentity": "/root/m3_broad_2",
+      "severity": "minor",
+      "disposition": "rejected",
+      "summary": "The user-authorized input transport performance TODO was initially mistaken for candidate scope drift."
     }
   ],
   "closures": [
     {
       "findingId": "M3-R1-B1-1",
       "reviewerIdentity": "/root/m3_broad_1",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R1-B1-2",
       "reviewerIdentity": "/root/m3_broad_1",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R1-B2-1",
       "reviewerIdentity": "/root/m3_broad_2",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R1-B2-2",
       "reviewerIdentity": "/root/m3_broad_2",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R1-B2-3",
       "reviewerIdentity": "/root/m3_broad_2",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R1-Q-1",
       "reviewerIdentity": "/root/m3_quality",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R1-Q-2",
       "reviewerIdentity": "/root/m3_quality",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R1-Q-3",
       "reviewerIdentity": "/root/m3_quality",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R2-B1-2",
       "reviewerIdentity": "/root/m3_broad_1",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R2-B1-3",
       "reviewerIdentity": "/root/m3_broad_1",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R2-B2-1",
       "reviewerIdentity": "/root/m3_broad_2",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R2-B2-2",
       "reviewerIdentity": "/root/m3_broad_2",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R2-Q-1",
       "reviewerIdentity": "/root/m3_quality",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R2-Q-2",
       "reviewerIdentity": "/root/m3_quality",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     },
     {
       "findingId": "M3-R2-Q-3",
       "reviewerIdentity": "/root/m3_quality",
-      "candidateCommit": "aca55f06a3301843f37dace481304ef1275df615",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R3-B1-1",
+      "reviewerIdentity": "/root/m3_broad_1",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R3-B1-2",
+      "reviewerIdentity": "/root/m3_broad_1",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R3-B2-1",
+      "reviewerIdentity": "/root/m3_broad_2",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R3-Q-1",
+      "reviewerIdentity": "/root/m3_quality",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R3-Q-2",
+      "reviewerIdentity": "/root/m3_quality",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R3-Q-3",
+      "reviewerIdentity": "/root/m3_quality",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R4-B1-1",
+      "reviewerIdentity": "/root/m3_broad_1",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R4-Q-1",
+      "reviewerIdentity": "/root/m3_quality",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
+      "confirmed": true
+    },
+    {
+      "findingId": "M3-R4-B2-1",
+      "reviewerIdentity": "/root/m3_broad_2",
+      "candidateCommit": "f1f79e32dbde7a5546c3231471e6fdd4a70770e7",
       "confirmed": true
     }
   ],
@@ -1884,7 +8329,7 @@
   ],
   "blockers": [],
   "remainingMinorFindings": [],
-  "nextAction": "Discuss the six M3 round-3 findings with Yunfei before making any further implementation change."
+  "nextAction": "Implement MATURITY-001, MATURITY-002, and MATURITY-003 as one M4 batch, then run the complete final verification before review."
 }
 ```
 
