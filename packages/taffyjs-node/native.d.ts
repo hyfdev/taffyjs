@@ -24,6 +24,7 @@ export declare class NativeTaffyTree {
   rawNewLeafWithContext(style: unknown, hasContext: boolean, publicMethod: string): bigint;
   rawNewWithChildren(style: unknown, children: Array<bigint>, publicMethod: string): bigint;
   rawSetStyle(node: bigint, style: unknown, publicMethod: string): void;
+  rawSetNodeContext(node: bigint, hasContext: boolean, publicMethod: string): void;
   rawGetStyle(node: bigint, publicMethod: string): object;
   rawComputeLayout(node: bigint, availableSpace: unknown, publicMethod: string): void;
   rawGetLayout(node: bigint, publicMethod: string): object;

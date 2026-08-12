@@ -619,6 +619,7 @@ export declare class TaffyTree<TContext = unknown> {
   newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId;
   newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
   clear(): void;
+  setNodeContext(node: NodeId, context: TContext | undefined): void;
   getNodeContext(node: NodeId): TContext | undefined;
   addChild(parent: NodeId, child: NodeId): void;
   insertChildAtIndex(parent: NodeId, index: number, child: NodeId): void;

@@ -457,6 +457,24 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawSetNodeContext")]
+    pub fn set_node_context(
+        &self,
+        env: Env,
+        node: BigInt,
+        has_context: bool,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                tree.set_node_context(node, has_context.then_some(()))
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawGetStyle")]
     pub fn get_style<'env>(
         &self,

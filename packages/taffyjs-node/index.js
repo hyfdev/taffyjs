@@ -419,6 +419,9 @@ var TaffyTree = class {
 	getNodeContext(node) {
 		return this.#getNodeContext(node);
 	}
+	setNodeContext(node, context) {
+		this.#setNodeContext(node, context);
+	}
 	setStyle(node, style) {
 		const raw = this.#nodes.resolve(node);
 		this.#inner.rawSetStyle(raw, style, "setStyle");
@@ -435,6 +438,7 @@ var TaffyTree = class {
 			newLeafWithContext: (style, context) => this.#newLeafWithContext(style, context),
 			newWithChildren: (style, children) => this.#newWithChildren(style, children),
 			getNodeContext: (node) => this.#getNodeContext(node),
+			setNodeContext: (node, context) => this.#setNodeContext(node, context),
 			clear: () => this.#clear(),
 			getChildCount: (parent) => this.#getChildCount(parent),
 			getParent: (node) => this.#getParent(node),
@@ -475,6 +479,12 @@ var TaffyTree = class {
 	#getNodeContext(node) {
 		this.#nodes.resolve(node);
 		return this.#contexts.get(node);
+	}
+	#setNodeContext(node, context) {
+		const raw = this.#nodes.resolve(node);
+		this.#inner.rawSetNodeContext(raw, context !== void 0, "setNodeContext");
+		if (context === void 0) this.#contexts.delete(node);
+		else this.#contexts.set(node, context);
 	}
 	#clear() {
 		this.#inner.rawClear("clear");
