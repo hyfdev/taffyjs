@@ -253,6 +253,31 @@ contractTest("MATURITY-002/contents", async () => {
   );
   assert.match(fixture.rootHash, /^[a-f0-9]{64}$/u);
   assert.match(fixture.platformHash, /^[a-f0-9]{64}$/u);
+  const loader = await readFile(resolve(packageRoot, "native.js"), "utf8");
+  const supported = /const taffyjsSupportedPlatforms = (\[[^\n]+\]);/u.exec(loader);
+  assert.ok(supported);
+  assert.deepEqual(JSON.parse(supported[1]), [
+    "darwin-arm64",
+    "darwin-x64",
+    "linux-x64-gnu",
+    "win32-x64",
+  ]);
+  const [workspace, lockfile] = await Promise.all([
+    readFile(resolve(root, "pnpm-workspace.yaml"), "utf8"),
+    readFile(resolve(root, "pnpm-lock.yaml"), "utf8"),
+  ]);
+  assert.match(workspace, /^  - packages\/taffyjs-node\/npm\/\*$/mu);
+  assert.match(workspace, /^linkWorkspacePackages: true$/mu);
+  for (const { name } of Object.values(fixture.contract.platformPackages)) {
+    const directory = name.slice("@taffyjs/binding-".length);
+    assert.match(
+      lockfile,
+      new RegExp(
+        `'${name.replaceAll("/", "\\/")}':\\n        specifier: 0\\.0\\.0\\n        version: link:npm\\/${directory}`,
+        "u",
+      ),
+    );
+  }
 
   const rootManifest = await readJson(
     resolve(fixture.firstConsumer, "node_modules/@taffyjs/node/package.json"),
@@ -292,14 +317,17 @@ contractTest("MATURITY-002/contents", async () => {
 });
 
 contractTest("MATURITY-002/cleanup", async () => {
+  const wrapperSource = await readFile(resolve(packageRoot, "src/tree.ts"), "utf8");
+  assert.equal((wrapperSource.match(/new NativeTaffyTree\(\)/gu) ?? []).length, 1);
+  assert.match(wrapperSource, /readonly #inner: NativeTree;/u);
+  assert.match(wrapperSource, /this\.#inner = new NativeTaffyTree\(\);/u);
   const child = await run(
     process.execPath,
     ["--expose-gc", fileURLToPath(new URL("./fixtures/maturity-002-cleanup.mjs", import.meta.url))],
     root,
   );
   assert.deepEqual(JSON.parse(child.stdout), {
-    wrapperCollected: true,
-    nativeCollected: true,
+    wrapperAndOwnedNativeCollected: true,
     contextCollected: true,
     callbackCollected: true,
     retainedTreesAlive: true,

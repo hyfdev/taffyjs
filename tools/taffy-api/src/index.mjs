@@ -1664,39 +1664,23 @@ export function validateNullableStyleJsDoc(contract, actual) {
   }
 }
 
-function meaningfulJsDocBefore(source, offset, diagnostic) {
-  const match = /\/\*\*([\s\S]*?)\*\/\s*$/u.exec(source.slice(0, offset));
+function jsDocTextBefore(source, offset, diagnostic) {
+  const prefix = source.slice(0, offset);
+  const start = prefix.lastIndexOf("/**");
+  const match = start === -1 ? null : /^\/\*\*([\s\S]*?)\*\/\s*$/u.exec(prefix.slice(start));
   if (!match) fail(diagnostic);
-  const words =
-    match[1]
-      .replace(/^\s*\*\s?/gmu, " ")
-      .replace(/@[A-Za-z][^\n]*/gu, " ")
-      .match(/[\p{L}\p{N}]+/gu) ?? [];
-  if (words.length < 3 || words.join("").length < 16) fail(diagnostic);
+  return match[1]
+    .replace(/^\s*\*\s?/gmu, " ")
+    .replace(/@[A-Za-z][^\n]*/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
 }
 
-export function validateWholeSurfaceJsDoc(_contract, actual) {
-  const tokens = tokenizeJavaScript(actual, "packages/taffyjs-node/index.d.ts");
-  const exports = tokens.filter(
-    (token) =>
-      token.value === "export" && token.brace === 0 && token.bracket === 0 && token.paren === 0,
-  );
-  if (exports.length === 0) fail("declaration-jsdoc-public-symbol");
-  for (const token of exports) {
-    meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-symbol");
-  }
-  const memberStarts = tokens.filter((token, index) => {
-    if (token.brace === 0 || token.paren !== 0 || token.bracket !== 0) return false;
-    if (token.type !== "identifier" && token.value !== "[") return false;
-    const previous = tokens[index - 1];
-    return (
-      (previous?.value === "{" && previous.brace === token.brace - 1) ||
-      (previous?.value === ";" && previous.brace === token.brace)
-    );
-  });
-  for (const token of memberStarts) {
-    meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-member");
-  }
+function meaningfulJsDocBefore(source, offset, diagnostic) {
+  const text = jsDocTextBefore(source, offset, diagnostic);
+  const words = text.match(/[\p{L}\p{N}]+/gu) ?? [];
+  if (words.length < 3 || words.join("").length < 16) fail(diagnostic);
+  return text;
 }
 
 const TREE_MEMBER_JSDOC = {
@@ -1733,6 +1717,150 @@ const TREE_MEMBER_JSDOC = {
   computeLayout: "Computes and stores layout for a tree root synchronously.",
 };
 
+const NUMERIC_FAMILY_NAMES = new Set([
+  "AlignContent",
+  "AlignItems",
+  "AvailableSpaceKind",
+  "BoxSizing",
+  "Clear",
+  "DetailedLayoutInfoKind",
+  "Direction",
+  "Display",
+  "FlexDirection",
+  "FlexWrap",
+  "Float",
+  "GridAutoFlow",
+  "GridPlacementKind",
+  "GridTemplateComponentKind",
+  "LengthUnit",
+  "Overflow",
+  "Position",
+  "RepetitionCountKind",
+  "TextAlign",
+  "TrackSizingKind",
+]);
+
+const VALUE_HELPER_NAMES = new Set([
+  "AvailableSpace",
+  "Dimension",
+  "GridPlacement",
+  "GridTemplateComponent",
+  "RepetitionCount",
+  "TrackSizingFunction",
+]);
+
+const LAYOUT_MEMBER_JSDOC = {
+  order: "Reports this node's stable traversal order in the stored layout.",
+  location: "Reports this node's position relative to its parent.",
+  size: "Reports this node's outer width and height.",
+  contentSize: "Reports the width and height of this node's content.",
+  scrollbarSize: "Reports the width and height reserved for scrollbars.",
+  border: "Reports this node's resolved border widths.",
+  padding: "Reports this node's resolved padding widths.",
+  margin: "Reports this node's resolved margins.",
+};
+
+function humanizeIdentifier(value) {
+  return value
+    .replace(/([a-z0-9])([A-Z])/gu, "$1 $2")
+    .replace(/_/gu, " ")
+    .toLowerCase();
+}
+
+function declarationKind(tokens, exportIndex, name) {
+  return (
+    tokens
+      .slice(exportIndex + 1)
+      .find(
+        (token) =>
+          ["class", "const", "interface", "type"].includes(token.value) || token.value === name,
+      )?.value ?? "declaration"
+  );
+}
+
+function publicSymbolJsDoc(name, kind) {
+  if (name === "EnumValue") {
+    return "Extracts the numeric literal values from a readonly constant family.";
+  }
+  if (name === "NodeId") {
+    return "Identifies a node in one TaffyTree without exposing its native identity.";
+  }
+  if (name === "TaffyTree") {
+    return "Owns one independent node tree, its contexts, styles, and stored layouts.";
+  }
+  if (name === "StyleInput") {
+    return "Supplies partial writable style data, using Taffy defaults for omitted fields.";
+  }
+  if (name === "Style") {
+    return "Returns a complete detached readonly snapshot of a node's stored style.";
+  }
+  if (name === "Layout") {
+    return "Returns a detached readonly snapshot of a node's most recently stored layout.";
+  }
+  if (name === "MeasureArgs") {
+    return "Supplies dimensions, available space, identity, context, and style to measurement.";
+  }
+  if (name === "MeasureFunction") {
+    return "Measures a leaf synchronously and returns its intrinsic width and height.";
+  }
+  if (name === "ChildRangeInput") {
+    return "Supplies a half-open child index range to removeChildrenRange.";
+  }
+  if (name === "ComputeLayoutWithMeasureOptions") {
+    return "Supplies a root, available space, and synchronous measurement callback.";
+  }
+  if (name === "ComputeLayoutOptions") {
+    return "Supplies a root and available space for ordinary layout computation.";
+  }
+  if (kind === "const" && NUMERIC_FAMILY_NAMES.has(name)) {
+    return `Lists the supported ${humanizeIdentifier(name)} choices as stable numeric constants.`;
+  }
+  if (kind === "type" && NUMERIC_FAMILY_NAMES.has(name)) {
+    return `Accepts one numeric value from the ${name} constant family.`;
+  }
+  if (kind === "const" && VALUE_HELPER_NAMES.has(name)) {
+    return `Provides constructors and shared values for readable ${humanizeIdentifier(name)} inputs.`;
+  }
+  if (name.endsWith("Input")) {
+    return `Supplies writable ${humanizeIdentifier(name.slice(0, -5))} data at the public API boundary.`;
+  }
+  if (name.startsWith("Detailed")) {
+    return `Reports detached readonly ${humanizeIdentifier(name)} from a completed Grid layout.`;
+  }
+  return `Represents the public ${humanizeIdentifier(name)} value used by TaffyJS.`;
+}
+
+function publicMemberJsDoc(owner, name) {
+  if (owner === "TaffyTree") return TREE_MEMBER_JSDOC[name];
+  if (owner === "NodeId" && name === "opaqueMarker") {
+    return "Keeps NodeId distinct from arbitrary bigint values during type checking.";
+  }
+  if (NUMERIC_FAMILY_NAMES.has(owner)) {
+    return `Selects the ${name} choice from the ${owner} numeric family.`;
+  }
+  if (owner === "StyleInput") {
+    if (name === "clear") return "Sets which preceding floats this node must clear.";
+    return `Sets the node's ${humanizeIdentifier(name)} style; omission uses Taffy's default.`;
+  }
+  if (owner === "Style") {
+    if (name === "clear") return "Reports which preceding floats this node must clear.";
+    return `Reports the node's stored ${humanizeIdentifier(name)} style value.`;
+  }
+  if (owner === "Layout" && LAYOUT_MEMBER_JSDOC[name]) return LAYOUT_MEMBER_JSDOC[name];
+  if (name === "kind") return `Identifies which ${owner} tagged variant this value contains.`;
+  if (name === "value") return `Carries the payload for this ${owner} tagged variant.`;
+  if (VALUE_HELPER_NAMES.has(owner)) {
+    return `Creates or provides the ${name} form of a ${owner} value.`;
+  }
+  if (owner.endsWith("Input") || owner.includes("Options") || owner === "MeasureArgs") {
+    return `Supplies the ${humanizeIdentifier(name)} value used by ${owner}.`;
+  }
+  if (owner.startsWith("Detailed") || owner === "Layout") {
+    return `Reports the ${humanizeIdentifier(name)} value stored in ${owner}.`;
+  }
+  return `Stores the ${humanizeIdentifier(name)} component of this ${owner} value.`;
+}
+
 function adjacentJsDoc(source, offset) {
   return /\/\*\*([\s\S]*?)\*\/\s*$/u.test(source.slice(0, offset));
 }
@@ -1748,37 +1876,29 @@ function declarationName(tokens, exportIndex) {
 }
 
 function memberName(tokens, memberIndex) {
-  const token = tokens[memberIndex];
-  if (token.value === "readonly") return tokens[memberIndex + 1]?.value ?? "member";
-  return token.value === "[" ? "opaque marker" : token.value;
-}
-
-function jsDocInsertion(source, offset, text) {
-  const lineStart = source.lastIndexOf("\n", offset - 1) + 1;
-  const indentation = source.slice(lineStart, offset);
-  return /^\s*$/u.test(indentation) ? `/** ${text} */\n${indentation}` : `/** ${text} */ `;
-}
-
-export function documentPublicDeclaration(actual) {
-  const tokens = tokenizeJavaScript(actual, "packages/taffyjs-node/index.d.ts");
-  const insertions = [];
-  for (let index = 0; index < tokens.length; index += 1) {
-    const token = tokens[index];
-    if (
-      token.value === "export" &&
-      token.brace === 0 &&
-      token.bracket === 0 &&
-      token.paren === 0 &&
-      !adjacentJsDoc(actual, token.start)
-    ) {
-      const name = declarationName(tokens, index);
-      insertions.push({
-        offset: token.start,
-        text: `Describes the public ${name} contract used to create or inspect Taffy layout data.`,
-      });
-    }
+  let index = memberIndex;
+  if (tokens[index]?.value === "readonly") index += 1;
+  if (tokens[index]?.value === "[") {
+    return tokens[index + 1]?.value === "phantomMarker" ? "opaqueMarker" : "computedMember";
   }
-  const memberStarts = tokens
+  return tokens[index]?.value ?? "member";
+}
+
+function declarationInfos(tokens) {
+  return tokens
+    .map((token, index) => ({ token, index }))
+    .filter(
+      ({ token }) =>
+        token.value === "export" && token.brace === 0 && token.bracket === 0 && token.paren === 0,
+    )
+    .map(({ token, index }) => {
+      const name = declarationName(tokens, index);
+      return { token, index, name, kind: declarationKind(tokens, index, name) };
+    });
+}
+
+function declarationMemberStarts(tokens) {
+  return tokens
     .map((token, index) => ({ token, index }))
     .filter(({ token, index }) => {
       if (token.brace === 0 || token.paren !== 0 || token.bracket !== 0) return false;
@@ -1789,14 +1909,67 @@ export function documentPublicDeclaration(actual) {
         (previous?.value === ";" && previous.brace === token.brace)
       );
     });
-  for (const { token, index } of memberStarts) {
+}
+
+function memberOwner(exports, offset) {
+  return exports.findLast(({ token }) => token.start < offset)?.name ?? "public value";
+}
+
+function jsDocInsertion(source, offset, text) {
+  const lineStart = source.lastIndexOf("\n", offset - 1) + 1;
+  const indentation = source.slice(lineStart, offset);
+  return /^\s*$/u.test(indentation) ? `/** ${text} */\n${indentation}` : `/** ${text} */ `;
+}
+
+export function validateWholeSurfaceJsDoc(contract, actual) {
+  const tokens = tokenizeJavaScript(actual, "packages/taffyjs-node/index.d.ts");
+  const exports = declarationInfos(tokens);
+  if (exports.length === 0) fail("declaration-jsdoc-public-symbol");
+  const publicNames = new Set(Object.values(contract.publicDeclarationExportsByOwner).flat());
+  for (const { token, name, kind } of exports) {
+    const text = meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-symbol");
+    if (publicNames.has(name) && text !== publicSymbolJsDoc(name, kind)) {
+      fail("declaration-jsdoc-public-symbol", name);
+    }
+  }
+  const nullableFields = new Set(
+    contract.nullableStyleFields.map((styleId) => new Map(contract.styleFields).get(styleId)),
+  );
+  const nullableComment = contract.publicDeclarationContract.styleGeneration.nullableInputJSDoc
+    .slice(3, -2)
+    .trim();
+  for (const { token, index } of declarationMemberStarts(tokens)) {
+    const owner = memberOwner(exports, token.start);
+    const name = memberName(tokens, index);
+    const text = meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-member");
+    if (!publicNames.has(owner)) continue;
+    const expected =
+      owner === "StyleInput" && nullableFields.has(name)
+        ? nullableComment
+        : publicMemberJsDoc(owner, name);
+    if (!expected || text !== expected) fail("declaration-jsdoc-public-member", `${owner}.${name}`);
+  }
+}
+
+export function documentPublicDeclaration(actual) {
+  const tokens = tokenizeJavaScript(actual, "packages/taffyjs-node/index.d.ts");
+  const exports = declarationInfos(tokens);
+  const insertions = [];
+  for (const { token, name, kind } of exports) {
+    if (!adjacentJsDoc(actual, token.start)) {
+      insertions.push({
+        offset: token.start,
+        text: publicSymbolJsDoc(name, kind),
+      });
+    }
+  }
+  for (const { token, index } of declarationMemberStarts(tokens)) {
     if (adjacentJsDoc(actual, token.start)) continue;
+    const owner = memberOwner(exports, token.start);
     const name = memberName(tokens, index);
     insertions.push({
       offset: token.start,
-      text:
-        TREE_MEMBER_JSDOC[name] ??
-        `Describes the ${name} member carried by this public TaffyJS value.`,
+      text: publicMemberJsDoc(owner, name),
     });
   }
   insertions.sort((left, right) => right.offset - left.offset);
@@ -3982,6 +4155,80 @@ async function validateRealRunnerGraph(root, contract, expanded, status) {
   }
 }
 
+const RUST_TYPE_WRAPPERS = new Set([
+  "Box",
+  "ChildIter",
+  "FnMut",
+  "GridTrackVec",
+  "NodeContext",
+  "Option",
+  "PhantomData",
+  "RangeBounds",
+  "Result",
+  "Self",
+  "Vec",
+]);
+
+function rustTypeIdentifiers(source) {
+  return [...String(source).matchAll(/\b[A-Z][A-Za-z0-9_]*\b/gu)].map((match) => match[0]);
+}
+
+function namedDataTypeSources(value) {
+  const shape = value.actualShape;
+  const sources = [];
+  if (shape.fields) sources.push(...Object.values(shape.fields));
+  if (shape.target) sources.push(shape.target);
+  for (const field of shape.publicFields ?? []) sources.push(field.type);
+  for (const payload of Object.values(shape.variants ?? {})) {
+    if (Array.isArray(payload)) sources.push(...payload);
+    else if (payload && typeof payload === "object") sources.push(...Object.values(payload));
+  }
+  return sources;
+}
+
+function validateReachableNamedData(parsed) {
+  const known = new Set(Object.keys(parsed.namedData));
+  const reached = new Set();
+  const queue = [];
+  const unknown = new Set();
+  const visitSource = (source) => {
+    for (const identifier of rustTypeIdentifiers(source)) {
+      if (known.has(identifier)) {
+        if (!reached.has(identifier)) {
+          reached.add(identifier);
+          queue.push(identifier);
+        }
+      } else if (!RUST_TYPE_WRAPPERS.has(identifier) && !/^(?:T|C)\d+$/u.test(identifier)) {
+        unknown.add(identifier);
+      }
+    }
+  };
+  for (const method of [
+    ...Object.values(parsed.inherentMethods),
+    ...Object.values(parsed.traitMethods),
+  ]) {
+    visitSource(method.normalizedSignature);
+  }
+  for (const root of parsed.adjacentRoots) {
+    if (root.detail.iteratorItem) visitSource(root.detail.iteratorItem);
+    for (const field of root.detail.publicFields ?? []) visitSource(field.type);
+  }
+  while (queue.length !== 0) {
+    const name = queue.shift();
+    for (const source of namedDataTypeSources(parsed.namedData[name])) visitSource(source);
+  }
+  if (unknown.size !== 0) {
+    fail("source-drift/named-data-reachability", [...unknown].sort(asciiCompare).join(", "));
+  }
+  const missing = Object.entries(parsed.namedData)
+    .filter(([, value]) => value.actualShape.kind !== "typeAlias")
+    .map(([name]) => name)
+    .filter((name) => !reached.has(name));
+  if (missing.length !== 0) {
+    fail("source-drift/named-data-reachability", missing.sort(asciiCompare).join(", "));
+  }
+}
+
 export function validateParsedSourceInventory(contract, parsed) {
   if (parsed.parser !== "syn-2.0.119") fail("source-drift/parser-version");
   if (!parsed.inherentImplMatches) fail("source-drift/impl-header");
@@ -4049,6 +4296,7 @@ export function validateParsedSourceInventory(contract, parsed) {
   if (badNamedData.length !== 0) {
     fail("source-drift/named-data-shape", badNamedData.map(([name]) => name).join(", "));
   }
+  validateReachableNamedData(parsed);
 }
 
 const verifiedTaffyArchives = new Map();

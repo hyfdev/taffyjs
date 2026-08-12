@@ -1,786 +1,786 @@
 declare const phantomMarker: unique symbol;
 
-/** Describes the public EnumValue contract used to create or inspect Taffy layout data. */
+/** Extracts the numeric literal values from a readonly constant family. */
 export type EnumValue<Family extends Readonly<Record<string, number>>> = Family[keyof Family];
 
-/** Describes the public Display contract used to create or inspect Taffy layout data. */
+/** Lists the supported display choices as stable numeric constants. */
 export declare const Display: Readonly<{
-  /** Describes the Block member carried by this public TaffyJS value. */ readonly Block: 0;
-  /** Describes the FlowRoot member carried by this public TaffyJS value. */ readonly FlowRoot: 1;
-  /** Describes the Flex member carried by this public TaffyJS value. */ readonly Flex: 2;
-  /** Describes the Grid member carried by this public TaffyJS value. */ readonly Grid: 3;
-  /** Describes the None member carried by this public TaffyJS value. */ readonly None: 4;
+  /** Selects the Block choice from the Display numeric family. */ readonly Block: 0;
+  /** Selects the FlowRoot choice from the Display numeric family. */ readonly FlowRoot: 1;
+  /** Selects the Flex choice from the Display numeric family. */ readonly Flex: 2;
+  /** Selects the Grid choice from the Display numeric family. */ readonly Grid: 3;
+  /** Selects the None choice from the Display numeric family. */ readonly None: 4;
 }>;
 
-/** Describes the public Display contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the Display constant family. */
 export type Display = EnumValue<typeof Display>;
 
-/** Describes the public BoxSizing contract used to create or inspect Taffy layout data. */
+/** Lists the supported box sizing choices as stable numeric constants. */
 export declare const BoxSizing: Readonly<{
-  /** Describes the BorderBox member carried by this public TaffyJS value. */ readonly BorderBox: 0;
-  /** Describes the ContentBox member carried by this public TaffyJS value. */ readonly ContentBox: 1;
+  /** Selects the BorderBox choice from the BoxSizing numeric family. */ readonly BorderBox: 0;
+  /** Selects the ContentBox choice from the BoxSizing numeric family. */ readonly ContentBox: 1;
 }>;
 
-/** Describes the public BoxSizing contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the BoxSizing constant family. */
 export type BoxSizing = EnumValue<typeof BoxSizing>;
 
-/** Describes the public Direction contract used to create or inspect Taffy layout data. */
+/** Lists the supported direction choices as stable numeric constants. */
 export declare const Direction: Readonly<{
-  /** Describes the Ltr member carried by this public TaffyJS value. */ readonly Ltr: 0;
-  /** Describes the Rtl member carried by this public TaffyJS value. */ readonly Rtl: 1;
+  /** Selects the Ltr choice from the Direction numeric family. */ readonly Ltr: 0;
+  /** Selects the Rtl choice from the Direction numeric family. */ readonly Rtl: 1;
 }>;
 
-/** Describes the public Direction contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the Direction constant family. */
 export type Direction = EnumValue<typeof Direction>;
 
-/** Describes the public Overflow contract used to create or inspect Taffy layout data. */
+/** Lists the supported overflow choices as stable numeric constants. */
 export declare const Overflow: Readonly<{
-  /** Describes the Visible member carried by this public TaffyJS value. */ readonly Visible: 0;
-  /** Describes the Clip member carried by this public TaffyJS value. */ readonly Clip: 1;
-  /** Describes the Hidden member carried by this public TaffyJS value. */ readonly Hidden: 2;
-  /** Describes the Scroll member carried by this public TaffyJS value. */ readonly Scroll: 3;
+  /** Selects the Visible choice from the Overflow numeric family. */ readonly Visible: 0;
+  /** Selects the Clip choice from the Overflow numeric family. */ readonly Clip: 1;
+  /** Selects the Hidden choice from the Overflow numeric family. */ readonly Hidden: 2;
+  /** Selects the Scroll choice from the Overflow numeric family. */ readonly Scroll: 3;
 }>;
 
-/** Describes the public Overflow contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the Overflow constant family. */
 export type Overflow = EnumValue<typeof Overflow>;
 
-/** Describes the public Float contract used to create or inspect Taffy layout data. */
+/** Lists the supported float choices as stable numeric constants. */
 export declare const Float: Readonly<{
-  /** Describes the Left member carried by this public TaffyJS value. */ readonly Left: 0;
-  /** Describes the Right member carried by this public TaffyJS value. */ readonly Right: 1;
-  /** Describes the None member carried by this public TaffyJS value. */ readonly None: 2;
+  /** Selects the Left choice from the Float numeric family. */ readonly Left: 0;
+  /** Selects the Right choice from the Float numeric family. */ readonly Right: 1;
+  /** Selects the None choice from the Float numeric family. */ readonly None: 2;
 }>;
 
-/** Describes the public Float contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the Float constant family. */
 export type Float = EnumValue<typeof Float>;
 
-/** Describes the public Clear contract used to create or inspect Taffy layout data. */
+/** Lists the supported clear choices as stable numeric constants. */
 export declare const Clear: Readonly<{
-  /** Describes the Left member carried by this public TaffyJS value. */ readonly Left: 0;
-  /** Describes the Right member carried by this public TaffyJS value. */ readonly Right: 1;
-  /** Describes the Both member carried by this public TaffyJS value. */ readonly Both: 2;
-  /** Describes the None member carried by this public TaffyJS value. */ readonly None: 3;
+  /** Selects the Left choice from the Clear numeric family. */ readonly Left: 0;
+  /** Selects the Right choice from the Clear numeric family. */ readonly Right: 1;
+  /** Selects the Both choice from the Clear numeric family. */ readonly Both: 2;
+  /** Selects the None choice from the Clear numeric family. */ readonly None: 3;
 }>;
 
-/** Describes the public Clear contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the Clear constant family. */
 export type Clear = EnumValue<typeof Clear>;
 
-/** Describes the public Position contract used to create or inspect Taffy layout data. */
+/** Lists the supported position choices as stable numeric constants. */
 export declare const Position: Readonly<{
-  /** Describes the Relative member carried by this public TaffyJS value. */ readonly Relative: 0;
-  /** Describes the Absolute member carried by this public TaffyJS value. */ readonly Absolute: 1;
+  /** Selects the Relative choice from the Position numeric family. */ readonly Relative: 0;
+  /** Selects the Absolute choice from the Position numeric family. */ readonly Absolute: 1;
 }>;
 
-/** Describes the public Position contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the Position constant family. */
 export type Position = EnumValue<typeof Position>;
 
-/** Describes the public TextAlign contract used to create or inspect Taffy layout data. */
+/** Lists the supported text align choices as stable numeric constants. */
 export declare const TextAlign: Readonly<{
-  /** Describes the Auto member carried by this public TaffyJS value. */ readonly Auto: 0;
-  /** Describes the LegacyLeft member carried by this public TaffyJS value. */ readonly LegacyLeft: 1;
-  /** Describes the LegacyRight member carried by this public TaffyJS value. */ readonly LegacyRight: 2;
-  /** Describes the LegacyCenter member carried by this public TaffyJS value. */ readonly LegacyCenter: 3;
+  /** Selects the Auto choice from the TextAlign numeric family. */ readonly Auto: 0;
+  /** Selects the LegacyLeft choice from the TextAlign numeric family. */ readonly LegacyLeft: 1;
+  /** Selects the LegacyRight choice from the TextAlign numeric family. */ readonly LegacyRight: 2;
+  /** Selects the LegacyCenter choice from the TextAlign numeric family. */ readonly LegacyCenter: 3;
 }>;
 
-/** Describes the public TextAlign contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the TextAlign constant family. */
 export type TextAlign = EnumValue<typeof TextAlign>;
 
-/** Describes the public FlexDirection contract used to create or inspect Taffy layout data. */
+/** Lists the supported flex direction choices as stable numeric constants. */
 export declare const FlexDirection: Readonly<{
-  /** Describes the Row member carried by this public TaffyJS value. */ readonly Row: 0;
-  /** Describes the Column member carried by this public TaffyJS value. */ readonly Column: 1;
-  /** Describes the RowReverse member carried by this public TaffyJS value. */ readonly RowReverse: 2;
-  /** Describes the ColumnReverse member carried by this public TaffyJS value. */ readonly ColumnReverse: 3;
+  /** Selects the Row choice from the FlexDirection numeric family. */ readonly Row: 0;
+  /** Selects the Column choice from the FlexDirection numeric family. */ readonly Column: 1;
+  /** Selects the RowReverse choice from the FlexDirection numeric family. */ readonly RowReverse: 2;
+  /** Selects the ColumnReverse choice from the FlexDirection numeric family. */ readonly ColumnReverse: 3;
 }>;
 
-/** Describes the public FlexDirection contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the FlexDirection constant family. */
 export type FlexDirection = EnumValue<typeof FlexDirection>;
 
-/** Describes the public FlexWrap contract used to create or inspect Taffy layout data. */
+/** Lists the supported flex wrap choices as stable numeric constants. */
 export declare const FlexWrap: Readonly<{
-  /** Describes the NoWrap member carried by this public TaffyJS value. */ readonly NoWrap: 0;
-  /** Describes the Wrap member carried by this public TaffyJS value. */ readonly Wrap: 1;
-  /** Describes the WrapReverse member carried by this public TaffyJS value. */ readonly WrapReverse: 2;
+  /** Selects the NoWrap choice from the FlexWrap numeric family. */ readonly NoWrap: 0;
+  /** Selects the Wrap choice from the FlexWrap numeric family. */ readonly Wrap: 1;
+  /** Selects the WrapReverse choice from the FlexWrap numeric family. */ readonly WrapReverse: 2;
 }>;
 
-/** Describes the public FlexWrap contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the FlexWrap constant family. */
 export type FlexWrap = EnumValue<typeof FlexWrap>;
 
-/** Describes the public GridAutoFlow contract used to create or inspect Taffy layout data. */
+/** Lists the supported grid auto flow choices as stable numeric constants. */
 export declare const GridAutoFlow: Readonly<{
-  /** Describes the Row member carried by this public TaffyJS value. */ readonly Row: 0;
-  /** Describes the Column member carried by this public TaffyJS value. */ readonly Column: 1;
-  /** Describes the RowDense member carried by this public TaffyJS value. */ readonly RowDense: 2;
-  /** Describes the ColumnDense member carried by this public TaffyJS value. */ readonly ColumnDense: 3;
+  /** Selects the Row choice from the GridAutoFlow numeric family. */ readonly Row: 0;
+  /** Selects the Column choice from the GridAutoFlow numeric family. */ readonly Column: 1;
+  /** Selects the RowDense choice from the GridAutoFlow numeric family. */ readonly RowDense: 2;
+  /** Selects the ColumnDense choice from the GridAutoFlow numeric family. */ readonly ColumnDense: 3;
 }>;
 
-/** Describes the public GridAutoFlow contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the GridAutoFlow constant family. */
 export type GridAutoFlow = EnumValue<typeof GridAutoFlow>;
 
-/** Describes the public AlignItems contract used to create or inspect Taffy layout data. */
+/** Lists the supported align items choices as stable numeric constants. */
 export declare const AlignItems: Readonly<{
-  /** Describes the Start member carried by this public TaffyJS value. */ readonly Start: 0;
-  /** Describes the End member carried by this public TaffyJS value. */ readonly End: 1;
-  /** Describes the FlexStart member carried by this public TaffyJS value. */ readonly FlexStart: 2;
-  /** Describes the FlexEnd member carried by this public TaffyJS value. */ readonly FlexEnd: 3;
-  /** Describes the SelfStart member carried by this public TaffyJS value. */ readonly SelfStart: 4;
-  /** Describes the SelfEnd member carried by this public TaffyJS value. */ readonly SelfEnd: 5;
-  /** Describes the Center member carried by this public TaffyJS value. */ readonly Center: 6;
-  /** Describes the Baseline member carried by this public TaffyJS value. */ readonly Baseline: 7;
-  /** Describes the Stretch member carried by this public TaffyJS value. */ readonly Stretch: 8;
-  /** Describes the SafeStart member carried by this public TaffyJS value. */ readonly SafeStart: 9;
-  /** Describes the SafeEnd member carried by this public TaffyJS value. */ readonly SafeEnd: 10;
-  /** Describes the SafeFlexStart member carried by this public TaffyJS value. */ readonly SafeFlexStart: 11;
-  /** Describes the SafeFlexEnd member carried by this public TaffyJS value. */ readonly SafeFlexEnd: 12;
-  /** Describes the SafeSelfStart member carried by this public TaffyJS value. */ readonly SafeSelfStart: 13;
-  /** Describes the SafeSelfEnd member carried by this public TaffyJS value. */ readonly SafeSelfEnd: 14;
-  /** Describes the SafeCenter member carried by this public TaffyJS value. */ readonly SafeCenter: 15;
+  /** Selects the Start choice from the AlignItems numeric family. */ readonly Start: 0;
+  /** Selects the End choice from the AlignItems numeric family. */ readonly End: 1;
+  /** Selects the FlexStart choice from the AlignItems numeric family. */ readonly FlexStart: 2;
+  /** Selects the FlexEnd choice from the AlignItems numeric family. */ readonly FlexEnd: 3;
+  /** Selects the SelfStart choice from the AlignItems numeric family. */ readonly SelfStart: 4;
+  /** Selects the SelfEnd choice from the AlignItems numeric family. */ readonly SelfEnd: 5;
+  /** Selects the Center choice from the AlignItems numeric family. */ readonly Center: 6;
+  /** Selects the Baseline choice from the AlignItems numeric family. */ readonly Baseline: 7;
+  /** Selects the Stretch choice from the AlignItems numeric family. */ readonly Stretch: 8;
+  /** Selects the SafeStart choice from the AlignItems numeric family. */ readonly SafeStart: 9;
+  /** Selects the SafeEnd choice from the AlignItems numeric family. */ readonly SafeEnd: 10;
+  /** Selects the SafeFlexStart choice from the AlignItems numeric family. */ readonly SafeFlexStart: 11;
+  /** Selects the SafeFlexEnd choice from the AlignItems numeric family. */ readonly SafeFlexEnd: 12;
+  /** Selects the SafeSelfStart choice from the AlignItems numeric family. */ readonly SafeSelfStart: 13;
+  /** Selects the SafeSelfEnd choice from the AlignItems numeric family. */ readonly SafeSelfEnd: 14;
+  /** Selects the SafeCenter choice from the AlignItems numeric family. */ readonly SafeCenter: 15;
 }>;
 
-/** Describes the public AlignItems contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the AlignItems constant family. */
 export type AlignItems = EnumValue<typeof AlignItems>;
 
-/** Describes the public AlignContent contract used to create or inspect Taffy layout data. */
+/** Lists the supported align content choices as stable numeric constants. */
 export declare const AlignContent: Readonly<{
-  /** Describes the Start member carried by this public TaffyJS value. */ readonly Start: 0;
-  /** Describes the End member carried by this public TaffyJS value. */ readonly End: 1;
-  /** Describes the FlexStart member carried by this public TaffyJS value. */ readonly FlexStart: 2;
-  /** Describes the FlexEnd member carried by this public TaffyJS value. */ readonly FlexEnd: 3;
-  /** Describes the Center member carried by this public TaffyJS value. */ readonly Center: 4;
-  /** Describes the Stretch member carried by this public TaffyJS value. */ readonly Stretch: 5;
-  /** Describes the SpaceBetween member carried by this public TaffyJS value. */ readonly SpaceBetween: 6;
-  /** Describes the SpaceEvenly member carried by this public TaffyJS value. */ readonly SpaceEvenly: 7;
-  /** Describes the SpaceAround member carried by this public TaffyJS value. */ readonly SpaceAround: 8;
-  /** Describes the SafeStart member carried by this public TaffyJS value. */ readonly SafeStart: 9;
-  /** Describes the SafeEnd member carried by this public TaffyJS value. */ readonly SafeEnd: 10;
-  /** Describes the SafeFlexStart member carried by this public TaffyJS value. */ readonly SafeFlexStart: 11;
-  /** Describes the SafeFlexEnd member carried by this public TaffyJS value. */ readonly SafeFlexEnd: 12;
-  /** Describes the SafeCenter member carried by this public TaffyJS value. */ readonly SafeCenter: 13;
+  /** Selects the Start choice from the AlignContent numeric family. */ readonly Start: 0;
+  /** Selects the End choice from the AlignContent numeric family. */ readonly End: 1;
+  /** Selects the FlexStart choice from the AlignContent numeric family. */ readonly FlexStart: 2;
+  /** Selects the FlexEnd choice from the AlignContent numeric family. */ readonly FlexEnd: 3;
+  /** Selects the Center choice from the AlignContent numeric family. */ readonly Center: 4;
+  /** Selects the Stretch choice from the AlignContent numeric family. */ readonly Stretch: 5;
+  /** Selects the SpaceBetween choice from the AlignContent numeric family. */ readonly SpaceBetween: 6;
+  /** Selects the SpaceEvenly choice from the AlignContent numeric family. */ readonly SpaceEvenly: 7;
+  /** Selects the SpaceAround choice from the AlignContent numeric family. */ readonly SpaceAround: 8;
+  /** Selects the SafeStart choice from the AlignContent numeric family. */ readonly SafeStart: 9;
+  /** Selects the SafeEnd choice from the AlignContent numeric family. */ readonly SafeEnd: 10;
+  /** Selects the SafeFlexStart choice from the AlignContent numeric family. */ readonly SafeFlexStart: 11;
+  /** Selects the SafeFlexEnd choice from the AlignContent numeric family. */ readonly SafeFlexEnd: 12;
+  /** Selects the SafeCenter choice from the AlignContent numeric family. */ readonly SafeCenter: 13;
 }>;
 
-/** Describes the public AlignContent contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the AlignContent constant family. */
 export type AlignContent = EnumValue<typeof AlignContent>;
 
-/** Describes the public LengthUnit contract used to create or inspect Taffy layout data. */
+/** Lists the supported length unit choices as stable numeric constants. */
 export declare const LengthUnit: Readonly<{
-  /** Describes the Length member carried by this public TaffyJS value. */ readonly Length: 0;
-  /** Describes the Percent member carried by this public TaffyJS value. */ readonly Percent: 1;
-  /** Describes the Auto member carried by this public TaffyJS value. */ readonly Auto: 2;
+  /** Selects the Length choice from the LengthUnit numeric family. */ readonly Length: 0;
+  /** Selects the Percent choice from the LengthUnit numeric family. */ readonly Percent: 1;
+  /** Selects the Auto choice from the LengthUnit numeric family. */ readonly Auto: 2;
 }>;
 
-/** Describes the public LengthUnit contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the LengthUnit constant family. */
 export type LengthUnit = EnumValue<typeof LengthUnit>;
 
-/** Describes the public AvailableSpaceKind contract used to create or inspect Taffy layout data. */
+/** Lists the supported available space kind choices as stable numeric constants. */
 export declare const AvailableSpaceKind: Readonly<{
-  /** Describes the Definite member carried by this public TaffyJS value. */ readonly Definite: 0;
-  /** Describes the MinContent member carried by this public TaffyJS value. */ readonly MinContent: 1;
-  /** Describes the MaxContent member carried by this public TaffyJS value. */ readonly MaxContent: 2;
+  /** Selects the Definite choice from the AvailableSpaceKind numeric family. */ readonly Definite: 0;
+  /** Selects the MinContent choice from the AvailableSpaceKind numeric family. */ readonly MinContent: 1;
+  /** Selects the MaxContent choice from the AvailableSpaceKind numeric family. */ readonly MaxContent: 2;
 }>;
 
-/** Describes the public AvailableSpaceKind contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the AvailableSpaceKind constant family. */
 export type AvailableSpaceKind = EnumValue<typeof AvailableSpaceKind>;
 
-/** Describes the public GridPlacementKind contract used to create or inspect Taffy layout data. */
+/** Lists the supported grid placement kind choices as stable numeric constants. */
 export declare const GridPlacementKind: Readonly<{
-  /** Describes the Auto member carried by this public TaffyJS value. */ readonly Auto: 0;
-  /** Describes the Line member carried by this public TaffyJS value. */ readonly Line: 1;
-  /** Describes the NamedLine member carried by this public TaffyJS value. */ readonly NamedLine: 2;
-  /** Describes the Span member carried by this public TaffyJS value. */ readonly Span: 3;
-  /** Describes the NamedSpan member carried by this public TaffyJS value. */ readonly NamedSpan: 4;
+  /** Selects the Auto choice from the GridPlacementKind numeric family. */ readonly Auto: 0;
+  /** Selects the Line choice from the GridPlacementKind numeric family. */ readonly Line: 1;
+  /** Selects the NamedLine choice from the GridPlacementKind numeric family. */ readonly NamedLine: 2;
+  /** Selects the Span choice from the GridPlacementKind numeric family. */ readonly Span: 3;
+  /** Selects the NamedSpan choice from the GridPlacementKind numeric family. */ readonly NamedSpan: 4;
 }>;
 
-/** Describes the public GridPlacementKind contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the GridPlacementKind constant family. */
 export type GridPlacementKind = EnumValue<typeof GridPlacementKind>;
 
-/** Describes the public TrackSizingKind contract used to create or inspect Taffy layout data. */
+/** Lists the supported track sizing kind choices as stable numeric constants. */
 export declare const TrackSizingKind: Readonly<{
-  /** Describes the Length member carried by this public TaffyJS value. */ readonly Length: 0;
-  /** Describes the Percent member carried by this public TaffyJS value. */ readonly Percent: 1;
-  /** Describes the Auto member carried by this public TaffyJS value. */ readonly Auto: 2;
-  /** Describes the MinContent member carried by this public TaffyJS value. */ readonly MinContent: 3;
-  /** Describes the MaxContent member carried by this public TaffyJS value. */ readonly MaxContent: 4;
-  /** Describes the FitContent member carried by this public TaffyJS value. */ readonly FitContent: 5;
-  /** Describes the Fr member carried by this public TaffyJS value. */ readonly Fr: 6;
+  /** Selects the Length choice from the TrackSizingKind numeric family. */ readonly Length: 0;
+  /** Selects the Percent choice from the TrackSizingKind numeric family. */ readonly Percent: 1;
+  /** Selects the Auto choice from the TrackSizingKind numeric family. */ readonly Auto: 2;
+  /** Selects the MinContent choice from the TrackSizingKind numeric family. */ readonly MinContent: 3;
+  /** Selects the MaxContent choice from the TrackSizingKind numeric family. */ readonly MaxContent: 4;
+  /** Selects the FitContent choice from the TrackSizingKind numeric family. */ readonly FitContent: 5;
+  /** Selects the Fr choice from the TrackSizingKind numeric family. */ readonly Fr: 6;
 }>;
 
-/** Describes the public TrackSizingKind contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the TrackSizingKind constant family. */
 export type TrackSizingKind = EnumValue<typeof TrackSizingKind>;
 
-/** Describes the public RepetitionCountKind contract used to create or inspect Taffy layout data. */
+/** Lists the supported repetition count kind choices as stable numeric constants. */
 export declare const RepetitionCountKind: Readonly<{
-  /** Describes the Count member carried by this public TaffyJS value. */ readonly Count: 0;
-  /** Describes the AutoFill member carried by this public TaffyJS value. */ readonly AutoFill: 1;
-  /** Describes the AutoFit member carried by this public TaffyJS value. */ readonly AutoFit: 2;
+  /** Selects the Count choice from the RepetitionCountKind numeric family. */ readonly Count: 0;
+  /** Selects the AutoFill choice from the RepetitionCountKind numeric family. */ readonly AutoFill: 1;
+  /** Selects the AutoFit choice from the RepetitionCountKind numeric family. */ readonly AutoFit: 2;
 }>;
 
-/** Describes the public RepetitionCountKind contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the RepetitionCountKind constant family. */
 export type RepetitionCountKind = EnumValue<typeof RepetitionCountKind>;
 
-/** Describes the public GridTemplateComponentKind contract used to create or inspect Taffy layout data. */
+/** Lists the supported grid template component kind choices as stable numeric constants. */
 export declare const GridTemplateComponentKind: Readonly<{
-  /** Describes the Single member carried by this public TaffyJS value. */ readonly Single: 0;
-  /** Describes the Repeat member carried by this public TaffyJS value. */ readonly Repeat: 1;
+  /** Selects the Single choice from the GridTemplateComponentKind numeric family. */ readonly Single: 0;
+  /** Selects the Repeat choice from the GridTemplateComponentKind numeric family. */ readonly Repeat: 1;
 }>;
 
-/** Describes the public GridTemplateComponentKind contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the GridTemplateComponentKind constant family. */
 export type GridTemplateComponentKind = EnumValue<typeof GridTemplateComponentKind>;
 
-/** Describes the public DetailedLayoutInfoKind contract used to create or inspect Taffy layout data. */
+/** Lists the supported detailed layout info kind choices as stable numeric constants. */
 export declare const DetailedLayoutInfoKind: Readonly<{
-  /** Describes the None member carried by this public TaffyJS value. */ readonly None: 0;
-  /** Describes the Grid member carried by this public TaffyJS value. */ readonly Grid: 1;
+  /** Selects the None choice from the DetailedLayoutInfoKind numeric family. */ readonly None: 0;
+  /** Selects the Grid choice from the DetailedLayoutInfoKind numeric family. */ readonly Grid: 1;
 }>;
 
-/** Describes the public DetailedLayoutInfoKind contract used to create or inspect Taffy layout data. */
+/** Accepts one numeric value from the DetailedLayoutInfoKind constant family. */
 export type DetailedLayoutInfoKind = EnumValue<typeof DetailedLayoutInfoKind>;
 
-/** Describes the public NodeId contract used to create or inspect Taffy layout data. */
+/** Identifies a node in one TaffyTree without exposing its native identity. */
 export type NodeId = bigint & {
-  /** Describes the [ member carried by this public TaffyJS value. */ readonly [phantomMarker]: never;
+  /** Keeps NodeId distinct from arbitrary bigint values during type checking. */ readonly [phantomMarker]: never;
 };
 
-/** Describes the public PointInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable point data at the public API boundary. */
 export interface PointInput<T> {
-  /** Describes the x member carried by this public TaffyJS value. */ x: T;
-  /** Describes the y member carried by this public TaffyJS value. */ y: T;
+  /** Supplies the x value used by PointInput. */ x: T;
+  /** Supplies the y value used by PointInput. */ y: T;
 }
 
-/** Describes the public PartialPointInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable partial point data at the public API boundary. */
 export interface PartialPointInput<T> {
-  /** Describes the x member carried by this public TaffyJS value. */ x?: T | undefined;
-  /** Describes the y member carried by this public TaffyJS value. */ y?: T | undefined;
+  /** Supplies the x value used by PartialPointInput. */ x?: T | undefined;
+  /** Supplies the y value used by PartialPointInput. */ y?: T | undefined;
 }
 
-/** Describes the public Point contract used to create or inspect Taffy layout data. */
+/** Represents the public point value used by TaffyJS. */
 export interface Point<T> {
-  /** Describes the x member carried by this public TaffyJS value. */ readonly x: T;
-  /** Describes the y member carried by this public TaffyJS value. */ readonly y: T;
+  /** Stores the x component of this Point value. */ readonly x: T;
+  /** Stores the y component of this Point value. */ readonly y: T;
 }
 
-/** Describes the public SizeInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable size data at the public API boundary. */
 export interface SizeInput<T> {
-  /** Describes the width member carried by this public TaffyJS value. */ width: T;
-  /** Describes the height member carried by this public TaffyJS value. */ height: T;
+  /** Supplies the width value used by SizeInput. */ width: T;
+  /** Supplies the height value used by SizeInput. */ height: T;
 }
 
-/** Describes the public PartialSizeInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable partial size data at the public API boundary. */
 export interface PartialSizeInput<T> {
-  /** Describes the width member carried by this public TaffyJS value. */ width?: T | undefined;
-  /** Describes the height member carried by this public TaffyJS value. */ height?: T | undefined;
+  /** Supplies the width value used by PartialSizeInput. */ width?: T | undefined;
+  /** Supplies the height value used by PartialSizeInput. */ height?: T | undefined;
 }
 
-/** Describes the public Size contract used to create or inspect Taffy layout data. */
+/** Represents the public size value used by TaffyJS. */
 export interface Size<T> {
-  /** Describes the width member carried by this public TaffyJS value. */ readonly width: T;
-  /** Describes the height member carried by this public TaffyJS value. */ readonly height: T;
+  /** Stores the width component of this Size value. */ readonly width: T;
+  /** Stores the height component of this Size value. */ readonly height: T;
 }
 
-/** Describes the public RectInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable rect data at the public API boundary. */
 export interface RectInput<T> {
-  /** Describes the left member carried by this public TaffyJS value. */ left: T;
-  /** Describes the right member carried by this public TaffyJS value. */ right: T;
-  /** Describes the top member carried by this public TaffyJS value. */ top: T;
-  /** Describes the bottom member carried by this public TaffyJS value. */ bottom: T;
+  /** Supplies the left value used by RectInput. */ left: T;
+  /** Supplies the right value used by RectInput. */ right: T;
+  /** Supplies the top value used by RectInput. */ top: T;
+  /** Supplies the bottom value used by RectInput. */ bottom: T;
 }
 
-/** Describes the public PartialRectInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable partial rect data at the public API boundary. */
 export interface PartialRectInput<T> {
-  /** Describes the left member carried by this public TaffyJS value. */ left?: T | undefined;
-  /** Describes the right member carried by this public TaffyJS value. */ right?: T | undefined;
-  /** Describes the top member carried by this public TaffyJS value. */ top?: T | undefined;
-  /** Describes the bottom member carried by this public TaffyJS value. */ bottom?: T | undefined;
+  /** Supplies the left value used by PartialRectInput. */ left?: T | undefined;
+  /** Supplies the right value used by PartialRectInput. */ right?: T | undefined;
+  /** Supplies the top value used by PartialRectInput. */ top?: T | undefined;
+  /** Supplies the bottom value used by PartialRectInput. */ bottom?: T | undefined;
 }
 
-/** Describes the public Rect contract used to create or inspect Taffy layout data. */
+/** Represents the public rect value used by TaffyJS. */
 export interface Rect<T> {
-  /** Describes the left member carried by this public TaffyJS value. */ readonly left: T;
-  /** Describes the right member carried by this public TaffyJS value. */ readonly right: T;
-  /** Describes the top member carried by this public TaffyJS value. */ readonly top: T;
-  /** Describes the bottom member carried by this public TaffyJS value. */ readonly bottom: T;
+  /** Stores the left component of this Rect value. */ readonly left: T;
+  /** Stores the right component of this Rect value. */ readonly right: T;
+  /** Stores the top component of this Rect value. */ readonly top: T;
+  /** Stores the bottom component of this Rect value. */ readonly bottom: T;
 }
 
-/** Describes the public LineInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable line data at the public API boundary. */
 export interface LineInput<T> {
-  /** Describes the start member carried by this public TaffyJS value. */ start: T;
-  /** Describes the end member carried by this public TaffyJS value. */ end: T;
+  /** Supplies the start value used by LineInput. */ start: T;
+  /** Supplies the end value used by LineInput. */ end: T;
 }
 
-/** Describes the public PartialLineInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable partial line data at the public API boundary. */
 export interface PartialLineInput<T> {
-  /** Describes the start member carried by this public TaffyJS value. */ start?: T | undefined;
-  /** Describes the end member carried by this public TaffyJS value. */ end?: T | undefined;
+  /** Supplies the start value used by PartialLineInput. */ start?: T | undefined;
+  /** Supplies the end value used by PartialLineInput. */ end?: T | undefined;
 }
 
-/** Describes the public Line contract used to create or inspect Taffy layout data. */
+/** Represents the public line value used by TaffyJS. */
 export interface Line<T> {
-  /** Describes the start member carried by this public TaffyJS value. */ readonly start: T;
-  /** Describes the end member carried by this public TaffyJS value. */ readonly end: T;
+  /** Stores the start component of this Line value. */ readonly start: T;
+  /** Stores the end component of this Line value. */ readonly end: T;
 }
 
-/** Describes the public LengthInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable length data at the public API boundary. */
 export type LengthInput = {
-  /** Describes the unit member carried by this public TaffyJS value. */ unit: typeof LengthUnit.Length;
-  /** Describes the value member carried by this public TaffyJS value. */ value: number;
+  /** Supplies the unit value used by LengthInput. */ unit: typeof LengthUnit.Length;
+  /** Carries the payload for this LengthInput tagged variant. */ value: number;
 };
 
-/** Describes the public PercentInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable percent data at the public API boundary. */
 export type PercentInput = {
-  /** Describes the unit member carried by this public TaffyJS value. */ unit: typeof LengthUnit.Percent;
-  /** Describes the value member carried by this public TaffyJS value. */ value: number;
+  /** Supplies the unit value used by PercentInput. */ unit: typeof LengthUnit.Percent;
+  /** Carries the payload for this PercentInput tagged variant. */ value: number;
 };
 
-/** Describes the public AutoInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable auto data at the public API boundary. */
 export type AutoInput = {
-  /** Describes the unit member carried by this public TaffyJS value. */ unit: typeof LengthUnit.Auto;
+  /** Supplies the unit value used by AutoInput. */ unit: typeof LengthUnit.Auto;
 };
 
-/** Describes the public LengthPercentageInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable length percentage data at the public API boundary. */
 export type LengthPercentageInput = LengthInput | PercentInput;
 
-/** Describes the public LengthPercentageAutoInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable length percentage auto data at the public API boundary. */
 export type LengthPercentageAutoInput = LengthInput | PercentInput | AutoInput;
 
-/** Describes the public DimensionInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable dimension data at the public API boundary. */
 export type DimensionInput = LengthPercentageAutoInput;
 
-/** Describes the public LengthPercentage contract used to create or inspect Taffy layout data. */
+/** Represents the public length percentage value used by TaffyJS. */
 export type LengthPercentage = Readonly<LengthInput> | Readonly<PercentInput>;
 
-/** Describes the public LengthPercentageAuto contract used to create or inspect Taffy layout data. */
+/** Represents the public length percentage auto value used by TaffyJS. */
 export type LengthPercentageAuto =
   | Readonly<LengthInput>
   | Readonly<PercentInput>
   | Readonly<AutoInput>;
 
-/** Describes the public Dimension contract used to create or inspect Taffy layout data. */
+/** Represents the public dimension value used by TaffyJS. */
 export type Dimension = LengthPercentageAuto;
 
-/** Describes the public Dimension contract used to create or inspect Taffy layout data. */
+/** Provides constructors and shared values for readable dimension inputs. */
 export declare const Dimension: Readonly<{
-  /** Describes the Length member carried by this public TaffyJS value. */ readonly Length: (
+  /** Creates or provides the Length form of a Dimension value. */ readonly Length: (
     value: number,
   ) => LengthInput;
-  /** Describes the Percent member carried by this public TaffyJS value. */ readonly Percent: (
+  /** Creates or provides the Percent form of a Dimension value. */ readonly Percent: (
     value: number,
   ) => PercentInput;
-  /** Describes the Auto member carried by this public TaffyJS value. */ readonly Auto: Readonly<AutoInput>;
+  /** Creates or provides the Auto form of a Dimension value. */ readonly Auto: Readonly<AutoInput>;
 }>;
 
-/** Describes the public AvailableSpaceInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable available space data at the public API boundary. */
 export type AvailableSpaceInput =
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.Definite;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.Definite;
+      /** Carries the payload for this AvailableSpaceInput tagged variant. */ value: number;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.MinContent;
+      /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MinContent;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.MaxContent;
+      /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MaxContent;
     };
 
-/** Describes the public AvailableSpace contract used to create or inspect Taffy layout data. */
+/** Represents the public available space value used by TaffyJS. */
 export type AvailableSpace =
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.Definite;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.Definite;
+      /** Carries the payload for this AvailableSpace tagged variant. */ value: number;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.MinContent;
+      /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MinContent;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.MaxContent;
+      /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MaxContent;
     }>;
 
-/** Describes the public AvailableSpace contract used to create or inspect Taffy layout data. */
+/** Provides constructors and shared values for readable available space inputs. */
 export declare const AvailableSpace: Readonly<{
-  /** Describes the Definite member carried by this public TaffyJS value. */ readonly Definite: (
+  /** Creates or provides the Definite form of a AvailableSpace value. */ readonly Definite: (
     value: number,
   ) => {
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.Definite;
-    /** Describes the value member carried by this public TaffyJS value. */ value: number;
+    /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.Definite;
+    /** Carries the payload for this AvailableSpace tagged variant. */ value: number;
   };
-  /** Describes the MinContent member carried by this public TaffyJS value. */ readonly MinContent: Readonly<{
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.MinContent;
+  /** Creates or provides the MinContent form of a AvailableSpace value. */ readonly MinContent: Readonly<{
+    /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MinContent;
   }>;
-  /** Describes the MaxContent member carried by this public TaffyJS value. */ readonly MaxContent: Readonly<{
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof AvailableSpaceKind.MaxContent;
+  /** Creates or provides the MaxContent form of a AvailableSpace value. */ readonly MaxContent: Readonly<{
+    /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MaxContent;
   }>;
 }>;
 
-/** Describes the public GridPlacementInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable grid placement data at the public API boundary. */
 export type GridPlacementInput =
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Auto;
+      /** Identifies which GridPlacementInput tagged variant this value contains. */ kind: typeof GridPlacementKind.Auto;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Line;
-      /** Describes the index member carried by this public TaffyJS value. */ index: number;
+      /** Identifies which GridPlacementInput tagged variant this value contains. */ kind: typeof GridPlacementKind.Line;
+      /** Supplies the index value used by GridPlacementInput. */ index: number;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.NamedLine;
-      /** Describes the name member carried by this public TaffyJS value. */ name: string;
-      /** Describes the index member carried by this public TaffyJS value. */ index: number;
+      /** Identifies which GridPlacementInput tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedLine;
+      /** Supplies the name value used by GridPlacementInput. */ name: string;
+      /** Supplies the index value used by GridPlacementInput. */ index: number;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Span;
-      /** Describes the span member carried by this public TaffyJS value. */ span: number;
+      /** Identifies which GridPlacementInput tagged variant this value contains. */ kind: typeof GridPlacementKind.Span;
+      /** Supplies the span value used by GridPlacementInput. */ span: number;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.NamedSpan;
-      /** Describes the name member carried by this public TaffyJS value. */ name: string;
-      /** Describes the span member carried by this public TaffyJS value. */ span: number;
+      /** Identifies which GridPlacementInput tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedSpan;
+      /** Supplies the name value used by GridPlacementInput. */ name: string;
+      /** Supplies the span value used by GridPlacementInput. */ span: number;
     };
 
-/** Describes the public GridPlacement contract used to create or inspect Taffy layout data. */
+/** Represents the public grid placement value used by TaffyJS. */
 export type GridPlacement =
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Auto;
+      /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Auto;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Line;
-      /** Describes the index member carried by this public TaffyJS value. */ index: number;
+      /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Line;
+      /** Creates or provides the index form of a GridPlacement value. */ index: number;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.NamedLine;
-      /** Describes the name member carried by this public TaffyJS value. */ name: string;
-      /** Describes the index member carried by this public TaffyJS value. */ index: number;
+      /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedLine;
+      /** Creates or provides the name form of a GridPlacement value. */ name: string;
+      /** Creates or provides the index form of a GridPlacement value. */ index: number;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Span;
-      /** Describes the span member carried by this public TaffyJS value. */ span: number;
+      /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Span;
+      /** Creates or provides the span form of a GridPlacement value. */ span: number;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.NamedSpan;
-      /** Describes the name member carried by this public TaffyJS value. */ name: string;
-      /** Describes the span member carried by this public TaffyJS value. */ span: number;
+      /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedSpan;
+      /** Creates or provides the name form of a GridPlacement value. */ name: string;
+      /** Creates or provides the span form of a GridPlacement value. */ span: number;
     }>;
 
-/** Describes the public MinTrackSizingFunctionInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable min track sizing function data at the public API boundary. */
 export type MinTrackSizingFunctionInput =
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Length;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which MinTrackSizingFunctionInput tagged variant this value contains. */ kind: typeof TrackSizingKind.Length;
+      /** Carries the payload for this MinTrackSizingFunctionInput tagged variant. */ value: number;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Percent;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which MinTrackSizingFunctionInput tagged variant this value contains. */ kind: typeof TrackSizingKind.Percent;
+      /** Carries the payload for this MinTrackSizingFunctionInput tagged variant. */ value: number;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Auto;
+      /** Identifies which MinTrackSizingFunctionInput tagged variant this value contains. */ kind: typeof TrackSizingKind.Auto;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.MinContent;
+      /** Identifies which MinTrackSizingFunctionInput tagged variant this value contains. */ kind: typeof TrackSizingKind.MinContent;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.MaxContent;
+      /** Identifies which MinTrackSizingFunctionInput tagged variant this value contains. */ kind: typeof TrackSizingKind.MaxContent;
     };
 
-/** Describes the public MinTrackSizingFunction contract used to create or inspect Taffy layout data. */
+/** Represents the public min track sizing function value used by TaffyJS. */
 export type MinTrackSizingFunction =
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Length;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which MinTrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.Length;
+      /** Carries the payload for this MinTrackSizingFunction tagged variant. */ value: number;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Percent;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which MinTrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.Percent;
+      /** Carries the payload for this MinTrackSizingFunction tagged variant. */ value: number;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Auto;
+      /** Identifies which MinTrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.Auto;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.MinContent;
+      /** Identifies which MinTrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MinContent;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.MaxContent;
+      /** Identifies which MinTrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MaxContent;
     }>;
 
-/** Describes the public MaxTrackSizingFunctionInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable max track sizing function data at the public API boundary. */
 export type MaxTrackSizingFunctionInput =
   | MinTrackSizingFunctionInput
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.FitContent;
-      /** Describes the value member carried by this public TaffyJS value. */ value: LengthPercentageInput;
+      /** Identifies which MaxTrackSizingFunctionInput tagged variant this value contains. */ kind: typeof TrackSizingKind.FitContent;
+      /** Carries the payload for this MaxTrackSizingFunctionInput tagged variant. */ value: LengthPercentageInput;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Fr;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which MaxTrackSizingFunctionInput tagged variant this value contains. */ kind: typeof TrackSizingKind.Fr;
+      /** Carries the payload for this MaxTrackSizingFunctionInput tagged variant. */ value: number;
     };
 
-/** Describes the public MaxTrackSizingFunction contract used to create or inspect Taffy layout data. */
+/** Represents the public max track sizing function value used by TaffyJS. */
 export type MaxTrackSizingFunction =
   | MinTrackSizingFunction
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.FitContent;
-      /** Describes the value member carried by this public TaffyJS value. */ value: LengthPercentage;
+      /** Identifies which MaxTrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.FitContent;
+      /** Carries the payload for this MaxTrackSizingFunction tagged variant. */ value: LengthPercentage;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Fr;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which MaxTrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.Fr;
+      /** Carries the payload for this MaxTrackSizingFunction tagged variant. */ value: number;
     }>;
 
-/** Describes the public TrackSizingFunctionInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable track sizing function data at the public API boundary. */
 export interface TrackSizingFunctionInput {
-  /** Describes the min member carried by this public TaffyJS value. */ min: MinTrackSizingFunctionInput;
-  /** Describes the max member carried by this public TaffyJS value. */ max: MaxTrackSizingFunctionInput;
+  /** Supplies the min value used by TrackSizingFunctionInput. */ min: MinTrackSizingFunctionInput;
+  /** Supplies the max value used by TrackSizingFunctionInput. */ max: MaxTrackSizingFunctionInput;
 }
 
-/** Describes the public TrackSizingFunction contract used to create or inspect Taffy layout data. */
+/** Represents the public track sizing function value used by TaffyJS. */
 export interface TrackSizingFunction {
-  /** Describes the min member carried by this public TaffyJS value. */ readonly min: MinTrackSizingFunction;
-  /** Describes the max member carried by this public TaffyJS value. */ readonly max: MaxTrackSizingFunction;
+  /** Creates or provides the min form of a TrackSizingFunction value. */ readonly min: MinTrackSizingFunction;
+  /** Creates or provides the max form of a TrackSizingFunction value. */ readonly max: MaxTrackSizingFunction;
 }
 
-/** Describes the public RepetitionCountInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable repetition count data at the public API boundary. */
 export type RepetitionCountInput =
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.Count;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which RepetitionCountInput tagged variant this value contains. */ kind: typeof RepetitionCountKind.Count;
+      /** Carries the payload for this RepetitionCountInput tagged variant. */ value: number;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.AutoFill;
+      /** Identifies which RepetitionCountInput tagged variant this value contains. */ kind: typeof RepetitionCountKind.AutoFill;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.AutoFit;
+      /** Identifies which RepetitionCountInput tagged variant this value contains. */ kind: typeof RepetitionCountKind.AutoFit;
     };
 
-/** Describes the public RepetitionCount contract used to create or inspect Taffy layout data. */
+/** Represents the public repetition count value used by TaffyJS. */
 export type RepetitionCount =
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.Count;
-      /** Describes the value member carried by this public TaffyJS value. */ value: number;
+      /** Identifies which RepetitionCount tagged variant this value contains. */ kind: typeof RepetitionCountKind.Count;
+      /** Carries the payload for this RepetitionCount tagged variant. */ value: number;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.AutoFill;
+      /** Identifies which RepetitionCount tagged variant this value contains. */ kind: typeof RepetitionCountKind.AutoFill;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.AutoFit;
+      /** Identifies which RepetitionCount tagged variant this value contains. */ kind: typeof RepetitionCountKind.AutoFit;
     }>;
 
-/** Describes the public GridTemplateRepetitionInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable grid template repetition data at the public API boundary. */
 export interface GridTemplateRepetitionInput {
-  /** Describes the count member carried by this public TaffyJS value. */ count: RepetitionCountInput;
-  /** Describes the tracks member carried by this public TaffyJS value. */ tracks: TrackSizingFunctionInput[];
-  /** Describes the lineNames member carried by this public TaffyJS value. */ lineNames: string[][];
+  /** Supplies the count value used by GridTemplateRepetitionInput. */ count: RepetitionCountInput;
+  /** Supplies the tracks value used by GridTemplateRepetitionInput. */ tracks: TrackSizingFunctionInput[];
+  /** Supplies the line names value used by GridTemplateRepetitionInput. */ lineNames: string[][];
 }
 
-/** Describes the public GridTemplateRepetition contract used to create or inspect Taffy layout data. */
+/** Represents the public grid template repetition value used by TaffyJS. */
 export interface GridTemplateRepetition {
-  /** Describes the count member carried by this public TaffyJS value. */ readonly count: RepetitionCount;
-  /** Describes the tracks member carried by this public TaffyJS value. */ readonly tracks: readonly TrackSizingFunction[];
-  /** Describes the lineNames member carried by this public TaffyJS value. */ readonly lineNames: readonly (readonly string[])[];
+  /** Stores the count component of this GridTemplateRepetition value. */ readonly count: RepetitionCount;
+  /** Stores the tracks component of this GridTemplateRepetition value. */ readonly tracks: readonly TrackSizingFunction[];
+  /** Stores the line names component of this GridTemplateRepetition value. */ readonly lineNames: readonly (readonly string[])[];
 }
 
-/** Describes the public GridTemplateComponentInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable grid template component data at the public API boundary. */
 export type GridTemplateComponentInput =
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridTemplateComponentKind.Single;
-      /** Describes the value member carried by this public TaffyJS value. */ value: TrackSizingFunctionInput;
+      /** Identifies which GridTemplateComponentInput tagged variant this value contains. */ kind: typeof GridTemplateComponentKind.Single;
+      /** Carries the payload for this GridTemplateComponentInput tagged variant. */ value: TrackSizingFunctionInput;
     }
   | {
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridTemplateComponentKind.Repeat;
-      /** Describes the value member carried by this public TaffyJS value. */ value: GridTemplateRepetitionInput;
+      /** Identifies which GridTemplateComponentInput tagged variant this value contains. */ kind: typeof GridTemplateComponentKind.Repeat;
+      /** Carries the payload for this GridTemplateComponentInput tagged variant. */ value: GridTemplateRepetitionInput;
     };
 
-/** Describes the public GridTemplateComponent contract used to create or inspect Taffy layout data. */
+/** Represents the public grid template component value used by TaffyJS. */
 export type GridTemplateComponent =
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridTemplateComponentKind.Single;
-      /** Describes the value member carried by this public TaffyJS value. */ value: TrackSizingFunction;
+      /** Identifies which GridTemplateComponent tagged variant this value contains. */ kind: typeof GridTemplateComponentKind.Single;
+      /** Carries the payload for this GridTemplateComponent tagged variant. */ value: TrackSizingFunction;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridTemplateComponentKind.Repeat;
-      /** Describes the value member carried by this public TaffyJS value. */ value: GridTemplateRepetition;
+      /** Identifies which GridTemplateComponent tagged variant this value contains. */ kind: typeof GridTemplateComponentKind.Repeat;
+      /** Carries the payload for this GridTemplateComponent tagged variant. */ value: GridTemplateRepetition;
     }>;
 
-/** Describes the public GridTemplateAreasInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable grid template areas data at the public API boundary. */
 export interface GridTemplateAreasInput {
-  /** Describes the areas member carried by this public TaffyJS value. */ areas: GridTemplateAreaInput[];
-  /** Describes the rowCount member carried by this public TaffyJS value. */ rowCount: number;
-  /** Describes the columnCount member carried by this public TaffyJS value. */ columnCount: number;
+  /** Supplies the areas value used by GridTemplateAreasInput. */ areas: GridTemplateAreaInput[];
+  /** Supplies the row count value used by GridTemplateAreasInput. */ rowCount: number;
+  /** Supplies the column count value used by GridTemplateAreasInput. */ columnCount: number;
 }
 
-/** Describes the public GridTemplateAreas contract used to create or inspect Taffy layout data. */
+/** Represents the public grid template areas value used by TaffyJS. */
 export interface GridTemplateAreas {
-  /** Describes the areas member carried by this public TaffyJS value. */ readonly areas: readonly GridTemplateArea[];
-  /** Describes the rowCount member carried by this public TaffyJS value. */ readonly rowCount: number;
-  /** Describes the columnCount member carried by this public TaffyJS value. */ readonly columnCount: number;
+  /** Stores the areas component of this GridTemplateAreas value. */ readonly areas: readonly GridTemplateArea[];
+  /** Stores the row count component of this GridTemplateAreas value. */ readonly rowCount: number;
+  /** Stores the column count component of this GridTemplateAreas value. */ readonly columnCount: number;
 }
 
-/** Describes the public GridTemplateAreaInput contract used to create or inspect Taffy layout data. */
+/** Supplies writable grid template area data at the public API boundary. */
 export interface GridTemplateAreaInput {
-  /** Describes the name member carried by this public TaffyJS value. */ name: string;
-  /** Describes the rowStart member carried by this public TaffyJS value. */ rowStart: number;
-  /** Describes the rowEnd member carried by this public TaffyJS value. */ rowEnd: number;
-  /** Describes the columnStart member carried by this public TaffyJS value. */ columnStart: number;
-  /** Describes the columnEnd member carried by this public TaffyJS value. */ columnEnd: number;
+  /** Supplies the name value used by GridTemplateAreaInput. */ name: string;
+  /** Supplies the row start value used by GridTemplateAreaInput. */ rowStart: number;
+  /** Supplies the row end value used by GridTemplateAreaInput. */ rowEnd: number;
+  /** Supplies the column start value used by GridTemplateAreaInput. */ columnStart: number;
+  /** Supplies the column end value used by GridTemplateAreaInput. */ columnEnd: number;
 }
 
-/** Describes the public GridTemplateArea contract used to create or inspect Taffy layout data. */
+/** Represents the public grid template area value used by TaffyJS. */
 export interface GridTemplateArea {
-  /** Describes the name member carried by this public TaffyJS value. */ readonly name: string;
-  /** Describes the rowStart member carried by this public TaffyJS value. */ readonly rowStart: number;
-  /** Describes the rowEnd member carried by this public TaffyJS value. */ readonly rowEnd: number;
-  /** Describes the columnStart member carried by this public TaffyJS value. */ readonly columnStart: number;
-  /** Describes the columnEnd member carried by this public TaffyJS value. */ readonly columnEnd: number;
+  /** Stores the name component of this GridTemplateArea value. */ readonly name: string;
+  /** Stores the row start component of this GridTemplateArea value. */ readonly rowStart: number;
+  /** Stores the row end component of this GridTemplateArea value. */ readonly rowEnd: number;
+  /** Stores the column start component of this GridTemplateArea value. */ readonly columnStart: number;
+  /** Stores the column end component of this GridTemplateArea value. */ readonly columnEnd: number;
 }
 
-/** Describes the public GridPlacement contract used to create or inspect Taffy layout data. */
+/** Provides constructors and shared values for readable grid placement inputs. */
 export declare const GridPlacement: Readonly<{
-  /** Describes the Auto member carried by this public TaffyJS value. */ readonly Auto: Readonly<{
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Auto;
+  /** Creates or provides the Auto form of a GridPlacement value. */ readonly Auto: Readonly<{
+    /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Auto;
   }>;
-  /** Describes the Line member carried by this public TaffyJS value. */ readonly Line: (
+  /** Creates or provides the Line form of a GridPlacement value. */ readonly Line: (
     index: number,
   ) => {
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Line;
-    /** Describes the index member carried by this public TaffyJS value. */ index: number;
+    /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Line;
+    /** Creates or provides the index form of a GridPlacement value. */ index: number;
   };
-  /** Describes the NamedLine member carried by this public TaffyJS value. */ readonly NamedLine: (
+  /** Creates or provides the NamedLine form of a GridPlacement value. */ readonly NamedLine: (
     name: string,
     index: number,
   ) => {
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.NamedLine;
-    /** Describes the name member carried by this public TaffyJS value. */ name: string;
-    /** Describes the index member carried by this public TaffyJS value. */ index: number;
+    /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedLine;
+    /** Creates or provides the name form of a GridPlacement value. */ name: string;
+    /** Creates or provides the index form of a GridPlacement value. */ index: number;
   };
-  /** Describes the Span member carried by this public TaffyJS value. */ readonly Span: (
+  /** Creates or provides the Span form of a GridPlacement value. */ readonly Span: (
     span: number,
   ) => {
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.Span;
-    /** Describes the span member carried by this public TaffyJS value. */ span: number;
+    /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Span;
+    /** Creates or provides the span form of a GridPlacement value. */ span: number;
   };
-  /** Describes the NamedSpan member carried by this public TaffyJS value. */ readonly NamedSpan: (
+  /** Creates or provides the NamedSpan form of a GridPlacement value. */ readonly NamedSpan: (
     name: string,
     span: number,
   ) => {
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridPlacementKind.NamedSpan;
-    /** Describes the name member carried by this public TaffyJS value. */ name: string;
-    /** Describes the span member carried by this public TaffyJS value. */ span: number;
+    /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedSpan;
+    /** Creates or provides the name form of a GridPlacement value. */ name: string;
+    /** Creates or provides the span form of a GridPlacement value. */ span: number;
   };
 }>;
 
-/** Describes the public TrackSizingFunction contract used to create or inspect Taffy layout data. */
+/** Provides constructors and shared values for readable track sizing function inputs. */
 export declare const TrackSizingFunction: Readonly<{
-  /** Describes the Length member carried by this public TaffyJS value. */ readonly Length: (
+  /** Creates or provides the Length form of a TrackSizingFunction value. */ readonly Length: (
     value: number,
   ) => TrackSizingFunctionInput;
-  /** Describes the Percent member carried by this public TaffyJS value. */ readonly Percent: (
+  /** Creates or provides the Percent form of a TrackSizingFunction value. */ readonly Percent: (
     value: number,
   ) => TrackSizingFunctionInput;
-  /** Describes the Auto member carried by this public TaffyJS value. */ readonly Auto: Readonly<{
-    /** Describes the min member carried by this public TaffyJS value. */ readonly min: Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Auto;
+  /** Creates or provides the Auto form of a TrackSizingFunction value. */ readonly Auto: Readonly<{
+    /** Creates or provides the min form of a TrackSizingFunction value. */ readonly min: Readonly<{
+      /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.Auto;
     }>;
-    /** Describes the max member carried by this public TaffyJS value. */ readonly max: Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.Auto;
-    }>;
-  }>;
-  /** Describes the MinContent member carried by this public TaffyJS value. */ readonly MinContent: Readonly<{
-    /** Describes the min member carried by this public TaffyJS value. */ readonly min: Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.MinContent;
-    }>;
-    /** Describes the max member carried by this public TaffyJS value. */ readonly max: Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.MinContent;
+    /** Creates or provides the max form of a TrackSizingFunction value. */ readonly max: Readonly<{
+      /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.Auto;
     }>;
   }>;
-  /** Describes the MaxContent member carried by this public TaffyJS value. */ readonly MaxContent: Readonly<{
-    /** Describes the min member carried by this public TaffyJS value. */ readonly min: Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.MaxContent;
+  /** Creates or provides the MinContent form of a TrackSizingFunction value. */ readonly MinContent: Readonly<{
+    /** Creates or provides the min form of a TrackSizingFunction value. */ readonly min: Readonly<{
+      /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MinContent;
     }>;
-    /** Describes the max member carried by this public TaffyJS value. */ readonly max: Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof TrackSizingKind.MaxContent;
+    /** Creates or provides the max form of a TrackSizingFunction value. */ readonly max: Readonly<{
+      /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MinContent;
     }>;
   }>;
-  /** Describes the FitContent member carried by this public TaffyJS value. */ readonly FitContent: (
+  /** Creates or provides the MaxContent form of a TrackSizingFunction value. */ readonly MaxContent: Readonly<{
+    /** Creates or provides the min form of a TrackSizingFunction value. */ readonly min: Readonly<{
+      /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MaxContent;
+    }>;
+    /** Creates or provides the max form of a TrackSizingFunction value. */ readonly max: Readonly<{
+      /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MaxContent;
+    }>;
+  }>;
+  /** Creates or provides the FitContent form of a TrackSizingFunction value. */ readonly FitContent: (
     value: LengthPercentageInput,
   ) => TrackSizingFunctionInput;
-  /** Describes the Fr member carried by this public TaffyJS value. */ readonly Fr: (
+  /** Creates or provides the Fr form of a TrackSizingFunction value. */ readonly Fr: (
     value: number,
   ) => TrackSizingFunctionInput;
-  /** Describes the MinMax member carried by this public TaffyJS value. */ readonly MinMax: (
+  /** Creates or provides the MinMax form of a TrackSizingFunction value. */ readonly MinMax: (
     min: MinTrackSizingFunctionInput,
     max: MaxTrackSizingFunctionInput,
   ) => TrackSizingFunctionInput;
 }>;
 
-/** Describes the public RepetitionCount contract used to create or inspect Taffy layout data. */
+/** Provides constructors and shared values for readable repetition count inputs. */
 export declare const RepetitionCount: Readonly<{
-  /** Describes the Count member carried by this public TaffyJS value. */ readonly Count: (
+  /** Creates or provides the Count form of a RepetitionCount value. */ readonly Count: (
     value: number,
   ) => {
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.Count;
-    /** Describes the value member carried by this public TaffyJS value. */ value: number;
+    /** Identifies which RepetitionCount tagged variant this value contains. */ kind: typeof RepetitionCountKind.Count;
+    /** Carries the payload for this RepetitionCount tagged variant. */ value: number;
   };
-  /** Describes the AutoFill member carried by this public TaffyJS value. */ readonly AutoFill: Readonly<{
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.AutoFill;
+  /** Creates or provides the AutoFill form of a RepetitionCount value. */ readonly AutoFill: Readonly<{
+    /** Identifies which RepetitionCount tagged variant this value contains. */ kind: typeof RepetitionCountKind.AutoFill;
   }>;
-  /** Describes the AutoFit member carried by this public TaffyJS value. */ readonly AutoFit: Readonly<{
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof RepetitionCountKind.AutoFit;
+  /** Creates or provides the AutoFit form of a RepetitionCount value. */ readonly AutoFit: Readonly<{
+    /** Identifies which RepetitionCount tagged variant this value contains. */ kind: typeof RepetitionCountKind.AutoFit;
   }>;
 }>;
 
-/** Describes the public GridTemplateComponent contract used to create or inspect Taffy layout data. */
+/** Provides constructors and shared values for readable grid template component inputs. */
 export declare const GridTemplateComponent: Readonly<{
-  /** Describes the Single member carried by this public TaffyJS value. */ readonly Single: (
+  /** Creates or provides the Single form of a GridTemplateComponent value. */ readonly Single: (
     value: TrackSizingFunctionInput,
   ) => {
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridTemplateComponentKind.Single;
-    /** Describes the value member carried by this public TaffyJS value. */ value: TrackSizingFunctionInput;
+    /** Identifies which GridTemplateComponent tagged variant this value contains. */ kind: typeof GridTemplateComponentKind.Single;
+    /** Carries the payload for this GridTemplateComponent tagged variant. */ value: TrackSizingFunctionInput;
   };
-  /** Describes the Repeat member carried by this public TaffyJS value. */ readonly Repeat: (
+  /** Creates or provides the Repeat form of a GridTemplateComponent value. */ readonly Repeat: (
     count: RepetitionCountInput,
     tracks: TrackSizingFunctionInput[],
     lineNames?: string[][],
   ) => {
-    /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof GridTemplateComponentKind.Repeat;
-    /** Describes the value member carried by this public TaffyJS value. */ value: GridTemplateRepetitionInput;
+    /** Identifies which GridTemplateComponent tagged variant this value contains. */ kind: typeof GridTemplateComponentKind.Repeat;
+    /** Carries the payload for this GridTemplateComponent tagged variant. */ value: GridTemplateRepetitionInput;
   };
 }>;
 
-/** Describes the public StyleInput contract used to create or inspect Taffy layout data. */
+/** Supplies partial writable style data, using Taffy defaults for omitted fields. */
 export interface StyleInput {
-  /** Describes the display member carried by this public TaffyJS value. */ display?:
+  /** Sets the node's display style; omission uses Taffy's default. */ display?:
     | Display
     | undefined;
-  /** Describes the itemIsTable member carried by this public TaffyJS value. */ itemIsTable?:
+  /** Sets the node's item is table style; omission uses Taffy's default. */ itemIsTable?:
     | boolean
     | undefined;
-  /** Describes the itemIsReplaced member carried by this public TaffyJS value. */ itemIsReplaced?:
+  /** Sets the node's item is replaced style; omission uses Taffy's default. */ itemIsReplaced?:
     | boolean
     | undefined;
-  /** Describes the boxSizing member carried by this public TaffyJS value. */ boxSizing?:
+  /** Sets the node's box sizing style; omission uses Taffy's default. */ boxSizing?:
     | BoxSizing
     | undefined;
-  /** Describes the direction member carried by this public TaffyJS value. */ direction?:
+  /** Sets the node's direction style; omission uses Taffy's default. */ direction?:
     | Direction
     | undefined;
-  /** Describes the overflow member carried by this public TaffyJS value. */ overflow?:
+  /** Sets the node's overflow style; omission uses Taffy's default. */ overflow?:
     | PartialPointInput<Overflow>
     | undefined;
-  /** Describes the scrollbarWidth member carried by this public TaffyJS value. */ scrollbarWidth?:
+  /** Sets the node's scrollbar width style; omission uses Taffy's default. */ scrollbarWidth?:
     | number
     | undefined;
-  /** Describes the float member carried by this public TaffyJS value. */ float?: Float | undefined;
-  /** Removes every node and context value from this tree. */ clear?: Clear | undefined;
-  /** Describes the position member carried by this public TaffyJS value. */ position?:
+  /** Sets the node's float style; omission uses Taffy's default. */ float?: Float | undefined;
+  /** Sets which preceding floats this node must clear. */ clear?: Clear | undefined;
+  /** Sets the node's position style; omission uses Taffy's default. */ position?:
     | Position
     | undefined;
-  /** Describes the inset member carried by this public TaffyJS value. */ inset?:
+  /** Sets the node's inset style; omission uses Taffy's default. */ inset?:
     | LengthPercentageAutoInput
     | PartialRectInput<LengthPercentageAutoInput>
     | undefined;
-  /** Describes the size member carried by this public TaffyJS value. */ size?:
+  /** Sets the node's size style; omission uses Taffy's default. */ size?:
     | DimensionInput
     | PartialSizeInput<DimensionInput>
     | undefined;
-  /** Describes the minSize member carried by this public TaffyJS value. */ minSize?:
+  /** Sets the node's min size style; omission uses Taffy's default. */ minSize?:
     | DimensionInput
     | PartialSizeInput<DimensionInput>
     | undefined;
-  /** Describes the maxSize member carried by this public TaffyJS value. */ maxSize?:
+  /** Sets the node's max size style; omission uses Taffy's default. */ maxSize?:
     | DimensionInput
     | PartialSizeInput<DimensionInput>
     | undefined;
@@ -788,15 +788,15 @@ export interface StyleInput {
     | number
     | null
     | undefined;
-  /** Describes the margin member carried by this public TaffyJS value. */ margin?:
+  /** Sets the node's margin style; omission uses Taffy's default. */ margin?:
     | LengthPercentageAutoInput
     | PartialRectInput<LengthPercentageAutoInput>
     | undefined;
-  /** Describes the padding member carried by this public TaffyJS value. */ padding?:
+  /** Sets the node's padding style; omission uses Taffy's default. */ padding?:
     | LengthPercentageInput
     | PartialRectInput<LengthPercentageInput>
     | undefined;
-  /** Describes the border member carried by this public TaffyJS value. */ border?:
+  /** Sets the node's border style; omission uses Taffy's default. */ border?:
     | LengthPercentageInput
     | PartialRectInput<LengthPercentageInput>
     | undefined;
@@ -824,190 +824,186 @@ export interface StyleInput {
     | AlignContent
     | null
     | undefined;
-  /** Describes the gap member carried by this public TaffyJS value. */ gap?:
+  /** Sets the node's gap style; omission uses Taffy's default. */ gap?:
     | LengthPercentageInput
     | PartialSizeInput<LengthPercentageInput>
     | undefined;
-  /** Describes the textAlign member carried by this public TaffyJS value. */ textAlign?:
+  /** Sets the node's text align style; omission uses Taffy's default. */ textAlign?:
     | TextAlign
     | undefined;
-  /** Describes the flexDirection member carried by this public TaffyJS value. */ flexDirection?:
+  /** Sets the node's flex direction style; omission uses Taffy's default. */ flexDirection?:
     | FlexDirection
     | undefined;
-  /** Describes the flexWrap member carried by this public TaffyJS value. */ flexWrap?:
+  /** Sets the node's flex wrap style; omission uses Taffy's default. */ flexWrap?:
     | FlexWrap
     | undefined;
-  /** Describes the flexBasis member carried by this public TaffyJS value. */ flexBasis?:
+  /** Sets the node's flex basis style; omission uses Taffy's default. */ flexBasis?:
     | DimensionInput
     | undefined;
-  /** Describes the flexGrow member carried by this public TaffyJS value. */ flexGrow?:
+  /** Sets the node's flex grow style; omission uses Taffy's default. */ flexGrow?:
     | number
     | undefined;
-  /** Describes the flexShrink member carried by this public TaffyJS value. */ flexShrink?:
+  /** Sets the node's flex shrink style; omission uses Taffy's default. */ flexShrink?:
     | number
     | undefined;
-  /** Describes the gridTemplateRows member carried by this public TaffyJS value. */ gridTemplateRows?:
+  /** Sets the node's grid template rows style; omission uses Taffy's default. */ gridTemplateRows?:
     | GridTemplateComponentInput[]
     | undefined;
-  /** Describes the gridTemplateColumns member carried by this public TaffyJS value. */ gridTemplateColumns?:
+  /** Sets the node's grid template columns style; omission uses Taffy's default. */ gridTemplateColumns?:
     | GridTemplateComponentInput[]
     | undefined;
-  /** Describes the gridAutoRows member carried by this public TaffyJS value. */ gridAutoRows?:
+  /** Sets the node's grid auto rows style; omission uses Taffy's default. */ gridAutoRows?:
     | TrackSizingFunctionInput[]
     | undefined;
-  /** Describes the gridAutoColumns member carried by this public TaffyJS value. */ gridAutoColumns?:
+  /** Sets the node's grid auto columns style; omission uses Taffy's default. */ gridAutoColumns?:
     | TrackSizingFunctionInput[]
     | undefined;
-  /** Describes the gridAutoFlow member carried by this public TaffyJS value. */ gridAutoFlow?:
+  /** Sets the node's grid auto flow style; omission uses Taffy's default. */ gridAutoFlow?:
     | GridAutoFlow
     | undefined;
   /** Omission or undefined uses the Taffy default; null stores Taffy None. */ gridTemplateAreas?:
     | GridTemplateAreasInput
     | null
     | undefined;
-  /** Describes the gridTemplateColumnNames member carried by this public TaffyJS value. */ gridTemplateColumnNames?:
+  /** Sets the node's grid template column names style; omission uses Taffy's default. */ gridTemplateColumnNames?:
     | string[][]
     | undefined;
-  /** Describes the gridTemplateRowNames member carried by this public TaffyJS value. */ gridTemplateRowNames?:
+  /** Sets the node's grid template row names style; omission uses Taffy's default. */ gridTemplateRowNames?:
     | string[][]
     | undefined;
-  /** Describes the gridRow member carried by this public TaffyJS value. */ gridRow?:
+  /** Sets the node's grid row style; omission uses Taffy's default. */ gridRow?:
     | PartialLineInput<GridPlacementInput>
     | undefined;
-  /** Describes the gridColumn member carried by this public TaffyJS value. */ gridColumn?:
+  /** Sets the node's grid column style; omission uses Taffy's default. */ gridColumn?:
     | PartialLineInput<GridPlacementInput>
     | undefined;
 }
 
-/** Describes the public Style contract used to create or inspect Taffy layout data. */
+/** Returns a complete detached readonly snapshot of a node's stored style. */
 export interface Style {
-  /** Describes the display member carried by this public TaffyJS value. */ readonly display: Display;
-  /** Describes the itemIsTable member carried by this public TaffyJS value. */ readonly itemIsTable: boolean;
-  /** Describes the itemIsReplaced member carried by this public TaffyJS value. */ readonly itemIsReplaced: boolean;
-  /** Describes the boxSizing member carried by this public TaffyJS value. */ readonly boxSizing: BoxSizing;
-  /** Describes the direction member carried by this public TaffyJS value. */ readonly direction: Direction;
-  /** Describes the overflow member carried by this public TaffyJS value. */ readonly overflow: Point<Overflow>;
-  /** Describes the scrollbarWidth member carried by this public TaffyJS value. */ readonly scrollbarWidth: number;
-  /** Describes the float member carried by this public TaffyJS value. */ readonly float: Float;
-  /** Removes every node and context value from this tree. */ readonly clear: Clear;
-  /** Describes the position member carried by this public TaffyJS value. */ readonly position: Position;
-  /** Describes the inset member carried by this public TaffyJS value. */ readonly inset: Rect<LengthPercentageAuto>;
-  /** Describes the size member carried by this public TaffyJS value. */ readonly size: Size<Dimension>;
-  /** Describes the minSize member carried by this public TaffyJS value. */ readonly minSize: Size<Dimension>;
-  /** Describes the maxSize member carried by this public TaffyJS value. */ readonly maxSize: Size<Dimension>;
-  /** Describes the aspectRatio member carried by this public TaffyJS value. */ readonly aspectRatio:
-    | number
-    | null;
-  /** Describes the margin member carried by this public TaffyJS value. */ readonly margin: Rect<LengthPercentageAuto>;
-  /** Describes the padding member carried by this public TaffyJS value. */ readonly padding: Rect<LengthPercentage>;
-  /** Describes the border member carried by this public TaffyJS value. */ readonly border: Rect<LengthPercentage>;
-  /** Describes the alignItems member carried by this public TaffyJS value. */ readonly alignItems: AlignItems | null;
-  /** Describes the alignSelf member carried by this public TaffyJS value. */ readonly alignSelf: AlignItems | null;
-  /** Describes the justifyItems member carried by this public TaffyJS value. */ readonly justifyItems: AlignItems | null;
-  /** Describes the justifySelf member carried by this public TaffyJS value. */ readonly justifySelf: AlignItems | null;
-  /** Describes the alignContent member carried by this public TaffyJS value. */ readonly alignContent: AlignContent | null;
-  /** Describes the justifyContent member carried by this public TaffyJS value. */ readonly justifyContent: AlignContent | null;
-  /** Describes the gap member carried by this public TaffyJS value. */ readonly gap: Size<LengthPercentage>;
-  /** Describes the textAlign member carried by this public TaffyJS value. */ readonly textAlign: TextAlign;
-  /** Describes the flexDirection member carried by this public TaffyJS value. */ readonly flexDirection: FlexDirection;
-  /** Describes the flexWrap member carried by this public TaffyJS value. */ readonly flexWrap: FlexWrap;
-  /** Describes the flexBasis member carried by this public TaffyJS value. */ readonly flexBasis: Dimension;
-  /** Describes the flexGrow member carried by this public TaffyJS value. */ readonly flexGrow: number;
-  /** Describes the flexShrink member carried by this public TaffyJS value. */ readonly flexShrink: number;
-  /** Describes the gridTemplateRows member carried by this public TaffyJS value. */ readonly gridTemplateRows: readonly GridTemplateComponent[];
-  /** Describes the gridTemplateColumns member carried by this public TaffyJS value. */ readonly gridTemplateColumns: readonly GridTemplateComponent[];
-  /** Describes the gridAutoRows member carried by this public TaffyJS value. */ readonly gridAutoRows: readonly TrackSizingFunction[];
-  /** Describes the gridAutoColumns member carried by this public TaffyJS value. */ readonly gridAutoColumns: readonly TrackSizingFunction[];
-  /** Describes the gridAutoFlow member carried by this public TaffyJS value. */ readonly gridAutoFlow: GridAutoFlow;
-  /** Describes the gridTemplateAreas member carried by this public TaffyJS value. */ readonly gridTemplateAreas: GridTemplateAreas | null;
-  /** Describes the gridTemplateColumnNames member carried by this public TaffyJS value. */ readonly gridTemplateColumnNames: readonly (readonly string[])[];
-  /** Describes the gridTemplateRowNames member carried by this public TaffyJS value. */ readonly gridTemplateRowNames: readonly (readonly string[])[];
-  /** Describes the gridRow member carried by this public TaffyJS value. */ readonly gridRow: Line<GridPlacement>;
-  /** Describes the gridColumn member carried by this public TaffyJS value. */ readonly gridColumn: Line<GridPlacement>;
+  /** Reports the node's stored display style value. */ readonly display: Display;
+  /** Reports the node's stored item is table style value. */ readonly itemIsTable: boolean;
+  /** Reports the node's stored item is replaced style value. */ readonly itemIsReplaced: boolean;
+  /** Reports the node's stored box sizing style value. */ readonly boxSizing: BoxSizing;
+  /** Reports the node's stored direction style value. */ readonly direction: Direction;
+  /** Reports the node's stored overflow style value. */ readonly overflow: Point<Overflow>;
+  /** Reports the node's stored scrollbar width style value. */ readonly scrollbarWidth: number;
+  /** Reports the node's stored float style value. */ readonly float: Float;
+  /** Reports which preceding floats this node must clear. */ readonly clear: Clear;
+  /** Reports the node's stored position style value. */ readonly position: Position;
+  /** Reports the node's stored inset style value. */ readonly inset: Rect<LengthPercentageAuto>;
+  /** Reports the node's stored size style value. */ readonly size: Size<Dimension>;
+  /** Reports the node's stored min size style value. */ readonly minSize: Size<Dimension>;
+  /** Reports the node's stored max size style value. */ readonly maxSize: Size<Dimension>;
+  /** Reports the node's stored aspect ratio style value. */ readonly aspectRatio: number | null;
+  /** Reports the node's stored margin style value. */ readonly margin: Rect<LengthPercentageAuto>;
+  /** Reports the node's stored padding style value. */ readonly padding: Rect<LengthPercentage>;
+  /** Reports the node's stored border style value. */ readonly border: Rect<LengthPercentage>;
+  /** Reports the node's stored align items style value. */ readonly alignItems: AlignItems | null;
+  /** Reports the node's stored align self style value. */ readonly alignSelf: AlignItems | null;
+  /** Reports the node's stored justify items style value. */ readonly justifyItems: AlignItems | null;
+  /** Reports the node's stored justify self style value. */ readonly justifySelf: AlignItems | null;
+  /** Reports the node's stored align content style value. */ readonly alignContent: AlignContent | null;
+  /** Reports the node's stored justify content style value. */ readonly justifyContent: AlignContent | null;
+  /** Reports the node's stored gap style value. */ readonly gap: Size<LengthPercentage>;
+  /** Reports the node's stored text align style value. */ readonly textAlign: TextAlign;
+  /** Reports the node's stored flex direction style value. */ readonly flexDirection: FlexDirection;
+  /** Reports the node's stored flex wrap style value. */ readonly flexWrap: FlexWrap;
+  /** Reports the node's stored flex basis style value. */ readonly flexBasis: Dimension;
+  /** Reports the node's stored flex grow style value. */ readonly flexGrow: number;
+  /** Reports the node's stored flex shrink style value. */ readonly flexShrink: number;
+  /** Reports the node's stored grid template rows style value. */ readonly gridTemplateRows: readonly GridTemplateComponent[];
+  /** Reports the node's stored grid template columns style value. */ readonly gridTemplateColumns: readonly GridTemplateComponent[];
+  /** Reports the node's stored grid auto rows style value. */ readonly gridAutoRows: readonly TrackSizingFunction[];
+  /** Reports the node's stored grid auto columns style value. */ readonly gridAutoColumns: readonly TrackSizingFunction[];
+  /** Reports the node's stored grid auto flow style value. */ readonly gridAutoFlow: GridAutoFlow;
+  /** Reports the node's stored grid template areas style value. */ readonly gridTemplateAreas: GridTemplateAreas | null;
+  /** Reports the node's stored grid template column names style value. */ readonly gridTemplateColumnNames: readonly (readonly string[])[];
+  /** Reports the node's stored grid template row names style value. */ readonly gridTemplateRowNames: readonly (readonly string[])[];
+  /** Reports the node's stored grid row style value. */ readonly gridRow: Line<GridPlacement>;
+  /** Reports the node's stored grid column style value. */ readonly gridColumn: Line<GridPlacement>;
 }
 
-/** Describes the public Layout contract used to create or inspect Taffy layout data. */
+/** Returns a detached readonly snapshot of a node's most recently stored layout. */
 export interface Layout {
-  /** Describes the order member carried by this public TaffyJS value. */ readonly order: number;
-  /** Describes the location member carried by this public TaffyJS value. */ readonly location: Point<number>;
-  /** Describes the size member carried by this public TaffyJS value. */ readonly size: Size<number>;
-  /** Describes the contentSize member carried by this public TaffyJS value. */ readonly contentSize: Size<number>;
-  /** Describes the scrollbarSize member carried by this public TaffyJS value. */ readonly scrollbarSize: Size<number>;
-  /** Describes the border member carried by this public TaffyJS value. */ readonly border: Rect<number>;
-  /** Describes the padding member carried by this public TaffyJS value. */ readonly padding: Rect<number>;
-  /** Describes the margin member carried by this public TaffyJS value. */ readonly margin: Rect<number>;
+  /** Reports this node's stable traversal order in the stored layout. */ readonly order: number;
+  /** Reports this node's position relative to its parent. */ readonly location: Point<number>;
+  /** Reports this node's outer width and height. */ readonly size: Size<number>;
+  /** Reports the width and height of this node's content. */ readonly contentSize: Size<number>;
+  /** Reports the width and height reserved for scrollbars. */ readonly scrollbarSize: Size<number>;
+  /** Reports this node's resolved border widths. */ readonly border: Rect<number>;
+  /** Reports this node's resolved padding widths. */ readonly padding: Rect<number>;
+  /** Reports this node's resolved margins. */ readonly margin: Rect<number>;
 }
 
-/** Describes the public DetailedLayoutInfo contract used to create or inspect Taffy layout data. */
+/** Reports detached readonly detailed layout info from a completed Grid layout. */
 export type DetailedLayoutInfo =
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof DetailedLayoutInfoKind.None;
+      /** Identifies which DetailedLayoutInfo tagged variant this value contains. */ kind: typeof DetailedLayoutInfoKind.None;
     }>
   | Readonly<{
-      /** Describes the kind member carried by this public TaffyJS value. */ kind: typeof DetailedLayoutInfoKind.Grid;
-      /** Describes the value member carried by this public TaffyJS value. */ value: DetailedGridInfo;
+      /** Identifies which DetailedLayoutInfo tagged variant this value contains. */ kind: typeof DetailedLayoutInfoKind.Grid;
+      /** Carries the payload for this DetailedLayoutInfo tagged variant. */ value: DetailedGridInfo;
     }>;
 
-/** Describes the public DetailedGridInfo contract used to create or inspect Taffy layout data. */
+/** Reports detached readonly detailed grid info from a completed Grid layout. */
 export interface DetailedGridInfo {
-  /** Describes the rows member carried by this public TaffyJS value. */ readonly rows: DetailedGridTracksInfo;
-  /** Describes the columns member carried by this public TaffyJS value. */ readonly columns: DetailedGridTracksInfo;
-  /** Describes the items member carried by this public TaffyJS value. */ readonly items: readonly DetailedGridItemInfo[];
+  /** Reports the rows value stored in DetailedGridInfo. */ readonly rows: DetailedGridTracksInfo;
+  /** Reports the columns value stored in DetailedGridInfo. */ readonly columns: DetailedGridTracksInfo;
+  /** Reports the items value stored in DetailedGridInfo. */ readonly items: readonly DetailedGridItemInfo[];
 }
 
-/** Describes the public DetailedGridTracksInfo contract used to create or inspect Taffy layout data. */
+/** Reports detached readonly detailed grid tracks info from a completed Grid layout. */
 export interface DetailedGridTracksInfo {
-  /** Describes the negativeImplicitTracks member carried by this public TaffyJS value. */ readonly negativeImplicitTracks: number;
-  /** Describes the explicitTracks member carried by this public TaffyJS value. */ readonly explicitTracks: number;
-  /** Describes the positiveImplicitTracks member carried by this public TaffyJS value. */ readonly positiveImplicitTracks: number;
-  /** Describes the gutters member carried by this public TaffyJS value. */ readonly gutters: readonly number[];
-  /** Describes the sizes member carried by this public TaffyJS value. */ readonly sizes: readonly number[];
+  /** Reports the negative implicit tracks value stored in DetailedGridTracksInfo. */ readonly negativeImplicitTracks: number;
+  /** Reports the explicit tracks value stored in DetailedGridTracksInfo. */ readonly explicitTracks: number;
+  /** Reports the positive implicit tracks value stored in DetailedGridTracksInfo. */ readonly positiveImplicitTracks: number;
+  /** Reports the gutters value stored in DetailedGridTracksInfo. */ readonly gutters: readonly number[];
+  /** Reports the sizes value stored in DetailedGridTracksInfo. */ readonly sizes: readonly number[];
 }
 
-/** Describes the public DetailedGridItemInfo contract used to create or inspect Taffy layout data. */
+/** Reports detached readonly detailed grid item info from a completed Grid layout. */
 export interface DetailedGridItemInfo {
-  /** Describes the rowStart member carried by this public TaffyJS value. */ readonly rowStart: number;
-  /** Describes the rowEnd member carried by this public TaffyJS value. */ readonly rowEnd: number;
-  /** Describes the columnStart member carried by this public TaffyJS value. */ readonly columnStart: number;
-  /** Describes the columnEnd member carried by this public TaffyJS value. */ readonly columnEnd: number;
+  /** Reports the row start value stored in DetailedGridItemInfo. */ readonly rowStart: number;
+  /** Reports the row end value stored in DetailedGridItemInfo. */ readonly rowEnd: number;
+  /** Reports the column start value stored in DetailedGridItemInfo. */ readonly columnStart: number;
+  /** Reports the column end value stored in DetailedGridItemInfo. */ readonly columnEnd: number;
 }
 
-/** Describes the public MeasureArgs contract used to create or inspect Taffy layout data. */
+/** Supplies dimensions, available space, identity, context, and style to measurement. */
 export type MeasureArgs<TContext> = Readonly<{
-  /** Describes the knownDimensions member carried by this public TaffyJS value. */ knownDimensions: Size<
+  /** Supplies the known dimensions value used by MeasureArgs. */ knownDimensions: Size<
     number | undefined
   >;
-  /** Describes the availableSpace member carried by this public TaffyJS value. */ availableSpace: Size<AvailableSpace>;
-  /** Describes the node member carried by this public TaffyJS value. */ node: NodeId;
-  /** Describes the context member carried by this public TaffyJS value. */ context:
-    | TContext
-    | undefined;
-  /** Describes the style member carried by this public TaffyJS value. */ style: Style;
+  /** Supplies the available space value used by MeasureArgs. */ availableSpace: Size<AvailableSpace>;
+  /** Supplies the node value used by MeasureArgs. */ node: NodeId;
+  /** Supplies the context value used by MeasureArgs. */ context: TContext | undefined;
+  /** Supplies the style value used by MeasureArgs. */ style: Style;
 }>;
 
-/** Describes the public MeasureFunction contract used to create or inspect Taffy layout data. */
+/** Measures a leaf synchronously and returns its intrinsic width and height. */
 export type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInput<number>;
 
-/** Describes the public ChildRangeInput contract used to create or inspect Taffy layout data. */
+/** Supplies a half-open child index range to removeChildrenRange. */
 export interface ChildRangeInput {
-  /** Describes the start member carried by this public TaffyJS value. */ start: number;
-  /** Describes the end member carried by this public TaffyJS value. */ end: number;
+  /** Supplies the start value used by ChildRangeInput. */ start: number;
+  /** Supplies the end value used by ChildRangeInput. */ end: number;
 }
 
-/** Describes the public ComputeLayoutWithMeasureOptions contract used to create or inspect Taffy layout data. */
+/** Supplies a root, available space, and synchronous measurement callback. */
 export interface ComputeLayoutWithMeasureOptions<TContext> {
-  /** Describes the root member carried by this public TaffyJS value. */ root: NodeId;
-  /** Describes the availableSpace member carried by this public TaffyJS value. */ availableSpace: SizeInput<AvailableSpaceInput>;
-  /** Describes the measure member carried by this public TaffyJS value. */ measure: MeasureFunction<TContext>;
+  /** Supplies the root value used by ComputeLayoutWithMeasureOptions. */ root: NodeId;
+  /** Supplies the available space value used by ComputeLayoutWithMeasureOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
+  /** Supplies the measure value used by ComputeLayoutWithMeasureOptions. */ measure: MeasureFunction<TContext>;
 }
 
-/** Describes the public ComputeLayoutOptions contract used to create or inspect Taffy layout data. */
+/** Supplies a root and available space for ordinary layout computation. */
 export interface ComputeLayoutOptions {
-  /** Describes the root member carried by this public TaffyJS value. */ root: NodeId;
-  /** Describes the availableSpace member carried by this public TaffyJS value. */ availableSpace: SizeInput<AvailableSpaceInput>;
+  /** Supplies the root value used by ComputeLayoutOptions. */ root: NodeId;
+  /** Supplies the available space value used by ComputeLayoutOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
 }
 
-/** Describes the public TaffyTree contract used to create or inspect Taffy layout data. */
+/** Owns one independent node tree, its contexts, styles, and stored layouts. */
 export declare class TaffyTree<TContext = unknown> {
   /** Creates an independent Taffy tree with its own NodeId namespace. */ constructor();
   /** Enables pixel rounding for subsequently computed public layouts. */ enableRounding(): void;

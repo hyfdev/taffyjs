@@ -67,7 +67,7 @@ const isMuslFromChildProcess = () => {
 };
 
 // taffyjs supported-platform guard:start
-const taffyjsSupportedPlatforms = ["darwin-arm64", "darwin-x64", "linux-x64-gnu", "win32-x64-msvc"];
+const taffyjsSupportedPlatforms = ["darwin-arm64", "darwin-x64", "linux-x64-gnu", "win32-x64"];
 const taffyjsPlatform =
   process.platform === "linux"
     ? `${process.platform}-${process.arch}-${isMusl() ? "musl" : "gnu"}`

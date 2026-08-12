@@ -178,6 +178,19 @@ contractTest("INFRA-001/source-drift", async () => {
     taskStates: { "INFRA-002": "implemented" },
   });
   checker.validateParsedSourceInventory(contract, realSource.parsed);
+  const omittedReachableContract = structuredClone(contract);
+  delete omittedReachableContract.namedDataShapes.Layout;
+  for (const group of omittedReachableContract.namedDataGroups) {
+    group.items = group.items.filter((name: string) => name !== "Layout");
+  }
+  const omittedReachableParsed = structuredClone(realSource.parsed) as {
+    namedData: Record<string, unknown>;
+  };
+  delete omittedReachableParsed.namedData.Layout;
+  await expectDiagnostic(
+    () => checker.validateParsedSourceInventory(omittedReachableContract, omittedReachableParsed),
+    "source-drift/named-data-reachability",
+  );
   const metadata = realSource.metadata as {
     packages: Array<{ name: string; version: string; manifest_path: string }>;
   };
@@ -876,23 +889,6 @@ contractTest("INFRA-001/incremental-all", async () => {
     "loop-status-duplicate-field",
   );
 
-  const documentedClass = contract.publicDeclarationContract.classDeclaration.members
-    .map(
-      ([, member]: [string, string]) =>
-        `  /** Documents this public tree operation for package consumers. */\n  ${member}`,
-    )
-    .join("\n");
-  const documented = [
-    "/** Documents this public fixture symbol for package consumers. */",
-    "export interface Fixture {",
-    "  /** Documents this public fixture member for package consumers. */",
-    "  value: number;",
-    "}",
-    "/** Documents the public TaffyTree class for package consumers. */",
-    `${contract.publicDeclarationContract.classDeclaration.header} {`,
-    documentedClass,
-    "}",
-  ].join("\n");
   const undocumented = [
     "export interface Fixture {",
     "  value: number;",
@@ -903,14 +899,15 @@ contractTest("INFRA-001/incremental-all", async () => {
       .join("\n"),
     "}",
   ].join("\n");
+  const documented = checker.documentPublicDeclaration(undocumented);
   checker.validateWholeSurfaceJsDoc(contract, documented);
   assert.equal(
     await checker.formatDeclaration(checker.stripDeclarationJsDoc(documented), root),
     await checker.formatDeclaration(undocumented, root),
   );
   const multilineDocumented = documented.replace(
-    "/** Documents this public fixture member for package consumers. */",
-    "/**\n   * Documents this public fixture member for package consumers.\n   */",
+    "/** Carries the payload for this Fixture tagged variant. */",
+    "/**\n   * Carries the payload for this Fixture tagged variant.\n   */",
   );
   assert.equal(
     await checker.formatDeclaration(checker.stripDeclarationJsDoc(multilineDocumented), root),
@@ -938,7 +935,7 @@ contractTest("INFRA-001/incremental-all", async () => {
       checker.validateWholeSurfaceJsDoc(
         contract,
         documented.replace(
-          "/** Documents this public tree operation for package consumers. */\n  constructor",
+          "/** Creates an independent Taffy tree with its own NodeId namespace. */\n  constructor",
           "  constructor",
         ),
       ),
@@ -948,9 +945,28 @@ contractTest("INFRA-001/incremental-all", async () => {
     () =>
       checker.validateWholeSurfaceJsDoc(
         contract,
-        documented.replace(
-          "  /** Documents this public fixture member for package consumers. */\n",
-          "",
+        documented.replace("  /** Carries the payload for this Fixture tagged variant. */\n", ""),
+      ),
+    "declaration-jsdoc-public-member",
+  );
+  await expectDiagnostic(
+    () =>
+      checker.validateWholeSurfaceJsDoc(
+        contract,
+        publicDeclaration.replace(
+          "/** Reports which preceding floats this node must clear. */ readonly clear:",
+          "/** Removes every node and context value from this tree. */ readonly clear:",
+        ),
+      ),
+    "declaration-jsdoc-public-member",
+  );
+  await expectDiagnostic(
+    () =>
+      checker.validateWholeSurfaceJsDoc(
+        contract,
+        publicDeclaration.replace(
+          "/** Keeps NodeId distinct from arbitrary bigint values during type checking. */ readonly [phantomMarker]",
+          "/** Describes the member carried by this value. */ readonly [phantomMarker]",
         ),
       ),
     "declaration-jsdoc-public-member",

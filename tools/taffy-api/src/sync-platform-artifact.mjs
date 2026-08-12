@@ -17,8 +17,8 @@ const platform = contract.platformPackages[target];
 if (!platform) throw new Error(`Missing platform contract for ${target}`);
 const loaderPath = resolve(packageRoot, "native.js");
 const loader = await readFile(loaderPath, "utf8");
-const supportedPlatformNames = Object.values(contract.platformPackages)
-  .map(({ name }) => name.slice("@taffyjs/binding-".length))
+const supportedPlatformNames = Object.keys(hostTargets)
+  .map((host) => (host === "linux/x64" ? "linux-x64-gnu" : host.replace("/", "-")))
   .sort((left, right) => left.localeCompare(right));
 const supportedPlatforms = [
   "// taffyjs supported-platform guard:start",

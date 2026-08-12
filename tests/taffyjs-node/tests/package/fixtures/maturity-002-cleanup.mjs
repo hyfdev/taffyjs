@@ -1,5 +1,4 @@
 import { AvailableSpace, TaffyTree } from "@taffyjs/node";
-import { NativeTaffyTree } from "../../../../../packages/taffyjs-node/native.js";
 
 if (typeof globalThis.gc !== "function") throw new Error("This fixture requires --expose-gc");
 
@@ -19,13 +18,6 @@ function releasedWrapper() {
   let tree = new TaffyTree();
   const weak = new WeakRef(tree);
   tree.newLeaf({});
-  tree = undefined;
-  return weak;
-}
-
-function releasedNative() {
-  let tree = new NativeTaffyTree();
-  const weak = new WeakRef(tree);
   tree = undefined;
   return weak;
 }
@@ -61,8 +53,7 @@ const context = releasedContext();
 const callback = releasedCallback();
 process.stdout.write(
   `${JSON.stringify({
-    wrapperCollected: await collected(releasedWrapper()),
-    nativeCollected: await collected(releasedNative()),
+    wrapperAndOwnedNativeCollected: await collected(releasedWrapper()),
     contextCollected: await collected(context.weak),
     callbackCollected: await collected(callback.weak),
     retainedTreesAlive: context.tree.getNodeCount() === 0 && callback.tree.getNodeCount() === 1,

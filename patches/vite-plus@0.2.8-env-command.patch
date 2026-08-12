@@ -3,8 +3,10 @@ index d63d5ee5a0e52c1a2fece690572170f56297c22f..30debe6e29bc8f80630bfad629294394
 --- a/bin/vp
 +++ b/bin/vp
 @@ -1,7 +1,68 @@
- #!/usr/bin/env node
- 
+-#!/usr/bin/env node
+-
++#!/usr/bin/env node
++
 +import { spawnSync } from 'node:child_process';
 +import { existsSync } from 'node:fs';
 +import { join } from 'node:path';

@@ -1,8 +1,10 @@
 packages:
   - packages/*
+  - packages/taffyjs-node/npm/*
   - tests/*
 
 catalogMode: prefer
+linkWorkspacePackages: true
 
 catalog:
   "@napi-rs/cli": 3.8.2

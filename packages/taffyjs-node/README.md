@@ -151,13 +151,13 @@ Layout work is explicit: call `computeLayout` or `computeLayoutWithMeasure`. A s
 
 Context belongs to the JavaScript wrapper and remains strongly held while attached to a live node. Passing `undefined` to `newLeafWithContext` or `setNodeContext` means no context and clears any previous value. `null` is an ordinary context value when the chosen `TContext` includes it. Removing or clearing the node releases its context.
 
-A measure callback runs synchronously inside `computeLayoutWithMeasure`. It receives known dimensions, available space, the public `NodeId`, context, and a detached `Style` snapshot. Native-backed calls on the same tree during the callback fail with `ERR_TAFFY_TREE_BUSY`; public value helpers, the callback arguments, and another tree remain usable. A thrown callback value is rethrown unchanged, and an invalid callback result fails without committing a partial layout.
+A measure callback runs synchronously inside `computeLayoutWithMeasure`. It receives known dimensions, available space, the public `NodeId`, context, and a detached `Style` snapshot. Native-backed calls on the same tree during the callback fail with `ERR_TAFFY_TREE_BUSY`; public value helpers, the callback arguments, and another tree remain usable. A thrown callback value is rethrown unchanged, and an invalid callback result throws `TypeError`. Either failure stops later callbacks, invalidates the requested subtree, and leaves the tree usable, but layout or measurement cache work completed before the failure may remain.
 
 Use the exported numeric constants such as `Display.Flex`, not a raw numeric literal. Their numeric representation makes the JavaScript-to-native boundary compact, but the names are the supported public input and provide TypeScript narrowing.
 
 For `StyleInput`, an omitted property and an explicit `undefined` both use Taffy's default. `null` is accepted only for `aspectRatio`, `alignItems`, `alignSelf`, `justifyItems`, `justifySelf`, `alignContent`, `justifyContent`, and `gridTemplateAreas`, where it stores Taffy's `None`; other fields reject `null`.
 
-Node lookup errors use `ERR_TAFFY_INVALID_NODE_ID`, `ERR_TAFFY_FOREIGN_NODE_ID`, or `ERR_TAFFY_STALE_NODE_ID`. A same-tree native call made during measurement uses `ERR_TAFFY_TREE_BUSY`. Shape errors are `TypeError`, numeric ranges use `RangeError`, and ordinary Taffy operation failures use `Error`; failed mutating operations leave the documented wrapper and native state unchanged.
+Node lookup errors use `ERR_TAFFY_INVALID_NODE_ID`, `ERR_TAFFY_FOREIGN_NODE_ID`, or `ERR_TAFFY_STALE_NODE_ID`. A same-tree native call made during measurement uses `ERR_TAFFY_TREE_BUSY`. Shape errors are `TypeError`, numeric ranges use `RangeError`, and ordinary Taffy operation failures use `Error`. Failed mutations leave the documented wrapper and native state unchanged, except for the layout or cache work that may precede a callback failure in `computeLayoutWithMeasure`.
 
 <!-- semantic-rules:end -->
 
@@ -288,7 +288,7 @@ The constant families are frozen objects with stable numeric values. `Dimension`
 
 ## Errors
 
-Malformed JavaScript shapes and values use the documented built-in class without coercion. Node IDs additionally carry a stable code: `ERR_TAFFY_INVALID_NODE_ID`, `ERR_TAFFY_FOREIGN_NODE_ID`, or `ERR_TAFFY_STALE_NODE_ID`. Calls that would re-enter native work on the same tree during measurement fail with `ERR_TAFFY_TREE_BUSY`. Callback exceptions preserve their original JavaScript identity. Failed mutations do not commit partial wrapper or native state.
+Malformed JavaScript shapes and values use the documented built-in class without coercion. Node IDs additionally carry a stable code: `ERR_TAFFY_INVALID_NODE_ID`, `ERR_TAFFY_FOREIGN_NODE_ID`, or `ERR_TAFFY_STALE_NODE_ID`. Calls that would re-enter native work on the same tree during measurement fail with `ERR_TAFFY_TREE_BUSY`. Callback exceptions preserve their original JavaScript identity. Failed mutations do not commit partial wrapper or native state, except that `computeLayoutWithMeasure` may retain layout or cache work completed before a callback failure.
 
 ## Raw numeric boundary
 
