@@ -668,10 +668,14 @@ contractTest("INFRA-001/incremental-all", async () => {
     await readFile(resolve(root, ".agents/docs/loop-status.md"), "utf8"),
   ) as MutableStatus;
   const validBlocked = structuredClone(status);
+  validBlocked.activeMilestone = "M0";
   validBlocked.phase = "blocked";
   validBlocked.activeTaskId = null;
+  validBlocked.previousAcceptedMilestoneCommit = null;
+  for (const taskId of Object.keys(validBlocked.taskStates)) {
+    validBlocked.taskStates[taskId] = "pending";
+  }
   validBlocked.taskStates["INFRA-001"] = "blocked";
-  validBlocked.taskStates["INFRA-002"] = "pending";
   validBlocked.blockers = [
     {
       taskId: "INFRA-001",
@@ -701,7 +705,7 @@ contractTest("INFRA-001/incremental-all", async () => {
     () => checker.validateStatusShape(blockerOutsideBlockedPhase, contract, contract.generated),
     "loop-status-blocker-record",
   );
-  const blockedOrder = structuredClone(status);
+  const blockedOrder = structuredClone(validBlocked);
   blockedOrder.phase = "build";
   blockedOrder.activeTaskId = "INFRA-002";
   blockedOrder.taskStates["INFRA-001"] = "blocked";
