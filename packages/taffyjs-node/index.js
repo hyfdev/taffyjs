@@ -377,6 +377,10 @@ var TaffyTree = class {
 	newLeaf(style) {
 		return this.#newLeaf(style);
 	}
+	setStyle(node, style) {
+		const raw = this.#nodes.resolve(node);
+		this.#inner.rawSetStyle(raw, style, "setStyle");
+	}
 	[testAccess]() {
 		return {
 			newLeaf: (style) => this.#newLeaf(style),

@@ -55,6 +55,11 @@ export class TaffyTree<_TContext = unknown> {
     return this.#newLeaf(style);
   }
 
+  setStyle(node: NodeId, style: unknown): void {
+    const raw = this.#nodes.resolve(node);
+    this.#inner.rawSetStyle(raw, style, "setStyle");
+  }
+
   [testAccess]() {
     return {
       newLeaf: (style: unknown) => this.#newLeaf(style),
