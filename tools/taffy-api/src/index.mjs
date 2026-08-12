@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
@@ -10,6 +10,9 @@ const CONTRACT_END = "<!-- taffy-contract-json:end -->";
 const STATUS_START = "<!-- loop-status-json:start -->";
 const STATUS_END = "<!-- loop-status-json:end -->";
 const IMPLEMENTED_STATES = new Set(["implemented", "verified", "under-review", "accepted"]);
+const NUMERIC_TYPESCRIPT_PATH = "packages/taffyjs-node/src/generated/numeric-families.ts";
+const NUMERIC_RUST_PATH = "crates/taffyjs_binding/src/generated_numeric.rs";
+const NUMERIC_TYPE_FIXTURE_PATH = "tests/taffyjs-node/tests/types/INFRA-003/narrowing.test-d.ts";
 
 export class DiagnosticError extends Error {
   constructor(diagnostic, message = diagnostic) {
@@ -1278,11 +1281,16 @@ function applyTemplate(template, values) {
   return result;
 }
 
-function numericStatements(contract) {
+function numericFamilyEntries(contract) {
   const rule = contract.publicDeclarationContract.numericFamilyGeneration;
   const order = contract.publicRuntimeExportsByOwner[rule.owner];
-  return order.flatMap((family) => {
-    const memberDeclarations = contract.numericFamilies[family]
+  return order.map((family) => [family, contract.numericFamilies[family]]);
+}
+
+function numericStatements(contract) {
+  const rule = contract.publicDeclarationContract.numericFamilyGeneration;
+  return numericFamilyEntries(contract).flatMap(([family, members]) => {
+    const memberDeclarations = members
       .map((member, index) => applyTemplate(rule.memberTemplate, { member, index: String(index) }))
       .join(" ");
     return [
@@ -1290,6 +1298,66 @@ function numericStatements(contract) {
       applyTemplate(rule.typeTemplate, { family }),
     ];
   });
+}
+
+function numericTypeScriptSource(contract) {
+  const rule = contract.publicDeclarationContract.numericFamilyGeneration;
+  const enumValue = contract.publicDeclarationContract.fixedStatementsByOwner[rule.owner][0];
+  const families = numericFamilyEntries(contract).flatMap(([family, members]) => [
+    `export const ${family} = Object.freeze({\n${members
+      .map((member, index) => `  ${member}: ${index},`)
+      .join("\n")}\n} as const);`,
+    applyTemplate(rule.typeTemplate, { family }),
+  ]);
+  return `// Generated from tools/taffy-api/contract.json. Do not edit.\n\n${[enumValue, ...families].join("\n\n")}\n`;
+}
+
+function numericRustSource(contract) {
+  const families = numericFamilyEntries(contract).map(
+    ([family, members]) => `#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
+pub(crate) enum ${family}Code {
+${members.map((member, index) => `    ${member} = ${index},`).join("\n")}
+}
+
+impl TryFrom<i64> for ${family}Code {
+    type Error = ();
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        match value {
+${members.map((member, index) => `            ${index} => Ok(Self::${member}),`).join("\n")}
+            _ => Err(()),
+        }
+    }
+}`,
+  );
+  return `// Generated from tools/taffy-api/contract.json. Do not edit.\n#![allow(dead_code)]\n\n${families.join("\n\n")}\n`;
+}
+
+function numericTypeFixtureSource(contract) {
+  const entries = numericFamilyEntries(contract);
+  const imports = entries
+    .flatMap(([family]) => [`  ${family},`, `  type ${family} as ${family}Value,`])
+    .join("\n");
+  const narrowers = entries.map(
+    ([family, members]) => `function narrow${family}(value: ${family}Value): void {
+  switch (value) {
+${members
+  .map(
+    (member, index) => `    case ${family}.${member}: {
+      const narrowed: ${index} = value;
+      void narrowed;
+      return;
+    }`,
+  )
+  .join("\n")}
+  }
+  value satisfies never;
+}
+
+void narrow${family};`,
+  );
+  return `// Generated from tools/taffy-api/contract.json. Do not edit.\n\nimport {\n${imports}\n} from "@taffyjs/node";\n\n${narrowers.join("\n\n")}\n`;
 }
 
 function geometryStatements(contract) {
@@ -1479,6 +1547,14 @@ export async function formatDeclaration(source, root) {
   return runWithInput("vp", ["exec", "oxfmt", "--stdin-filepath", "index.d.ts"], source, root);
 }
 
+async function formatTypeScriptArtifact(source, root, path) {
+  return runWithInput("vp", ["exec", "oxfmt", "--stdin-filepath", path], source, root);
+}
+
+async function formatRustArtifact(source, root) {
+  return runWithInput("rustfmt", ["--emit", "stdout", "--edition", "2024"], source, root);
+}
+
 export function stripDeclarationJsDoc(source) {
   let output = "";
   let index = 0;
@@ -1640,14 +1716,39 @@ export async function generateArtifacts({ root, goal, write = false }) {
     root,
   );
   const expectedDeclaration = await formatDeclaration(assembleDeclaration(canonical), root);
+  const numericTypeScript = await formatTypeScriptArtifact(
+    numericTypeScriptSource(canonical),
+    root,
+    NUMERIC_TYPESCRIPT_PATH,
+  );
+  const numericRust = await formatRustArtifact(numericRustSource(canonical), root);
+  const numericTypeFixture = await formatTypeScriptArtifact(
+    numericTypeFixtureSource(canonical),
+    root,
+    NUMERIC_TYPE_FIXTURE_PATH,
+  );
   if (write) {
+    await mkdir(resolve(root, dirname(NUMERIC_TYPESCRIPT_PATH)), { recursive: true });
+    await mkdir(resolve(root, dirname(NUMERIC_RUST_PATH)), { recursive: true });
+    await mkdir(resolve(root, dirname(NUMERIC_TYPE_FIXTURE_PATH)), { recursive: true });
     await writeFile(resolve(root, "tools/taffy-api/contract.json"), contractJson);
     await writeFile(
       resolve(root, "tools/taffy-api/expected-declaration.d.ts"),
       expectedDeclaration,
     );
+    await writeFile(resolve(root, NUMERIC_TYPESCRIPT_PATH), numericTypeScript);
+    await writeFile(resolve(root, NUMERIC_RUST_PATH), numericRust);
+    await writeFile(resolve(root, NUMERIC_TYPE_FIXTURE_PATH), numericTypeFixture);
   }
-  return { canonical, expanded, contractJson, expectedDeclaration };
+  return {
+    canonical,
+    expanded,
+    contractJson,
+    expectedDeclaration,
+    numericTypeScript,
+    numericRust,
+    numericTypeFixture,
+  };
 }
 
 function expectedSourceModel(contract) {
@@ -4100,6 +4201,23 @@ export async function checkRepository({ root, all = false } = {}) {
   ) {
     fail("generated-declaration-drift");
   }
+  if (
+    (await readFile(resolve(resolvedRoot, NUMERIC_TYPESCRIPT_PATH), "utf8")) !==
+    generated.numericTypeScript
+  ) {
+    fail("generated-numeric-typescript-drift");
+  }
+  if (
+    (await readFile(resolve(resolvedRoot, NUMERIC_RUST_PATH), "utf8")) !== generated.numericRust
+  ) {
+    fail("generated-numeric-rust-drift");
+  }
+  if (
+    (await readFile(resolve(resolvedRoot, NUMERIC_TYPE_FIXTURE_PATH), "utf8")) !==
+    generated.numericTypeFixture
+  ) {
+    fail("generated-numeric-type-fixture-drift");
+  }
   const statusSource = await readFile(resolve(resolvedRoot, ".agents/docs/loop-status.md"), "utf8");
   const status = extractLoopStatus(statusSource);
   validateStatusShape(status, generated.canonical, generated.expanded);
@@ -4458,9 +4576,27 @@ async function cli() {
         resolve(root, "tools/taffy-api/expected-declaration.d.ts"),
         "utf8",
       );
+      const actualNumericTypeScript = await readFile(
+        resolve(root, NUMERIC_TYPESCRIPT_PATH),
+        "utf8",
+      );
+      const actualNumericRust = await readFile(resolve(root, NUMERIC_RUST_PATH), "utf8");
+      const actualNumericTypeFixture = await readFile(
+        resolve(root, NUMERIC_TYPE_FIXTURE_PATH),
+        "utf8",
+      );
       if (actualContract !== result.contractJson) fail("generated-contract-drift");
       if (actualDeclaration !== result.expectedDeclaration) {
         fail("generated-declaration-drift");
+      }
+      if (actualNumericTypeScript !== result.numericTypeScript) {
+        fail("generated-numeric-typescript-drift");
+      }
+      if (actualNumericRust !== result.numericRust) {
+        fail("generated-numeric-rust-drift");
+      }
+      if (actualNumericTypeFixture !== result.numericTypeFixture) {
+        fail("generated-numeric-type-fixture-drift");
       }
     }
     process.stdout.write(

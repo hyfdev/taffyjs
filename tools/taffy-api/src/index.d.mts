@@ -12,6 +12,9 @@ export interface GeneratedArtifacts {
   readonly expanded: Record<string, unknown>;
   readonly contractJson: string;
   readonly expectedDeclaration: string;
+  readonly numericTypeScript: string;
+  readonly numericRust: string;
+  readonly numericTypeFixture: string;
 }
 
 export function extractCanonicalContract(goal: string): Record<string, unknown>;

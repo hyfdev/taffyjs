@@ -1,6 +1,7 @@
 #![deny(clippy::all)]
 
 mod error;
+mod generated_numeric;
 mod owner;
 
 use error::into_napi;

@@ -35,6 +35,24 @@ contractTest("INFRA-001/generate", async () => {
     generated.expectedDeclaration,
     await readFile(resolve(root, "tools/taffy-api/expected-declaration.d.ts"), "utf8"),
   );
+  assert.equal(
+    generated.numericTypeScript,
+    await readFile(
+      resolve(root, "packages/taffyjs-node/src/generated/numeric-families.ts"),
+      "utf8",
+    ),
+  );
+  assert.equal(
+    generated.numericRust,
+    await readFile(resolve(root, "crates/taffyjs_binding/src/generated_numeric.rs"), "utf8"),
+  );
+  assert.equal(
+    generated.numericTypeFixture,
+    await readFile(
+      resolve(root, "tests/taffyjs-node/tests/types/INFRA-003/narrowing.test-d.ts"),
+      "utf8",
+    ),
+  );
   assert.deepEqual(
     checker.extractCanonicalContract(
       goal.replace("## Goal", "## A prose heading that is not machine input"),
