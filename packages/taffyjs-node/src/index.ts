@@ -32,4 +32,9 @@ export {
 } from "./grid.js";
 export { Dimension } from "./length.js";
 export type { NodeId } from "./node-id.js";
-export { TaffyTree, type ChildRangeInput, type ComputeLayoutOptions } from "./tree.js";
+export {
+  TaffyTree,
+  type ChildRangeInput,
+  type ComputeLayoutOptions,
+  type ComputeLayoutWithMeasureOptions,
+} from "./tree.js";

@@ -435,6 +435,9 @@ var TaffyTree = class {
 	computeLayout(options) {
 		this.#computeLayout(options);
 	}
+	computeLayoutWithMeasure(options) {
+		this.#computeLayoutWithMeasure(options);
+	}
 	[testAccess]() {
 		return {
 			newLeaf: (style) => this.#newLeaf(style),

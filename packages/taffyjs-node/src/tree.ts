@@ -22,7 +22,7 @@ type RawMeasureArgs = {
   style: object;
 };
 
-type PrivateMeasureOptions<TContext> = {
+export interface ComputeLayoutWithMeasureOptions<TContext> {
   root: NodeId;
   availableSpace: unknown;
   measure: (args: {
@@ -32,7 +32,7 @@ type PrivateMeasureOptions<TContext> = {
     context: TContext | undefined;
     style: object;
   }) => unknown;
-};
+}
 
 export interface ChildRangeInput {
   start: number;
@@ -142,6 +142,10 @@ export class TaffyTree<TContext = unknown> {
     this.#computeLayout(options);
   }
 
+  computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void {
+    this.#computeLayoutWithMeasure(options);
+  }
+
   [testAccess]() {
     return {
       newLeaf: (style: unknown) => this.#newLeaf(style),
@@ -172,7 +176,7 @@ export class TaffyTree<TContext = unknown> {
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
       computeLayout: (options: ComputeLayoutOptions) => this.#computeLayout(options),
-      computeLayoutWithMeasure: (options: PrivateMeasureOptions<TContext>) =>
+      computeLayoutWithMeasure: (options: ComputeLayoutWithMeasureOptions<TContext>) =>
         this.#computeLayoutWithMeasure(options),
     };
   }
@@ -250,7 +254,7 @@ export class TaffyTree<TContext = unknown> {
     this.#inner.rawComputeLayout(rawRoot, options.availableSpace, "computeLayout");
   }
 
-  #computeLayoutWithMeasure(options: PrivateMeasureOptions<TContext>): void {
+  #computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void {
     const rawRoot = this.#nodes.resolve(options.root);
     const measure = options.measure;
     this.#inner.rawComputeLayoutWithMeasure(

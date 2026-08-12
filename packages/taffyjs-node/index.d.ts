@@ -613,6 +613,12 @@ export interface ChildRangeInput {
   end: number;
 }
 
+export interface ComputeLayoutWithMeasureOptions<TContext> {
+  root: NodeId;
+  availableSpace: SizeInput<AvailableSpaceInput>;
+  measure: MeasureFunction<TContext>;
+}
+
 export interface ComputeLayoutOptions {
   root: NodeId;
   availableSpace: SizeInput<AvailableSpaceInput>;
@@ -641,4 +647,5 @@ export declare class TaffyTree<TContext = unknown> {
   setStyle(node: NodeId, style: StyleInput): void;
   getStyle(node: NodeId): Style;
   computeLayout(options: ComputeLayoutOptions): void;
+  computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
 }
