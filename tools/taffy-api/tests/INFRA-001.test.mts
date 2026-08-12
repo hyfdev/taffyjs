@@ -53,13 +53,41 @@ contractTest("INFRA-001/pin-drift", async () => {
     await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
   );
   const workspace = await readFile(resolve(root, "pnpm-workspace.yaml"), "utf8");
-  checker.validateWorkspaceCatalog(contract, workspace);
+  const lock = await readFile(resolve(root, "pnpm-lock.yaml"), "utf8");
+  const manifests = {
+    ".": JSON.parse(await readFile(resolve(root, "package.json"), "utf8")),
+    "packages/taffyjs-node": JSON.parse(
+      await readFile(resolve(root, "packages/taffyjs-node/package.json"), "utf8"),
+    ),
+    "tests/taffyjs-node": JSON.parse(
+      await readFile(resolve(root, "tests/taffyjs-node/package.json"), "utf8"),
+    ),
+  };
+  checker.validatePnpmPins(contract, workspace, lock, manifests);
   await expectDiagnostic(
     () =>
-      checker.validateWorkspaceCatalog(
+      checker.validatePnpmPins(
         contract,
         workspace.replace(`typescript: ^${contract.pins.typescript}`, "typescript: ^7.0.3"),
+        lock,
+        manifests,
       ),
+    "pin-drift/typescript-version",
+  );
+  const misplacedWorkspace = workspace
+    .replace(`  typescript: ^${contract.pins.typescript}\n`, "")
+    .replace("overrides:\n", `overrides:\n  typescript: ^${contract.pins.typescript}\n`);
+  await expectDiagnostic(
+    () => checker.validatePnpmPins(contract, misplacedWorkspace, lock, manifests),
+    "pin-drift/typescript-version",
+  );
+  const driftedLock = lock.replace(
+    `    typescript:\n      specifier: ^${contract.pins.typescript}\n      version: ${contract.pins.typescript}\n`,
+    `    typescript:\n      specifier: ^${contract.pins.typescript}\n      version: 7.0.3\n`,
+  );
+  assert.notEqual(driftedLock, lock);
+  await expectDiagnostic(
+    () => checker.validatePnpmPins(contract, workspace, driftedLock, manifests),
     "pin-drift/typescript-version",
   );
   const fixture = await checker.createRepositoryFixture(root);
@@ -74,7 +102,6 @@ contractTest("INFRA-001/pin-drift", async () => {
     "taffy-resolved-features",
     "node-range",
     "minimum-node-runtime",
-    "typescript-version",
     "oxfmt-version",
   ];
   for (const mutation of mutations) {
@@ -187,11 +214,29 @@ contractTest("INFRA-001/source-drift", async () => {
       assert.equal(source.split(mutation.find).length, 2, mutation.path);
       await writeFile(path, source.replace(mutation.find, mutation.replace));
       await expectDiagnostic(
-        () => checker.validateRealSourceInventory(root, contract, taffyRoot),
+        () =>
+          checker.validateRealSourceInventory(root, contract, taffyRoot, realSource.archivePath),
         mutation.diagnostic,
       );
       await writeFile(path, source);
     }
+    const libPath = resolve(taffyRoot, "src/lib.rs");
+    const treePath = resolve(taffyRoot, "src/tree/taffy_tree.rs");
+    const libSource = await readFile(libPath, "utf8");
+    const treeSource = await readFile(treePath, "utf8");
+    await writeFile(libPath, `${libSource}\npub mod contract_decoy;\n`);
+    await writeFile(
+      resolve(taffyRoot, "src/contract_decoy.rs"),
+      "pub struct Size<T> { pub width: T, pub height: T }\n",
+    );
+    await writeFile(
+      treePath,
+      treeSource.replace("use crate::geometry::Size;", "use crate::contract_decoy::Size;"),
+    );
+    await expectDiagnostic(
+      () => checker.validateRealSourceInventory(root, contract, taffyRoot, realSource.archivePath),
+      "source-drift/named-data-binding",
+    );
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }
@@ -437,6 +482,36 @@ contractTest("INFRA-001/collection-drift", async () => {
         ),
       /contract-test module must be registered exactly once without cfg/u,
     );
+    await writeFile(
+      resolve(temporaryRoot, "crates/taffyjs_binding/src/lib.rs"),
+      '#[path = "alternate.rs"] mod contract_tests;\n',
+    );
+    await assert.rejects(
+      () =>
+        checker.collectStaticEvidence(
+          temporaryRoot,
+          { evidence: { primary: records } },
+          fixtureStatus,
+        ),
+      /path override/u,
+    );
+    await writeFile(
+      resolve(temporaryRoot, "crates/taffyjs_binding/src/lib.rs"),
+      "mod contract_tests;\n",
+    );
+    await writeFile(
+      resolve(temporaryRoot, records[2].path),
+      '#![cfg(target_os = "linux")]\n#[test]\nfn contract__fixture_rust__one() {}\n',
+    );
+    await assert.rejects(
+      () =>
+        checker.collectStaticEvidence(
+          temporaryRoot,
+          { evidence: { primary: records } },
+          fixtureStatus,
+        ),
+      /source file must not have cfg/u,
+    );
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }
@@ -680,6 +755,16 @@ contractTest("INFRA-001/incremental-all", async () => {
   await expectDiagnostic(
     () =>
       checker.validateRunnerTaskGraph(contract, contract.generated, status, noOpReviewCompletion),
+    "collection-drift/runner-graph",
+  );
+  const packageManifest = JSON.parse(
+    await readFile(resolve(root, "packages/taffyjs-node/package.json"), "utf8"),
+  );
+  checker.validatePackageBuildScript(packageManifest);
+  const noOpPackageBuild = structuredClone(packageManifest);
+  noOpPackageBuild.scripts.build = "node --version";
+  await expectDiagnostic(
+    () => checker.validatePackageBuildScript(noOpPackageBuild),
     "collection-drift/runner-graph",
   );
 

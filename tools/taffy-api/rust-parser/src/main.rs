@@ -1068,6 +1068,13 @@ fn build_adjacent_roots(
 
 fn contract_test_inventory(path: &Path) -> Result<Vec<ContractTestOutput>, String> {
     let file = parse_rust_file(path)?;
+    if file
+        .attrs
+        .iter()
+        .any(|attribute| attribute.path().is_ident("cfg") || attribute.path().is_ident("cfg_attr"))
+    {
+        return Err("contract-test source file must not have cfg attributes".to_string());
+    }
     Ok(file
         .items
         .into_iter()
@@ -1118,7 +1125,9 @@ fn contract_test_module_is_unconditional(path: &Path) -> Result<bool, String> {
         .collect::<Vec<_>>();
     Ok(registrations.len() == 1
         && registrations[0].attrs.iter().all(|attribute| {
-            !attribute.path().is_ident("cfg") && !attribute.path().is_ident("cfg_attr")
+            !attribute.path().is_ident("cfg")
+                && !attribute.path().is_ident("cfg_attr")
+                && !attribute.path().is_ident("path")
         }))
 }
 
@@ -1138,7 +1147,8 @@ fn run() -> Result<(), String> {
         }
         if !contract_test_module_is_unconditional(&path)? {
             return Err(
-                "contract-test module must be registered exactly once without cfg".to_string(),
+                "contract-test module must be registered exactly once without cfg or a path override"
+                    .to_string(),
             );
         }
         println!(
@@ -1399,6 +1409,19 @@ mod tests {
         )
         .expect("conditional crate root is written");
         assert!(!contract_test_module_is_unconditional(&source).expect("module is inspected"));
+        fs::write(
+            root.join("lib.rs"),
+            "#[path = \"alternate.rs\"] mod contract_tests;\n",
+        )
+        .expect("redirected crate root is written");
+        assert!(!contract_test_module_is_unconditional(&source).expect("module is inspected"));
+        fs::write(root.join("lib.rs"), "mod contract_tests;\n").expect("crate root is restored");
+        fs::write(
+            &source,
+            "#![cfg(target_os = \"linux\")]\n#[test]\nfn contract__real() {}\n",
+        )
+        .expect("conditional source is written");
+        assert!(contract_test_inventory(&source).is_err());
         fs::remove_dir_all(root).expect("temporary directory is removed");
     }
 }

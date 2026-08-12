@@ -25,10 +25,13 @@ export function formatDeclaration(source: string, root: string): Promise<string>
 export function stripDeclarationJsDoc(source: string): string;
 export function validateWholeSurfaceJsDoc(contract: Record<string, unknown>, actual: string): void;
 export function validateNodeIdDeclarationBindings(contract: Record<string, unknown>): void;
-export function validateWorkspaceCatalog(
+export function validatePnpmPins(
   contract: Record<string, unknown>,
   workspace: string,
+  lock: string,
+  manifests: Record<string, Record<string, unknown>>,
 ): void;
+export function validatePackageBuildScript(packageManifest: Record<string, unknown>): void;
 export function validateParsedSourceInventory(
   contract: Record<string, unknown>,
   parsed: Record<string, unknown>,
@@ -36,11 +39,16 @@ export function validateParsedSourceInventory(
 export function validateRealPinsAndSource(
   root: string,
   contract: Record<string, unknown>,
-): Promise<{ metadata: Record<string, unknown>; parsed: Record<string, unknown> }>;
+): Promise<{
+  metadata: Record<string, unknown>;
+  parsed: Record<string, unknown>;
+  archivePath: string;
+}>;
 export function validateRealSourceInventory(
   root: string,
   contract: Record<string, unknown>,
   taffyRoot: string,
+  archivePath: string,
 ): Promise<Record<string, unknown>>;
 export function validateRunnerTaskGraph(
   contract: Record<string, unknown>,
