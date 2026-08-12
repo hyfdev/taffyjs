@@ -12,14 +12,22 @@ type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
 
 const NativeTaffyTree = Reflect.get(native, "NativeTaffyTree") as NativeTaffyTreeConstructor;
 
-function storedStyle(style: RawStyle): RawStyle {
+function createOwner(): NativeTaffyTree {
   const owner = new NativeTaffyTree();
+  for (const method of ["rawGetStyle", "rawNewLeaf", "rawNodeCount"] as const) {
+    assert.equal(typeof owner[method], "function", `${method} is available`);
+  }
+  return owner;
+}
+
+function storedStyle(style: RawStyle): RawStyle {
+  const owner = createOwner();
   const node = owner.rawNewLeaf(style, "newLeaf");
   return owner.rawGetStyle(node, "getStyle");
 }
 
 function rejectsWithoutNode(style: RawStyle, error: typeof TypeError | typeof RangeError): void {
-  const owner = new NativeTaffyTree();
+  const owner = createOwner();
   assert.throws(() => owner.rawNewLeaf(style, "newLeaf"), error);
   assert.equal(owner.rawNodeCount("getNodeCount"), 0);
 }
