@@ -607,3 +607,7 @@ export type MeasureArgs<TContext> = Readonly<{
 }>;
 
 export type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInput<number>;
+
+export declare class TaffyTree<TContext = unknown> {
+  constructor();
+}

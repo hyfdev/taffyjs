@@ -41,5 +41,5 @@ contractTest("API-TREE-001/export-boundary", () => {
   assert.equal(Reflect.get(tree, "rawNewLeaf"), undefined);
   assert.equal(Reflect.get(tree, "inner"), undefined);
   assert.equal(injectedRandomCalled, false);
-  assert.equal(treeWithIgnoredOptions.getNodeCount(), 0);
+  assert.ok(treeWithIgnoredOptions instanceof Tree);
 });

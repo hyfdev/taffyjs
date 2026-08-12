@@ -9,7 +9,6 @@ const defaulted: TaffyTree<unknown> = new TaffyTree();
 // @ts-expect-error The public constructor takes no arguments.
 const withOptions = new TaffyTree({});
 // @ts-expect-error TaffyTree has one context type parameter.
-type TooManyParameters = TaffyTree<Context, Context>;
+const tooMany: TaffyTree<Context, Context> = explicit;
 
-void [preserved, defaulted, withOptions];
-void (null as TooManyParameters | null);
+void [preserved, defaulted, withOptions, tooMany];

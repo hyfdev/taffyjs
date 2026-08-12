@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import "#native";
 //#region src/generated/numeric-families.ts
 const Display = Object.freeze({
@@ -290,4 +291,126 @@ const Dimension = Object.freeze({
 	Auto: auto
 });
 //#endregion
-export { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, GridPlacementKind, GridTemplateComponent, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCount, RepetitionCountKind, TextAlign, TrackSizingFunction, TrackSizingKind };
+//#region src/node-id.ts
+const U64_BITS = 64n;
+const TOKEN_SHIFT = 128n;
+const U64_MAX = (1n << U64_BITS) - 1n;
+const NODE_ID_LIMIT = 1n << 256n;
+function codedError(code, message) {
+	return Object.assign(new Error(message), { code });
+}
+function randomToken(randomSource) {
+	const bytes = /* @__PURE__ */ new Uint8Array(16);
+	randomSource(bytes);
+	let token = 0n;
+	for (const byte of bytes) token = token << 8n | BigInt(byte);
+	return token;
+}
+function isEncodedNodeId(value) {
+	if (value < 0n || value >= NODE_ID_LIMIT) return false;
+	return (value >> U64_BITS & U64_MAX) !== 0n;
+}
+var NodeIdRegistry = class {
+	#token;
+	#nextSerial;
+	#serialByRaw = /* @__PURE__ */ new Map();
+	#rawByPublic = /* @__PURE__ */ new Map();
+	constructor(randomSource, nextSerial = 1n) {
+		this.#token = randomToken(randomSource);
+		this.#nextSerial = nextSerial;
+	}
+	reserveSerial() {
+		const serial = this.#nextSerial;
+		if (serial < 1n || serial > U64_MAX) throw new RangeError("The per-tree NodeId creation serial is exhausted");
+		this.#nextSerial = serial + 1n;
+		return serial;
+	}
+	register(raw, serial) {
+		if (raw < 0n || raw > U64_MAX || this.#serialByRaw.has(raw)) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+		const node = this.#token << TOKEN_SHIFT | serial << U64_BITS | raw;
+		if (this.#rawByPublic.has(node)) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+		this.#serialByRaw.set(raw, serial);
+		this.#rawByPublic.set(node, raw);
+		return node;
+	}
+	resolve(value) {
+		if (typeof value !== "bigint") throw new TypeError("NodeId must be a bigint");
+		if (!isEncodedNodeId(value)) throw codedError("ERR_TAFFY_INVALID_NODE_ID", "The bigint is not a valid NodeId");
+		if (value >> TOKEN_SHIFT !== this.#token) throw codedError("ERR_TAFFY_FOREIGN_NODE_ID", "The NodeId belongs to another TaffyTree");
+		const node = value;
+		const raw = this.#rawByPublic.get(node);
+		if (raw === void 0) throw codedError("ERR_TAFFY_STALE_NODE_ID", "The NodeId no longer names a current node");
+		const serial = value >> U64_BITS & U64_MAX;
+		if (this.#serialByRaw.get(raw) !== serial) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+		return raw;
+	}
+	fromRaw(raw) {
+		const serial = this.#serialByRaw.get(raw);
+		if (serial === void 0) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+		const node = this.#token << TOKEN_SHIFT | serial << U64_BITS | raw;
+		if (this.#rawByPublic.get(node) !== raw) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+		return node;
+	}
+	clear() {
+		this.#serialByRaw.clear();
+		this.#rawByPublic.clear();
+	}
+};
+//#endregion
+//#region src/tree.ts
+const { NativeTaffyTree } = createRequire(import.meta.url)("#native");
+const privateConstructor = Symbol();
+const testAccess = Symbol();
+const secureRandom = (bytes) => globalThis.crypto.getRandomValues(bytes);
+var TaffyTree = class {
+	#inner;
+	#nodes;
+	#contexts = /* @__PURE__ */ new Map();
+	constructor(...args) {
+		const options = args.length === 2 && args[0] === privateConstructor ? args[1] : {};
+		this.#nodes = new NodeIdRegistry(options.randomSource ?? secureRandom, options.nextSerial);
+		this.#inner = new NativeTaffyTree();
+	}
+	[testAccess]() {
+		return {
+			newLeaf: (style) => this.#newLeaf(style),
+			clear: () => this.#clear(),
+			getNodeCount: () => this.#getNodeCount(),
+			getStyle: (node) => this.#getStyle(node),
+			computeLayoutWithMeasure: (options) => this.#computeLayoutWithMeasure(options)
+		};
+	}
+	#newLeaf(style) {
+		const serial = this.#nodes.reserveSerial();
+		const raw = this.#inner.rawNewLeaf(style, "newLeaf");
+		return this.#nodes.register(raw, serial);
+	}
+	#clear() {
+		this.#inner.rawClear("clear");
+		this.#nodes.clear();
+	}
+	#getNodeCount() {
+		return this.#inner.rawNodeCount("getNodeCount");
+	}
+	#getStyle(node) {
+		const raw = this.#nodes.resolve(node);
+		return this.#inner.rawGetStyle(raw, "getStyle");
+	}
+	#computeLayoutWithMeasure(options) {
+		const rawRoot = this.#nodes.resolve(options.root);
+		const measure = options.measure;
+		this.#inner.rawComputeLayoutWithMeasure(rawRoot, options.availableSpace, (value) => {
+			const args = value;
+			const node = this.#nodes.fromRaw(args.node);
+			return measure({
+				knownDimensions: args.knownDimensions,
+				availableSpace: args.availableSpace,
+				node,
+				context: this.#contexts.get(node),
+				style: args.style
+			});
+		}, "computeLayoutWithMeasure");
+	}
+};
+//#endregion
+export { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, GridPlacementKind, GridTemplateComponent, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCount, RepetitionCountKind, TaffyTree, TextAlign, TrackSizingFunction, TrackSizingKind };
