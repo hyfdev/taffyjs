@@ -3794,8 +3794,7 @@ async function verifiedTaffyArchiveSources(contract, archivePath) {
   for (let offset = 0; offset + 512 <= tar.length;) {
     const header = tar.subarray(offset, offset + 512);
     if (header.every((byte) => byte === 0)) break;
-    const field = (start, end) =>
-      header.subarray(start, end).toString("utf8").replace(/\0.*$/u, "");
+    const field = (start, end) => header.subarray(start, end).toString("utf8").split("\0", 1)[0];
     const name = [field(345, 500), field(0, 100)].filter(Boolean).join("/");
     const size = Number.parseInt(field(124, 136).trim() || "0", 8);
     if (!Number.isSafeInteger(size) || size < 0 || offset + 512 + size > tar.length) {
