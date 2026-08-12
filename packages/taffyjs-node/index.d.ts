@@ -608,6 +608,11 @@ export type MeasureArgs<TContext> = Readonly<{
 
 export type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInput<number>;
 
+export interface ChildRangeInput {
+  start: number;
+  end: number;
+}
+
 export declare class TaffyTree<TContext = unknown> {
   constructor();
   newLeaf(style: StyleInput): NodeId;
@@ -618,6 +623,7 @@ export declare class TaffyTree<TContext = unknown> {
   setChildren(parent: NodeId, children: readonly NodeId[]): void;
   removeChild(parent: NodeId, child: NodeId): void;
   removeChildAtIndex(parent: NodeId, index: number): NodeId;
+  removeChildrenRange(parent: NodeId, range: ChildRangeInput): void;
   getChildAtIndex(parent: NodeId, index: number): NodeId;
   getChildCount(parent: NodeId): number;
   getNodeCount(): number;

@@ -19,9 +19,8 @@ use error::{
     NativeResult, child_index_out_of_bounds_error, internal_error, into_napi,
     invalid_topology_error, type_error,
 };
-use napi::Env;
-use napi::Status;
 use napi::bindgen_prelude::{BigInt, Function, Object, Unknown};
+use napi::{Env, JsValue, Status, ValueType};
 use napi_derive::napi;
 use owner::TreeOwner;
 use taffy::{NodeId, TraversePartialTree};
@@ -286,6 +285,31 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawRemoveChildrenRange")]
+    pub fn remove_children_range(
+        &self,
+        env: Env,
+        parent: BigInt,
+        range: Unknown<'_>,
+        public_method: String,
+    ) -> napi::Result<()> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        let (start, end) = into_napi(env, child_range(range))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let child_count = tree.child_count(parent);
+                if start > end || end > child_count {
+                    return Err(error::range_error(format!(
+                        "Child range {start}..{end} is outside a list of {child_count} children"
+                    )));
+                }
+                tree.remove_children_range(parent, start..end)
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(
@@ -491,6 +515,37 @@ fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
         return Err(type_error("Raw node ID must be a non-negative u64 bigint"));
     }
     Ok(NodeId::from(value))
+}
+
+fn child_range(value: Unknown<'_>) -> NativeResult<(usize, usize)> {
+    if value
+        .get_type()
+        .map_err(|_| type_error("Expected a child range object"))?
+        != ValueType::Object
+    {
+        return Err(type_error("Expected a child range object"));
+    }
+    let object = unsafe {
+        value
+            .cast::<Object<'_>>()
+            .map_err(|_| type_error("Expected a child range object"))?
+    };
+    if object
+        .is_array()
+        .map_err(|_| type_error("Expected a child range object"))?
+    {
+        return Err(type_error("Expected a child range object"));
+    }
+
+    let read_bound = |name: &str| -> NativeResult<usize> {
+        let value = object
+            .get::<Unknown<'_>>(name)
+            .map_err(|_| type_error(format!("Could not read child range {name}")))?
+            .ok_or_else(|| type_error(format!("Child range {name} is required")))?;
+        number::from_unknown(value, &format!("Child range {name}")).and_then(number::to_safe_usize)
+    };
+
+    Ok((read_bound("start")?, read_bound("end")?))
 }
 
 fn validate_unattached_child(

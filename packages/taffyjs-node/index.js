@@ -401,6 +401,9 @@ var TaffyTree = class {
 	removeChildAtIndex(parent, index) {
 		return this.#removeChildAtIndex(parent, index);
 	}
+	removeChildrenRange(parent, range) {
+		this.#removeChildrenRange(parent, range);
+	}
 	newLeaf(style) {
 		return this.#newLeaf(style);
 	}
@@ -431,6 +434,7 @@ var TaffyTree = class {
 			setChildren: (parent, children) => this.#setChildren(parent, children),
 			removeChild: (parent, child) => this.#removeChild(parent, child),
 			removeChildAtIndex: (parent, index) => this.#removeChildAtIndex(parent, index),
+			removeChildrenRange: (parent, range) => this.#removeChildrenRange(parent, range),
 			getNodeCount: () => this.#getNodeCount(),
 			getStyle: (node) => this.#getStyle(node),
 			computeLayoutWithMeasure: (options) => this.#computeLayoutWithMeasure(options)
@@ -518,6 +522,10 @@ var TaffyTree = class {
 		const rawParent = this.#nodes.resolve(parent);
 		const rawChild = this.#inner.rawRemoveChildAtIndex(rawParent, index, "removeChildAtIndex");
 		return this.#nodes.fromRaw(rawChild);
+	}
+	#removeChildrenRange(parent, range) {
+		const rawParent = this.#nodes.resolve(parent);
+		this.#inner.rawRemoveChildrenRange(rawParent, range, "removeChildrenRange");
 	}
 };
 //#endregion

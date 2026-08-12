@@ -34,6 +34,11 @@ type PrivateMeasureOptions<TContext> = {
   }) => unknown;
 };
 
+export interface ChildRangeInput {
+  start: number;
+  end: number;
+}
+
 const secureRandom: RandomSource = (bytes) => globalThis.crypto.getRandomValues(bytes);
 
 export class TaffyTree<_TContext = unknown> {
@@ -87,6 +92,10 @@ export class TaffyTree<_TContext = unknown> {
     return this.#removeChildAtIndex(parent, index);
   }
 
+  removeChildrenRange(parent: NodeId, range: ChildRangeInput): void {
+    this.#removeChildrenRange(parent, range);
+  }
+
   newLeaf(style: unknown): NodeId {
     return this.#newLeaf(style);
   }
@@ -126,6 +135,8 @@ export class TaffyTree<_TContext = unknown> {
       removeChild: (parent: NodeId, child: NodeId) => this.#removeChild(parent, child),
       removeChildAtIndex: (parent: NodeId, index: number) =>
         this.#removeChildAtIndex(parent, index),
+      removeChildrenRange: (parent: NodeId, range: ChildRangeInput) =>
+        this.#removeChildrenRange(parent, range),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
       computeLayoutWithMeasure: (options: PrivateMeasureOptions<_TContext>) =>
@@ -236,6 +247,11 @@ export class TaffyTree<_TContext = unknown> {
     const rawParent = this.#nodes.resolve(parent);
     const rawChild = this.#inner.rawRemoveChildAtIndex(rawParent, index, "removeChildAtIndex");
     return this.#nodes.fromRaw(rawChild);
+  }
+
+  #removeChildrenRange(parent: NodeId, range: ChildRangeInput): void {
+    const rawParent = this.#nodes.resolve(parent);
+    this.#inner.rawRemoveChildrenRange(rawParent, range, "removeChildrenRange");
   }
 }
 
