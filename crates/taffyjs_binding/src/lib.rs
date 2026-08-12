@@ -3,6 +3,8 @@
 use napi_derive::napi;
 use taffy as _;
 
+mod contract_tests;
+
 // napi-rs only emits its platform loader when the native metadata contains an
 // export. This private sentinel keeps the M0 loader generated without adding a
 // supported package export; the real private owner replaces it in M1.
