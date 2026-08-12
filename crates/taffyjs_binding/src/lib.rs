@@ -13,7 +13,9 @@ mod number;
 mod owner;
 mod style;
 
-use error::{NativeResult, internal_error, into_napi, type_error};
+use std::collections::HashSet;
+
+use error::{NativeResult, internal_error, into_napi, invalid_topology_error, type_error};
 use napi::Env;
 use napi::Status;
 use napi::bindgen_prelude::{BigInt, Function, Object, Unknown};
@@ -69,6 +71,45 @@ impl NativeTaffyTree {
             self.owner.access(&public_method, |tree| {
                 let style = style::input(style)?;
                 tree.new_leaf(style)
+                    .map(|node| BigInt::from(u64::from(node)))
+                    .map_err(|_| internal_error())
+            }),
+        )
+    }
+
+    #[napi(js_name = "rawNewWithChildren")]
+    pub fn new_with_children(
+        &self,
+        env: Env,
+        style: Unknown<'_>,
+        children: Vec<BigInt>,
+        public_method: String,
+    ) -> napi::Result<BigInt> {
+        let children = into_napi(
+            env,
+            children
+                .iter()
+                .map(raw_node_id)
+                .collect::<NativeResult<Vec<_>>>(),
+        )?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let style = style::input(style)?;
+                let mut unique_children = HashSet::with_capacity(children.len());
+                for child in &children {
+                    if !unique_children.insert(*child) {
+                        return Err(invalid_topology_error(
+                            "Children must not contain duplicates",
+                        ));
+                    }
+                    if tree.parent(*child).is_some() {
+                        return Err(invalid_topology_error(
+                            "Child is already attached to a parent",
+                        ));
+                    }
+                }
+                tree.new_with_children(style, &children)
                     .map(|node| BigInt::from(u64::from(node)))
                     .map_err(|_| internal_error())
             }),

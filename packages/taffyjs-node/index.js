@@ -377,6 +377,9 @@ var TaffyTree = class {
 	newLeaf(style) {
 		return this.#newLeaf(style);
 	}
+	newWithChildren(style, children) {
+		return this.#newWithChildren(style, children);
+	}
 	setStyle(node, style) {
 		const raw = this.#nodes.resolve(node);
 		this.#inner.rawSetStyle(raw, style, "setStyle");
@@ -390,6 +393,7 @@ var TaffyTree = class {
 	[testAccess]() {
 		return {
 			newLeaf: (style) => this.#newLeaf(style),
+			newWithChildren: (style, children) => this.#newWithChildren(style, children),
 			clear: () => this.#clear(),
 			getNodeCount: () => this.#getNodeCount(),
 			getStyle: (node) => this.#getStyle(node),
@@ -399,6 +403,13 @@ var TaffyTree = class {
 	#newLeaf(style) {
 		const serial = this.#nodes.reserveSerial();
 		const raw = this.#inner.rawNewLeaf(style, "newLeaf");
+		return this.#nodes.register(raw, serial);
+	}
+	#newWithChildren(style, children) {
+		if (!Array.isArray(children)) throw new TypeError("children must be an array");
+		const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
+		const serial = this.#nodes.reserveSerial();
+		const raw = this.#inner.rawNewWithChildren(style, rawChildren, "newWithChildren");
 		return this.#nodes.register(raw, serial);
 	}
 	#clear() {

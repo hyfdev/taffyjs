@@ -5,6 +5,7 @@ export declare class NativeTaffyTree {
   rawNodeCount(publicMethod: string): number;
   rawClear(publicMethod: string): void;
   rawNewLeaf(style: unknown, publicMethod: string): bigint;
+  rawNewWithChildren(style: unknown, children: Array<bigint>, publicMethod: string): bigint;
   rawSetStyle(node: bigint, style: unknown, publicMethod: string): void;
   rawGetStyle(node: bigint, publicMethod: string): object;
   rawComputeLayout(node: bigint, availableSpace: unknown, publicMethod: string): void;

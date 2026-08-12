@@ -55,6 +55,10 @@ export class TaffyTree<_TContext = unknown> {
     return this.#newLeaf(style);
   }
 
+  newWithChildren(style: unknown, children: readonly NodeId[]): NodeId {
+    return this.#newWithChildren(style, children);
+  }
+
   setStyle(node: NodeId, style: unknown): void {
     const raw = this.#nodes.resolve(node);
     this.#inner.rawSetStyle(raw, style, "setStyle");
@@ -71,6 +75,8 @@ export class TaffyTree<_TContext = unknown> {
   [testAccess]() {
     return {
       newLeaf: (style: unknown) => this.#newLeaf(style),
+      newWithChildren: (style: unknown, children: readonly NodeId[]) =>
+        this.#newWithChildren(style, children),
       clear: () => this.#clear(),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
@@ -82,6 +88,14 @@ export class TaffyTree<_TContext = unknown> {
   #newLeaf(style: unknown): NodeId {
     const serial = this.#nodes.reserveSerial();
     const raw = this.#inner.rawNewLeaf(style, "newLeaf");
+    return this.#nodes.register(raw, serial);
+  }
+
+  #newWithChildren(style: unknown, children: readonly NodeId[]): NodeId {
+    if (!Array.isArray(children)) throw new TypeError("children must be an array");
+    const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
+    const serial = this.#nodes.reserveSerial();
+    const raw = this.#inner.rawNewWithChildren(style, rawChildren, "newWithChildren");
     return this.#nodes.register(raw, serial);
   }
 
