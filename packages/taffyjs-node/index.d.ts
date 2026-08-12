@@ -651,6 +651,7 @@ export declare class TaffyTree<TContext = unknown> {
   getLayout(node: NodeId): Layout;
   getUnroundedLayout(node: NodeId): Layout;
   getDetailedLayoutInfo(node: NodeId): DetailedLayoutInfo;
+  markDirty(node: NodeId): void;
   computeLayout(options: ComputeLayoutOptions): void;
   computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
 }

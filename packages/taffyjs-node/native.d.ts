@@ -32,6 +32,7 @@ export declare class NativeTaffyTree {
   rawGetLayout(node: bigint, publicMethod: string): object;
   rawGetUnroundedLayout(node: bigint, publicMethod: string): object;
   rawGetDetailedLayoutInfo(node: bigint, publicMethod: string): object;
+  rawMarkDirty(node: bigint, publicMethod: string): void;
   rawComputeLayoutWithMeasure(
     node: bigint,
     availableSpace: unknown,
