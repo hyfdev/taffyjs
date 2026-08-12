@@ -10,12 +10,17 @@
     "directory": "packages/taffyjs-node"
   },
   "files": [
+    "README.md",
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "native.js"
   ],
   "type": "module",
   "main": "./index.js",
   "types": "./index.d.ts",
+  "imports": {
+    "#native": "./native.js"
+  },
   "exports": {
     ".": {
       "types": "./index.d.ts",
@@ -24,10 +29,10 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js index.js --esm --release",
-    "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js index.js --esm",
+    "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm --release && vp fmt native.js native.d.ts package.json && node ../../tools/taffy-api/src/sync-platform-artifact.mjs && vp pack && node ../../tools/taffy-api/src/sync-public-declaration.mjs",
+    "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm && vp fmt native.js native.d.ts package.json && node ../../tools/taffy-api/src/sync-platform-artifact.mjs && vp pack && node ../../tools/taffy-api/src/sync-public-declaration.mjs",
     "check": "vp check",
-    "test": "vp test --passWithNoTests"
+    "test": "vp test --reporter=../../tools/taffy-api/src/contract-reporter.mjs"
   },
   "devDependencies": {
     "@napi-rs/cli": "catalog:",
@@ -35,6 +40,12 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "optionalDependencies": {
+    "@taffyjs/binding-darwin-arm64": "0.0.0",
+    "@taffyjs/binding-darwin-x64": "0.0.0",
+    "@taffyjs/binding-linux-x64-gnu": "0.0.0",
+    "@taffyjs/binding-win32-x64-msvc": "0.0.0"
   },
   "napi": {
     "binaryName": "taffyjs",
@@ -45,5 +56,8 @@
       "x86_64-pc-windows-msvc",
       "x86_64-unknown-linux-gnu"
     ]
+  },
+  "engines": {
+    "node": ">=22.18.0"
   }
 }

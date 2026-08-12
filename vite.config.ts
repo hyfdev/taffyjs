@@ -1,13 +1,27 @@
 import { defineConfig } from "vite-plus";
 
 const testTasks = {
-  "check:test:unit": {
-    command: "vp run @taffyjs/node#test",
-    dependsOn: ["build", "check:contract:all"],
+  "check:test:native": {
+    command:
+      "vp test --config packages/taffyjs-node/vite.config.ts --reporter=tools/taffy-api/src/contract-reporter.mjs packages/taffyjs-node/tests/native",
+    dependsOn: ["build", "check:contract"],
+  },
+  "check:test:wrapper": {
+    command:
+      "vp test --config packages/taffyjs-node/vite.config.ts --reporter=tools/taffy-api/src/contract-reporter.mjs packages/taffyjs-node/tests/wrapper",
+    dependsOn: ["build", "check:contract"],
   },
   "check:test:integration": {
     command: "vp run @taffyjs/node-integration-tests#test",
-    dependsOn: ["build", "check:contract:all"],
+    dependsOn: ["build", "check:contract"],
+  },
+  "check:test:types": {
+    command: "node tools/taffy-api/src/run-type-tests.mjs",
+    dependsOn: ["build", "check:contract"],
+  },
+  "check:test:node-minimum": {
+    command: "node tests/taffyjs-node/minimum-node/run.mjs",
+    dependsOn: ["build", "check:contract"],
   },
 };
 
@@ -36,11 +50,11 @@ export default defineConfig({
       },
       "check:contract": {
         command: "node tools/taffy-api/src/index.mjs check",
-        dependsOn: ["check:contract:generate", "check:contract:self-test"],
+        dependsOn: ["build", "check:contract:generate", "check:contract:self-test"],
       },
       "check:contract:all": {
         command: "node tools/taffy-api/src/index.mjs check --all",
-        dependsOn: ["check:contract:generate", "check:contract:self-test"],
+        dependsOn: ["build", "check:contract:generate", "check:contract:self-test"],
       },
       "check:completion": {
         command: "node tools/taffy-api/src/index.mjs completion",
@@ -49,7 +63,7 @@ export default defineConfig({
         command: "node tools/taffy-api/src/index.mjs review-completion",
       },
       "build:binding": {
-        command: "vp run @taffyjs/node#build:debug",
+        command: "vp run @taffyjs/node#build",
       },
       build: {
         command: "echo build ok",
@@ -57,9 +71,11 @@ export default defineConfig({
       },
       "check:format": {
         command: "vp fmt --check",
+        dependsOn: ["build"],
       },
       "check:lint": {
         command: "vp lint --deny-warnings",
+        dependsOn: ["build"],
       },
       "check:rust": {
         command:
@@ -76,7 +92,13 @@ export default defineConfig({
       },
       "ready:loop": {
         command: "echo ready:loop",
-        dependsOn: ["check:contract", "check:format", "check:lint", "check:rust"],
+        dependsOn: [
+          "check:contract",
+          "check:format",
+          "check:lint",
+          "check:rust",
+          "check:test:integration",
+        ],
       },
       ready: {
         command: "echo ready",

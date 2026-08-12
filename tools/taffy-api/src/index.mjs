@@ -1226,15 +1226,15 @@ export function assembleDeclaration(contract, taskStates = null) {
       .join(" ");
     sections["API-TREE-001.class"] = [`${declaration.classDeclaration.header} { ${members} }`];
   }
-  return declaration.serialization.assemblyOrder
+  const statements = declaration.serialization.assemblyOrder
     .flatMap((key) => sections[key])
     .join(
       declaration.serialization.unformattedSeparator ===
         "two LF characters between declaration statements"
         ? "\n\n"
         : fail("declaration-separator"),
-    )
-    .concat("\n");
+    );
+  return statements.length === 0 ? "export {};\n" : `${statements}\n`;
 }
 
 async function runWithInput(command, args, input, cwd) {
@@ -2729,6 +2729,250 @@ function lockVersion(lock, name, expected) {
   return matches[0];
 }
 
+function exportedRuntimeNames(source, path) {
+  const tokens = tokenizeJavaScript(source, path);
+  const names = [];
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token.value !== "export" || token.brace !== 0 || token.bracket !== 0 || token.paren !== 0) {
+      continue;
+    }
+    let cursor = index + 1;
+    if (tokens[cursor]?.value === "type" || tokens[cursor]?.value === "interface") continue;
+    if (tokens[cursor]?.value === "default") {
+      names.push("default");
+      continue;
+    }
+    if (tokens[cursor]?.value === "async") cursor += 1;
+    if (["class", "enum", "function", "const", "let", "var"].includes(tokens[cursor]?.value)) {
+      const name = tokens[cursor + 1];
+      if (!name || name.type !== "identifier") fail("artifact-drift/public-export-syntax", path);
+      names.push(name.value);
+      continue;
+    }
+    if (tokens[cursor]?.value === "*") fail("artifact-drift/public-export-wildcard", path);
+    if (tokens[cursor]?.value !== "{") {
+      fail("artifact-drift/public-export-syntax", path);
+    }
+    cursor += 1;
+    let segment = [];
+    const recordSegment = () => {
+      const identifiers = segment.filter(({ type }) => type === "identifier");
+      segment = [];
+      if (identifiers.length === 0 || identifiers[0].value === "type") return;
+      const asIndex = identifiers.findIndex(({ value }) => value === "as");
+      const name = asIndex === -1 ? identifiers[0] : identifiers[asIndex + 1];
+      if (!name) fail("artifact-drift/public-export-syntax", path);
+      names.push(name.value);
+    };
+    while (cursor < tokens.length) {
+      const current = tokens[cursor];
+      if (current.value === "}" && current.brace === 1) {
+        recordSegment();
+        break;
+      }
+      if (
+        current.value === "," &&
+        current.brace === 1 &&
+        current.bracket === 0 &&
+        current.paren === 0
+      ) {
+        recordSegment();
+      } else {
+        segment.push(current);
+      }
+      cursor += 1;
+    }
+    if (cursor === tokens.length) fail("artifact-drift/public-export-syntax", path);
+    index = cursor;
+  }
+  unique(names, "artifact-drift/public-export-duplicate");
+  return names.sort(asciiCompare);
+}
+
+function assertBareNativeImport(source, path) {
+  const tokens = tokenizeJavaScript(source, path);
+  const nativeImports = tokens.filter(
+    (token, index) =>
+      token.value === "import" &&
+      token.brace === 0 &&
+      token.bracket === 0 &&
+      token.paren === 0 &&
+      tokens[index + 1]?.type === "string" &&
+      tokens[index + 1].value.slice(1, -1) === "#native",
+  );
+  if (nativeImports.length !== 1) fail("artifact-drift/private-native-entry", path);
+  if (
+    source.includes("__bootstrap") ||
+    /(?:from\s*|import\s*)["'][^"']*(?:native\.js|\.node)["']/u.test(source)
+  ) {
+    fail("artifact-drift/private-native-leak", path);
+  }
+}
+
+function lockImporter(lock, importer) {
+  const escaped = escapeRegExp(importer);
+  const match = new RegExp(
+    `(?:^|\\n)  ${escaped}:\\n([\\s\\S]*?)(?=\\n  [^ \\n][^\\n]*:\\n|\\npackages:\\n)`,
+    "u",
+  ).exec(lock);
+  if (!match) fail("pin-drift/types-node-target", importer);
+  return match[1];
+}
+
+async function validateRealPackageFoundation(root, contract, status) {
+  if (!IMPLEMENTED_STATES.has(status.taskStates["INFRA-002"])) return;
+
+  const packageRoot = resolve(root, "packages/taffyjs-node");
+  const target = contract.implementationDependencyTargets["INFRA-002"]["@types/node"];
+  const [
+    rootManifest,
+    packageManifest,
+    integrationManifest,
+    workspace,
+    lock,
+    sourceEntry,
+    builtEntry,
+    nativeEntry,
+    nativeDeclaration,
+  ] = await Promise.all([
+    readJson(resolve(root, "package.json"), "pin-drift/root-manifest"),
+    readJson(resolve(packageRoot, "package.json"), "artifact-drift/root-package-manifest"),
+    readJson(resolve(root, "tests/taffyjs-node/package.json"), "pin-drift/integration-manifest"),
+    readFile(resolve(root, "pnpm-workspace.yaml"), "utf8"),
+    readFile(resolve(root, "pnpm-lock.yaml"), "utf8"),
+    readFile(resolve(packageRoot, "src/index.ts"), "utf8"),
+    readFile(resolve(packageRoot, "index.js"), "utf8"),
+    readFile(resolve(packageRoot, "native.js"), "utf8"),
+    readFile(resolve(packageRoot, "native.d.ts"), "utf8"),
+  ]);
+
+  const nodeRanges = [
+    contract.pins.node,
+    contract.tarballContents.rootManifest.engines.node,
+    rootManifest.engines?.node,
+    packageManifest.engines?.node,
+  ];
+  if (new Set(nodeRanges).size !== 1) fail("pin-drift/packed-engines-node");
+  if (
+    packageManifest.devDependencies?.["@types/node"] !== "catalog:" ||
+    integrationManifest.devDependencies?.["@types/node"] !== "catalog:" ||
+    !new RegExp(`(?:^|\\n)  ["']?@types/node["']?: ${escapeRegExp(target)}(?:\\n|$)`, "u").test(
+      workspace,
+    ) ||
+    !new RegExp(
+      `["']?@types/node["']?:\\n\\s+specifier: ${escapeRegExp(target)}\\n\\s+version: ${escapeRegExp(target)}(?:\\n|$)`,
+      "u",
+    ).test(lock)
+  ) {
+    fail("pin-drift/types-node-target");
+  }
+  for (const importer of ["packages/taffyjs-node", "tests/taffyjs-node"]) {
+    const importerSource = lockImporter(lock, importer);
+    if (
+      !new RegExp(
+        `["']?@types/node["']?:\\n\\s+specifier: ["']catalog:["']\\n\\s+version: ${escapeRegExp(target)}(?:\\n|$)`,
+        "u",
+      ).test(importerSource)
+    ) {
+      fail("pin-drift/types-node-target", importer);
+    }
+  }
+  if (!new RegExp(`(?:^|\\n)  ["']@types/node@${escapeRegExp(target)}["']:\\n`, "u").test(lock)) {
+    fail("pin-drift/types-node-target");
+  }
+
+  const expectedFiles = contract.tarballContents.root
+    .filter((path) => path !== "package/package.json")
+    .map((path) => path.slice("package/".length));
+  const expectedOptionalDependencies = Object.fromEntries(
+    Object.values(contract.platformPackages).map(({ name }) => [name, "0.0.0"]),
+  );
+  if (
+    packageManifest.private !== true ||
+    packageManifest.version !== "0.0.0" ||
+    packageManifest.license !== "UNLICENSED" ||
+    contract.pins.moduleFormat !== "esm" ||
+    packageManifest.type !== "module" ||
+    packageManifest.main !== "./index.js" ||
+    packageManifest.types !== "./index.d.ts" ||
+    canonicalJson(packageManifest.files) !== canonicalJson(expectedFiles) ||
+    canonicalJson(packageManifest.imports) !== canonicalJson({ "#native": "./native.js" }) ||
+    canonicalJson(packageManifest.exports) !==
+      canonicalJson({
+        ".": { types: "./index.d.ts", default: "./index.js" },
+        "./package.json": "./package.json",
+      }) ||
+    canonicalJson(packageManifest.optionalDependencies) !==
+      canonicalJson(expectedOptionalDependencies) ||
+    canonicalJson(packageManifest.napi?.targets) !== canonicalJson(contract.targets)
+  ) {
+    fail("artifact-drift/root-package-manifest");
+  }
+
+  const targetMetadata = {
+    "x86_64-apple-darwin": { directory: "darwin-x64", os: ["darwin"], cpu: ["x64"] },
+    "aarch64-apple-darwin": { directory: "darwin-arm64", os: ["darwin"], cpu: ["arm64"] },
+    "x86_64-pc-windows-msvc": {
+      directory: "win32-x64-msvc",
+      os: ["win32"],
+      cpu: ["x64"],
+    },
+    "x86_64-unknown-linux-gnu": {
+      directory: "linux-x64-gnu",
+      os: ["linux"],
+      cpu: ["x64"],
+      libc: ["glibc"],
+    },
+  };
+  for (const rustTarget of contract.targets) {
+    const platform = contract.platformPackages[rustTarget];
+    const metadata = targetMetadata[rustTarget];
+    if (!platform || !metadata) fail("artifact-drift/platform-target", rustTarget);
+    const platformRoot = resolve(packageRoot, "npm", metadata.directory);
+    const manifest = await readJson(
+      resolve(platformRoot, "package.json"),
+      "artifact-drift/platform-package-manifest",
+    );
+    const expectedManifest = {
+      name: platform.name,
+      version: "0.0.0",
+      private: true,
+      license: "UNLICENSED",
+      os: metadata.os,
+      cpu: metadata.cpu,
+      ...(metadata.libc ? { libc: metadata.libc } : {}),
+      main: platform.binary,
+      files: [platform.binary],
+    };
+    if (canonicalJson(manifest) !== canonicalJson(expectedManifest)) {
+      fail("artifact-drift/platform-package-manifest", rustTarget);
+    }
+    const readme = await readFile(resolve(platformRoot, "README.md"), "utf8");
+    if (!readme.includes(platform.name)) fail("artifact-drift/platform-readme", rustTarget);
+  }
+
+  assertBareNativeImport(sourceEntry, "packages/taffyjs-node/src/index.ts");
+  assertBareNativeImport(builtEntry, "packages/taffyjs-node/index.js");
+  if (nativeEntry.includes("__bootstrap") || nativeDeclaration.includes("__bootstrap")) {
+    fail("artifact-drift/private-native-leak");
+  }
+  const expectedRuntimeExports = Object.entries(contract.publicRuntimeExportsByOwner)
+    .filter(([owner]) => stateImplemented(status.taskStates, owner))
+    .flatMap(([, names]) => names)
+    .sort(asciiCompare);
+  for (const [path, source] of [
+    ["packages/taffyjs-node/src/index.ts", sourceEntry],
+    ["packages/taffyjs-node/index.js", builtEntry],
+  ]) {
+    if (
+      canonicalJson(exportedRuntimeNames(source, path)) !== canonicalJson(expectedRuntimeExports)
+    ) {
+      fail("artifact-drift/public-runtime-exports", path);
+    }
+  }
+}
+
 async function validateRealPinsAndSource(root, contract) {
   const metadataResult = await runCommand("cargo", ["metadata", "--format-version", "1"], root);
   const metadata = JSON.parse(metadataResult.stdout);
@@ -2953,6 +3197,7 @@ export async function checkRepository({ root, all = false } = {}) {
   validateStatusShape(status, generated.canonical, generated.expanded);
   await validateContractBase(resolvedRoot, goal, status);
   await validateRealPinsAndSource(resolvedRoot, generated.canonical);
+  await validateRealPackageFoundation(resolvedRoot, generated.canonical, status);
   await validateRealDeclarations(
     resolvedRoot,
     generated.canonical,

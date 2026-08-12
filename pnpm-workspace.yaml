@@ -6,7 +6,7 @@ catalogMode: prefer
 
 catalog:
   "@napi-rs/cli": 3.8.2
-  "@types/node": ^24
+  "@types/node": 22.18.0
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@0.2.8
   vite-plus: 0.2.8

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vp test"
+    "test": "vp test --reporter=../../tools/taffy-api/src/contract-reporter.mjs"
   },
   "dependencies": {
     "@taffyjs/node": "workspace:*"
