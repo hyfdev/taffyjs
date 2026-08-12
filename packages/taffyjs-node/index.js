@@ -371,6 +371,9 @@ var TaffyTree = class {
 		this.#nodes = new NodeIdRegistry(options.randomSource ?? secureRandom, options.nextSerial);
 		this.#inner = new NativeTaffyTree();
 	}
+	getNodeCount() {
+		return this.#getNodeCount();
+	}
 	[testAccess]() {
 		return {
 			newLeaf: (style) => this.#newLeaf(style),

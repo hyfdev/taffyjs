@@ -11,7 +11,7 @@ type TreeConstructor = new () => Tree;
 function TaffyTree(): TreeConstructor {
   const value = Reflect.get(api, "TaffyTree");
   assert.equal(typeof value, "function", "TaffyTree is exported");
-  return value as TreeConstructor;
+  return value as unknown as TreeConstructor;
 }
 
 contractTest("API-TREE-001/construct", () => {

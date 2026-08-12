@@ -23,7 +23,7 @@ const RAW_MASK = (1n << 64n) - 1n;
 function TaffyTree(): TreeConstructor {
   const value = Reflect.get(api, "TaffyTree");
   assert.equal(typeof value, "function", "TaffyTree is exported");
-  return value as TreeConstructor;
+  return value as unknown as TreeConstructor;
 }
 
 function captureError(body: () => unknown): CodedError {
