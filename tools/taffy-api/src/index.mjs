@@ -3432,7 +3432,7 @@ function assertBareNativeImport(source, path) {
 }
 
 const PACKAGE_BUILD_COMMAND =
-  "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm --release && vp fmt native.js native.d.ts package.json && node ../../tools/taffy-api/src/sync-platform-artifact.mjs && vp pack && node ../../tools/taffy-api/src/sync-public-declaration.mjs";
+  "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm --release && vp fmt native.js native.d.ts package.json && node ../../tools/taffy-api/src/sync-platform-artifact.mjs && vp pack && node ../../tools/taffy-api/src/sync-public-declaration.mjs && napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir node_modules/.cache/taffyjs-test-hooks --platform --js test-hooks.js --dts test-hooks.d.ts --esm --release --features test-hooks";
 
 export function validatePackageBuildScript(packageManifest) {
   if (packageManifest.scripts?.build !== PACKAGE_BUILD_COMMAND) {

@@ -41,7 +41,7 @@ function runPanicChild() {
   const fixture = fileURLToPath(new URL("./fixtures/infra-004-child.mjs", import.meta.url));
   const hooks = resolve(
     fileURLToPath(new URL("../../", import.meta.url)),
-    ".test-artifacts/test-hooks.js",
+    "node_modules/.cache/taffyjs-test-hooks/test-hooks.js",
   );
   const child = spawnSync(process.execPath, [fixture], {
     encoding: "utf8",

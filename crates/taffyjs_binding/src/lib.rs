@@ -1,14 +1,54 @@
 #![deny(clippy::all)]
 
+mod error;
+mod owner;
+
+use error::into_napi;
+use napi::Env;
 use napi_derive::napi;
-use taffy as _;
+use owner::TreeOwner;
 
 mod contract_tests;
 
-// napi-rs only emits its platform loader when the native metadata contains an
-// export. This private sentinel keeps the M0 loader generated without adding a
-// supported package export; the real private owner replaces it in M1.
-#[napi(js_name = "__nativeModuleLoaded")]
-pub fn native_module_loaded() -> bool {
-    true
+#[napi]
+pub struct NativeTaffyTree {
+    owner: TreeOwner,
+}
+
+#[napi]
+impl NativeTaffyTree {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self {
+            owner: TreeOwner::new(),
+        }
+    }
+
+    #[napi(js_name = "rawNodeCount")]
+    pub fn node_count(&self, env: Env, public_method: String) -> napi::Result<u32> {
+        into_napi(
+            env,
+            self.owner
+                .access(&public_method, |tree| Ok(tree.total_node_count() as u32)),
+        )
+    }
+}
+
+#[cfg(feature = "test-hooks")]
+#[napi]
+impl NativeTaffyTree {
+    #[napi(js_name = "__triggerPanic")]
+    pub fn trigger_panic(&self, env: Env) -> napi::Result<()> {
+        into_napi(
+            env,
+            self.owner
+                .access("__triggerPanic", |_| owner::injected_unexpected_panic()),
+        )
+    }
+}
+
+impl Default for NativeTaffyTree {
+    fn default() -> Self {
+        Self::new()
+    }
 }

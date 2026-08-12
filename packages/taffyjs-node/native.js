@@ -889,5 +889,5 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`);
 }
 
-const { __nativeModuleLoaded } = nativeBinding;
-export { __nativeModuleLoaded };
+const { NativeTaffyTree } = nativeBinding;
+export { NativeTaffyTree };
