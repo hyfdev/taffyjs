@@ -1,6 +1,7 @@
 #![deny(clippy::all)]
 
 mod available_space;
+mod detailed;
 mod error;
 mod generated_numeric;
 mod geometry;
@@ -140,6 +141,23 @@ impl NativeTaffyTree {
             self.owner.access(&public_method, |tree| {
                 let value = tree.layout(node).map_err(|_| internal_error())?;
                 layout::output(&env, value).map_err(|_| internal_error())
+            }),
+        )
+    }
+
+    #[napi(js_name = "rawGetDetailedLayoutInfo")]
+    pub fn get_detailed_layout_info<'env>(
+        &self,
+        env: Env,
+        node: BigInt,
+        public_method: String,
+    ) -> napi::Result<Object<'env>> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                detailed::output(&env, tree.detailed_layout_info(node))
+                    .map_err(|_| internal_error())
             }),
         )
     }

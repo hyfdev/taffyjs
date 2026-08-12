@@ -572,3 +572,28 @@ export interface Layout {
   readonly padding: Rect<number>;
   readonly margin: Rect<number>;
 }
+
+export type DetailedLayoutInfo =
+  | Readonly<{ kind: typeof DetailedLayoutInfoKind.None }>
+  | Readonly<{ kind: typeof DetailedLayoutInfoKind.Grid; value: DetailedGridInfo }>;
+
+export interface DetailedGridInfo {
+  readonly rows: DetailedGridTracksInfo;
+  readonly columns: DetailedGridTracksInfo;
+  readonly items: readonly DetailedGridItemInfo[];
+}
+
+export interface DetailedGridTracksInfo {
+  readonly negativeImplicitTracks: number;
+  readonly explicitTracks: number;
+  readonly positiveImplicitTracks: number;
+  readonly gutters: readonly number[];
+  readonly sizes: readonly number[];
+}
+
+export interface DetailedGridItemInfo {
+  readonly rowStart: number;
+  readonly rowEnd: number;
+  readonly columnStart: number;
+  readonly columnEnd: number;
+}
