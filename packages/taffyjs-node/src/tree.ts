@@ -158,6 +158,10 @@ export class TaffyTree<TContext = unknown> {
     this.#markDirty(node);
   }
 
+  isDirty(node: NodeId): boolean {
+    return this.#isDirty(node);
+  }
+
   clear(): void {
     this.#clear();
   }
@@ -205,6 +209,7 @@ export class TaffyTree<TContext = unknown> {
       getUnroundedLayout: (node: NodeId) => this.#getUnroundedLayout(node),
       getDetailedLayoutInfo: (node: NodeId) => this.#getDetailedLayoutInfo(node),
       markDirty: (node: NodeId) => this.#markDirty(node),
+      isDirty: (node: NodeId) => this.#isDirty(node),
       computeLayout: (options: ComputeLayoutOptions) => this.#computeLayout(options),
       computeLayoutWithMeasure: (options: ComputeLayoutWithMeasureOptions<TContext>) =>
         this.#computeLayoutWithMeasure(options),
@@ -297,6 +302,11 @@ export class TaffyTree<TContext = unknown> {
   #markDirty(node: NodeId): void {
     const raw = this.#nodes.resolve(node);
     this.#inner.rawMarkDirty(raw, "markDirty");
+  }
+
+  #isDirty(node: NodeId): boolean {
+    const raw = this.#nodes.resolve(node);
+    return this.#inner.rawIsDirty(raw, "isDirty");
   }
 
   #computeLayout(options: ComputeLayoutOptions): void {

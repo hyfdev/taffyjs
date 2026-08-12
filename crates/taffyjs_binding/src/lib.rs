@@ -595,6 +595,17 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawIsDirty")]
+    pub fn is_dirty(&self, env: Env, node: BigInt, public_method: String) -> napi::Result<bool> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                tree.dirty(node).map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawComputeLayoutWithMeasure")]
     pub fn compute_layout_with_measure<'env>(
         &self,
