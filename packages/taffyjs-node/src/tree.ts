@@ -83,6 +83,10 @@ export class TaffyTree<_TContext = unknown> {
     this.#removeChild(parent, child);
   }
 
+  removeChildAtIndex(parent: NodeId, index: number): NodeId {
+    return this.#removeChildAtIndex(parent, index);
+  }
+
   newLeaf(style: unknown): NodeId {
     return this.#newLeaf(style);
   }
@@ -120,6 +124,8 @@ export class TaffyTree<_TContext = unknown> {
       setChildren: (parent: NodeId, children: readonly NodeId[]) =>
         this.#setChildren(parent, children),
       removeChild: (parent: NodeId, child: NodeId) => this.#removeChild(parent, child),
+      removeChildAtIndex: (parent: NodeId, index: number) =>
+        this.#removeChildAtIndex(parent, index),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
       computeLayoutWithMeasure: (options: PrivateMeasureOptions<_TContext>) =>
@@ -224,6 +230,12 @@ export class TaffyTree<_TContext = unknown> {
     const rawParent = this.#nodes.resolve(parent);
     const rawChild = this.#nodes.resolve(child);
     this.#inner.rawRemoveChild(rawParent, rawChild, "removeChild");
+  }
+
+  #removeChildAtIndex(parent: NodeId, index: number): NodeId {
+    const rawParent = this.#nodes.resolve(parent);
+    const rawChild = this.#inner.rawRemoveChildAtIndex(rawParent, index, "removeChildAtIndex");
+    return this.#nodes.fromRaw(rawChild);
   }
 }
 

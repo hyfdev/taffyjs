@@ -11,6 +11,7 @@ export declare class NativeTaffyTree {
   rawInsertChildAtIndex(parent: bigint, index: unknown, child: bigint, publicMethod: string): void;
   rawSetChildren(parent: bigint, children: Array<bigint>, publicMethod: string): void;
   rawRemoveChild(parent: bigint, child: bigint, publicMethod: string): void;
+  rawRemoveChildAtIndex(parent: bigint, index: unknown, publicMethod: string): bigint;
   rawClear(publicMethod: string): void;
   rawNewLeaf(style: unknown, publicMethod: string): bigint;
   rawNewWithChildren(style: unknown, children: Array<bigint>, publicMethod: string): bigint;
