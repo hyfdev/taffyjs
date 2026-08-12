@@ -284,3 +284,164 @@ export declare const AvailableSpace: Readonly<{
   readonly MinContent: Readonly<{ kind: typeof AvailableSpaceKind.MinContent }>;
   readonly MaxContent: Readonly<{ kind: typeof AvailableSpaceKind.MaxContent }>;
 }>;
+
+export type GridPlacementInput =
+  | { kind: typeof GridPlacementKind.Auto }
+  | { kind: typeof GridPlacementKind.Line; index: number }
+  | { kind: typeof GridPlacementKind.NamedLine; name: string; index: number }
+  | { kind: typeof GridPlacementKind.Span; span: number }
+  | { kind: typeof GridPlacementKind.NamedSpan; name: string; span: number };
+
+export type GridPlacement =
+  | Readonly<{ kind: typeof GridPlacementKind.Auto }>
+  | Readonly<{ kind: typeof GridPlacementKind.Line; index: number }>
+  | Readonly<{ kind: typeof GridPlacementKind.NamedLine; name: string; index: number }>
+  | Readonly<{ kind: typeof GridPlacementKind.Span; span: number }>
+  | Readonly<{ kind: typeof GridPlacementKind.NamedSpan; name: string; span: number }>;
+
+export type MinTrackSizingFunctionInput =
+  | { kind: typeof TrackSizingKind.Length; value: number }
+  | { kind: typeof TrackSizingKind.Percent; value: number }
+  | { kind: typeof TrackSizingKind.Auto }
+  | { kind: typeof TrackSizingKind.MinContent }
+  | { kind: typeof TrackSizingKind.MaxContent };
+
+export type MinTrackSizingFunction =
+  | Readonly<{ kind: typeof TrackSizingKind.Length; value: number }>
+  | Readonly<{ kind: typeof TrackSizingKind.Percent; value: number }>
+  | Readonly<{ kind: typeof TrackSizingKind.Auto }>
+  | Readonly<{ kind: typeof TrackSizingKind.MinContent }>
+  | Readonly<{ kind: typeof TrackSizingKind.MaxContent }>;
+
+export type MaxTrackSizingFunctionInput =
+  | MinTrackSizingFunctionInput
+  | { kind: typeof TrackSizingKind.FitContent; value: LengthPercentageInput }
+  | { kind: typeof TrackSizingKind.Fr; value: number };
+
+export type MaxTrackSizingFunction =
+  | MinTrackSizingFunction
+  | Readonly<{ kind: typeof TrackSizingKind.FitContent; value: LengthPercentage }>
+  | Readonly<{ kind: typeof TrackSizingKind.Fr; value: number }>;
+
+export interface TrackSizingFunctionInput {
+  min: MinTrackSizingFunctionInput;
+  max: MaxTrackSizingFunctionInput;
+}
+
+export interface TrackSizingFunction {
+  readonly min: MinTrackSizingFunction;
+  readonly max: MaxTrackSizingFunction;
+}
+
+export type RepetitionCountInput =
+  | { kind: typeof RepetitionCountKind.Count; value: number }
+  | { kind: typeof RepetitionCountKind.AutoFill }
+  | { kind: typeof RepetitionCountKind.AutoFit };
+
+export type RepetitionCount =
+  | Readonly<{ kind: typeof RepetitionCountKind.Count; value: number }>
+  | Readonly<{ kind: typeof RepetitionCountKind.AutoFill }>
+  | Readonly<{ kind: typeof RepetitionCountKind.AutoFit }>;
+
+export interface GridTemplateRepetitionInput {
+  count: RepetitionCountInput;
+  tracks: TrackSizingFunctionInput[];
+  lineNames: string[][];
+}
+
+export interface GridTemplateRepetition {
+  readonly count: RepetitionCount;
+  readonly tracks: readonly TrackSizingFunction[];
+  readonly lineNames: readonly (readonly string[])[];
+}
+
+export type GridTemplateComponentInput =
+  | { kind: typeof GridTemplateComponentKind.Single; value: TrackSizingFunctionInput }
+  | { kind: typeof GridTemplateComponentKind.Repeat; value: GridTemplateRepetitionInput };
+
+export type GridTemplateComponent =
+  | Readonly<{ kind: typeof GridTemplateComponentKind.Single; value: TrackSizingFunction }>
+  | Readonly<{ kind: typeof GridTemplateComponentKind.Repeat; value: GridTemplateRepetition }>;
+
+export interface GridTemplateAreasInput {
+  areas: GridTemplateAreaInput[];
+  rowCount: number;
+  columnCount: number;
+}
+
+export interface GridTemplateAreas {
+  readonly areas: readonly GridTemplateArea[];
+  readonly rowCount: number;
+  readonly columnCount: number;
+}
+
+export interface GridTemplateAreaInput {
+  name: string;
+  rowStart: number;
+  rowEnd: number;
+  columnStart: number;
+  columnEnd: number;
+}
+
+export interface GridTemplateArea {
+  readonly name: string;
+  readonly rowStart: number;
+  readonly rowEnd: number;
+  readonly columnStart: number;
+  readonly columnEnd: number;
+}
+
+export declare const GridPlacement: Readonly<{
+  readonly Auto: Readonly<{ kind: typeof GridPlacementKind.Auto }>;
+  readonly Line: (index: number) => { kind: typeof GridPlacementKind.Line; index: number };
+  readonly NamedLine: (
+    name: string,
+    index: number,
+  ) => { kind: typeof GridPlacementKind.NamedLine; name: string; index: number };
+  readonly Span: (span: number) => { kind: typeof GridPlacementKind.Span; span: number };
+  readonly NamedSpan: (
+    name: string,
+    span: number,
+  ) => { kind: typeof GridPlacementKind.NamedSpan; name: string; span: number };
+}>;
+
+export declare const TrackSizingFunction: Readonly<{
+  readonly Length: (value: number) => TrackSizingFunctionInput;
+  readonly Percent: (value: number) => TrackSizingFunctionInput;
+  readonly Auto: Readonly<{
+    readonly min: Readonly<{ kind: typeof TrackSizingKind.Auto }>;
+    readonly max: Readonly<{ kind: typeof TrackSizingKind.Auto }>;
+  }>;
+  readonly MinContent: Readonly<{
+    readonly min: Readonly<{ kind: typeof TrackSizingKind.MinContent }>;
+    readonly max: Readonly<{ kind: typeof TrackSizingKind.MinContent }>;
+  }>;
+  readonly MaxContent: Readonly<{
+    readonly min: Readonly<{ kind: typeof TrackSizingKind.MaxContent }>;
+    readonly max: Readonly<{ kind: typeof TrackSizingKind.MaxContent }>;
+  }>;
+  readonly FitContent: (value: LengthPercentageInput) => TrackSizingFunctionInput;
+  readonly Fr: (value: number) => TrackSizingFunctionInput;
+  readonly MinMax: (
+    min: MinTrackSizingFunctionInput,
+    max: MaxTrackSizingFunctionInput,
+  ) => TrackSizingFunctionInput;
+}>;
+
+export declare const RepetitionCount: Readonly<{
+  readonly Count: (value: number) => { kind: typeof RepetitionCountKind.Count; value: number };
+  readonly AutoFill: Readonly<{ kind: typeof RepetitionCountKind.AutoFill }>;
+  readonly AutoFit: Readonly<{ kind: typeof RepetitionCountKind.AutoFit }>;
+}>;
+
+export declare const GridTemplateComponent: Readonly<{
+  readonly Single: (value: TrackSizingFunctionInput) => {
+    kind: typeof GridTemplateComponentKind.Single;
+    value: TrackSizingFunctionInput;
+  };
+  readonly Repeat: (
+    count: RepetitionCountInput,
+    tracks: TrackSizingFunctionInput[],
+    lineNames?: string[][],
+  ) => { kind: typeof GridTemplateComponentKind.Repeat; value: GridTemplateRepetitionInput };
+}>;

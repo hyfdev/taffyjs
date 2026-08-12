@@ -147,6 +147,131 @@ const AvailableSpace = Object.freeze({
 	MaxContent: maxContent
 });
 //#endregion
+//#region src/grid.ts
+const gridPlacementAuto = Object.freeze({ kind: GridPlacementKind.Auto });
+const GridPlacement = Object.freeze({
+	Auto: gridPlacementAuto,
+	Line(index) {
+		return {
+			kind: GridPlacementKind.Line,
+			index
+		};
+	},
+	NamedLine(name, index) {
+		return {
+			kind: GridPlacementKind.NamedLine,
+			name,
+			index
+		};
+	},
+	Span(span) {
+		return {
+			kind: GridPlacementKind.Span,
+			span
+		};
+	},
+	NamedSpan(name, span) {
+		return {
+			kind: GridPlacementKind.NamedSpan,
+			name,
+			span
+		};
+	}
+});
+function frozenTrack(kind) {
+	const part = Object.freeze({ kind });
+	return Object.freeze({
+		min: part,
+		max: part
+	});
+}
+const trackAuto = frozenTrack(TrackSizingKind.Auto);
+const trackMinContent = frozenTrack(TrackSizingKind.MinContent);
+const trackMaxContent = frozenTrack(TrackSizingKind.MaxContent);
+const TrackSizingFunction = Object.freeze({
+	Length(value) {
+		return {
+			min: {
+				kind: TrackSizingKind.Length,
+				value
+			},
+			max: {
+				kind: TrackSizingKind.Length,
+				value
+			}
+		};
+	},
+	Percent(value) {
+		return {
+			min: {
+				kind: TrackSizingKind.Percent,
+				value
+			},
+			max: {
+				kind: TrackSizingKind.Percent,
+				value
+			}
+		};
+	},
+	Auto: trackAuto,
+	MinContent: trackMinContent,
+	MaxContent: trackMaxContent,
+	FitContent(value) {
+		return {
+			min: { kind: TrackSizingKind.Auto },
+			max: {
+				kind: TrackSizingKind.FitContent,
+				value
+			}
+		};
+	},
+	Fr(value) {
+		return {
+			min: { kind: TrackSizingKind.Auto },
+			max: {
+				kind: TrackSizingKind.Fr,
+				value
+			}
+		};
+	},
+	MinMax(min, max) {
+		return {
+			min,
+			max
+		};
+	}
+});
+const autoFill = Object.freeze({ kind: RepetitionCountKind.AutoFill });
+const autoFit = Object.freeze({ kind: RepetitionCountKind.AutoFit });
+const RepetitionCount = Object.freeze({
+	Count(value) {
+		return {
+			kind: RepetitionCountKind.Count,
+			value
+		};
+	},
+	AutoFill: autoFill,
+	AutoFit: autoFit
+});
+const GridTemplateComponent = Object.freeze({
+	Single(value) {
+		return {
+			kind: GridTemplateComponentKind.Single,
+			value
+		};
+	},
+	Repeat(count, tracks, lineNames = []) {
+		return {
+			kind: GridTemplateComponentKind.Repeat,
+			value: {
+				count,
+				tracks,
+				lineNames
+			}
+		};
+	}
+});
+//#endregion
 //#region src/length.ts
 const auto = Object.freeze({ unit: LengthUnit.Auto });
 const Dimension = Object.freeze({
@@ -165,4 +290,4 @@ const Dimension = Object.freeze({
 	Auto: auto
 });
 //#endregion
-export { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacementKind, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCountKind, TextAlign, TrackSizingKind };
+export { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, GridPlacementKind, GridTemplateComponent, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCount, RepetitionCountKind, TextAlign, TrackSizingFunction, TrackSizingKind };
