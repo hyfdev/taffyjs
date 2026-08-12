@@ -1476,7 +1476,7 @@ function meaningfulJsDocBefore(source, offset, diagnostic) {
   if (words.length < 3 || words.join("").length < 16) fail(diagnostic);
 }
 
-export function validateWholeSurfaceJsDoc(contract, actual) {
+export function validateWholeSurfaceJsDoc(_contract, actual) {
   const tokens = tokenizeJavaScript(actual, "packages/taffyjs-node/index.d.ts");
   const exports = tokens.filter(
     (token) =>
@@ -1486,18 +1486,17 @@ export function validateWholeSurfaceJsDoc(contract, actual) {
   for (const token of exports) {
     meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-symbol");
   }
-
-  const classStart = actual.indexOf(
-    `${contract.publicDeclarationContract.classDeclaration.header} {`,
-  );
-  if (classStart === -1) fail("declaration-jsdoc-class");
-  const classEnd = actual.indexOf("\n}", classStart);
-  if (classEnd === -1) fail("declaration-jsdoc-class");
-  const classSource = actual.slice(classStart, classEnd);
-  for (const [name] of contract.publicDeclarationContract.classDeclaration.members) {
-    const member = new RegExp(`^\\s*${escapeRegExp(name)}\\s*\\(`, "mu").exec(classSource);
-    if (!member) fail("declaration-jsdoc-class-member", name);
-    meaningfulJsDocBefore(classSource, member.index, "declaration-jsdoc-class-member");
+  const memberStarts = tokens.filter((token, index) => {
+    if (token.brace === 0 || token.paren !== 0 || token.bracket !== 0) return false;
+    if (token.type !== "identifier" && token.value !== "[") return false;
+    const previous = tokens[index - 1];
+    return (
+      (previous?.value === "{" && previous.brace === token.brace - 1) ||
+      (previous?.value === ";" && previous.brace === token.brace)
+    );
+  });
+  for (const token of memberStarts) {
+    meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-member");
   }
 }
 
@@ -2708,17 +2707,46 @@ export async function extractContractTestCalls(source, path) {
   return calls;
 }
 
-function extractRustContractTests(source, path) {
-  const calls = [];
-  const pattern = /((?:\s*#\[[^\]]+\]\s*)*)fn\s+(contract__[A-Za-z0-9_]+)\s*\(/gu;
-  for (const match of source.matchAll(pattern)) {
-    const attributes = match[1];
-    if (!/#\[test\]/u.test(attributes) || /#\[(?:ignore|cfg)\b/u.test(attributes)) {
-      fail("collection-drift/test-conditional", `${match[2]} has invalid attributes in ${path}`);
-    }
-    calls.push({ identity: match[2], path, offset: match.index, modality: "rust-contract" });
+async function extractRustContractTests(root, path) {
+  const parserManifest = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "../rust-parser/Cargo.toml",
+  );
+  const result = await runCommand(
+    "cargo",
+    [
+      "run",
+      "--quiet",
+      "--locked",
+      "--manifest-path",
+      parserManifest,
+      "--",
+      "--contract-tests",
+      resolve(root, path),
+    ],
+    root,
+  );
+  let records;
+  try {
+    records = JSON.parse(result.stdout);
+  } catch (error) {
+    fail("collection-drift/test-parse", error.message);
   }
-  return calls;
+  if (!Array.isArray(records)) fail("collection-drift/test-parse", path);
+  for (const record of records) {
+    if (!record.isTest || record.forbiddenAttribute) {
+      fail(
+        "collection-drift/test-conditional",
+        `${record.identity} has invalid attributes in ${path}`,
+      );
+    }
+  }
+  return records.map(({ identity }) => ({
+    identity,
+    path,
+    offset: 0,
+    modality: "rust-contract",
+  }));
 }
 
 export async function collectStaticEvidence(root, expanded, status) {
@@ -2762,9 +2790,8 @@ export async function collectStaticEvidence(root, expanded, status) {
     ({ modality }) => modality === "rust-contract",
   );
   for (const path of new Set(rustRecords.map(({ path }) => path))) {
-    let source;
     try {
-      source = await readFile(resolve(root, path), "utf8");
+      await readFile(resolve(root, path), "utf8");
     } catch (error) {
       if (error.code === "ENOENT") continue;
       throw error;
@@ -2774,7 +2801,7 @@ export async function collectStaticEvidence(root, expanded, status) {
         .filter((record) => record.path === path)
         .map((record) => [record.identity.split("::").at(-1), record]),
     );
-    for (const call of extractRustContractTests(source, path)) {
+    for (const call of await extractRustContractTests(root, path)) {
       const record = identityToRecord.get(call.identity);
       calls.push({ ...call, id: record?.id ?? `unknown-rust:${call.identity}` });
     }
@@ -2883,7 +2910,7 @@ export function validateStaticCollection(contract, expanded, status, calls) {
   }
 }
 
-function validateStatusShape(status, contract, expanded) {
+export function validateStatusShape(status, contract, expanded) {
   exactKeys(
     status,
     [
@@ -2963,8 +2990,24 @@ function validateStatusShape(status, contract, expanded) {
     }
   }
   const activeTasks = contract.milestones[status.activeMilestone];
-  const stateIndex = (taskId) => contract.taskStatePolicy.states.indexOf(status.taskStates[taskId]);
-  const implementedIndex = contract.taskStatePolicy.states.indexOf("implemented");
+  const implementedStates = new Set(["implemented", "verified", "under-review", "accepted"]);
+  const blockedTasks = taskIds.filter((taskId) => status.taskStates[taskId] === "blocked");
+  if (status.phase === "blocked") {
+    if (blockedTasks.length !== 1 || !activeTasks.includes(blockedTasks[0])) {
+      fail("loop-status-blocked-task");
+    }
+    const blockedIndex = activeTasks.indexOf(blockedTasks[0]);
+    if (
+      activeTasks
+        .slice(0, blockedIndex)
+        .some((taskId) => !implementedStates.has(status.taskStates[taskId])) ||
+      activeTasks.slice(blockedIndex + 1).some((taskId) => status.taskStates[taskId] !== "pending")
+    ) {
+      fail("incremental-all/accepted-invalid-order");
+    }
+  } else if (blockedTasks.length !== 0) {
+    fail("loop-status-blocked-task");
+  }
   if (status.phase === "build") {
     const currentIndex = activeTasks.indexOf(status.activeTaskId);
     if (
@@ -2974,21 +3017,25 @@ function validateStatusShape(status, contract, expanded) {
       fail("loop-status-active-task-state");
     }
     if (
-      activeTasks.slice(0, currentIndex).some((taskId) => stateIndex(taskId) < implementedIndex) ||
+      activeTasks
+        .slice(0, currentIndex)
+        .some((taskId) => !implementedStates.has(status.taskStates[taskId])) ||
       activeTasks.slice(currentIndex + 1).some((taskId) => status.taskStates[taskId] !== "pending")
     ) {
       fail("incremental-all/accepted-invalid-order");
     }
   }
   if (status.phase === "review-fix") {
-    if (stateIndex(status.activeTaskId) < implementedIndex) fail("loop-status-active-task-state");
-    if (activeTasks.some((taskId) => stateIndex(taskId) < implementedIndex)) {
+    if (!implementedStates.has(status.taskStates[status.activeTaskId])) {
+      fail("loop-status-active-task-state");
+    }
+    if (activeTasks.some((taskId) => !implementedStates.has(status.taskStates[taskId]))) {
       fail("incremental-all/accepted-invalid-order");
     }
   }
   if (
     status.phase === "verify" &&
-    activeTasks.some((taskId) => stateIndex(taskId) < implementedIndex)
+    activeTasks.some((taskId) => !implementedStates.has(status.taskStates[taskId]))
   ) {
     fail("incremental-all/accepted-invalid-order");
   }
@@ -3281,16 +3328,25 @@ async function validateRealPackageFoundation(root, contract, status) {
 }
 
 async function validateRealRunnerGraph(root, contract, status) {
-  const [rootConfig, rustRunner, typeRunner, readyRunner, toolConfig, nativeConfig, publicConfig] =
-    await Promise.all([
-      readFile(resolve(root, "vite.config.ts"), "utf8"),
-      readFile(resolve(root, "tools/taffy-api/src/run-rust-tests.mjs"), "utf8"),
-      readFile(resolve(root, "tools/taffy-api/src/run-type-tests.mjs"), "utf8"),
-      readFile(resolve(root, "tools/taffy-api/src/run-ready.mjs"), "utf8"),
-      readFile(resolve(root, "tools/taffy-api/vite.config.ts"), "utf8"),
-      readFile(resolve(root, "packages/taffyjs-node/vite.config.ts"), "utf8"),
-      readFile(resolve(root, "tests/taffyjs-node/vite.config.ts"), "utf8"),
-    ]);
+  const [
+    rootConfig,
+    prefixRunner,
+    rustRunner,
+    typeRunner,
+    readyRunner,
+    toolConfig,
+    nativeConfig,
+    publicConfig,
+  ] = await Promise.all([
+    readFile(resolve(root, "vite.config.ts"), "utf8"),
+    readFile(resolve(root, "tools/taffy-api/src/run-prefix-tests.mjs"), "utf8"),
+    readFile(resolve(root, "tools/taffy-api/src/run-rust-tests.mjs"), "utf8"),
+    readFile(resolve(root, "tools/taffy-api/src/run-type-tests.mjs"), "utf8"),
+    readFile(resolve(root, "tools/taffy-api/src/run-ready.mjs"), "utf8"),
+    readFile(resolve(root, "tools/taffy-api/vite.config.ts"), "utf8"),
+    readFile(resolve(root, "packages/taffyjs-node/vite.config.ts"), "utf8"),
+    readFile(resolve(root, "tests/taffyjs-node/vite.config.ts"), "utf8"),
+  ]);
   const minimumRuntime = contract.pins.minimumNodeTestRuntime;
   const requiredRootFragments = [
     '"check:test:native"',
@@ -3299,17 +3355,48 @@ async function validateRealRunnerGraph(root, contract, status) {
     '"check:test:types"',
     '"check:test:rust-contract"',
     '"check:test:node-minimum"',
+    '"check:test:prefix"',
     "--reporter=tools/taffy-api/src/contract-reporter.mjs",
     `vp env exec --node ${minimumRuntime} -- node tests/taffyjs-node/minimum-node/run.mjs`,
     'command: "node tools/taffy-api/src/run-ready.mjs loop"',
     'command: "node tools/taffy-api/src/run-ready.mjs all"',
+  ];
+  const readyBody = /"ready:loop:body":\s*\{([\s\S]*?)\n\s*\},\n\s*"ready:loop"/u.exec(
+    rootConfig,
+  )?.[1];
+  const prefixTask = /"check:test:prefix":\s*\{([\s\S]*?)\n\s*\},\n\s*"check:completion"/u.exec(
+    rootConfig,
+  )?.[1];
+  const requiredReadyDependencies = [
+    "check:contract",
+    "check:format",
+    "check:lint",
+    "check:rust",
+    "check:test:prefix",
+  ];
+  const requiredPrefixModalities = [
+    "public-js",
+    "native-js",
+    "wrapper-js",
+    "types",
+    "rust-contract",
+    "minimum-node-js",
   ];
   if (
     requiredRootFragments.some((fragment) => !rootConfig.includes(fragment)) ||
     rootConfig.includes("--passWithNoTests") ||
     !rustRunner.includes('"--list"') ||
     !rustRunner.includes('"--exact"') ||
+    !rustRunner.includes("JSON.stringify(identities) !== JSON.stringify(expectedIdentities)") ||
     !typeRunner.includes(".test-d.ts") ||
+    !readyBody ||
+    !prefixTask ||
+    !prefixTask.includes('command: "node tools/taffy-api/src/run-prefix-tests.mjs"') ||
+    !prefixTask.includes('dependsOn: ["build", "check:contract"]') ||
+    requiredReadyDependencies.some((dependency) => !readyBody.includes(`"${dependency}"`)) ||
+    requiredPrefixModalities.some((modality) => !prefixRunner.includes(`"${modality}"`)) ||
+    !prefixRunner.includes('modality !== "machine-check"') ||
+    !prefixRunner.includes('modality !== "command-attestation"') ||
     !readyRunner.includes(
       "await checkCandidate({ root });\nawait runBody();\nawait checkCandidate({ root });",
     ) ||
@@ -3403,7 +3490,7 @@ export function validateParsedSourceInventory(contract, parsed) {
   }
 }
 
-async function validateRealPinsAndSource(root, contract) {
+export async function validateRealPinsAndSource(root, contract) {
   const metadataResult = await runCommand(
     "cargo",
     ["metadata", "--locked", "--format-version", "1"],
@@ -3750,7 +3837,7 @@ function buildReviewProjection(contract, status) {
   );
 }
 
-function validateActualReviewRecord(contract, status) {
+export function validateActualReviewRecord(contract, status) {
   const expectedTasks = contract.milestones[status.activeMilestone];
   if (JSON.stringify(status.currentTaskIds) !== JSON.stringify(expectedTasks)) {
     fail("review-current-task-ids");
@@ -3860,8 +3947,21 @@ function validateActualReviewRecord(contract, status) {
   if (status.verdicts.some(({ verdict }) => verdict !== "PASS")) {
     fail("review-verdict-failed");
   }
+  unique(
+    status.findings.map(({ id }) => id),
+    "review-finding-duplicate",
+  );
+  unique(
+    status.closures.map(({ findingId }) => findingId),
+    "review-closure-duplicate",
+  );
+  const findingIds = new Set(status.findings.map(({ id }) => id));
+  if (status.closures.some(({ findingId }) => !findingIds.has(findingId))) {
+    fail("review-closure-orphan");
+  }
   const closureByFinding = new Map(status.closures.map((closure) => [closure.findingId, closure]));
   for (const finding of status.findings) {
+    if (!identities.has(finding.reviewerIdentity)) fail("review-finding-reviewer");
     if (!["blocker", "major", "minor"].includes(finding.severity)) {
       fail("review-finding-severity");
     }
@@ -3884,6 +3984,9 @@ function validateActualReviewRecord(contract, status) {
       ) {
         fail("review-finding-closure");
       }
+    }
+    if (finding.disposition === "fixed" && finding.fixCommit !== status.candidateCommit) {
+      fail("review-finding-fix-commit");
     }
   }
   if (status.blockers.length !== 0) fail("review-blocker-unresolved");

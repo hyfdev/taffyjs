@@ -58,6 +58,14 @@ struct NamedDataOutput {
     actual_shape: Value,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ContractTestOutput {
+    identity: String,
+    is_test: bool,
+    forbidden_attribute: bool,
+}
+
 #[derive(Default)]
 struct IdentRenamer {
     identifiers: HashMap<String, String>,
@@ -338,14 +346,15 @@ fn collect_file_cfg(
         .map_err(|_| format!("{} is outside {}", canonical.display(), root.display()))?
         .to_string_lossy()
         .replace('\\', "/");
-    output.insert(relative, inherited.clone());
     let file = parse_rust_file(&canonical)?;
+    let effective_file_cfg = combine_cfg([inherited.clone(), cfg_value(&file.attrs)]);
+    output.insert(relative, effective_file_cfg.clone());
     for item in file.items {
         if let Item::Mod(module) = item
             && module.content.is_none()
             && let Some(path) = resolve_module_file(&canonical, &module)
         {
-            let effective = combine_cfg([inherited.clone(), cfg_value(&module.attrs)]);
+            let effective = combine_cfg([effective_file_cfg.clone(), cfg_value(&module.attrs)]);
             collect_file_cfg(root, &path, &effective, output, visited)?;
         }
     }
@@ -613,6 +622,7 @@ fn normalize_expected_variants(shape: &Value, generics: &Generics) -> Value {
 fn shape_for_item(item: &Item, expected: &Value) -> (String, Value, bool) {
     match item {
         Item::Struct(item_struct) => {
+            let is_public = matches!(item_struct.vis, Visibility::Public(_));
             let actual_generics = normalize_generics(&item_struct.generics);
             let wanted_generics = expected_generics(expected);
             let expected_kind = expected.get("kind").and_then(Value::as_str).unwrap_or("");
@@ -646,6 +656,7 @@ fn shape_for_item(item: &Item, expected: &Value) -> (String, Value, bool) {
                     .cloned()
                     .unwrap_or_default();
                 let matches = is_tuple
+                    && is_public
                     && wanted_generics == actual_generics
                     && public_fields == expected_public_fields;
                 ("opaqueTupleStruct".to_string(), actual, matches)
@@ -667,6 +678,7 @@ fn shape_for_item(item: &Item, expected: &Value) -> (String, Value, bool) {
                     "fieldCfg": field_cfg,
                 });
                 let matches = expected_kind == "struct"
+                    && is_public
                     && wanted_generics == actual_generics
                     && fields == expected_fields
                     && field_cfg == expected_cfg;
@@ -674,6 +686,7 @@ fn shape_for_item(item: &Item, expected: &Value) -> (String, Value, bool) {
             }
         }
         Item::Enum(item_enum) => {
+            let is_public = matches!(item_enum.vis, Visibility::Public(_));
             let actual_generics = normalize_generics(&item_enum.generics);
             let wanted_generics = expected_generics(expected);
             let (variants, variant_cfg) = variant_shape(item_enum);
@@ -691,12 +704,14 @@ fn shape_for_item(item: &Item, expected: &Value) -> (String, Value, bool) {
                 "variantCfg": variant_cfg,
             });
             let matches = expected.get("kind").and_then(Value::as_str) == Some("enum")
+                && is_public
                 && wanted_generics == actual_generics
                 && variants == expected_variants
                 && variant_cfg == expected_cfg;
             ("enum".to_string(), actual, matches)
         }
         Item::Type(item_type) => {
+            let is_public = matches!(item_type.vis, Visibility::Public(_));
             let actual_generics = normalize_generics(&item_type.generics);
             let wanted_generics = expected_generics(expected);
             let target = normalize_type(&item_type.ty, &item_type.generics);
@@ -709,6 +724,7 @@ fn shape_for_item(item: &Item, expected: &Value) -> (String, Value, bool) {
                 "target": target,
             });
             let matches = expected.get("kind").and_then(Value::as_str) == Some("typeAlias")
+                && is_public
                 && wanted_generics == actual_generics
                 && expected_target.as_deref() == Some(&target);
             ("typeAlias".to_string(), actual, matches)
@@ -895,7 +911,7 @@ fn public_tuple_fields(item: &ItemStruct) -> Option<Vec<Value>> {
     )
 }
 
-fn iterator_item(file: &syn::File, self_name: &str) -> Option<String> {
+fn iterator_item(file: &syn::File, self_name: &str, file_cfg: &Value) -> Option<(String, Value)> {
     let implementations = find_impls(file, self_name, Some("Iterator"));
     if implementations.len() != 1 {
         return None;
@@ -905,9 +921,14 @@ fn iterator_item(file: &syn::File, self_name: &str) -> Option<String> {
         .items
         .iter()
         .filter_map(|item| match item {
-            ImplItem::Type(item) if item.ident == "Item" => {
-                Some(normalize_type(&item.ty, &item_impl.generics))
-            }
+            ImplItem::Type(item) if item.ident == "Item" => Some((
+                normalize_type(&item.ty, &item_impl.generics),
+                combine_cfg([
+                    file_cfg.clone(),
+                    cfg_value(&item_impl.attrs),
+                    cfg_value(&item.attrs),
+                ]),
+            )),
             _ => None,
         })
         .collect::<Vec<_>>();
@@ -998,7 +1019,8 @@ fn build_adjacent_roots(
                                     .unwrap_or_default()
                         })
                         && combine_cfg([file_cfg.clone(), cfg_value(&item.attrs)]) == expected_cfg
-                        && iterator_item(file, "TaffyTreeChildIter") == expected_item
+                        && iterator_item(file, "TaffyTreeChildIter", file_cfg)
+                            == expected_item.map(|item| (item, expected_cfg.clone()))
                 }),
                 _ => false,
             };
@@ -1017,13 +1039,57 @@ fn build_adjacent_roots(
         .collect()
 }
 
+fn contract_test_inventory(path: &Path) -> Result<Vec<ContractTestOutput>, String> {
+    let file = parse_rust_file(path)?;
+    Ok(file
+        .items
+        .into_iter()
+        .filter_map(|item| {
+            let Item::Fn(function) = item else {
+                return None;
+            };
+            let identity = function.sig.ident.to_string();
+            if !identity.starts_with("contract__") {
+                return None;
+            }
+            Some(ContractTestOutput {
+                identity,
+                is_test: function
+                    .attrs
+                    .iter()
+                    .filter(|attribute| attribute.path().is_ident("test"))
+                    .count()
+                    == 1,
+                forbidden_attribute: function.attrs.iter().any(|attribute| {
+                    attribute.path().is_ident("cfg") || attribute.path().is_ident("ignore")
+                }),
+            })
+        })
+        .collect())
+}
+
 fn run() -> Result<(), String> {
     let mut arguments = env::args_os().skip(1);
-    let taffy_root = PathBuf::from(
-        arguments
-            .next()
-            .ok_or("missing Taffy source root argument")?,
-    );
+    let first = arguments
+        .next()
+        .ok_or("missing parser command or Taffy source root")?;
+    if first == "--contract-tests" {
+        let path = PathBuf::from(
+            arguments
+                .next()
+                .ok_or("missing contract-test source path")?,
+        );
+        if arguments.next().is_some() {
+            return Err("unexpected extra argument".to_string());
+        }
+        println!(
+            "{}",
+            serde_json::to_string(&contract_test_inventory(&path)?)
+                .map_err(|error| format!("failed to serialize contract-test inventory: {error}"))?
+        );
+        return Ok(());
+    }
+    let taffy_root = PathBuf::from(first);
     let contract_path = PathBuf::from(arguments.next().ok_or("missing contract.json argument")?);
     if arguments.next().is_some() {
         return Err("unexpected extra argument".to_string());
@@ -1145,6 +1211,17 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temporary_directory(name: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock is after epoch")
+            .as_nanos();
+        let path = env::temp_dir().join(format!("taffy-api-{name}-{}-{nonce}", std::process::id()));
+        fs::create_dir(&path).expect("temporary directory is created");
+        path
+    }
 
     #[test]
     fn aggregates_public_methods_from_every_matching_impl() {
@@ -1182,6 +1259,36 @@ mod tests {
     }
 
     #[test]
+    fn includes_file_level_cfg_in_effective_cfg() {
+        let root = temporary_directory("file-cfg");
+        let source = root.join("lib.rs");
+        fs::write(
+            &source,
+            "#![cfg(feature = \"file_gate\")]\npub struct Example;\n",
+        )
+        .expect("fixture is written");
+        let mut output = BTreeMap::new();
+        collect_file_cfg(
+            &root,
+            &source,
+            &json!({ "feature": "module_gate" }),
+            &mut output,
+            &mut HashSet::new(),
+        )
+        .expect("file cfg is collected");
+        assert_eq!(
+            output["lib.rs"],
+            normalize_cfg(json!({
+                "all": [
+                    { "feature": "file_gate" },
+                    { "feature": "module_gate" }
+                ]
+            }))
+        );
+        fs::remove_dir_all(root).expect("temporary directory is removed");
+    }
+
+    #[test]
     fn opaque_tuple_shape_rejects_named_and_unit_structs() {
         let expected = json!({ "kind": "opaqueTupleStruct", "publicFields": [] });
         let tuple =
@@ -1190,8 +1297,30 @@ mod tests {
             syn::parse_str("pub struct NodeId { value: u64 }").expect("fixture parses"),
         );
         let unit = Item::Struct(syn::parse_str("pub struct NodeId;").expect("fixture parses"));
+        let private_tuple =
+            Item::Struct(syn::parse_str("pub(crate) struct NodeId(u64);").expect("fixture parses"));
         assert!(shape_for_item(&tuple, &expected).2);
         assert!(!shape_for_item(&named, &expected).2);
         assert!(!shape_for_item(&unit, &expected).2);
+        assert!(!shape_for_item(&private_tuple, &expected).2);
+    }
+
+    #[test]
+    fn inventories_real_contract_tests_without_comments() {
+        let root = temporary_directory("contract-tests");
+        let source = root.join("contract_tests.rs");
+        fs::write(
+            &source,
+            "// #[test]\n// fn contract__commented() {}\n#[test]\nfn contract__real() {}\n#[ignore]\n#[test]\nfn contract__ignored() {}\n",
+        )
+        .expect("fixture is written");
+        let inventory = contract_test_inventory(&source).expect("inventory is parsed");
+        assert_eq!(inventory.len(), 2);
+        assert_eq!(inventory[0].identity, "contract__real");
+        assert!(inventory[0].is_test);
+        assert!(!inventory[0].forbidden_attribute);
+        assert_eq!(inventory[1].identity, "contract__ignored");
+        assert!(inventory[1].forbidden_attribute);
+        fs::remove_dir_all(root).expect("temporary directory is removed");
     }
 }

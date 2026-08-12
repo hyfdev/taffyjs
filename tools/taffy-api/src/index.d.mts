@@ -29,6 +29,19 @@ export function validateParsedSourceInventory(
   contract: Record<string, unknown>,
   parsed: Record<string, unknown>,
 ): void;
+export function validateRealPinsAndSource(
+  root: string,
+  contract: Record<string, unknown>,
+): Promise<{ metadata: Record<string, unknown>; parsed: Record<string, unknown> }>;
+export function validateStatusShape(
+  status: Record<string, unknown>,
+  contract: Record<string, unknown>,
+  expanded: Record<string, unknown>,
+): void;
+export function validateActualReviewRecord(
+  contract: Record<string, unknown>,
+  status: Record<string, unknown>,
+): void;
 export function generateArtifacts(options: {
   root: string;
   goal: string;

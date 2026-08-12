@@ -61,6 +61,10 @@ export default defineConfig({
         command: "node tools/taffy-api/src/index.mjs check --all",
         dependsOn: ["build", "check:contract:generate", "check:contract:self-test"],
       },
+      "check:test:prefix": {
+        command: "node tools/taffy-api/src/run-prefix-tests.mjs",
+        dependsOn: ["build", "check:contract"],
+      },
       "check:completion": {
         command: "node tools/taffy-api/src/index.mjs completion",
       },
@@ -102,7 +106,7 @@ export default defineConfig({
           "check:format",
           "check:lint",
           "check:rust",
-          "check:test:integration",
+          "check:test:prefix",
         ],
       },
       "ready:loop": {

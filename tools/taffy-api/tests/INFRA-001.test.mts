@@ -80,6 +80,17 @@ contractTest("INFRA-001/pin-drift", async () => {
 
 contractTest("INFRA-001/source-drift", async () => {
   const checker = await loadChecker();
+  const contract = JSON.parse(
+    await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
+  );
+  const realSource = await checker.validateRealPinsAndSource(root, contract);
+  checker.validateParsedSourceInventory(contract, realSource.parsed);
+  const badRealSource = structuredClone(realSource.parsed);
+  badRealSource.inherentImplMatches = false;
+  await expectDiagnostic(
+    () => checker.validateParsedSourceInventory(contract, badRealSource),
+    "source-drift/impl-header",
+  );
   const fixture = await checker.createRepositoryFixture(root);
   await expectDiagnostic(
     () => checker.checkRepositoryFixture(fixture.mutate("contract-unknown-field")),
@@ -289,7 +300,7 @@ contractTest("INFRA-001/collection-drift", async () => {
       writeFile(resolve(temporaryRoot, records[1].path), "export {};\n"),
       writeFile(
         resolve(temporaryRoot, records[2].path),
-        "#[test]\nfn contract__fixture_rust__one() {}\n",
+        "// #[test]\n// fn contract__commented() {}\n#[test]\nfn contract__fixture_rust__one() {}\n",
       ),
     ]);
     const fixtureStatus = {
@@ -385,6 +396,65 @@ contractTest("INFRA-001/incremental-all", async () => {
   const contract = JSON.parse(
     await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
   );
+  type MutableStatus = Record<string, unknown> & {
+    activeTaskId: string | null;
+    blockers: unknown[];
+    candidateCommit: string;
+    closures: unknown[];
+    findings: unknown[];
+    phase: string;
+    remainingMinorFindings: unknown[];
+    reports: Array<{ reviewerIdentity: string }>;
+    taskStates: Record<string, string>;
+    verdicts: Array<Record<string, unknown> & { verdict: string }>;
+  };
+  const status = checker.extractLoopStatus(
+    await readFile(resolve(root, ".agents/docs/loop-status.md"), "utf8"),
+  ) as MutableStatus;
+  const blockedOrder = structuredClone(status);
+  blockedOrder.phase = "build";
+  blockedOrder.activeTaskId = "INFRA-002";
+  blockedOrder.taskStates["INFRA-001"] = "blocked";
+  blockedOrder.taskStates["INFRA-002"] = "active";
+  await expectDiagnostic(
+    () => checker.validateStatusShape(blockedOrder, contract, contract.generated),
+    "loop-status-blocked-task",
+  );
+
+  const review = structuredClone(status);
+  Object.assign(review, review.reviewInputProjection as Record<string, unknown>);
+  review.verdicts = review.verdicts.map((verdict: { verdict: string }) => ({
+    ...verdict,
+    verdict: "PASS",
+  }));
+  review.findings = [];
+  review.closures = [];
+  review.blockers = [];
+  review.remainingMinorFindings = [];
+  checker.validateActualReviewRecord(contract, review);
+  review.findings = [
+    {
+      id: "FIXTURE-FINDING",
+      reviewerIdentity: review.reports[0].reviewerIdentity,
+      taskId: "INFRA-001",
+      severity: "major",
+      disposition: "fixed",
+      fixCommit: "0000000000000000000000000000000000000000",
+    },
+  ];
+  review.closures = [
+    {
+      findingId: "FIXTURE-FINDING",
+      reviewerIdentity: review.reports[0].reviewerIdentity,
+      candidateCommit: review.candidateCommit,
+      confirmed: true,
+    },
+  ];
+  await expectDiagnostic(
+    () => checker.validateActualReviewRecord(contract, review),
+    "review-finding-fix-commit",
+  );
+
   const documentedClass = contract.publicDeclarationContract.classDeclaration.members
     .map(
       ([, member]: [string, string]) =>
@@ -393,7 +463,10 @@ contractTest("INFRA-001/incremental-all", async () => {
     .join("\n");
   const documented = [
     "/** Documents this public fixture symbol for package consumers. */",
-    "export interface Fixture {}",
+    "export interface Fixture {",
+    "  /** Documents this public fixture member for package consumers. */",
+    "  value: number;",
+    "}",
     "/** Documents the public TaffyTree class for package consumers. */",
     `${contract.publicDeclarationContract.classDeclaration.header} {`,
     documentedClass,
@@ -409,6 +482,17 @@ contractTest("INFRA-001/incremental-all", async () => {
           "  constructor",
         ),
       ),
-    "declaration-jsdoc-class-member",
+    "declaration-jsdoc-public-member",
+  );
+  await expectDiagnostic(
+    () =>
+      checker.validateWholeSurfaceJsDoc(
+        contract,
+        documented.replace(
+          "  /** Documents this public fixture member for package consumers. */\n",
+          "",
+        ),
+      ),
+    "declaration-jsdoc-public-member",
   );
 });

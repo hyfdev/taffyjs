@@ -2,12 +2,26 @@ import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { extractLoopStatus } from "./index.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const contract = JSON.parse(await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"));
+const status = extractLoopStatus(
+  await readFile(resolve(root, ".agents/docs/loop-status.md"), "utf8"),
+);
+const registeredStates = new Set([
+  "tests-authored",
+  "implemented",
+  "verified",
+  "under-review",
+  "accepted",
+]);
 const expectedByIdentity = new Map(
   contract.generated.evidence.primary
-    .filter(({ modality }) => modality === "rust-contract")
+    .filter(
+      ({ modality, owner }) =>
+        modality === "rust-contract" && registeredStates.has(status.taskStates[owner]),
+    )
     .map((record) => [record.identity, record]),
 );
 
@@ -31,7 +45,16 @@ const identities = listed.output
   .split("\n")
   .map((line) => /^(contract_tests::contract__[a-z0-9_]+): test$/u.exec(line)?.[1])
   .filter(Boolean)
-  .sort();
+  .sort((left, right) => left.localeCompare(right));
+const expectedIdentities = [...expectedByIdentity.keys()].sort((left, right) =>
+  left.localeCompare(right),
+);
+if (JSON.stringify(identities) !== JSON.stringify(expectedIdentities)) {
+  process.stdout.write(
+    `${JSON.stringify({ schemaVersion: 1, listedIdentities: identities, expectedIdentities, results: [] })}\n`,
+  );
+  process.exit(1);
+}
 const results = [];
 for (const identity of identities) {
   const record = expectedByIdentity.get(identity);
