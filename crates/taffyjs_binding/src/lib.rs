@@ -21,7 +21,7 @@ use napi::Status;
 use napi::bindgen_prelude::{BigInt, Function, Object, Unknown};
 use napi_derive::napi;
 use owner::TreeOwner;
-use taffy::NodeId;
+use taffy::{NodeId, TraversePartialTree};
 
 mod contract_tests;
 
@@ -45,6 +45,26 @@ impl NativeTaffyTree {
             env,
             self.owner
                 .access(&public_method, |tree| Ok(tree.total_node_count() as u32)),
+        )
+    }
+
+    #[napi(js_name = "rawChildCount")]
+    pub fn child_count(
+        &self,
+        env: Env,
+        parent: BigInt,
+        public_method: String,
+    ) -> napi::Result<f64> {
+        let parent = into_napi(env, raw_node_id(&parent))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                let count = tree.child_count(parent);
+                if count > 9_007_199_254_740_991usize {
+                    return Err(internal_error());
+                }
+                Ok(count as f64)
+            }),
         )
     }
 

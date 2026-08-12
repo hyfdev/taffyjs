@@ -51,6 +51,10 @@ export class TaffyTree<_TContext = unknown> {
     return this.#getNodeCount();
   }
 
+  getChildCount(parent: NodeId): number {
+    return this.#getChildCount(parent);
+  }
+
   newLeaf(style: unknown): NodeId {
     return this.#newLeaf(style);
   }
@@ -78,6 +82,7 @@ export class TaffyTree<_TContext = unknown> {
       newWithChildren: (style: unknown, children: readonly NodeId[]) =>
         this.#newWithChildren(style, children),
       clear: () => this.#clear(),
+      getChildCount: (parent: NodeId) => this.#getChildCount(parent),
       getNodeCount: () => this.#getNodeCount(),
       getStyle: (node: NodeId) => this.#getStyle(node),
       computeLayoutWithMeasure: (options: PrivateMeasureOptions<_TContext>) =>
@@ -103,6 +108,11 @@ export class TaffyTree<_TContext = unknown> {
     this.#inner.rawClear("clear");
     this.#nodes.clear();
     this.#contexts.clear();
+  }
+
+  #getChildCount(parent: NodeId): number {
+    const rawParent = this.#nodes.resolve(parent);
+    return this.#inner.rawChildCount(rawParent, "getChildCount");
   }
 
   #getNodeCount(): number {
