@@ -12,7 +12,6 @@ const reusable: StyleInput = {
   margin: output.margin,
   alignItems: output.alignItems,
   flexBasis: output.flexBasis,
-  gridTemplateAreas: output.gridTemplateAreas,
   gridRow: output.gridRow,
 };
 

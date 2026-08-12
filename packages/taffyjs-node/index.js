@@ -381,6 +381,9 @@ var TaffyTree = class {
 		const raw = this.#nodes.resolve(node);
 		this.#inner.rawSetStyle(raw, style, "setStyle");
 	}
+	getStyle(node) {
+		return this.#getStyle(node);
+	}
 	[testAccess]() {
 		return {
 			newLeaf: (style) => this.#newLeaf(style),

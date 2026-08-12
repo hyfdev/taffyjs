@@ -613,4 +613,5 @@ export declare class TaffyTree<TContext = unknown> {
   newLeaf(style: StyleInput): NodeId;
   getNodeCount(): number;
   setStyle(node: NodeId, style: StyleInput): void;
+  getStyle(node: NodeId): Style;
 }
