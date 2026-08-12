@@ -26,7 +26,7 @@ contractTest("API-TREE-004/default-style", () => {
   const node = tree.newLeaf({});
   const style = tree.getStyle(node);
 
-  assert.equal(style.display, api.Display.Block);
+  assert.equal(style.display, api.Display.Flex);
   assert.equal(style.boxSizing, api.BoxSizing.BorderBox);
   assert.equal(style.flexGrow, 0);
   assert.equal(style.aspectRatio, null);
