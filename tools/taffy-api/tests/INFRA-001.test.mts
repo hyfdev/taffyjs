@@ -649,6 +649,42 @@ contractTest("INFRA-001/incremental-all", async () => {
     "evidence-current-commit",
   );
 
+  const stagedEvidence = {
+    acceptanceId: evidence.id,
+    candidateCommit: "candidate",
+    result: "pass",
+    runner: evidence.runner,
+    path: evidence.path,
+  };
+  const finalStaging = {
+    activeMilestone: "M4",
+    phase: "verify",
+    candidateCommit: "candidate",
+    prefixEvidenceCommit: null,
+    milestoneReviewCommit: null,
+    commandEvidence: {},
+    taskStates: { FIXTURE: "implemented" },
+    greenEvidence: [stagedEvidence],
+  };
+  checker.validateCurrentEvidence(
+    {
+      tasks: [{ id: "FIXTURE", milestone: "M4" }],
+      evidence: { primary: [evidence] },
+    },
+    finalStaging,
+  );
+  await expectDiagnostic(
+    () =>
+      checker.validateCurrentEvidence(
+        {
+          tasks: [{ id: "FIXTURE", milestone: "M4" }],
+          evidence: { primary: [evidence] },
+        },
+        { ...finalStaging, phase: "build" },
+      ),
+    "evidence-premature",
+  );
+
   const contract = JSON.parse(
     await readFile(resolve(root, "tools/taffy-api/contract.json"), "utf8"),
   );

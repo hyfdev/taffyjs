@@ -28,6 +28,7 @@ export function formatDeclaration(source: string, root: string): Promise<string>
 export function stripDeclarationJsDoc(source: string): string;
 export function validateNullableStyleJsDoc(contract: Record<string, unknown>, actual: string): void;
 export function validateWholeSurfaceJsDoc(contract: Record<string, unknown>, actual: string): void;
+export function documentPublicDeclaration(actual: string): string;
 export function validateNodeIdDeclarationBindings(contract: Record<string, unknown>): void;
 export function validatePnpmPins(
   contract: Record<string, unknown>,

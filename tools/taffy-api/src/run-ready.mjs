@@ -11,7 +11,10 @@ if (!body) throw new Error(`Expected run-ready mode "loop" or "all", received ${
 
 async function runBody() {
   await new Promise((resolvePromise, reject) => {
-    const child = spawn("vp", ["run", body], { cwd: root, stdio: "inherit" });
+    const child = spawn("vp", ["run", "--concurrency-limit", "2", body], {
+      cwd: root,
+      stdio: "inherit",
+    });
     child.on("error", reject);
     child.on("close", (code, signal) => {
       if (code === 0) resolvePromise();

@@ -1608,7 +1608,40 @@ export function stripDeclarationJsDoc(source) {
     output += source[index];
     index += 1;
   }
-  return output;
+  let normalized = "";
+  index = 0;
+  while (index < output.length) {
+    const quote = output[index];
+    if (quote === '"' || quote === "'" || quote === "`") {
+      const end = skipQuotedSource(output, index, quote);
+      if (end === -1) fail("declaration-jsdoc-unterminated-string");
+      normalized += output.slice(index, end);
+      index = end;
+      continue;
+    }
+    if (output.startsWith("//", index)) {
+      const newline = output.indexOf("\n", index + 2);
+      const end = newline === -1 ? output.length : newline + 1;
+      normalized += output.slice(index, end);
+      index = end;
+      continue;
+    }
+    if (output.startsWith("/*", index)) {
+      const end = output.indexOf("*/", index + 2);
+      if (end === -1) fail("declaration-jsdoc-unterminated-comment");
+      normalized += output.slice(index, end + 2);
+      index = end + 2;
+      continue;
+    }
+    if (/\s/u.test(output[index])) {
+      while (/\s/u.test(output[index] ?? "")) index += 1;
+      if (normalized && !normalized.endsWith("\n")) normalized += " ";
+      continue;
+    }
+    normalized += output[index];
+    index += 1;
+  }
+  return normalized;
 }
 
 function escapeRegExp(value) {
@@ -1664,6 +1697,115 @@ export function validateWholeSurfaceJsDoc(_contract, actual) {
   for (const token of memberStarts) {
     meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-member");
   }
+}
+
+const TREE_MEMBER_JSDOC = {
+  constructor: "Creates an independent Taffy tree with its own NodeId namespace.",
+  enableRounding: "Enables pixel rounding for subsequently computed public layouts.",
+  disableRounding: "Disables pixel rounding while retaining unrounded layout values.",
+  newLeaf: "Creates a leaf node from the supplied public style input.",
+  newLeafWithContext: "Creates a leaf node and associates optional JavaScript context.",
+  newWithChildren: "Creates a parent node with the supplied ordered children.",
+  clear: "Removes every node and context value from this tree.",
+  remove: "Removes one node and invalidates its public NodeId.",
+  setNodeContext: "Replaces or clears the JavaScript context for one node.",
+  getNodeContext: "Returns the JavaScript context currently associated with one node.",
+  addChild: "Appends an existing node to the parent child list.",
+  insertChildAtIndex: "Inserts an existing child at the requested parent index.",
+  setChildren: "Replaces the complete ordered child list for one parent.",
+  removeChild: "Detaches the selected child from its current parent.",
+  removeChildAtIndex: "Detaches and returns the child at the requested index.",
+  removeChildrenRange: "Detaches children in the supplied half-open index range.",
+  replaceChildAtIndex: "Replaces and returns the child at the requested index.",
+  getChildAtIndex: "Returns the child at the requested parent index.",
+  getChildCount: "Returns the current number of children for one parent.",
+  getNodeCount: "Returns the number of live nodes owned by this tree.",
+  getParent: "Returns the current parent or null for a root node.",
+  getChildren: "Returns a detached readonly snapshot of the ordered children.",
+  setStyle: "Replaces a node style and marks affected layout state dirty.",
+  getStyle: "Returns a detached readable snapshot of the node style.",
+  getLayout: "Returns the most recently stored rounded layout snapshot.",
+  getUnroundedLayout: "Returns the most recently stored unrounded layout snapshot.",
+  getDetailedLayoutInfo: "Returns detailed Grid tracks and item placement when available.",
+  markDirty: "Explicitly marks a node for layout recomputation.",
+  isDirty: "Reports whether a node currently needs layout recomputation.",
+  computeLayoutWithMeasure: "Computes layout synchronously with a JavaScript measure callback.",
+  computeLayout: "Computes and stores layout for a tree root synchronously.",
+};
+
+function adjacentJsDoc(source, offset) {
+  return /\/\*\*([\s\S]*?)\*\/\s*$/u.test(source.slice(0, offset));
+}
+
+function declarationName(tokens, exportIndex) {
+  const ignored = new Set(["export", "declare", "type", "interface", "class", "const"]);
+  return (
+    tokens
+      .slice(exportIndex + 1)
+      .find((token) => token.type === "identifier" && !ignored.has(token.value))?.value ??
+    "declaration"
+  );
+}
+
+function memberName(tokens, memberIndex) {
+  const token = tokens[memberIndex];
+  if (token.value === "readonly") return tokens[memberIndex + 1]?.value ?? "member";
+  return token.value === "[" ? "opaque marker" : token.value;
+}
+
+function jsDocInsertion(source, offset, text) {
+  const lineStart = source.lastIndexOf("\n", offset - 1) + 1;
+  const indentation = source.slice(lineStart, offset);
+  return /^\s*$/u.test(indentation) ? `/** ${text} */\n${indentation}` : `/** ${text} */ `;
+}
+
+export function documentPublicDeclaration(actual) {
+  const tokens = tokenizeJavaScript(actual, "packages/taffyjs-node/index.d.ts");
+  const insertions = [];
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (
+      token.value === "export" &&
+      token.brace === 0 &&
+      token.bracket === 0 &&
+      token.paren === 0 &&
+      !adjacentJsDoc(actual, token.start)
+    ) {
+      const name = declarationName(tokens, index);
+      insertions.push({
+        offset: token.start,
+        text: `Describes the public ${name} contract used to create or inspect Taffy layout data.`,
+      });
+    }
+  }
+  const memberStarts = tokens
+    .map((token, index) => ({ token, index }))
+    .filter(({ token, index }) => {
+      if (token.brace === 0 || token.paren !== 0 || token.bracket !== 0) return false;
+      if (token.type !== "identifier" && token.value !== "[") return false;
+      const previous = tokens[index - 1];
+      return (
+        (previous?.value === "{" && previous.brace === token.brace - 1) ||
+        (previous?.value === ";" && previous.brace === token.brace)
+      );
+    });
+  for (const { token, index } of memberStarts) {
+    if (adjacentJsDoc(actual, token.start)) continue;
+    const name = memberName(tokens, index);
+    insertions.push({
+      offset: token.start,
+      text:
+        TREE_MEMBER_JSDOC[name] ??
+        `Describes the ${name} member carried by this public TaffyJS value.`,
+    });
+  }
+  insertions.sort((left, right) => right.offset - left.offset);
+  let documented = actual;
+  for (const { offset, text } of insertions) {
+    documented =
+      documented.slice(0, offset) + jsDocInsertion(actual, offset, text) + documented.slice(offset);
+  }
+  return documented;
 }
 
 async function typecheckDeclaration(root, path, expectedVersion) {
@@ -4180,6 +4322,9 @@ export function validateCurrentEvidence(expanded, status, { all = false } = {}) 
   const expectedById = new Map(
     expanded.evidence.primary.map((evidence) => [evidence.id, evidence]),
   );
+  const finalMilestoneTasks = new Set(
+    expanded.tasks.filter(({ milestone }) => milestone === "M4").map(({ id }) => id),
+  );
   for (const [id, records] of green) {
     const evidence = expectedById.get(id);
     if (!evidence) fail("evidence-additional-id", id);
@@ -4187,10 +4332,19 @@ export function validateCurrentEvidence(expanded, status, { all = false } = {}) 
       ({ candidateCommit }) => candidateCommit === status.candidateCommit,
     );
     if (current.length > 1) fail("evidence-current-commit", id);
+    const stagedForFinalReady =
+      status.activeMilestone === "M4" &&
+      status.phase === "verify" &&
+      status.prefixEvidenceCommit === null &&
+      status.milestoneReviewCommit === null &&
+      Object.keys(status.commandEvidence).length === 0 &&
+      status.taskStates[evidence.owner] === "implemented" &&
+      finalMilestoneTasks.has(evidence.owner);
     if (
       current.length === 1 &&
       !required.has(id) &&
-      !["accepted"].includes(status.taskStates[evidence.owner])
+      !["accepted"].includes(status.taskStates[evidence.owner]) &&
+      !stagedForFinalReady
     ) {
       fail("evidence-premature", id);
     }

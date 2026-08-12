@@ -66,6 +66,19 @@ const isMuslFromChildProcess = () => {
   }
 };
 
+// taffyjs supported-platform guard:start
+const taffyjsSupportedPlatforms = ["darwin-arm64", "darwin-x64", "linux-x64-gnu", "win32-x64-msvc"];
+const taffyjsPlatform =
+  process.platform === "linux"
+    ? `${process.platform}-${process.arch}-${isMusl() ? "musl" : "gnu"}`
+    : `${process.platform}-${process.arch}`;
+if (!taffyjsSupportedPlatforms.includes(taffyjsPlatform)) {
+  throw new Error(
+    `Unsupported OS and architecture: ${process.platform} ${process.arch}. Supported targets: ${taffyjsSupportedPlatforms.join(", ")}`,
+  );
+}
+// taffyjs supported-platform guard:end
+
 function requireNative() {
   if (process.env.NAPI_RS_NATIVE_LIBRARY_PATH) {
     try {

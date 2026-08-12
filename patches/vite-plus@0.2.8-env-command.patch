@@ -1,0 +1,74 @@
+diff --git a/bin/vp b/bin/vp
+index d63d5ee5a0e52c1a2fece690572170f56297c22f..30debe6e29bc8f80630bfad62929439489f3d0a5 100755
+--- a/bin/vp
++++ b/bin/vp
+@@ -1,7 +1,68 @@
+ #!/usr/bin/env node
+ 
++import { spawnSync } from 'node:child_process';
++import { existsSync } from 'node:fs';
++import { join } from 'node:path';
++
++function finish(result) {
++  if (result.error) throw result.error;
++  if (result.signal) {
++    process.kill(process.pid, result.signal);
++    process.exit(1);
++  }
++  process.exit(result.status ?? 1);
++}
++
++function globalCliPath() {
++  if (process.env.VP_CLI_BIN && process.env.VP_CLI_BIN !== process.argv[1]) {
++    return process.env.VP_CLI_BIN;
++  }
++
++  if (!process.env.VP_HOME || process.platform === 'win32') return null;
++  const candidate = join(process.env.VP_HOME, 'bin', 'vp');
++  return existsSync(candidate) ? candidate : null;
++}
++
++function runEnvCommand() {
++  const globalCli = globalCliPath();
++  if (globalCli) {
++    finish(spawnSync(globalCli, process.argv.slice(2), { stdio: 'inherit' }));
++  }
++
++  const [subcommand, nodeFlag, requestedNode, separator, command, ...commandArgs] =
++    process.argv.slice(3);
++  if (
++    subcommand !== 'exec' ||
++    nodeFlag !== '--node' ||
++    separator !== '--' ||
++    !requestedNode ||
++    !command
++  ) {
++    console.error(
++      'This project-local Vite+ bridge supports only `vp env exec --node <exact-version> -- <command>` when the global Vite+ CLI is unavailable.',
++    );
++    process.exit(2);
++  }
++
++  const currentNode = process.version.slice(1);
++  if (requestedNode !== currentNode) {
++    console.error(
++      `Node ${requestedNode} was requested, but the global Vite+ CLI is unavailable and the current runtime is ${currentNode}.`,
++    );
++    process.exit(2);
++  }
++
++  finish(
++    spawnSync(command === 'node' ? process.execPath : command, commandArgs, {
++      stdio: 'inherit',
++    }),
++  );
++}
++
++if (process.argv[2] === 'env') runEnvCommand();
++
+ import module from 'node:module';
+ if (module.enableCompileCache) {
+   module.enableCompileCache();
+ }
+-import '../dist/bin.js';
++await import('../dist/bin.js');

@@ -19,3 +19,6 @@ peerDependencyRules:
     - vite
   allowedVersions:
     vite: "*"
+
+patchedDependencies:
+  vite-plus@0.2.8: patches/vite-plus@0.2.8-env-command.patch
