@@ -28,7 +28,7 @@ fn read_object<'env>(value: Unknown<'env>) -> NativeResult<Object<'env>> {
     Ok(object)
 }
 
-fn read_parts(value: Unknown<'_>) -> NativeResult<(LengthUnitCode, f32)> {
+fn read_parts(value: Unknown<'_>) -> NativeResult<(LengthUnitCode, f64)> {
     let object = read_object(value)?;
     let unit = object
         .get::<f64>("unit")
@@ -36,12 +36,10 @@ fn read_parts(value: Unknown<'_>) -> NativeResult<(LengthUnitCode, f32)> {
         .ok_or_else(|| type_error("Length unit is required"))?;
     let unit = to_integer::<LengthUnitCode>(unit)?;
     let value = match unit {
-        LengthUnitCode::Length | LengthUnitCode::Percent => to_f32(
-            object
-                .get::<f64>("value")
-                .map_err(|_| type_error("Length value must be a number"))?
-                .ok_or_else(|| type_error("Length value is required"))?,
-        ),
+        LengthUnitCode::Length | LengthUnitCode::Percent => object
+            .get::<f64>("value")
+            .map_err(|_| type_error("Length value must be a number"))?
+            .ok_or_else(|| type_error("Length value is required"))?,
         LengthUnitCode::Auto => 0.0,
     };
     Ok((unit, value))
@@ -50,8 +48,8 @@ fn read_parts(value: Unknown<'_>) -> NativeResult<(LengthUnitCode, f32)> {
 pub(crate) fn dimension(value: Unknown<'_>) -> NativeResult<Dimension> {
     let (unit, value) = read_parts(value)?;
     Ok(match unit {
-        LengthUnitCode::Length => Dimension::length(value),
-        LengthUnitCode::Percent => Dimension::percent(value / 100.0),
+        LengthUnitCode::Length => Dimension::length(to_f32(value)),
+        LengthUnitCode::Percent => Dimension::percent(to_f32(value / 100.0)),
         LengthUnitCode::Auto => Dimension::auto(),
     })
 }
@@ -59,8 +57,8 @@ pub(crate) fn dimension(value: Unknown<'_>) -> NativeResult<Dimension> {
 pub(crate) fn length_percentage(value: Unknown<'_>) -> NativeResult<LengthPercentage> {
     let (unit, value) = read_parts(value)?;
     match unit {
-        LengthUnitCode::Length => Ok(LengthPercentage::length(value)),
-        LengthUnitCode::Percent => Ok(LengthPercentage::percent(value / 100.0)),
+        LengthUnitCode::Length => Ok(LengthPercentage::length(to_f32(value))),
+        LengthUnitCode::Percent => Ok(LengthPercentage::percent(to_f32(value / 100.0))),
         LengthUnitCode::Auto => Err(type_error("Auto is not valid here")),
     }
 }
@@ -68,8 +66,8 @@ pub(crate) fn length_percentage(value: Unknown<'_>) -> NativeResult<LengthPercen
 pub(crate) fn length_percentage_auto(value: Unknown<'_>) -> NativeResult<LengthPercentageAuto> {
     let (unit, value) = read_parts(value)?;
     Ok(match unit {
-        LengthUnitCode::Length => LengthPercentageAuto::length(value),
-        LengthUnitCode::Percent => LengthPercentageAuto::percent(value / 100.0),
+        LengthUnitCode::Length => LengthPercentageAuto::length(to_f32(value)),
+        LengthUnitCode::Percent => LengthPercentageAuto::percent(to_f32(value / 100.0)),
         LengthUnitCode::Auto => LengthPercentageAuto::auto(),
     })
 }

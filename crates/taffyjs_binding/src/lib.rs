@@ -145,6 +145,35 @@ fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
 #[cfg(feature = "test-hooks")]
 #[napi]
 impl NativeTaffyTree {
+    #[napi(js_name = "__triggerError")]
+    pub fn trigger_error(&self, env: Env, condition: String) -> napi::Result<()> {
+        let error = match condition.as_str() {
+            "wrong-type-or-shape" | "node-id-not-bigint" => error::type_error("Test type error"),
+            "discrete-range-or-enum" | "node-id-serial-exhaustion" => {
+                error::range_error("Test range error")
+            }
+            "child-index-out-of-bounds" => {
+                error::child_index_out_of_bounds_error("Test child index error")
+            }
+            "malformed-node-id" => error::invalid_node_id_error("Test invalid node ID"),
+            "foreign-node-id" => error::foreign_node_id_error("Test foreign node ID"),
+            "stale-node-id" => error::stale_node_id_error("Test stale node ID"),
+            "random-source-failure" => error::plain_error("Test random source error"),
+            "invalid-topology" => error::invalid_topology_error("Test topology error"),
+            _ => error::type_error("Unknown test error condition"),
+        };
+        into_napi(env, Err(error))
+    }
+
+    #[napi(js_name = "__throwValue")]
+    pub fn throw_value(&self, env: Env, value: Unknown<'_>) -> napi::Result<()> {
+        env.throw(value)?;
+        Err(napi::Error::new(
+            napi::Status::PendingException,
+            "Callback threw",
+        ))
+    }
+
     #[napi(js_name = "__triggerPanic")]
     pub fn trigger_panic(&self, env: Env) -> napi::Result<()> {
         into_napi(

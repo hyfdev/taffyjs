@@ -466,12 +466,10 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
     }
     if let Some(value) = object.get("gridTemplateRows")? {
         style.grid_template_rows = grid::template_components(cast(value, "gridTemplateRows")?)?;
-        grid::validate_template_line_names(&style.grid_template_rows)?;
     }
     if let Some(value) = object.get("gridTemplateColumns")? {
         style.grid_template_columns =
             grid::template_components(cast(value, "gridTemplateColumns")?)?;
-        grid::validate_template_line_names(&style.grid_template_columns)?;
     }
     if let Some(value) = object.get("gridAutoRows")? {
         style.grid_auto_rows = cast::<Vec<Unknown<'_>>>(value, "gridAutoRows")?
@@ -501,6 +499,11 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
     if let Some(value) = object.get("gridTemplateRowNames")? {
         style.grid_template_row_names = cast(value, "gridTemplateRowNames")?;
     }
+    grid::validate_template_line_names(&style.grid_template_rows, &style.grid_template_row_names)?;
+    grid::validate_template_line_names(
+        &style.grid_template_columns,
+        &style.grid_template_column_names,
+    )?;
     if let Some(value) = object.get("gridRow")? {
         style.grid_row = geometry::partial_line(value, style.grid_row, grid::grid_placement)?;
     }

@@ -78,9 +78,9 @@ fn min_track(value: Unknown<'_>) -> NativeResult<MinTrackSizingFunction> {
         TrackSizingKindCode::Length => Ok(MinTrackSizingFunction::length(to_f32(required(
             &object, "value",
         )?))),
-        TrackSizingKindCode::Percent => Ok(MinTrackSizingFunction::percent(
-            to_f32(required(&object, "value")?) / 100.0,
-        )),
+        TrackSizingKindCode::Percent => Ok(MinTrackSizingFunction::percent(to_f32(
+            required::<f64>(&object, "value")? / 100.0,
+        ))),
         TrackSizingKindCode::Auto => Ok(MinTrackSizingFunction::auto()),
         TrackSizingKindCode::MinContent => Ok(MinTrackSizingFunction::min_content()),
         TrackSizingKindCode::MaxContent => Ok(MinTrackSizingFunction::max_content()),
@@ -96,9 +96,9 @@ fn max_track(value: Unknown<'_>) -> NativeResult<MaxTrackSizingFunction> {
         TrackSizingKindCode::Length => Ok(MaxTrackSizingFunction::length(to_f32(required(
             &object, "value",
         )?))),
-        TrackSizingKindCode::Percent => Ok(MaxTrackSizingFunction::percent(
-            to_f32(required(&object, "value")?) / 100.0,
-        )),
+        TrackSizingKindCode::Percent => Ok(MaxTrackSizingFunction::percent(to_f32(
+            required::<f64>(&object, "value")? / 100.0,
+        ))),
         TrackSizingKindCode::Auto => Ok(MaxTrackSizingFunction::auto()),
         TrackSizingKindCode::MinContent => Ok(MaxTrackSizingFunction::min_content()),
         TrackSizingKindCode::MaxContent => Ok(MaxTrackSizingFunction::max_content()),
@@ -183,8 +183,9 @@ pub(crate) fn template_components(
 
 pub(crate) fn validate_template_line_names(
     values: &[GridTemplateComponent<String>],
+    top_level_line_names: &[Vec<String>],
 ) -> NativeResult<()> {
-    for value in values {
+    for value in values.iter().take(top_level_line_names.len()) {
         if let GridTemplateComponent::Repeat(repetition) = value
             && repetition.line_names.is_empty()
             && repetition.count != RepetitionCount::Count(0)
