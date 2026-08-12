@@ -919,6 +919,22 @@ contractTest("INFRA-001/incremental-all", async () => {
     "utf8",
   );
   checker.validateNullableStyleJsDoc(contract, publicDeclaration);
+  assert.match(
+    publicDeclaration,
+    /Reports the index component of this GridPlacement value\. \*\/ index:/u,
+  );
+  assert.match(
+    publicDeclaration,
+    /Reports the min component of this TrackSizingFunction value\. \*\/ readonly min:/u,
+  );
+  assert.match(
+    publicDeclaration,
+    /invocation count and order are unspecified, and changed external data requires explicit dirtying/u,
+  );
+  assert.match(
+    publicDeclaration,
+    /Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying/u,
+  );
   await expectDiagnostic(
     () =>
       checker.validateNullableStyleJsDoc(
@@ -967,6 +983,17 @@ contractTest("INFRA-001/incremental-all", async () => {
         publicDeclaration.replace(
           "/** Keeps NodeId distinct from arbitrary bigint values during type checking. */ readonly [phantomMarker]",
           "/** Describes the member carried by this value. */ readonly [phantomMarker]",
+        ),
+      ),
+    "declaration-jsdoc-public-member",
+  );
+  await expectDiagnostic(
+    () =>
+      checker.validateWholeSurfaceJsDoc(
+        contract,
+        publicDeclaration.replace(
+          "/** Reports the index component of this GridPlacement value. */ index:",
+          "/** Creates or provides the index form of a GridPlacement value. */ index:",
         ),
       ),
     "declaration-jsdoc-public-member",

@@ -440,21 +440,21 @@ export type GridPlacement =
     }>
   | Readonly<{
       /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Line;
-      /** Creates or provides the index form of a GridPlacement value. */ index: number;
+      /** Reports the index component of this GridPlacement value. */ index: number;
     }>
   | Readonly<{
       /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedLine;
-      /** Creates or provides the name form of a GridPlacement value. */ name: string;
-      /** Creates or provides the index form of a GridPlacement value. */ index: number;
+      /** Reports the name component of this GridPlacement value. */ name: string;
+      /** Reports the index component of this GridPlacement value. */ index: number;
     }>
   | Readonly<{
       /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Span;
-      /** Creates or provides the span form of a GridPlacement value. */ span: number;
+      /** Reports the span component of this GridPlacement value. */ span: number;
     }>
   | Readonly<{
       /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedSpan;
-      /** Creates or provides the name form of a GridPlacement value. */ name: string;
-      /** Creates or provides the span form of a GridPlacement value. */ span: number;
+      /** Reports the name component of this GridPlacement value. */ name: string;
+      /** Reports the span component of this GridPlacement value. */ span: number;
     }>;
 
 /** Supplies writable min track sizing function data at the public API boundary. */
@@ -529,8 +529,8 @@ export interface TrackSizingFunctionInput {
 
 /** Represents the public track sizing function value used by TaffyJS. */
 export interface TrackSizingFunction {
-  /** Creates or provides the min form of a TrackSizingFunction value. */ readonly min: MinTrackSizingFunction;
-  /** Creates or provides the max form of a TrackSizingFunction value. */ readonly max: MaxTrackSizingFunction;
+  /** Reports the min component of this TrackSizingFunction value. */ readonly min: MinTrackSizingFunction;
+  /** Reports the max component of this TrackSizingFunction value. */ readonly max: MaxTrackSizingFunction;
 }
 
 /** Supplies writable repetition count data at the public API boundary. */
@@ -636,29 +636,29 @@ export declare const GridPlacement: Readonly<{
     index: number,
   ) => {
     /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Line;
-    /** Creates or provides the index form of a GridPlacement value. */ index: number;
+    /** Reports the index component of this GridPlacement value. */ index: number;
   };
   /** Creates or provides the NamedLine form of a GridPlacement value. */ readonly NamedLine: (
     name: string,
     index: number,
   ) => {
     /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedLine;
-    /** Creates or provides the name form of a GridPlacement value. */ name: string;
-    /** Creates or provides the index form of a GridPlacement value. */ index: number;
+    /** Reports the name component of this GridPlacement value. */ name: string;
+    /** Reports the index component of this GridPlacement value. */ index: number;
   };
   /** Creates or provides the Span form of a GridPlacement value. */ readonly Span: (
     span: number,
   ) => {
     /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.Span;
-    /** Creates or provides the span form of a GridPlacement value. */ span: number;
+    /** Reports the span component of this GridPlacement value. */ span: number;
   };
   /** Creates or provides the NamedSpan form of a GridPlacement value. */ readonly NamedSpan: (
     name: string,
     span: number,
   ) => {
     /** Identifies which GridPlacement tagged variant this value contains. */ kind: typeof GridPlacementKind.NamedSpan;
-    /** Creates or provides the name form of a GridPlacement value. */ name: string;
-    /** Creates or provides the span form of a GridPlacement value. */ span: number;
+    /** Reports the name component of this GridPlacement value. */ name: string;
+    /** Reports the span component of this GridPlacement value. */ span: number;
   };
 }>;
 
@@ -671,26 +671,26 @@ export declare const TrackSizingFunction: Readonly<{
     value: number,
   ) => TrackSizingFunctionInput;
   /** Creates or provides the Auto form of a TrackSizingFunction value. */ readonly Auto: Readonly<{
-    /** Creates or provides the min form of a TrackSizingFunction value. */ readonly min: Readonly<{
+    /** Reports the min component of this TrackSizingFunction value. */ readonly min: Readonly<{
       /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.Auto;
     }>;
-    /** Creates or provides the max form of a TrackSizingFunction value. */ readonly max: Readonly<{
+    /** Reports the max component of this TrackSizingFunction value. */ readonly max: Readonly<{
       /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.Auto;
     }>;
   }>;
   /** Creates or provides the MinContent form of a TrackSizingFunction value. */ readonly MinContent: Readonly<{
-    /** Creates or provides the min form of a TrackSizingFunction value. */ readonly min: Readonly<{
+    /** Reports the min component of this TrackSizingFunction value. */ readonly min: Readonly<{
       /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MinContent;
     }>;
-    /** Creates or provides the max form of a TrackSizingFunction value. */ readonly max: Readonly<{
+    /** Reports the max component of this TrackSizingFunction value. */ readonly max: Readonly<{
       /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MinContent;
     }>;
   }>;
   /** Creates or provides the MaxContent form of a TrackSizingFunction value. */ readonly MaxContent: Readonly<{
-    /** Creates or provides the min form of a TrackSizingFunction value. */ readonly min: Readonly<{
+    /** Reports the min component of this TrackSizingFunction value. */ readonly min: Readonly<{
       /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MaxContent;
     }>;
-    /** Creates or provides the max form of a TrackSizingFunction value. */ readonly max: Readonly<{
+    /** Reports the max component of this TrackSizingFunction value. */ readonly max: Readonly<{
       /** Identifies which TrackSizingFunction tagged variant this value contains. */ kind: typeof TrackSizingKind.MaxContent;
     }>;
   }>;
@@ -981,7 +981,7 @@ export type MeasureArgs<TContext> = Readonly<{
   /** Supplies the style value used by MeasureArgs. */ style: Style;
 }>;
 
-/** Measures a leaf synchronously and returns its intrinsic width and height. */
+/** Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying. */
 export type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInput<number>;
 
 /** Supplies a half-open child index range to removeChildrenRange. */
@@ -1089,7 +1089,7 @@ export declare class TaffyTree<TContext = unknown> {
   /** Computes and stores layout for a tree root synchronously. */ computeLayout(
     options: ComputeLayoutOptions,
   ): void;
-  /** Computes layout synchronously with a JavaScript measure callback. */ computeLayoutWithMeasure(
+  /** Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying. */ computeLayoutWithMeasure(
     options: ComputeLayoutWithMeasureOptions<TContext>,
   ): void;
 }

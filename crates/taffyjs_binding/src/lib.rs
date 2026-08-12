@@ -14,6 +14,8 @@ mod owner;
 mod style;
 
 use std::collections::HashSet;
+#[cfg(feature = "test-hooks")]
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use error::{
     NativeResult, child_index_out_of_bounds_error, internal_error, into_napi,
@@ -32,10 +34,15 @@ pub struct NativeTaffyTree {
     owner: TreeOwner,
 }
 
+#[cfg(feature = "test-hooks")]
+static LIVE_NATIVE_TREE_COUNT: AtomicUsize = AtomicUsize::new(0);
+
 #[napi]
 impl NativeTaffyTree {
     #[napi(constructor)]
     pub fn new() -> Self {
+        #[cfg(feature = "test-hooks")]
+        LIVE_NATIVE_TREE_COUNT.fetch_add(1, Ordering::SeqCst);
         Self {
             owner: TreeOwner::new(),
         }
@@ -776,6 +783,19 @@ impl NativeTaffyTree {
                 .access("__triggerPanic", |_| owner::injected_unexpected_panic()),
         )
     }
+}
+
+#[cfg(feature = "test-hooks")]
+impl Drop for NativeTaffyTree {
+    fn drop(&mut self) {
+        LIVE_NATIVE_TREE_COUNT.fetch_sub(1, Ordering::SeqCst);
+    }
+}
+
+#[cfg(feature = "test-hooks")]
+#[napi(js_name = "__liveNativeTreeCount")]
+pub fn live_native_tree_count() -> u32 {
+    u32::try_from(LIVE_NATIVE_TREE_COUNT.load(Ordering::SeqCst)).unwrap_or(u32::MAX)
 }
 
 impl Default for NativeTaffyTree {

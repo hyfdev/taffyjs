@@ -32,10 +32,13 @@ async function run(
   command: string,
   args: string[],
   cwd: string,
-  { allowFailure = false }: { allowFailure?: boolean } = {},
+  {
+    allowFailure = false,
+    environment = {},
+  }: { allowFailure?: boolean; environment?: Record<string, string> } = {},
 ) {
-  const env = { ...process.env };
-  delete env.NAPI_RS_NATIVE_LIBRARY_PATH;
+  const env = { ...process.env, ...environment };
+  if (!("NAPI_RS_NATIVE_LIBRARY_PATH" in environment)) delete env.NAPI_RS_NATIVE_LIBRARY_PATH;
   return new Promise<CommandResult>((resolvePromise, reject) => {
     const child = spawn(command, args, { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
     const stdout: Buffer[] = [];
@@ -321,13 +324,24 @@ contractTest("MATURITY-002/cleanup", async () => {
   assert.equal((wrapperSource.match(/new NativeTaffyTree\(\)/gu) ?? []).length, 1);
   assert.match(wrapperSource, /readonly #inner: NativeTree;/u);
   assert.match(wrapperSource, /this\.#inner = new NativeTaffyTree\(\);/u);
+  const testHooksRoot = resolve(packageRoot, "node_modules/.cache/taffyjs-test-hooks");
+  const nativeLibraries = (await readdir(testHooksRoot)).filter((name) => name.endsWith(".node"));
+  assert.equal(nativeLibraries.length, 1);
+  const testHooksPath = resolve(testHooksRoot, nativeLibraries[0]);
   const child = await run(
     process.execPath,
     ["--expose-gc", fileURLToPath(new URL("./fixtures/maturity-002-cleanup.mjs", import.meta.url))],
     root,
+    {
+      environment: {
+        NAPI_RS_NATIVE_LIBRARY_PATH: testHooksPath,
+        TAFFYJS_TEST_HOOKS_PATH: testHooksPath,
+      },
+    },
   );
   assert.deepEqual(JSON.parse(child.stdout), {
-    wrapperAndOwnedNativeCollected: true,
+    wrapperCollected: true,
+    ownedNativeCollected: true,
     contextCollected: true,
     callbackCollected: true,
     retainedTreesAlive: true,

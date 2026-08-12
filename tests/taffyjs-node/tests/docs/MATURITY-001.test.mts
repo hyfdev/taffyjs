@@ -88,15 +88,16 @@ contractTest("MATURITY-001/semantic-rules", async () => {
     /`NodeId` is an opaque `bigint`/u,
     /foreign tree/u,
     /stale ID/u,
-    /Layout work is explicit[\s\S]*computeLayout[\s\S]*stored `Layout`[\s\S]*automatic/u,
+    /Layout work is explicit[\s\S]*computeLayout[\s\S]*stored `Layout`[\s\S]*failed measured computation/u,
     /context[\s\S]*undefined[\s\S]*null/u,
-    /measure callback[\s\S]*synchronous[\s\S]*ERR_TAFFY_TREE_BUSY/u,
+    /measure callback[\s\S]*synchronous[\s\S]*cache control[\s\S]*different callback[\s\S]*markDirty[\s\S]*ERR_TAFFY_TREE_BUSY/u,
     /numeric constants[\s\S]*raw numeric literal/u,
     /StyleInput[\s\S]*omitted[\s\S]*undefined[\s\S]*null/u,
     /ERR_TAFFY_INVALID_NODE_ID[\s\S]*ERR_TAFFY_FOREIGN_NODE_ID[\s\S]*ERR_TAFFY_STALE_NODE_ID/u,
   ]) {
     assert.match(rules, pattern);
   }
+  assert.doesNotMatch(rules, /last result written by a successful computation/u);
   assert.match(readme, /Unsupported surfaces[\s\S]*CSS parsing[\s\S]*async layout/u);
 });
 

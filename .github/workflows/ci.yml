@@ -55,5 +55,5 @@ jobs:
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
       - run: pnpm install --frozen-lockfile
-      - name: Run the complete local readiness graph
-        run: pnpm exec vp run ready
+      - name: Run the complete readiness checks
+        run: pnpm exec vp run --concurrency-limit 2 ready:body

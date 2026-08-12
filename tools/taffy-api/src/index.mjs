@@ -1713,7 +1713,8 @@ const TREE_MEMBER_JSDOC = {
   getDetailedLayoutInfo: "Returns detailed Grid tracks and item placement when available.",
   markDirty: "Explicitly marks a node for layout recomputation.",
   isDirty: "Reports whether a node currently needs layout recomputation.",
-  computeLayoutWithMeasure: "Computes layout synchronously with a JavaScript measure callback.",
+  computeLayoutWithMeasure:
+    "Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying.",
   computeLayout: "Computes and stores layout for a tree root synchronously.",
 };
 
@@ -1801,7 +1802,7 @@ function publicSymbolJsDoc(name, kind) {
     return "Supplies dimensions, available space, identity, context, and style to measurement.";
   }
   if (name === "MeasureFunction") {
-    return "Measures a leaf synchronously and returns its intrinsic width and height.";
+    return "Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying.";
   }
   if (name === "ChildRangeInput") {
     return "Supplies a half-open child index range to removeChildrenRange.";
@@ -1830,7 +1831,7 @@ function publicSymbolJsDoc(name, kind) {
   return `Represents the public ${humanizeIdentifier(name)} value used by TaffyJS.`;
 }
 
-function publicMemberJsDoc(owner, name) {
+function publicMemberJsDoc(owner, name, kind, depth) {
   if (owner === "TaffyTree") return TREE_MEMBER_JSDOC[name];
   if (owner === "NodeId" && name === "opaqueMarker") {
     return "Keeps NodeId distinct from arbitrary bigint values during type checking.";
@@ -1849,8 +1850,11 @@ function publicMemberJsDoc(owner, name) {
   if (owner === "Layout" && LAYOUT_MEMBER_JSDOC[name]) return LAYOUT_MEMBER_JSDOC[name];
   if (name === "kind") return `Identifies which ${owner} tagged variant this value contains.`;
   if (name === "value") return `Carries the payload for this ${owner} tagged variant.`;
-  if (VALUE_HELPER_NAMES.has(owner)) {
+  if (kind === "const" && depth === 1 && VALUE_HELPER_NAMES.has(owner)) {
     return `Creates or provides the ${name} form of a ${owner} value.`;
+  }
+  if (VALUE_HELPER_NAMES.has(owner)) {
+    return `Reports the ${humanizeIdentifier(name)} component of this ${owner} value.`;
   }
   if (owner.endsWith("Input") || owner.includes("Options") || owner === "MeasureArgs") {
     return `Supplies the ${humanizeIdentifier(name)} value used by ${owner}.`;
@@ -1911,8 +1915,13 @@ function declarationMemberStarts(tokens) {
     });
 }
 
-function memberOwner(exports, offset) {
-  return exports.findLast(({ token }) => token.start < offset)?.name ?? "public value";
+function memberDeclaration(exports, offset) {
+  return (
+    exports.findLast(({ token }) => token.start < offset) ?? {
+      name: "public value",
+      kind: "declaration",
+    }
+  );
 }
 
 function jsDocInsertion(source, offset, text) {
@@ -1939,14 +1948,14 @@ export function validateWholeSurfaceJsDoc(contract, actual) {
     .slice(3, -2)
     .trim();
   for (const { token, index } of declarationMemberStarts(tokens)) {
-    const owner = memberOwner(exports, token.start);
+    const { name: owner, kind } = memberDeclaration(exports, token.start);
     const name = memberName(tokens, index);
     const text = meaningfulJsDocBefore(actual, token.start, "declaration-jsdoc-public-member");
     if (!publicNames.has(owner)) continue;
     const expected =
       owner === "StyleInput" && nullableFields.has(name)
         ? nullableComment
-        : publicMemberJsDoc(owner, name);
+        : publicMemberJsDoc(owner, name, kind, token.brace);
     if (!expected || text !== expected) fail("declaration-jsdoc-public-member", `${owner}.${name}`);
   }
 }
@@ -1965,11 +1974,11 @@ export function documentPublicDeclaration(actual) {
   }
   for (const { token, index } of declarationMemberStarts(tokens)) {
     if (adjacentJsDoc(actual, token.start)) continue;
-    const owner = memberOwner(exports, token.start);
+    const { name: owner, kind } = memberDeclaration(exports, token.start);
     const name = memberName(tokens, index);
     insertions.push({
       offset: token.start,
-      text: publicMemberJsDoc(owner, name),
+      text: publicMemberJsDoc(owner, name, kind, token.brace),
     });
   }
   insertions.sort((left, right) => right.offset - left.offset);

@@ -104,7 +104,8 @@ contractTest("MATURITY-003/ci-targets", async () => {
   );
   assert.equal(new Set(targets).size, targets.length);
   assert.match(workflow, /node-version: 22\.18\.0/u);
-  assert.match(workflow, /pnpm exec vp run ready/u);
+  assert.match(workflow, /run: pnpm exec vp run --concurrency-limit 2 ready:body/u);
+  assert.doesNotMatch(workflow, /run: pnpm exec vp run ready\s*$/mu);
   assert.doesNotMatch(workflow, /(?:npm|pnpm|cargo|napi)\s+(?:pre)?publish\b/u);
   assert.match(workflow, /permissions:\n\s+contents: read/u);
 });
