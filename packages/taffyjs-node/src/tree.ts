@@ -125,6 +125,10 @@ export class TaffyTree<TContext = unknown> {
     return this.#newWithChildren(style, children);
   }
 
+  remove(node: NodeId): void {
+    this.#remove(node);
+  }
+
   getNodeContext(node: NodeId): TContext | undefined {
     return this.#getNodeContext(node);
   }
@@ -183,6 +187,7 @@ export class TaffyTree<TContext = unknown> {
         this.#newLeafWithContext(style, context),
       newWithChildren: (style: unknown, children: readonly NodeId[]) =>
         this.#newWithChildren(style, children),
+      remove: (node: NodeId) => this.#remove(node),
       getNodeContext: (node: NodeId) => this.#getNodeContext(node),
       setNodeContext: (node: NodeId, context: TContext | undefined) =>
         this.#setNodeContext(node, context),
@@ -237,6 +242,13 @@ export class TaffyTree<TContext = unknown> {
     const serial = this.#nodes.reserveSerial();
     const raw = this.#inner.rawNewWithChildren(style, rawChildren, "newWithChildren");
     return this.#nodes.register(raw, serial);
+  }
+
+  #remove(node: NodeId): void {
+    const raw = this.#nodes.resolve(node);
+    this.#inner.rawRemove(raw, "remove");
+    this.#nodes.unregister(node, raw);
+    this.#contexts.delete(node);
   }
 
   #getNodeContext(node: NodeId): TContext | undefined {

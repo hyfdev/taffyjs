@@ -351,6 +351,12 @@ var NodeIdRegistry = class {
 		if (this.#rawByPublic.get(node) !== raw) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
 		return node;
 	}
+	unregister(node, raw) {
+		const serial = node >> U64_BITS & U64_MAX;
+		if (this.#rawByPublic.get(node) !== raw || this.#serialByRaw.get(raw) !== serial) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+		this.#rawByPublic.delete(node);
+		this.#serialByRaw.delete(raw);
+	}
 	clear() {
 		this.#serialByRaw.clear();
 		this.#rawByPublic.clear();
@@ -422,6 +428,9 @@ var TaffyTree = class {
 	newWithChildren(style, children) {
 		return this.#newWithChildren(style, children);
 	}
+	remove(node) {
+		this.#remove(node);
+	}
 	getNodeContext(node) {
 		return this.#getNodeContext(node);
 	}
@@ -466,6 +475,7 @@ var TaffyTree = class {
 			newLeaf: (style) => this.#newLeaf(style),
 			newLeafWithContext: (style, context) => this.#newLeafWithContext(style, context),
 			newWithChildren: (style, children) => this.#newWithChildren(style, children),
+			remove: (node) => this.#remove(node),
 			getNodeContext: (node) => this.#getNodeContext(node),
 			setNodeContext: (node, context) => this.#setNodeContext(node, context),
 			clear: () => this.#clear(),
@@ -510,6 +520,12 @@ var TaffyTree = class {
 		const serial = this.#nodes.reserveSerial();
 		const raw = this.#inner.rawNewWithChildren(style, rawChildren, "newWithChildren");
 		return this.#nodes.register(raw, serial);
+	}
+	#remove(node) {
+		const raw = this.#nodes.resolve(node);
+		this.#inner.rawRemove(raw, "remove");
+		this.#nodes.unregister(node, raw);
+		this.#contexts.delete(node);
 	}
 	#getNodeContext(node) {
 		this.#nodes.resolve(node);

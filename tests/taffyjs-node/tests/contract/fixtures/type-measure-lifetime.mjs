@@ -4,11 +4,13 @@ import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 const immediate = () => new Promise((resolve) => setImmediate(resolve));
 
 async function collect(weak) {
-  for (let attempt = 0; attempt < 100 && weak.deref() !== undefined; attempt += 1) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
     globalThis.gc();
     await immediate();
+    if (weak.deref() === undefined) return true;
+    await immediate();
   }
-  return weak.deref() === undefined;
+  return false;
 }
 
 async function runCase(collectCallback) {

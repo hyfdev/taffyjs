@@ -91,6 +91,15 @@ export class NodeIdRegistry {
     return node;
   }
 
+  unregister(node: NodeId, raw: bigint): void {
+    const serial = (node >> U64_BITS) & U64_MAX;
+    if (this.#rawByPublic.get(node) !== raw || this.#serialByRaw.get(raw) !== serial) {
+      throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+    }
+    this.#rawByPublic.delete(node);
+    this.#serialByRaw.delete(raw);
+  }
+
   clear(): void {
     this.#serialByRaw.clear();
     this.#rawByPublic.clear();

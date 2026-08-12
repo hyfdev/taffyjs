@@ -370,6 +370,17 @@ impl NativeTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawRemove")]
+    pub fn remove(&self, env: Env, node: BigInt, public_method: String) -> napi::Result<()> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access(&public_method, |tree| {
+                tree.remove(node).map(|_| ()).map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawClear")]
     pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
         into_napi(
