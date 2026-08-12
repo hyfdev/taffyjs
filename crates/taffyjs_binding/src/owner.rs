@@ -55,7 +55,7 @@ mod tests {
     fn expected_error_does_not_poison_owner() {
         let owner = TreeOwner::new();
         let expected = owner.access("setStyle", |_| Err::<(), _>(busy_error("setStyle")));
-        assert_eq!(expected.unwrap_err().code, "ERR_TAFFY_TREE_BUSY");
+        assert_eq!(expected.unwrap_err().code, Some("ERR_TAFFY_TREE_BUSY"));
         assert_eq!(
             owner
                 .access("getNodeCount", |tree| Ok(tree.total_node_count()))
@@ -68,8 +68,8 @@ mod tests {
     fn panic_poisoning_prevents_later_access() {
         let owner = TreeOwner::new();
         let first = owner.access::<()>("test", |_| injected_unexpected_panic());
-        assert_eq!(first.unwrap_err().code, "ERR_TAFFY_INTERNAL");
+        assert_eq!(first.unwrap_err().code, Some("ERR_TAFFY_INTERNAL"));
         let second = owner.access("getNodeCount", |tree| Ok(tree.total_node_count()));
-        assert_eq!(second.unwrap_err().code, "ERR_TAFFY_TREE_POISONED");
+        assert_eq!(second.unwrap_err().code, Some("ERR_TAFFY_TREE_POISONED"));
     }
 }

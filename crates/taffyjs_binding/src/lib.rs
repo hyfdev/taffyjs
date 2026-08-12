@@ -2,6 +2,7 @@
 
 mod error;
 mod generated_numeric;
+mod number;
 mod owner;
 
 use error::into_napi;
