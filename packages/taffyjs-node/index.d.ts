@@ -610,5 +610,6 @@ export type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInp
 
 export declare class TaffyTree<TContext = unknown> {
   constructor();
+  newLeaf(style: StyleInput): NodeId;
   getNodeCount(): number;
 }

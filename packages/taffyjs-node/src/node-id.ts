@@ -42,12 +42,11 @@ export class NodeIdRegistry {
     if (serial < 1n || serial > U64_MAX) {
       throw new RangeError("The per-tree NodeId creation serial is exhausted");
     }
-    this.#nextSerial = serial + 1n;
     return serial;
   }
 
   register(raw: bigint, serial: bigint): NodeId {
-    if (raw < 0n || raw > U64_MAX || this.#serialByRaw.has(raw)) {
+    if (serial !== this.#nextSerial || raw < 0n || raw > U64_MAX || this.#serialByRaw.has(raw)) {
       throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
     }
     const node = ((this.#token << TOKEN_SHIFT) | (serial << U64_BITS) | raw) as NodeId;
@@ -56,6 +55,7 @@ export class NodeIdRegistry {
     }
     this.#serialByRaw.set(raw, serial);
     this.#rawByPublic.set(node, raw);
+    this.#nextSerial = serial + 1n;
     return node;
   }
 

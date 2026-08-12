@@ -51,6 +51,10 @@ export class TaffyTree<_TContext = unknown> {
     return this.#getNodeCount();
   }
 
+  newLeaf(style: unknown): NodeId {
+    return this.#newLeaf(style);
+  }
+
   [testAccess]() {
     return {
       newLeaf: (style: unknown) => this.#newLeaf(style),
