@@ -22,6 +22,10 @@ The single request is also the only model used to define batching. A data kind e
 
 Generation defines the valid single-request tuples and their result types once. The batch TypeScript result is derived by mapping those same relationships over the input collection, JavaScript reuses the same selector metadata and validation, and native code reuses the same per-request dispatcher. A private native batch entry may wrap that dispatcher so the complete collection crosses the JavaScript-to-native boundary once; the public batch overload must not be implemented as repeated native calls through the single overload.
 
+A malformed request makes the complete batch throw without returning partial results. Malformed requests include unknown selectors, the wrong number of indices, invalid indices, and invalid, stale, or foreign NodeIds. Valid queries whose current values are absent still produce `undefined` only at their corresponding result positions. Before validation, the wrapper must copy every caller-controlled batch entry and request argument into an ordinary internal snapshot; it then validates the complete snapshot and immediately enters native code, so an accessor or Proxy cannot invalidate an earlier NodeId between validation and native use.
+
+Every selected object or array is an ordinary detached owned snapshot, recursively readonly in TypeScript, with no live view or native borrow. Separate requests do not promise shared JavaScript object identity, including duplicate requests or requests for overlapping parent and child values.
+
 The intended flow is:
 
 ```text
@@ -64,7 +68,7 @@ This design does not yet decide:
 - how the canonical public value shapes are represented for generation;
 - private operation numbering, native method signatures, and the concrete private batch entry;
 - the supported integer range and exact error classes for malformed calls;
-- batch size limits and failure behavior for a collection containing an invalid request;
+- batch size limits;
 - the benchmark workloads and acceptance thresholds for shipping the API.
 
 Those choices should be made during implementation work without reopening the bounded per-node design unless new evidence shows that the boundary cannot serve a real consumer.

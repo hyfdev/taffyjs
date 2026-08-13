@@ -72,6 +72,26 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-13; required the single and batch forms to share one public method name through overloads, used `queryStyle` as the example, and required the batch form to be derived from the single form rather than generated independently. See [Selective query design notes](query-api-design.md).
 
+### All-or-nothing selective batch errors
+
+**Ruling:** A selective-query batch must return positionally corresponding values only when every request is well formed and every NodeId is valid. Any unknown selector, wrong index count, invalid index, or invalid, stale, or foreign NodeId makes the complete batch throw a controlled JavaScript error without returning partial results. An out-of-bounds index, inactive tagged variant, or null parent remains a valid absent value and produces `undefined` only at that request's result position. The wrapper must first copy all caller-controlled batch entries and request arguments into an ordinary internal snapshot, then validate the entire snapshot, and immediately enter one native operation without consulting the caller's original values again.
+
+**Limits:** This decides whole-batch failure versus per-request error results and the required snapshot-before-validation safety order. It does not fix exact error classes, batch size limits, the private native input representation, or which malformed request is reported when several are present. The batch is read-only, so this ruling does not define rollback or partial mutation behavior.
+
+**Why:** Per-request error values would complicate every batch result type and let callers accidentally consume partial output. Snapshotting before validation prevents a later array accessor or Proxy trap from mutating the tree and making a NodeId that was validated earlier stale before native code uses it.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-13; accepted whole-batch failure for malformed requests while retaining per-position `undefined` for valid absent values and asked that the decision be recorded.
+
+### Detached selective-query results
+
+**Ruling:** Every object or array returned by selective query must be an ordinary detached owned snapshot and recursively readonly in TypeScript, never a live view, Proxy, or Rust-backed borrow. Separate query results must not promise shared JavaScript object identity, including duplicate requests and overlapping parent and child selections.
+
+**Limits:** Scalar results retain their ordinary primitive semantics. An implementation may internally reuse conversion code or compact transport, but it must not expose mutable native state or make correctness depend on result identity. This ruling does not require runtime freezing, prohibit internal allocation optimizations, or require separate identity when an immutable singleton is already part of the established public value contract.
+
+**Why:** Query changes how much of the native value is copied, not the binding's ownership model. Detached results preserve the complete getters' safety and snapshot behavior without adding lifetimes, aliasing, hidden native access, or identity contracts that would constrain later optimizations.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-13; accepted detached owned snapshots with no promised identity sharing for object and array query results and asked that the decision be recorded.
+
 ### Complete-output transport is separate from selective query
 
 **Ruling:** Compact native transfer followed by generated JavaScript reconstruction may be evaluated as an internal optimization for complete output values, but it must remain conceptually and contractually separate from selective query. Complete-output transport changes how all requested data crosses Node-API and where ordinary JavaScript objects are created; selective query changes which data is requested and avoids converting unrequested values. The mechanisms may share one canonical public-output description, but one must not be treated as a replacement for the other.
@@ -206,4 +226,4 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 ### Selective query implementation details
 
-The concrete API names and signatures, exact batch request container, exact selector spelling, canonical public-shape representation, private dispatch shape, exact malformed-call and invalid-batch behavior, supported index range, batch size limits, and performance acceptance thresholds remain open. The settled boundary and the questions intentionally deferred to implementation work are recorded in [Selective query design notes](query-api-design.md).
+The concrete API names and signatures, exact batch request container, whether one batch may span data kinds, exact selector spelling, canonical public-shape representation, private dispatch shape, exact malformed-call error classes, supported index range, batch size limits, and performance acceptance thresholds remain open. The settled boundary and the questions intentionally deferred to implementation work are recorded in [Selective query design notes](query-api-design.md).
