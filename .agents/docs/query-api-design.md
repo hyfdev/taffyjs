@@ -22,6 +22,20 @@ The single request is also the only model used to define batching. A data kind e
 
 Generation defines the valid single-request tuples and their result types once. The batch TypeScript result is derived by mapping those same relationships over the input collection, JavaScript reuses the same selector metadata and validation, and native code reuses the same per-request dispatcher. A private native batch entry may wrap that dispatcher so the complete collection crosses the JavaScript-to-native boundary once; the public batch overload must not be implemented as repeated native calls through the single overload.
 
+Each batch stays within one data kind and its public method. It may contain requests for different NodeIds owned by the receiving tree. Its only batch input shape is an ordered array of complete single-request argument tuples, so the NodeId, selector, and selector indices of each item retain exactly the single-request relationship. There is no second same-node shorthand and no general batch that mixes Style, Layout, and DetailedLayoutInfo requests.
+
+For example, if the Style method is named `queryStyle`, its two forms conceptually look like:
+
+```ts
+queryStyle(node, "display");
+
+queryStyle([
+  [nodeA, "display"],
+  [nodeB, "gridTemplateRows[]", 0],
+  [nodeC, "gridTemplateRows[].value.tracks[].max", 0, 1],
+]);
+```
+
 A malformed request makes the complete batch throw without returning partial results. Malformed requests include unknown selectors, the wrong number of indices, invalid indices, and invalid, stale, or foreign NodeIds. Valid queries whose current values are absent still produce `undefined` only at their corresponding result positions. Before validation, the wrapper must copy every caller-controlled batch entry and request argument into an ordinary internal snapshot; it then validates the complete snapshot and immediately enters native code, so an accessor or Proxy cannot invalidate an earlier NodeId between validation and native use.
 
 Every selected object or array is an ordinary detached owned snapshot, recursively readonly in TypeScript, with no live view or native borrow. Separate requests do not promise shared JavaScript object identity, including duplicate requests or requests for overlapping parent and child values.
@@ -63,7 +77,7 @@ New layout features may add fields, variants, collections, or relationships betw
 
 This design does not yet decide:
 
-- the exact public method names, TypeScript signatures, or batch request container, beyond the requirement that single and batch forms share one method name;
+- the exact public method names and overload declaration details;
 - the exact selector spelling;
 - how the canonical public value shapes are represented for generation;
 - private operation numbering, native method signatures, and the concrete private batch entry;

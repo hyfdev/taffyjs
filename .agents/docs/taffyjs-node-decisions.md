@@ -64,15 +64,31 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 ### Single-source selective query batching
 
+[VOUCHED @hyfdev 2026-08-13]
+
 **Ruling:** The single selective-query request must be the only generated query model. A data kind's single and batch forms must use overloads of the same public method name, such as `queryStyle` rather than separate `queryStyle` and `queryStyleBatch` methods. The batch form must accept an ordered collection of ordinary single requests and return positionally corresponding results. Its TypeScript types, JavaScript selector metadata and validation, and Rust per-request dispatch must all derive from or reuse the single-request definitions; native code may add one private batch entry to execute the collection across the JavaScript-to-native boundary once, but JavaScript must not implement the batch overload by repeatedly invoking the native single operation.
 
-**Limits:** This decides the shared public naming pattern, single-source generation, result ordering, and one-boundary execution model. It does not fix the exact public method names, single or batch call signatures, batch request container, maximum batch size, invalid-request failure behavior, private native method shape, or allocation strategy. It governs batches of selective queries only; complete-object batch reads and compact transfer of complete Layout values are separate mechanisms that require their own evidence and design.
+**Limits:** This decides the shared public naming pattern, single-source generation, result ordering, and one-boundary execution model. It does not fix the exact public method names, overload declaration details, maximum batch size, private native method shape, or allocation strategy. It governs batches of selective queries only; complete-object batch reads and compact transfer of complete Layout values are separate mechanisms that require their own evidence and design.
 
 **Why:** Batch execution should amortize the JavaScript-to-native boundary without introducing a second selector contract or a second generated API. Deriving the batch form from the single form preserves the same autocomplete, index-count checking, selector result types, runtime validation, and native field access as the individual request while preventing the two forms from drifting.
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-13; required the single and batch forms to share one public method name through overloads, used `queryStyle` as the example, and required the batch form to be derived from the single form rather than generated independently. See [Selective query design notes](query-api-design.md).
 
+### Domain-local multi-node query batches
+
+[VOUCHED @hyfdev 2026-08-13]
+
+**Ruling:** Each selective-query batch must stay within one data kind and the corresponding public method, while each request in that batch may name a different NodeId owned by the receiving tree. The only batch input shape must be an ordered array of complete single-request argument tuples, each containing its own NodeId, selector, and required indices. The API must not add a same-node shorthand or a general batch that mixes Style, Layout, and DetailedLayoutInfo requests.
+
+**Limits:** This fixes the domain boundary, multi-node capability, and batch container model, not the exact method names, overload declarations, maximum batch size, internal flattening, or native representation. A future cross-domain entry requires a measured workload showing that reducing already-batched per-domain native calls is material enough to justify its additional public and generated type model.
+
+**Why:** Allowing a different node in every ordinary request lets one batch replace a number of native calls that grows with the number of nodes, and it follows directly from the single-request model. Once requests are already batched within each data kind, mixing data kinds can remove only the small fixed number of remaining per-domain native calls without reducing field access or result conversion; no current workload justifies the additional general API and mixed result model. Requiring one complete request tuple per item avoids a second same-node-only signature and keeps TypeScript inference, runtime validation, and code generation aligned with the single form.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-13; accepted domain-local batches, different NodeIds per request, and the ordered array of complete single-request argument tuples as the only batch form, while rejecting a cross-domain batch without evidence that its fixed call-overhead saving is material.
+
 ### All-or-nothing selective batch errors
+
+[VOUCHED @hyfdev 2026-08-13]
 
 **Ruling:** A selective-query batch must return positionally corresponding values only when every request is well formed and every NodeId is valid. Any unknown selector, wrong index count, invalid index, or invalid, stale, or foreign NodeId makes the complete batch throw a controlled JavaScript error without returning partial results. An out-of-bounds index, inactive tagged variant, or null parent remains a valid absent value and produces `undefined` only at that request's result position. The wrapper must first copy all caller-controlled batch entries and request arguments into an ordinary internal snapshot, then validate the entire snapshot, and immediately enter one native operation without consulting the caller's original values again.
 
@@ -83,6 +99,8 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 **Source:** Yunfei (`@hyfdev`), 2026-08-13; accepted whole-batch failure for malformed requests while retaining per-position `undefined` for valid absent values and asked that the decision be recorded.
 
 ### Detached selective-query results
+
+[VOUCHED @hyfdev 2026-08-13]
 
 **Ruling:** Every object or array returned by selective query must be an ordinary detached owned snapshot and recursively readonly in TypeScript, never a live view, Proxy, or Rust-backed borrow. Separate query results must not promise shared JavaScript object identity, including duplicate requests and overlapping parent and child selections.
 
@@ -226,4 +244,4 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 ### Selective query implementation details
 
-The concrete API names and signatures, exact batch request container, whether one batch may span data kinds, exact selector spelling, canonical public-shape representation, private dispatch shape, exact malformed-call error classes, supported index range, batch size limits, and performance acceptance thresholds remain open. The settled boundary and the questions intentionally deferred to implementation work are recorded in [Selective query design notes](query-api-design.md).
+The concrete API names and overload declaration details, exact selector spelling, canonical public-shape representation, private dispatch shape, exact malformed-call error classes, supported index range, batch size limits, and performance acceptance thresholds remain open. The settled boundary and the questions intentionally deferred to implementation work are recorded in [Selective query design notes](query-api-design.md).
