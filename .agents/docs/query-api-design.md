@@ -14,7 +14,7 @@ A single selective-query request reads one value from one node's Style, rounded 
 - Selectors are derived mechanically from that complete public shape rather than admitted through a separately curated list. Adding a reachable field to the public value also adds the corresponding selectors; generation must fail rather than silently leave a public field unqueryable.
 - Selector spelling is fixed: public field names are joined with `.`, `[]` marks one separately supplied collection index, and `.length` selects a collection length. Numeric text, wildcards, filters, slices, callbacks, optional chaining, and arbitrary path expressions are not part of the selector language.
 - JavaScript resolves the selector through generated static metadata before entering native code. Native code receives a private operation identifier, exhaustively dispatches it, and directly reads and converts the selected Rust value. Native code does not parse the public selector or create a parent JavaScript object and then extract one child.
-- One canonical description of the public values keeps the TypeScript calls and result types, JavaScript lookup and index count, and Rust dispatch contract consistent. People decide the public data shape; generation provides complete query coverage for it.
+- One canonical description of the public values keeps the TypeScript calls and result types, JavaScript lookup and index count, and Rust dispatch contract consistent. People decide the public data shape; generation provides complete query coverage for it. The implementation must follow the repository-wide [API code generation](api-codegen.md) boundaries and the query-specific [API query code generation](api-codegen-query.md) guidance.
 
 The selector forms include:
 
@@ -93,6 +93,8 @@ Two related structures are recursive, but neither is embedded in these per-node 
 New layout features may add fields, variants, collections, or relationships between nodes without making a per-node Style or Layout recursively contain itself. Those changes can extend the generated selectors without changing this model. If TaffyJS later exposes a genuinely recursive value such as a raw CSS expression tree or layout-fragment tree, the existing query can return the whole value or a reference to it without descending recursively, or that new value can receive a separately designed API.
 
 ## Deferred implementation decisions
+
+Repository-wide input ownership, normalization, emitter responsibilities, output writes, commands, and verification are already fixed by [API code generation](api-codegen.md). The query-specific representation and native protocol remain open within those boundaries.
 
 This design does not yet decide:
 
