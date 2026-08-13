@@ -15,7 +15,7 @@
 - Native boundary tests: 47 passed.
 - JavaScript wrapper tests: 5 passed.
 - Integration tests: 825 passed.
-- GitHub Actions passed for the four supported native targets and the Node 22.18.0 packed consumer before this handover-only commit.
+- GitHub Actions previously passed for all four declared native targets and the Node 22.18.0 packed consumer. The current CI has since been reduced to complete Ubuntu x64 checks and a Windows x64 native build; macOS and publication workflows are deferred.
 
 ## Review and Handover
 

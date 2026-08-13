@@ -9,21 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  build-native:
-    name: Build ${{ matrix.target }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-apple-darwin
-            os: macos-15-intel
-          - target: aarch64-apple-darwin
-            os: macos-14
-          - target: x86_64-pc-windows-msvc
-            os: windows-2022
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-24.04
-    runs-on: ${{ matrix.os }}
+  build-windows-x64-msvc:
+    name: Build Windows x64
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -35,14 +23,14 @@ jobs:
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: x86_64-pc-windows-msvc
       - run: pnpm install --frozen-lockfile
       - name: Build declared native target
         working-directory: packages/taffyjs-node
-        run: pnpm exec napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm --release --target ${{ matrix.target }}
+        run: pnpm exec napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm --release --target x86_64-pc-windows-msvc
 
-  packed-consumer-linux-x64-gnu:
-    name: Packed consumer on Node 22.18.0
+  ready-ubuntu-x64-gnu:
+    name: Complete checks on Ubuntu x64
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

@@ -310,4 +310,4 @@ Direct absolute-file access to `index.js`, `native.js`, a `.node` file, or a pla
 
 ## CI and release evidence
 
-The repository workflow builds all four declared native targets without publishing. The complete test projection runs on Linux x64, including the exact Node 22.18.0 packed-consumer check. A workflow definition is not proof that a remote target passed: release handover must name the locally executed host separately from remote jobs that have actually run.
+The repository workflow runs the complete test projection on Ubuntu x64, including the exact Node 22.18.0 packed-consumer check, and separately confirms that the native addon builds on Windows x64. The declared macOS targets are not built by the current CI. Publication and the full release build matrix remain future work. A workflow definition is not proof that a remote target passed: release handover must name the locally executed host separately from remote jobs that have actually run.
