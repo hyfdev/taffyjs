@@ -40,7 +40,7 @@ This design is deliberately smaller than a general query language.
 - A selector may only follow paths generated from the public value shape. It cannot discover or execute an arbitrary path at runtime.
 - It does not search, filter, sort, or traverse the Taffy node tree.
 - It does not combine unrelated fields into a caller-defined result shape.
-- Its batch overload batches selective requests. It does not replace complete getters, complete-object batch operations, compact bulk transfer, change tracking, or other mechanisms suited to different access patterns.
+- Its batch overload batches selective requests. It does not replace complete getters, complete-object batch operations, [compact complete-output transport](complete-output-transport.md), change tracking, or other mechanisms suited to different access patterns.
 - An ID or reference to data managed elsewhere is not followed automatically. The query returns that value or reference as a whole unless the project designs a separate API for the referenced data.
 
 ## Why this boundary remains valid

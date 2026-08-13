@@ -72,6 +72,16 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-13; required the single and batch forms to share one public method name through overloads, used `queryStyle` as the example, and required the batch form to be derived from the single form rather than generated independently. See [Selective query design notes](query-api-design.md).
 
+### Complete-output transport is separate from selective query
+
+**Ruling:** Compact native transfer followed by generated JavaScript reconstruction may be evaluated as an internal optimization for complete output values, but it must remain conceptually and contractually separate from selective query. Complete-output transport changes how all requested data crosses Node-API and where ordinary JavaScript objects are created; selective query changes which data is requested and avoids converting unrequested values. The mechanisms may share one canonical public-output description, but one must not be treated as a replacement for the other.
+
+**Limits:** This records an optimization direction, not a requirement to ship it, expose its private buffer format, use one encoding for every data kind, change the complete getter's public result, or build the generator before a representative prototype demonstrates value. Adoption must be decided separately for each data kind from escaped-result latency, retained-memory, and sustained-GC evidence. Layout is the first candidate; applying the direction to Style or DetailedLayoutInfo remains benchmark-gated. Exact buffer layout, schema representation, decoder implementation, version checks, and public complete-object batch APIs remain open.
+
+**Why:** Moving object construction from repeated Node-API property operations into generated JavaScript can reduce complete-value conversion cost, especially for fixed numeric records, but it still processes the entire value and can add encoding, decoding, temporary-buffer, and memory costs. Selective query instead avoids work proportional to unrequested fields and collection elements, so the two optimizations act at different layers.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-13; asked to record generated compact transfer as a data-transfer optimization direction and explicitly distinguished it from selective query over only requested data. See [Complete-output transport optimization](complete-output-transport.md).
+
 ### Direct layout-state behavior
 
 [VOUCHED @hyfdev 2026-08-09]
