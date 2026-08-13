@@ -8,7 +8,7 @@ The proposed addition is a way to read only the requested value. It complements 
 
 ## Reference design
 
-A selective query reads one value from one node's Style, Layout, or DetailedLayoutInfo.
+A single selective-query request reads one value from one node's Style, Layout, or DetailedLayoutInfo.
 
 - Every value reachable through the public JavaScript shape is queryable. This includes top-level fields, complete intermediate records and tagged variants, their nested fields, collection lengths, individual collection elements, and values below nested collections. Numbers, strings, booleans, enums, IDs, and references to data managed elsewhere end a path rather than opening another object graph.
 - Selectors are derived mechanically from that complete public shape rather than admitted through a separately curated list. Adding a reachable field to the public value also adds the corresponding selectors; generation must fail rather than silently leave a public field unqueryable.
@@ -18,25 +18,29 @@ A selective query reads one value from one node's Style, Layout, or DetailedLayo
 
 When the selector and indices form a valid query but the current data has no value at that position, the result is `undefined`. This includes an out-of-bounds index, an inactive tagged variant, or attempting to continue below `null`. Querying a nullable field itself still returns its actual `null` value. An unknown selector, the wrong number of indices, or an invalid index is a malformed call and produces a controlled JavaScript error instead.
 
+The single request is also the only model used to define batching. A data kind exposes its single and batch forms through overloads of the same public method name; for example, Style uses `queryStyle` for both rather than adding `queryStyleBatch`. The batch form accepts an ordered collection of ordinary single requests and returns their results in the same order.
+
+Generation defines the valid single-request tuples and their result types once. The batch TypeScript result is derived by mapping those same relationships over the input collection, JavaScript reuses the same selector metadata and validation, and native code reuses the same per-request dispatcher. A private native batch entry may wrap that dispatcher so the complete collection crosses the JavaScript-to-native boundary once; the public batch overload must not be implemented as repeated native calls through the single overload.
+
 The intended flow is:
 
 ```text
-public selector and indices
-  -> generated JavaScript lookup
-  -> private native operation
-  -> direct access to the selected Rust value
-  -> selected JavaScript result
+single request or ordered batch
+  -> generated JavaScript lookup for each request
+  -> one private native operation
+  -> the same direct per-request Rust dispatch
+  -> one result or positionally corresponding results
 ```
 
 ## Boundaries
 
 This design is deliberately smaller than a general query language.
 
-- Each call starts from one NodeId and one kind of per-node data: Style, Layout, or DetailedLayoutInfo.
+- Each request starts from one NodeId and one kind of per-node data: Style, Layout, or DetailedLayoutInfo.
 - A selector may only follow paths generated from the public value shape. It cannot discover or execute an arbitrary path at runtime.
 - It does not search, filter, sort, or traverse the Taffy node tree.
 - It does not combine unrelated fields into a caller-defined result shape.
-- It does not replace complete getters, fixed batch operations, compact bulk transfer, change tracking, or other mechanisms suited to different access patterns.
+- Its batch overload batches selective requests. It does not replace complete getters, complete-object batch operations, compact bulk transfer, change tracking, or other mechanisms suited to different access patterns.
 - An ID or reference to data managed elsewhere is not followed automatically. The query returns that value or reference as a whole unless the project designs a separate API for the referenced data.
 
 ## Why this boundary remains valid
@@ -55,12 +59,12 @@ New layout features may add fields, variants, collections, or relationships betw
 
 This design does not yet decide:
 
-- the public method names or exact TypeScript signatures;
+- the exact public method names, TypeScript signatures, or batch request container, beyond the requirement that single and batch forms share one method name;
 - the exact selector spelling;
 - how the canonical public value shapes are represented for generation;
-- private operation numbering or the native method signatures;
+- private operation numbering, native method signatures, and the concrete private batch entry;
 - the supported integer range and exact error classes for malformed calls;
-- whether multi-value or batch reads are justified;
+- batch size limits and failure behavior for a collection containing an invalid request;
 - the benchmark workloads and acceptance thresholds for shipping the API.
 
 Those choices should be made during implementation work without reopening the bounded per-node design unless new evidence shows that the boundary cannot serve a real consumer.
