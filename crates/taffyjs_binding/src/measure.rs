@@ -9,8 +9,8 @@ use taffy::geometry::Size;
 use taffy::style::{AvailableSpace, Style};
 use taffy::{NodeId, TaffyTree};
 
-use crate::error::{NativeError, NativeResult, internal_error, type_error};
-use crate::{available_space, geometry, number, style};
+use crate::error::{NativeError, NativeResult, internal_error};
+use crate::{available_space, js_object, number, style};
 
 #[napi(object, object_from_js = false)]
 pub struct KnownDimensionsOutput {
@@ -30,6 +30,12 @@ pub struct MeasureArguments {
     pub available_space: AvailableSpaceSizeOutput,
     pub node: BigInt,
     pub style: style::StyleOutput,
+}
+
+#[napi(object, object_to_js = false)]
+pub struct MeasureResultInput {
+    pub width: f64,
+    pub height: f64,
 }
 
 pub(crate) enum MeasureFailure<'env> {
@@ -163,13 +169,11 @@ fn available_space_size_output(value: Size<AvailableSpace>) -> AvailableSpaceSiz
 }
 
 fn result_size(value: Unknown<'_>) -> NativeResult<Size<f32>> {
-    geometry::size(value, |value| {
-        let value = unsafe {
-            value
-                .cast::<f64>()
-                .map_err(|_| type_error("Measure result components must be numbers"))?
-        };
-        Ok(number::to_f32(value))
+    let input: MeasureResultInput =
+        js_object::input(value, "a measured Size object", Some(&["width", "height"]))?;
+    Ok(Size {
+        width: number::to_f32(input.width),
+        height: number::to_f32(input.height),
     })
 }
 

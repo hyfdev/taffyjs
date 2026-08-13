@@ -44,7 +44,7 @@ export declare class NativeTaffyTree {
 }
 
 export interface AvailableSpaceInput {
-  kind: unknown;
+  kind: number;
   value?: unknown;
 }
 
@@ -59,8 +59,8 @@ export interface AvailableSpaceSizeOutput {
 }
 
 export interface ChildRangeInput {
-  start: unknown;
-  end: unknown;
+  start: number;
+  end: number;
 }
 
 export interface CompleteSizeInput {
@@ -95,7 +95,7 @@ export interface DetailedLayoutOutput {
 }
 
 export interface GridPlacementInput {
-  kind: unknown;
+  kind: number;
   name?: unknown;
   index?: unknown;
   span?: unknown;
@@ -115,10 +115,10 @@ export interface GridPlacementOutput {
 
 export interface GridTemplateAreaInput {
   name: string;
-  rowStart: unknown;
-  rowEnd: unknown;
-  columnStart: unknown;
-  columnEnd: unknown;
+  rowStart: number;
+  rowEnd: number;
+  columnStart: number;
+  columnEnd: number;
 }
 
 export interface GridTemplateAreaOutput {
@@ -131,8 +131,8 @@ export interface GridTemplateAreaOutput {
 
 export interface GridTemplateAreasInput {
   areas: Array<unknown>;
-  rowCount: unknown;
-  columnCount: unknown;
+  rowCount: number;
+  columnCount: number;
 }
 
 export interface GridTemplateAreasOutput {
@@ -202,6 +202,11 @@ export interface MeasureArguments {
   style: StyleOutput;
 }
 
+export interface MeasureResultInput {
+  width: number;
+  height: number;
+}
+
 export interface NumberPointOutput {
   x: number;
   y: number;
@@ -230,8 +235,8 @@ export interface PartialLineInput {
 }
 
 export interface PartialPointInput {
-  x?: unknown;
-  y?: unknown;
+  x?: number;
+  y?: number;
 }
 
 export interface PartialRectInput {
@@ -252,42 +257,42 @@ export interface RepetitionCountOutput {
 }
 
 export interface StyleInput {
-  display?: unknown;
+  display?: number;
   itemIsTable?: boolean;
   itemIsReplaced?: boolean;
-  boxSizing?: unknown;
-  direction?: unknown;
+  boxSizing?: number;
+  direction?: number;
   overflow?: unknown;
-  scrollbarWidth?: unknown;
-  float?: unknown;
-  clear?: unknown;
-  position?: unknown;
+  scrollbarWidth?: number;
+  float?: number;
+  clear?: number;
+  position?: number;
   inset?: unknown;
   size?: unknown;
   minSize?: unknown;
   maxSize?: unknown;
-  aspectRatio?: unknown;
+  aspectRatio?: number | null;
   margin?: unknown;
   padding?: unknown;
   border?: unknown;
-  alignItems?: unknown;
-  alignSelf?: unknown;
-  justifyItems?: unknown;
-  justifySelf?: unknown;
-  alignContent?: unknown;
-  justifyContent?: unknown;
+  alignItems?: number | null;
+  alignSelf?: number | null;
+  justifyItems?: number | null;
+  justifySelf?: number | null;
+  alignContent?: number | null;
+  justifyContent?: number | null;
   gap?: unknown;
-  textAlign?: unknown;
-  flexDirection?: unknown;
-  flexWrap?: unknown;
+  textAlign?: number;
+  flexDirection?: number;
+  flexWrap?: number;
   flexBasis?: unknown;
-  flexGrow?: unknown;
-  flexShrink?: unknown;
-  gridTemplateRows?: unknown;
-  gridTemplateColumns?: unknown;
-  gridAutoRows?: unknown;
-  gridAutoColumns?: unknown;
-  gridAutoFlow?: unknown;
+  flexGrow?: number;
+  flexShrink?: number;
+  gridTemplateRows?: Array<unknown>;
+  gridTemplateColumns?: Array<unknown>;
+  gridAutoRows?: Array<unknown>;
+  gridAutoColumns?: Array<unknown>;
+  gridAutoFlow?: number;
   gridTemplateAreas?: unknown;
   gridTemplateColumnNames?: Array<Array<string>>;
   gridTemplateRowNames?: Array<Array<string>>;
@@ -340,12 +345,12 @@ export interface StyleOutput {
 }
 
 export interface TaggedGridInput {
-  kind: unknown;
+  kind: number;
   value?: unknown;
 }
 
 export interface TaggedLengthInput {
-  unit: unknown;
+  unit: number;
   value?: unknown;
 }
 

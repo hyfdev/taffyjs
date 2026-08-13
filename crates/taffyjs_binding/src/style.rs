@@ -1,5 +1,5 @@
 use napi::ValueType;
-use napi::bindgen_prelude::{FromNapiValue, Unknown};
+use napi::bindgen_prelude::{Either, Null, Unknown};
 use napi_derive::napi;
 use taffy::geometry::{Rect, Size};
 use taffy::style::{
@@ -61,43 +61,43 @@ pub(crate) const STYLE_FIELDS: &[&str] = &[
 
 #[napi(object, object_to_js = false)]
 pub struct StyleInput<'env> {
-    pub display: Option<Unknown<'env>>,
+    pub display: Option<f64>,
     pub item_is_table: Option<bool>,
     pub item_is_replaced: Option<bool>,
-    pub box_sizing: Option<Unknown<'env>>,
-    pub direction: Option<Unknown<'env>>,
+    pub box_sizing: Option<f64>,
+    pub direction: Option<f64>,
     pub overflow: Option<Unknown<'env>>,
-    pub scrollbar_width: Option<Unknown<'env>>,
+    pub scrollbar_width: Option<f64>,
     #[napi(js_name = "float")]
-    pub r#float: Option<Unknown<'env>>,
-    pub clear: Option<Unknown<'env>>,
-    pub position: Option<Unknown<'env>>,
+    pub r#float: Option<f64>,
+    pub clear: Option<f64>,
+    pub position: Option<f64>,
     pub inset: Option<Unknown<'env>>,
     pub size: Option<Unknown<'env>>,
     pub min_size: Option<Unknown<'env>>,
     pub max_size: Option<Unknown<'env>>,
-    pub aspect_ratio: Option<Unknown<'env>>,
+    pub aspect_ratio: Option<Either<f64, Null>>,
     pub margin: Option<Unknown<'env>>,
     pub padding: Option<Unknown<'env>>,
     pub border: Option<Unknown<'env>>,
-    pub align_items: Option<Unknown<'env>>,
-    pub align_self: Option<Unknown<'env>>,
-    pub justify_items: Option<Unknown<'env>>,
-    pub justify_self: Option<Unknown<'env>>,
-    pub align_content: Option<Unknown<'env>>,
-    pub justify_content: Option<Unknown<'env>>,
+    pub align_items: Option<Either<f64, Null>>,
+    pub align_self: Option<Either<f64, Null>>,
+    pub justify_items: Option<Either<f64, Null>>,
+    pub justify_self: Option<Either<f64, Null>>,
+    pub align_content: Option<Either<f64, Null>>,
+    pub justify_content: Option<Either<f64, Null>>,
     pub gap: Option<Unknown<'env>>,
-    pub text_align: Option<Unknown<'env>>,
-    pub flex_direction: Option<Unknown<'env>>,
-    pub flex_wrap: Option<Unknown<'env>>,
+    pub text_align: Option<f64>,
+    pub flex_direction: Option<f64>,
+    pub flex_wrap: Option<f64>,
     pub flex_basis: Option<Unknown<'env>>,
-    pub flex_grow: Option<Unknown<'env>>,
-    pub flex_shrink: Option<Unknown<'env>>,
-    pub grid_template_rows: Option<Unknown<'env>>,
-    pub grid_template_columns: Option<Unknown<'env>>,
-    pub grid_auto_rows: Option<Unknown<'env>>,
-    pub grid_auto_columns: Option<Unknown<'env>>,
-    pub grid_auto_flow: Option<Unknown<'env>>,
+    pub flex_grow: Option<f64>,
+    pub flex_shrink: Option<f64>,
+    pub grid_template_rows: Option<Vec<Unknown<'env>>>,
+    pub grid_template_columns: Option<Vec<Unknown<'env>>>,
+    pub grid_auto_rows: Option<Vec<Unknown<'env>>>,
+    pub grid_auto_columns: Option<Vec<Unknown<'env>>>,
+    pub grid_auto_flow: Option<f64>,
     pub grid_template_areas: Option<Unknown<'env>>,
     pub grid_template_column_names: Option<Vec<Vec<String>>>,
     pub grid_template_row_names: Option<Vec<Vec<String>>>,
@@ -182,23 +182,11 @@ pub struct StyleOutput {
     pub grid_column: GridPlacementLineOutput,
 }
 
-fn cast<'env, T: FromNapiValue>(value: Unknown<'env>, name: &str) -> NativeResult<T> {
-    unsafe {
-        value
-            .cast::<T>()
-            .map_err(|_| type_error(format!("{name} has the wrong type")))
-    }
-}
-
-fn number(value: Unknown<'_>, name: &str) -> NativeResult<f64> {
-    cast(value, name)
-}
-
-fn integer<T>(value: Unknown<'_>, name: &str) -> NativeResult<T>
+fn integer<T>(value: f64) -> NativeResult<T>
 where
     T: TryFrom<i64>,
 {
-    number::to_integer(number(value, name)?)
+    number::to_integer(value)
 }
 
 fn is_null(value: Unknown<'_>) -> NativeResult<bool> {
@@ -285,8 +273,8 @@ fn length_size(
     }
 }
 
-fn display(value: Unknown<'_>) -> NativeResult<Display> {
-    Ok(match integer::<DisplayCode>(value, "display")? {
+fn display(value: f64) -> NativeResult<Display> {
+    Ok(match integer::<DisplayCode>(value)? {
         DisplayCode::Block => Display::Block,
         DisplayCode::FlowRoot => Display::FlowRoot,
         DisplayCode::Flex => Display::Flex,
@@ -295,22 +283,22 @@ fn display(value: Unknown<'_>) -> NativeResult<Display> {
     })
 }
 
-fn box_sizing(value: Unknown<'_>) -> NativeResult<BoxSizing> {
-    Ok(match integer::<BoxSizingCode>(value, "boxSizing")? {
+fn box_sizing(value: f64) -> NativeResult<BoxSizing> {
+    Ok(match integer::<BoxSizingCode>(value)? {
         BoxSizingCode::BorderBox => BoxSizing::BorderBox,
         BoxSizingCode::ContentBox => BoxSizing::ContentBox,
     })
 }
 
-fn direction(value: Unknown<'_>) -> NativeResult<Direction> {
-    Ok(match integer::<DirectionCode>(value, "direction")? {
+fn direction(value: f64) -> NativeResult<Direction> {
+    Ok(match integer::<DirectionCode>(value)? {
         DirectionCode::Ltr => Direction::Ltr,
         DirectionCode::Rtl => Direction::Rtl,
     })
 }
 
-fn overflow(value: Unknown<'_>) -> NativeResult<Overflow> {
-    Ok(match integer::<OverflowCode>(value, "overflow")? {
+fn overflow(value: f64) -> NativeResult<Overflow> {
+    Ok(match integer::<OverflowCode>(value)? {
         OverflowCode::Visible => Overflow::Visible,
         OverflowCode::Clip => Overflow::Clip,
         OverflowCode::Hidden => Overflow::Hidden,
@@ -318,16 +306,16 @@ fn overflow(value: Unknown<'_>) -> NativeResult<Overflow> {
     })
 }
 
-fn float(value: Unknown<'_>) -> NativeResult<Float> {
-    Ok(match integer::<FloatCode>(value, "float")? {
+fn float(value: f64) -> NativeResult<Float> {
+    Ok(match integer::<FloatCode>(value)? {
         FloatCode::Left => Float::Left,
         FloatCode::Right => Float::Right,
         FloatCode::None => Float::None,
     })
 }
 
-fn clear(value: Unknown<'_>) -> NativeResult<Clear> {
-    Ok(match integer::<ClearCode>(value, "clear")? {
+fn clear(value: f64) -> NativeResult<Clear> {
+    Ok(match integer::<ClearCode>(value)? {
         ClearCode::Left => Clear::Left,
         ClearCode::Right => Clear::Right,
         ClearCode::Both => Clear::Both,
@@ -335,15 +323,15 @@ fn clear(value: Unknown<'_>) -> NativeResult<Clear> {
     })
 }
 
-fn position(value: Unknown<'_>) -> NativeResult<Position> {
-    Ok(match integer::<PositionCode>(value, "position")? {
+fn position(value: f64) -> NativeResult<Position> {
+    Ok(match integer::<PositionCode>(value)? {
         PositionCode::Relative => Position::Relative,
         PositionCode::Absolute => Position::Absolute,
     })
 }
 
-fn align_items(value: Unknown<'_>) -> NativeResult<AlignItems> {
-    Ok(match integer::<AlignItemsCode>(value, "alignment")? {
+fn align_items(value: f64) -> NativeResult<AlignItems> {
+    Ok(match integer::<AlignItemsCode>(value)? {
         AlignItemsCode::Start => AlignItems::START,
         AlignItemsCode::End => AlignItems::END,
         AlignItemsCode::FlexStart => AlignItems::FLEX_START,
@@ -363,29 +351,27 @@ fn align_items(value: Unknown<'_>) -> NativeResult<AlignItems> {
     })
 }
 
-fn align_content(value: Unknown<'_>) -> NativeResult<AlignContent> {
-    Ok(
-        match integer::<AlignContentCode>(value, "content alignment")? {
-            AlignContentCode::Start => AlignContent::START,
-            AlignContentCode::End => AlignContent::END,
-            AlignContentCode::FlexStart => AlignContent::FLEX_START,
-            AlignContentCode::FlexEnd => AlignContent::FLEX_END,
-            AlignContentCode::Center => AlignContent::CENTER,
-            AlignContentCode::Stretch => AlignContent::STRETCH,
-            AlignContentCode::SpaceBetween => AlignContent::SPACE_BETWEEN,
-            AlignContentCode::SpaceEvenly => AlignContent::SPACE_EVENLY,
-            AlignContentCode::SpaceAround => AlignContent::SPACE_AROUND,
-            AlignContentCode::SafeStart => AlignContent::SAFE_START,
-            AlignContentCode::SafeEnd => AlignContent::SAFE_END,
-            AlignContentCode::SafeFlexStart => AlignContent::SAFE_FLEX_START,
-            AlignContentCode::SafeFlexEnd => AlignContent::SAFE_FLEX_END,
-            AlignContentCode::SafeCenter => AlignContent::SAFE_CENTER,
-        },
-    )
+fn align_content(value: f64) -> NativeResult<AlignContent> {
+    Ok(match integer::<AlignContentCode>(value)? {
+        AlignContentCode::Start => AlignContent::START,
+        AlignContentCode::End => AlignContent::END,
+        AlignContentCode::FlexStart => AlignContent::FLEX_START,
+        AlignContentCode::FlexEnd => AlignContent::FLEX_END,
+        AlignContentCode::Center => AlignContent::CENTER,
+        AlignContentCode::Stretch => AlignContent::STRETCH,
+        AlignContentCode::SpaceBetween => AlignContent::SPACE_BETWEEN,
+        AlignContentCode::SpaceEvenly => AlignContent::SPACE_EVENLY,
+        AlignContentCode::SpaceAround => AlignContent::SPACE_AROUND,
+        AlignContentCode::SafeStart => AlignContent::SAFE_START,
+        AlignContentCode::SafeEnd => AlignContent::SAFE_END,
+        AlignContentCode::SafeFlexStart => AlignContent::SAFE_FLEX_START,
+        AlignContentCode::SafeFlexEnd => AlignContent::SAFE_FLEX_END,
+        AlignContentCode::SafeCenter => AlignContent::SAFE_CENTER,
+    })
 }
 
-fn text_align(value: Unknown<'_>) -> NativeResult<TextAlign> {
-    Ok(match integer::<TextAlignCode>(value, "textAlign")? {
+fn text_align(value: f64) -> NativeResult<TextAlign> {
+    Ok(match integer::<TextAlignCode>(value)? {
         TextAlignCode::Auto => TextAlign::Auto,
         TextAlignCode::LegacyLeft => TextAlign::LegacyLeft,
         TextAlignCode::LegacyRight => TextAlign::LegacyRight,
@@ -393,27 +379,25 @@ fn text_align(value: Unknown<'_>) -> NativeResult<TextAlign> {
     })
 }
 
-fn flex_direction(value: Unknown<'_>) -> NativeResult<FlexDirection> {
-    Ok(
-        match integer::<FlexDirectionCode>(value, "flexDirection")? {
-            FlexDirectionCode::Row => FlexDirection::Row,
-            FlexDirectionCode::Column => FlexDirection::Column,
-            FlexDirectionCode::RowReverse => FlexDirection::RowReverse,
-            FlexDirectionCode::ColumnReverse => FlexDirection::ColumnReverse,
-        },
-    )
+fn flex_direction(value: f64) -> NativeResult<FlexDirection> {
+    Ok(match integer::<FlexDirectionCode>(value)? {
+        FlexDirectionCode::Row => FlexDirection::Row,
+        FlexDirectionCode::Column => FlexDirection::Column,
+        FlexDirectionCode::RowReverse => FlexDirection::RowReverse,
+        FlexDirectionCode::ColumnReverse => FlexDirection::ColumnReverse,
+    })
 }
 
-fn flex_wrap(value: Unknown<'_>) -> NativeResult<FlexWrap> {
-    Ok(match integer::<FlexWrapCode>(value, "flexWrap")? {
+fn flex_wrap(value: f64) -> NativeResult<FlexWrap> {
+    Ok(match integer::<FlexWrapCode>(value)? {
         FlexWrapCode::NoWrap => FlexWrap::NoWrap,
         FlexWrapCode::Wrap => FlexWrap::Wrap,
         FlexWrapCode::WrapReverse => FlexWrap::WrapReverse,
     })
 }
 
-fn grid_auto_flow(value: Unknown<'_>) -> NativeResult<GridAutoFlow> {
-    Ok(match integer::<GridAutoFlowCode>(value, "gridAutoFlow")? {
+fn grid_auto_flow(value: f64) -> NativeResult<GridAutoFlow> {
+    Ok(match integer::<GridAutoFlowCode>(value)? {
         GridAutoFlowCode::Row => GridAutoFlow::Row,
         GridAutoFlowCode::Column => GridAutoFlow::Column,
         GridAutoFlowCode::RowDense => GridAutoFlow::RowDense,
@@ -444,7 +428,7 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         style.overflow = geometry::partial_point(value, style.overflow, overflow)?;
     }
     if let Some(value) = input.scrollbar_width {
-        style.scrollbar_width = number::to_f32(number(value, "scrollbarWidth")?);
+        style.scrollbar_width = number::to_f32(value);
     }
     if let Some(value) = input.r#float {
         style.float = float(value)?;
@@ -468,10 +452,9 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         style.max_size = dimension_size(value, style.max_size)?;
     }
     if let Some(value) = input.aspect_ratio {
-        style.aspect_ratio = if is_null(value)? {
-            None
-        } else {
-            Some(number::to_f32(number(value, "aspectRatio")?))
+        style.aspect_ratio = match value {
+            Either::A(value) => Some(number::to_f32(value)),
+            Either::B(_) => None,
         };
     }
     if let Some(value) = input.margin {
@@ -484,45 +467,39 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         style.border = length_rect(value, style.border)?;
     }
     if let Some(value) = input.align_items {
-        style.align_items = if is_null(value)? {
-            None
-        } else {
-            Some(align_items(value)?)
+        style.align_items = match value {
+            Either::A(value) => Some(align_items(value)?),
+            Either::B(_) => None,
         };
     }
     if let Some(value) = input.align_self {
-        style.align_self = if is_null(value)? {
-            None
-        } else {
-            Some(align_items(value)?)
+        style.align_self = match value {
+            Either::A(value) => Some(align_items(value)?),
+            Either::B(_) => None,
         };
     }
     if let Some(value) = input.justify_items {
-        style.justify_items = if is_null(value)? {
-            None
-        } else {
-            Some(align_items(value)?)
+        style.justify_items = match value {
+            Either::A(value) => Some(align_items(value)?),
+            Either::B(_) => None,
         };
     }
     if let Some(value) = input.justify_self {
-        style.justify_self = if is_null(value)? {
-            None
-        } else {
-            Some(align_items(value)?)
+        style.justify_self = match value {
+            Either::A(value) => Some(align_items(value)?),
+            Either::B(_) => None,
         };
     }
     if let Some(value) = input.align_content {
-        style.align_content = if is_null(value)? {
-            None
-        } else {
-            Some(align_content(value)?)
+        style.align_content = match value {
+            Either::A(value) => Some(align_content(value)?),
+            Either::B(_) => None,
         };
     }
     if let Some(value) = input.justify_content {
-        style.justify_content = if is_null(value)? {
-            None
-        } else {
-            Some(align_content(value)?)
+        style.justify_content = match value {
+            Either::A(value) => Some(align_content(value)?),
+            Either::B(_) => None,
         };
     }
     if let Some(value) = input.gap {
@@ -541,26 +518,25 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         style.flex_basis = length::dimension(value)?;
     }
     if let Some(value) = input.flex_grow {
-        style.flex_grow = number::to_f32(number(value, "flexGrow")?);
+        style.flex_grow = number::to_f32(value);
     }
     if let Some(value) = input.flex_shrink {
-        style.flex_shrink = number::to_f32(number(value, "flexShrink")?);
+        style.flex_shrink = number::to_f32(value);
     }
     if let Some(value) = input.grid_template_rows {
-        style.grid_template_rows = grid::template_components(cast(value, "gridTemplateRows")?)?;
+        style.grid_template_rows = grid::template_components(value)?;
     }
     if let Some(value) = input.grid_template_columns {
-        style.grid_template_columns =
-            grid::template_components(cast(value, "gridTemplateColumns")?)?;
+        style.grid_template_columns = grid::template_components(value)?;
     }
     if let Some(value) = input.grid_auto_rows {
-        style.grid_auto_rows = cast::<Vec<Unknown<'_>>>(value, "gridAutoRows")?
+        style.grid_auto_rows = value
             .into_iter()
             .map(grid::track_sizing)
             .collect::<NativeResult<Vec<_>>>()?;
     }
     if let Some(value) = input.grid_auto_columns {
-        style.grid_auto_columns = cast::<Vec<Unknown<'_>>>(value, "gridAutoColumns")?
+        style.grid_auto_columns = value
             .into_iter()
             .map(grid::track_sizing)
             .collect::<NativeResult<Vec<_>>>()?;

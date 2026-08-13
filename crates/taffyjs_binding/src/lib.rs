@@ -34,9 +34,9 @@ pub struct NativeTaffyTree {
 }
 
 #[napi(object, object_to_js = false)]
-pub struct ChildRangeInput<'env> {
-    pub start: Unknown<'env>,
-    pub end: Unknown<'env>,
+pub struct ChildRangeInput {
+    pub start: f64,
+    pub end: f64,
 }
 
 #[cfg(feature = "test-hooks")]
@@ -411,10 +411,10 @@ impl NativeTaffyTree {
         style: Unknown<'_>,
         public_method: String,
     ) -> napi::Result<BigInt> {
+        let style = into_napi(env, style::input(style))?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
-                let style = style::input(style)?;
                 tree.new_leaf(style)
                     .map(|node| BigInt::from(u64::from(node)))
                     .map_err(|_| internal_error())
@@ -430,10 +430,10 @@ impl NativeTaffyTree {
         has_context: bool,
         public_method: String,
     ) -> napi::Result<BigInt> {
+        let style = into_napi(env, style::input(style))?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
-                let style = style::input(style)?;
                 let node = if has_context {
                     tree.new_leaf_with_context(style, ())
                 } else {
@@ -460,10 +460,10 @@ impl NativeTaffyTree {
                 .map(raw_node_id)
                 .collect::<NativeResult<Vec<_>>>(),
         )?;
+        let style = into_napi(env, style::input(style))?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
-                let style = style::input(style)?;
                 let mut unique_children = HashSet::with_capacity(children.len());
                 for child in &children {
                     if !unique_children.insert(*child) {
@@ -493,10 +493,10 @@ impl NativeTaffyTree {
         public_method: String,
     ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
+        let style = into_napi(env, style::input(style))?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
-                let style = style::input(style)?;
                 tree.set_style(node, style).map_err(|_| internal_error())
             }),
         )
@@ -546,11 +546,13 @@ impl NativeTaffyTree {
         public_method: String,
     ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
+        let available_space = into_napi(
+            env,
+            geometry::size(available_space, available_space::available_space),
+        )?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
-                let available_space =
-                    geometry::size(available_space, available_space::available_space)?;
                 tree.compute_layout(node, available_space)
                     .map_err(|_| internal_error())
             }),
@@ -638,10 +640,12 @@ impl NativeTaffyTree {
         public_method: String,
     ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
+        let available_space = into_napi(
+            env,
+            geometry::size(available_space, available_space::available_space),
+        )?;
         let mut session = measure::MeasureSession::new(measure);
         let result = self.owner.access(&public_method, |tree| {
-            let available_space =
-                geometry::size(available_space, available_space::available_space)?;
             tree.compute_layout_with_measure(
                 node,
                 available_space,
@@ -679,10 +683,10 @@ fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
 }
 
 fn child_range(value: Unknown<'_>) -> NativeResult<(usize, usize)> {
-    let input: ChildRangeInput<'_> = js_object::input(value, "a child range object", None)?;
+    let input: ChildRangeInput = js_object::input(value, "a child range object", None)?;
     Ok((
-        number::from_unknown(input.start, "Child range start").and_then(number::to_safe_usize)?,
-        number::from_unknown(input.end, "Child range end").and_then(number::to_safe_usize)?,
+        number::to_safe_usize(input.start)?,
+        number::to_safe_usize(input.end)?,
     ))
 }
 

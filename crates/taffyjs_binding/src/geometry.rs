@@ -11,9 +11,9 @@ const RECT_FIELDS: &[&str] = &["left", "right", "top", "bottom"];
 const LINE_FIELDS: &[&str] = &["start", "end"];
 
 #[napi(object, object_to_js = false)]
-pub struct PartialPointInput<'env> {
-    pub x: Option<Unknown<'env>>,
-    pub y: Option<Unknown<'env>>,
+pub struct PartialPointInput {
+    pub x: Option<f64>,
+    pub y: Option<f64>,
 }
 
 #[napi(object, object_to_js = false)]
@@ -42,13 +42,12 @@ pub struct PartialLineInput<'env> {
     pub end: Option<Unknown<'env>>,
 }
 
-pub(crate) fn partial_point<'env, T>(
-    value: Unknown<'env>,
+pub(crate) fn partial_point<T>(
+    value: Unknown<'_>,
     default: Point<T>,
-    mut convert: impl FnMut(Unknown<'env>) -> NativeResult<T>,
+    mut convert: impl FnMut(f64) -> NativeResult<T>,
 ) -> NativeResult<Point<T>> {
-    let input: PartialPointInput<'env> =
-        js_object::input(value, "a Point object", Some(POINT_FIELDS))?;
+    let input: PartialPointInput = js_object::input(value, "a Point object", Some(POINT_FIELDS))?;
     Ok(Point {
         x: input.x.map(&mut convert).transpose()?.unwrap_or(default.x),
         y: input.y.map(&mut convert).transpose()?.unwrap_or(default.y),

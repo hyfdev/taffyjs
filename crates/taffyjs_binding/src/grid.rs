@@ -17,13 +17,13 @@ use crate::number::{from_unknown, to_f32, to_integer};
 
 #[napi(object, object_to_js = false)]
 pub struct TaggedGridInput<'env> {
-    pub kind: Unknown<'env>,
+    pub kind: f64,
     pub value: Option<Unknown<'env>>,
 }
 
 #[napi(object, object_to_js = false)]
 pub struct GridPlacementInput<'env> {
-    pub kind: Unknown<'env>,
+    pub kind: f64,
     pub name: Option<Unknown<'env>>,
     pub index: Option<Unknown<'env>>,
     pub span: Option<Unknown<'env>>,
@@ -43,19 +43,19 @@ pub struct GridTemplateRepetitionInput<'env> {
 }
 
 #[napi(object, object_to_js = false)]
-pub struct GridTemplateAreaInput<'env> {
+pub struct GridTemplateAreaInput {
     pub name: String,
-    pub row_start: Unknown<'env>,
-    pub row_end: Unknown<'env>,
-    pub column_start: Unknown<'env>,
-    pub column_end: Unknown<'env>,
+    pub row_start: f64,
+    pub row_end: f64,
+    pub column_start: f64,
+    pub column_end: f64,
 }
 
 #[napi(object, object_to_js = false)]
 pub struct GridTemplateAreasInput<'env> {
     pub areas: Vec<Unknown<'env>>,
-    pub row_count: Unknown<'env>,
-    pub column_count: Unknown<'env>,
+    pub row_count: f64,
+    pub column_count: f64,
 }
 
 #[napi(object, object_from_js = false)]
@@ -121,7 +121,7 @@ fn tagged_kind<T>(input: &TaggedGridInput<'_>) -> NativeResult<T>
 where
     T: TryFrom<i64>,
 {
-    to_integer(from_unknown(input.kind, "Grid kind")?)
+    to_integer(input.kind)
 }
 
 fn tagged_value<'env>(input: &TaggedGridInput<'env>, name: &str) -> NativeResult<Unknown<'env>> {
@@ -138,43 +138,40 @@ fn string(value: Unknown<'_>, name: &str) -> NativeResult<String> {
 
 pub(crate) fn grid_placement(value: Unknown<'_>) -> NativeResult<GridPlacement<String>> {
     let input: GridPlacementInput<'_> = js_object::input(value, "a GridPlacement object", None)?;
-    Ok(
-        match to_integer::<GridPlacementKindCode>(from_unknown(input.kind, "Grid placement kind")?)?
-        {
-            GridPlacementKindCode::Auto => GridPlacement::Auto,
-            GridPlacementKindCode::Line => GridPlacement::Line(
-                to_integer::<i16>(from_unknown(
-                    js_object::required(input.index, "Grid line index")?,
-                    "Grid line index",
-                )?)?
-                .into(),
-            ),
-            GridPlacementKindCode::NamedLine => GridPlacement::NamedLine(
-                string(
-                    js_object::required(input.name, "Grid line name")?,
-                    "Grid line name",
-                )?,
-                to_integer::<i16>(from_unknown(
-                    js_object::required(input.index, "Grid line index")?,
-                    "Grid line index",
-                )?)?,
-            ),
-            GridPlacementKindCode::Span => GridPlacement::Span(to_integer::<u16>(from_unknown(
+    Ok(match to_integer::<GridPlacementKindCode>(input.kind)? {
+        GridPlacementKindCode::Auto => GridPlacement::Auto,
+        GridPlacementKindCode::Line => GridPlacement::Line(
+            to_integer::<i16>(from_unknown(
+                js_object::required(input.index, "Grid line index")?,
+                "Grid line index",
+            )?)?
+            .into(),
+        ),
+        GridPlacementKindCode::NamedLine => GridPlacement::NamedLine(
+            string(
+                js_object::required(input.name, "Grid line name")?,
+                "Grid line name",
+            )?,
+            to_integer::<i16>(from_unknown(
+                js_object::required(input.index, "Grid line index")?,
+                "Grid line index",
+            )?)?,
+        ),
+        GridPlacementKindCode::Span => GridPlacement::Span(to_integer::<u16>(from_unknown(
+            js_object::required(input.span, "Grid span")?,
+            "Grid span",
+        )?)?),
+        GridPlacementKindCode::NamedSpan => GridPlacement::NamedSpan(
+            string(
+                js_object::required(input.name, "Grid span name")?,
+                "Grid span name",
+            )?,
+            to_integer::<u16>(from_unknown(
                 js_object::required(input.span, "Grid span")?,
                 "Grid span",
-            )?)?),
-            GridPlacementKindCode::NamedSpan => GridPlacement::NamedSpan(
-                string(
-                    js_object::required(input.name, "Grid span name")?,
-                    "Grid span name",
-                )?,
-                to_integer::<u16>(from_unknown(
-                    js_object::required(input.span, "Grid span")?,
-                    "Grid span",
-                )?)?,
-            ),
-        },
-    )
+            )?)?,
+        ),
+    })
 }
 
 fn min_track(value: Unknown<'_>) -> NativeResult<MinTrackSizingFunction> {
@@ -305,17 +302,13 @@ pub(crate) fn validate_template_line_names(
 }
 
 fn template_area(value: Unknown<'_>) -> NativeResult<GridTemplateArea<String>> {
-    let input: GridTemplateAreaInput<'_> =
-        js_object::input(value, "a GridTemplateArea object", None)?;
+    let input: GridTemplateAreaInput = js_object::input(value, "a GridTemplateArea object", None)?;
     Ok(GridTemplateArea {
         name: input.name,
-        row_start: to_integer::<u16>(from_unknown(input.row_start, "Grid area rowStart")?)?,
-        row_end: to_integer::<u16>(from_unknown(input.row_end, "Grid area rowEnd")?)?,
-        column_start: to_integer::<u16>(from_unknown(
-            input.column_start,
-            "Grid area columnStart",
-        )?)?,
-        column_end: to_integer::<u16>(from_unknown(input.column_end, "Grid area columnEnd")?)?,
+        row_start: to_integer::<u16>(input.row_start)?,
+        row_end: to_integer::<u16>(input.row_end)?,
+        column_start: to_integer::<u16>(input.column_start)?,
+        column_end: to_integer::<u16>(input.column_end)?,
     })
 }
 
@@ -328,8 +321,8 @@ pub(crate) fn template_areas(value: Unknown<'_>) -> NativeResult<GridTemplateAre
             .into_iter()
             .map(template_area)
             .collect::<NativeResult<Vec<_>>>()?,
-        row_count: to_integer::<u16>(from_unknown(input.row_count, "Grid rowCount")?)?,
-        column_count: to_integer::<u16>(from_unknown(input.column_count, "Grid columnCount")?)?,
+        row_count: to_integer::<u16>(input.row_count)?,
+        column_count: to_integer::<u16>(input.column_count)?,
     })
 }
 

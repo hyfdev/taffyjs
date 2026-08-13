@@ -47,18 +47,6 @@ function captureThrown(body: () => unknown): unknown {
   assert.fail("Expected operation to throw");
 }
 
-function reentrantStyle(owner: NativeTaffyTree, method: string) {
-  return new Proxy(
-    {},
-    {
-      get(_target, property) {
-        if (property === "display") owner.rawNodeCount(method);
-        return undefined;
-      },
-    },
-  );
-}
-
 function runPanicChild() {
   const fixture = fileURLToPath(new URL("./fixtures/panic-containment-child.mjs", import.meta.url));
   const hooks = resolve(
@@ -102,20 +90,6 @@ test("binding errors preserve JavaScript classes, stable codes, and thrown value
     captureThrown(() => hooks.__throwValue(callbackValue)),
     callbackValue,
   );
-});
-
-test("a rejected reentrant call reports the busy error and leaves the tree usable", () => {
-  const owner = new NativeTaffyTree();
-  const node = owner.rawNewLeaf({}, "newLeaf");
-  const error = captureError(() =>
-    owner.rawSetStyle(node, reentrantStyle(owner, "setStyle"), "setStyle"),
-  );
-  assert.equal(error.code, "ERR_TAFFY_TREE_BUSY");
-  assert.equal(
-    error.message,
-    "Cannot call setStyle on this TaffyTree while it is computing layout from a measure callback",
-  );
-  assert.equal(owner.rawNodeCount("getNodeCount"), 1);
 });
 
 test("an unexpected panic poisons its tree without aborting the process", () => {

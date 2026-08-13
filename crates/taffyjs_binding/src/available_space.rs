@@ -9,7 +9,7 @@ use crate::number::{from_unknown, to_f32, to_integer};
 
 #[napi(object, object_to_js = false)]
 pub struct AvailableSpaceInput<'env> {
-    pub kind: Unknown<'env>,
+    pub kind: f64,
     pub value: Option<Unknown<'env>>,
 }
 
@@ -22,19 +22,14 @@ pub struct AvailableSpaceOutput {
 pub(crate) fn available_space(value: Unknown<'_>) -> NativeResult<AvailableSpace> {
     let input: AvailableSpaceInput<'_> =
         js_object::input(value, "an available-space object", None)?;
-    Ok(
-        match to_integer::<AvailableSpaceKindCode>(from_unknown(
-            input.kind,
-            "Available-space kind",
-        )?)? {
-            AvailableSpaceKindCode::Definite => AvailableSpace::Definite(to_f32(from_unknown(
-                js_object::required(input.value, "Definite available space value")?,
-                "Definite available space",
-            )?)),
-            AvailableSpaceKindCode::MinContent => AvailableSpace::MinContent,
-            AvailableSpaceKindCode::MaxContent => AvailableSpace::MaxContent,
-        },
-    )
+    Ok(match to_integer::<AvailableSpaceKindCode>(input.kind)? {
+        AvailableSpaceKindCode::Definite => AvailableSpace::Definite(to_f32(from_unknown(
+            js_object::required(input.value, "Definite available space value")?,
+            "Definite available space",
+        )?)),
+        AvailableSpaceKindCode::MinContent => AvailableSpace::MinContent,
+        AvailableSpaceKindCode::MaxContent => AvailableSpace::MaxContent,
+    })
 }
 
 pub(crate) fn available_space_output(value: AvailableSpace) -> AvailableSpaceOutput {

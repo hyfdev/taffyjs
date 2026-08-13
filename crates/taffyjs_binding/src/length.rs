@@ -9,7 +9,7 @@ use crate::number::{from_unknown, to_f32, to_integer};
 
 #[napi(object, object_to_js = false)]
 pub struct TaggedLengthInput<'env> {
-    pub unit: Unknown<'env>,
+    pub unit: f64,
     pub value: Option<Unknown<'env>>,
 }
 
@@ -21,7 +21,7 @@ pub struct LengthOutput {
 
 fn read_parts(value: Unknown<'_>) -> NativeResult<(LengthUnitCode, f64)> {
     let input: TaggedLengthInput<'_> = js_object::input(value, "a tagged length object", None)?;
-    let unit = to_integer::<LengthUnitCode>(from_unknown(input.unit, "Length unit")?)?;
+    let unit = to_integer::<LengthUnitCode>(input.unit)?;
     let value = match unit {
         LengthUnitCode::Length | LengthUnitCode::Percent => from_unknown(
             js_object::required(input.value, "Length value")?,
