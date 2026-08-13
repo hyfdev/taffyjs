@@ -48,7 +48,7 @@ function layoutFor(width: unknown, height: unknown = width): RawLayout {
   return owner.rawGetLayout(node, "getLayout");
 }
 
-test("axis-record", () => {
+test("available space requires complete named width and height fields", () => {
   const owner = createOwner();
   const node = owner.rawNewLeaf({}, "newLeaf");
   for (const value of [
@@ -64,7 +64,7 @@ test("axis-record", () => {
   }
 });
 
-test("helper-conversion", () => {
+test("AvailableSpace helpers and direct tagged records compute the same layout", () => {
   const AvailableSpace = availableSpace();
   for (const [helper, direct] of [
     [AvailableSpace.Definite(120), { kind: 0, value: 120 }],
@@ -75,19 +75,19 @@ test("helper-conversion", () => {
   }
 });
 
-test("definite-value", () => {
+test("Definite available space requires a numeric value", () => {
   assert.throws(() => layoutFor({ kind: 0 }), TypeError);
   for (const value of ["1", true, 1n, {}, []]) {
     assert.throws(() => layoutFor({ kind: 0, value }), TypeError);
   }
 });
 
-test("content-extra", () => {
+test("content constraints ignore fields from inactive variants", () => {
   assert.deepEqual(layoutFor({ kind: 1, value: 10, ignored: true }), layoutFor({ kind: 1 }));
   assert.deepEqual(layoutFor({ kind: 2, value: 10, ignored: true }), layoutFor({ kind: 2 }));
 });
 
-test("f32-special", () => {
+test("Definite available space follows the shared f32 conversion", () => {
   for (const value of [-1, Number.MAX_VALUE, Number.MIN_VALUE, NaN, Infinity, -Infinity]) {
     const layout = layoutFor({ kind: 0, value });
     assert.equal(typeof layout.size.width, "number");
@@ -98,7 +98,7 @@ test("f32-special", () => {
   );
 });
 
-test("whole-value-errors", () => {
+test("available space rejects unsupported shapes and kind values", () => {
   for (const value of [0, "max-content", true, null, {}, []]) {
     assert.throws(() => layoutFor(value), TypeError);
   }

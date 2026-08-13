@@ -87,7 +87,7 @@ function repeat(count: Count, tracks: Track[], lineNames = [["start"], ["end"]])
   return { kind: 1, value: { count, tracks, lineNames } };
 }
 
-test("helper-conversion", () => {
+test("Grid helpers and direct tagged records store the same values", () => {
   const { GridPlacement, TrackSizingFunction, RepetitionCount, GridTemplateComponent } = helpers();
   const placements: Array<[Placement, Placement]> = [
     [GridPlacement.Auto, { kind: 0 }],
@@ -181,7 +181,7 @@ test("helper-conversion", () => {
   );
 });
 
-test("panic-guard", () => {
+test("reachable positive repetitions reject the empty line-name shape that panics Taffy", () => {
   const track = { min: { kind: 0, value: 10 }, max: { kind: 0, value: 10 } };
   const safeRepeat = repeat({ kind: 0, value: 1 }, [track], []);
   storedStyle({ gridTemplateRows: [safeRepeat] });
@@ -204,7 +204,7 @@ test("panic-guard", () => {
   storedStyle({ gridTemplateColumns: [zeroRepeat], gridTemplateColumnNames: [[]] });
 });
 
-test("integers", () => {
+test("Grid integer fields enforce their exact Rust ranges", () => {
   for (const index of [-32768, 32767]) {
     assert.deepEqual(
       (storedStyle({ gridRow: { start: { kind: 1, index } } }).gridRow as { start: unknown }).start,
@@ -239,7 +239,7 @@ test("integers", () => {
   }
 });
 
-test("strings", () => {
+test("Grid strings preserve Unicode with Node's ordinary string conversion", () => {
   const text = "列-😀-é";
   const style = storedStyle({
     gridRow: { start: { kind: 2, name: text, index: 1 } },
@@ -258,7 +258,7 @@ test("strings", () => {
   assert.equal((replacement.gridRow as { start: { name: string } }).start.name, "\ufffd");
 });
 
-test("ownership", () => {
+test("nested Grid input and output collections are detached copies", () => {
   const track = { min: { kind: 0, value: 10 }, max: { kind: 0, value: 10 } };
   const tracks = [track];
   const lineNames = [["a"], ["b"]];
@@ -298,7 +298,7 @@ test("ownership", () => {
   );
 });
 
-test("areas-null", () => {
+test("grid template areas use null for absence and records for values", () => {
   assert.equal(storedStyle({}).gridTemplateAreas, null);
   assert.equal(storedStyle({ gridTemplateAreas: null }).gridTemplateAreas, null);
   const areas = {
@@ -309,7 +309,7 @@ test("areas-null", () => {
   assert.deepEqual(storedStyle({ gridTemplateAreas: areas }).gridTemplateAreas, areas);
 });
 
-test("canonical", () => {
+test("Grid output reports stored values without helper history", () => {
   const { GridPlacement, TrackSizingFunction } = helpers();
   const placement = GridPlacement.NamedLine("a", 2);
   const track = TrackSizingFunction.Fr(3);
@@ -323,7 +323,7 @@ test("canonical", () => {
   assert.notEqual((output.gridAutoRows as Track[])[0], track);
 });
 
-test("extra-fields", () => {
+test("tagged Grid records ignore fields from inactive variants", () => {
   const style = storedStyle({
     gridRow: { start: { kind: 0, index: 99, ignored: true } },
     gridAutoRows: [{ min: { kind: 2, value: 99 }, max: { kind: 6, value: 2, ignored: true } }],
@@ -340,7 +340,7 @@ test("extra-fields", () => {
   });
 });
 
-test("no-css-validation", () => {
+test("representable Grid values pass through without extra CSS validation", () => {
   const track = { min: { kind: 0, value: -10 }, max: { kind: 6, value: -2 } };
   const style = storedStyle({
     gridRow: { start: { kind: 2, name: "", index: 0 }, end: { kind: 3, span: 0 } },

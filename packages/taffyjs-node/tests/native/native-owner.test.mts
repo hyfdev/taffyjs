@@ -60,7 +60,7 @@ function reentrantStyle(owner: NativeTaffyTree, method: string) {
 }
 
 function runPanicChild() {
-  const fixture = fileURLToPath(new URL("./fixtures/native-owner-child.mjs", import.meta.url));
+  const fixture = fileURLToPath(new URL("./fixtures/panic-containment-child.mjs", import.meta.url));
   const hooks = resolve(
     fileURLToPath(new URL("../../", import.meta.url)),
     "node_modules/.cache/taffyjs-test-hooks/test-hooks.js",
@@ -77,7 +77,7 @@ function runPanicChild() {
   return JSON.parse(lines[0]);
 }
 
-test("native errors use the expected classes and codes", () => {
+test("binding errors preserve JavaScript classes, stable codes, and thrown values", () => {
   const hooks = new NativeTestHooksTree();
   const cases = [
     ["wrong-type-or-shape", TypeError, undefined],
@@ -97,18 +97,6 @@ test("native errors use the expected classes and codes", () => {
     assert.equal(error.code, code, condition);
   }
 
-  const owner = new NativeTaffyTree();
-  const node = owner.rawNewLeaf({}, "newLeaf");
-  const busy = captureError(() =>
-    owner.rawSetStyle(node, reentrantStyle(owner, "setStyle"), "setStyle"),
-  );
-  assert.equal(busy.constructor, Error);
-  assert.equal(busy.code, "ERR_TAFFY_TREE_BUSY");
-
-  const panic = runPanicChild();
-  assert.deepEqual(panic.first, { class: "Error", code: "ERR_TAFFY_INTERNAL" });
-  assert.deepEqual(panic.second, { class: "Error", code: "ERR_TAFFY_TREE_POISONED" });
-
   const callbackValue = { reason: "callback failed" };
   assert.equal(
     captureThrown(() => hooks.__throwValue(callbackValue)),
@@ -116,7 +104,7 @@ test("native errors use the expected classes and codes", () => {
   );
 });
 
-test("the native owner rejects access while a callback is using it", () => {
+test("a rejected reentrant call reports the busy error and leaves the tree usable", () => {
   const owner = new NativeTaffyTree();
   const node = owner.rawNewLeaf({}, "newLeaf");
   const error = captureError(() =>
@@ -127,25 +115,10 @@ test("the native owner rejects access while a callback is using it", () => {
     error.message,
     "Cannot call setStyle on this TaffyTree while it is computing layout from a measure callback",
   );
-});
-
-test("expected-reuse", () => {
-  const owner = new NativeTaffyTree();
-  const node = owner.rawNewLeaf({}, "newLeaf");
-  const style = reentrantStyle(owner, "getNodeCount");
-  assert.throws(() => owner.rawSetStyle(node, style, "setStyle"), {
-    code: "ERR_TAFFY_TREE_BUSY",
-  });
   assert.equal(owner.rawNodeCount("getNodeCount"), 1);
 });
 
-test("panic-poisons", () => {
-  const result = runPanicChild();
-  assert.deepEqual(result.first, { class: "Error", code: "ERR_TAFFY_INTERNAL" });
-  assert.deepEqual(result.second, { class: "Error", code: "ERR_TAFFY_TREE_POISONED" });
-});
-
-test("process-survives", () => {
+test("an unexpected panic poisons its tree without aborting the process", () => {
   assert.deepEqual(runPanicChild(), {
     first: { class: "Error", code: "ERR_TAFFY_INTERNAL" },
     second: { class: "Error", code: "ERR_TAFFY_TREE_POISONED" },

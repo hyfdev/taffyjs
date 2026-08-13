@@ -16,7 +16,7 @@ const hooksModule = (await import(pathToFileURL(hooksPath).href)) as {
   NativeTaffyTree: LayoutTestHooksConstructor;
 };
 
-test("order-u32", () => {
+test("layout order preserves the full u32 range as a safe JavaScript integer", () => {
   const hooks = new hooksModule.NativeTaffyTree();
   const layout = hooks.__layoutWithOrder(0xffff_ffff);
   assert.equal(layout.order, 0xffff_ffff);

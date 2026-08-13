@@ -35,7 +35,7 @@ function rejectsWithoutNode(style: RawStyle): void {
 const length = (value: number) => ({ unit: 0, value });
 const percent = (value: number) => ({ unit: 1, value });
 
-test("style-partial", () => {
+test("partial Style geometry fills omitted components from defaults", () => {
   const style = storedStyle({
     overflow: { x: 3 },
     size: { width: length(10) },
@@ -53,7 +53,7 @@ test("style-partial", () => {
   assert.deepEqual(style.gridRow, { start: { kind: 1, index: 3 }, end: { kind: 0 } });
 });
 
-test("components", () => {
+test("geometry records preserve all named components", () => {
   const style = storedStyle({
     overflow: { x: 1, y: 2 },
     size: { width: length(10), height: percent(50) },
@@ -79,7 +79,7 @@ test("components", () => {
   });
 });
 
-test("style-shape-errors", () => {
+test("geometry records reject arrays and unknown components", () => {
   for (const style of [
     { overflow: [1, 2] },
     { overflow: { x: 1, y: 2, z: 3 } },
@@ -91,7 +91,7 @@ test("style-shape-errors", () => {
   }
 });
 
-test("scalar-scope", () => {
+test("only semantic-length Size and Rect fields accept a scalar", () => {
   for (const field of [
     "inset",
     "size",
@@ -110,7 +110,7 @@ test("scalar-scope", () => {
   rejectsWithoutNode({ gridRow: { kind: 0 } });
 });
 
-test("detached-reuse", () => {
+test("geometry output is detached and can be reused as input", () => {
   const owner = createOwner();
   const node = owner.rawNewLeaf(
     {
