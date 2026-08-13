@@ -65,7 +65,10 @@ type NativeTaffyTree = {
 };
 type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
 
-const NativeTaffyTree = Reflect.get(native, "NativeTaffyTree") as NativeTaffyTreeConstructor;
+const NativeTaffyTree = Reflect.get(
+  native,
+  "NativeTaffyTree",
+) as unknown as NativeTaffyTreeConstructor;
 
 function createOwner(): NativeTaffyTree {
   const owner = new NativeTaffyTree();
