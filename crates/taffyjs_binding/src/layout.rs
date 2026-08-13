@@ -1,40 +1,70 @@
-use napi::Env;
-use napi::bindgen_prelude::Object;
+use napi_derive::napi;
 use taffy::Layout;
 
-use crate::geometry;
-
-pub(crate) fn output<'env>(env: &Env, value: &Layout) -> napi::Result<Object<'env>> {
-    let mut output = Object::new(env)?;
-    output.set("order", value.order)?;
-    output.set(
-        "location",
-        geometry::point_output(env, &value.location, f32_output)?,
-    )?;
-    output.set("size", geometry::size_output(env, &value.size, f32_output)?)?;
-    output.set(
-        "contentSize",
-        geometry::size_output(env, &value.content_size, f32_output)?,
-    )?;
-    output.set(
-        "scrollbarSize",
-        geometry::size_output(env, &value.scrollbar_size, f32_output)?,
-    )?;
-    output.set(
-        "border",
-        geometry::rect_output(env, &value.border, f32_output)?,
-    )?;
-    output.set(
-        "padding",
-        geometry::rect_output(env, &value.padding, f32_output)?,
-    )?;
-    output.set(
-        "margin",
-        geometry::rect_output(env, &value.margin, f32_output)?,
-    )?;
-    Ok(output)
+#[napi(object, object_from_js = false)]
+pub struct NumberPointOutput {
+    pub x: f64,
+    pub y: f64,
 }
 
-fn f32_output(value: &f32) -> napi::Result<f64> {
-    Ok(f64::from(*value))
+#[napi(object, object_from_js = false)]
+pub struct NumberSizeOutput {
+    pub width: f64,
+    pub height: f64,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct NumberRectOutput {
+    pub left: f64,
+    pub right: f64,
+    pub top: f64,
+    pub bottom: f64,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct LayoutOutput {
+    pub order: u32,
+    pub location: NumberPointOutput,
+    pub size: NumberSizeOutput,
+    pub content_size: NumberSizeOutput,
+    pub scrollbar_size: NumberSizeOutput,
+    pub border: NumberRectOutput,
+    pub padding: NumberRectOutput,
+    pub margin: NumberRectOutput,
+}
+
+fn point_output(value: &taffy::Point<f32>) -> NumberPointOutput {
+    NumberPointOutput {
+        x: f64::from(value.x),
+        y: f64::from(value.y),
+    }
+}
+
+fn size_output(value: &taffy::Size<f32>) -> NumberSizeOutput {
+    NumberSizeOutput {
+        width: f64::from(value.width),
+        height: f64::from(value.height),
+    }
+}
+
+fn rect_output(value: &taffy::Rect<f32>) -> NumberRectOutput {
+    NumberRectOutput {
+        left: f64::from(value.left),
+        right: f64::from(value.right),
+        top: f64::from(value.top),
+        bottom: f64::from(value.bottom),
+    }
+}
+
+pub(crate) fn output(value: &Layout) -> LayoutOutput {
+    LayoutOutput {
+        order: value.order,
+        location: point_output(&value.location),
+        size: size_output(&value.size),
+        content_size: size_output(&value.content_size),
+        scrollbar_size: size_output(&value.scrollbar_size),
+        border: rect_output(&value.border),
+        padding: rect_output(&value.padding),
+        margin: rect_output(&value.margin),
+    }
 }

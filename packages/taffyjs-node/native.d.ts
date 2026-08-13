@@ -28,17 +28,338 @@ export declare class NativeTaffyTree {
   rawNewWithChildren(style: unknown, children: Array<bigint>, publicMethod: string): bigint;
   rawSetStyle(node: bigint, style: unknown, publicMethod: string): void;
   rawSetNodeContext(node: bigint, hasContext: boolean, publicMethod: string): void;
-  rawGetStyle(node: bigint, publicMethod: string): object;
+  rawGetStyle(node: bigint, publicMethod: string): StyleOutput;
   rawComputeLayout(node: bigint, availableSpace: unknown, publicMethod: string): void;
-  rawGetLayout(node: bigint, publicMethod: string): object;
-  rawGetUnroundedLayout(node: bigint, publicMethod: string): object;
-  rawGetDetailedLayoutInfo(node: bigint, publicMethod: string): object;
+  rawGetLayout(node: bigint, publicMethod: string): LayoutOutput;
+  rawGetUnroundedLayout(node: bigint, publicMethod: string): LayoutOutput;
+  rawGetDetailedLayoutInfo(node: bigint, publicMethod: string): DetailedLayoutOutput;
   rawMarkDirty(node: bigint, publicMethod: string): void;
   rawIsDirty(node: bigint, publicMethod: string): boolean;
   rawComputeLayoutWithMeasure(
     node: bigint,
     availableSpace: unknown,
-    measure: (arg: object) => unknown,
+    measure: (arg: MeasureArguments) => unknown,
     publicMethod: string,
   ): void;
+}
+
+export interface AvailableSpaceInput {
+  kind: unknown;
+  value?: unknown;
+}
+
+export interface AvailableSpaceOutput {
+  kind: number;
+  value?: number;
+}
+
+export interface AvailableSpaceSizeOutput {
+  width: AvailableSpaceOutput;
+  height: AvailableSpaceOutput;
+}
+
+export interface ChildRangeInput {
+  start: unknown;
+  end: unknown;
+}
+
+export interface CompleteSizeInput {
+  width: unknown;
+  height: unknown;
+}
+
+export interface DetailedGridItemOutput {
+  rowStart: number;
+  rowEnd: number;
+  columnStart: number;
+  columnEnd: number;
+}
+
+export interface DetailedGridOutput {
+  rows: DetailedGridTracksOutput;
+  columns: DetailedGridTracksOutput;
+  items: Array<DetailedGridItemOutput>;
+}
+
+export interface DetailedGridTracksOutput {
+  negativeImplicitTracks: number;
+  explicitTracks: number;
+  positiveImplicitTracks: number;
+  gutters: Array<number>;
+  sizes: Array<number>;
+}
+
+export interface DetailedLayoutOutput {
+  kind: number;
+  value?: DetailedGridOutput;
+}
+
+export interface GridPlacementInput {
+  kind: unknown;
+  name?: unknown;
+  index?: unknown;
+  span?: unknown;
+}
+
+export interface GridPlacementLineOutput {
+  start: GridPlacementOutput;
+  end: GridPlacementOutput;
+}
+
+export interface GridPlacementOutput {
+  kind: number;
+  name?: string;
+  index?: number;
+  span?: number;
+}
+
+export interface GridTemplateAreaInput {
+  name: string;
+  rowStart: unknown;
+  rowEnd: unknown;
+  columnStart: unknown;
+  columnEnd: unknown;
+}
+
+export interface GridTemplateAreaOutput {
+  name: string;
+  rowStart: number;
+  rowEnd: number;
+  columnStart: number;
+  columnEnd: number;
+}
+
+export interface GridTemplateAreasInput {
+  areas: Array<unknown>;
+  rowCount: unknown;
+  columnCount: unknown;
+}
+
+export interface GridTemplateAreasOutput {
+  areas: Array<GridTemplateAreaOutput>;
+  rowCount: number;
+  columnCount: number;
+}
+
+export interface GridTemplateComponentOutput {
+  kind: number;
+  value: TrackSizingOutput | GridTemplateRepetitionOutput;
+}
+
+export interface GridTemplateRepetitionInput {
+  count: unknown;
+  tracks: Array<unknown>;
+  lineNames: Array<Array<string>>;
+}
+
+export interface GridTemplateRepetitionOutput {
+  count: RepetitionCountOutput;
+  tracks: Array<TrackSizingOutput>;
+  lineNames: Array<Array<string>>;
+}
+
+export interface KnownDimensionsOutput {
+  width: number | undefined;
+  height: number | undefined;
+}
+
+export interface LayoutOutput {
+  order: number;
+  location: NumberPointOutput;
+  size: NumberSizeOutput;
+  contentSize: NumberSizeOutput;
+  scrollbarSize: NumberSizeOutput;
+  border: NumberRectOutput;
+  padding: NumberRectOutput;
+  margin: NumberRectOutput;
+}
+
+export interface LengthOutput {
+  unit: number;
+  value?: number;
+}
+
+export interface LengthRectOutput {
+  left: LengthOutput;
+  right: LengthOutput;
+  top: LengthOutput;
+  bottom: LengthOutput;
+}
+
+export interface LengthSizeOutput {
+  width: LengthOutput;
+  height: LengthOutput;
+}
+
+export interface MaybeTaggedLengthInput {
+  unit?: unknown;
+}
+
+export interface MeasureArguments {
+  knownDimensions: KnownDimensionsOutput;
+  availableSpace: AvailableSpaceSizeOutput;
+  node: bigint;
+  style: StyleOutput;
+}
+
+export interface NumberPointOutput {
+  x: number;
+  y: number;
+}
+
+export interface NumberRectOutput {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+export interface NumberSizeOutput {
+  width: number;
+  height: number;
+}
+
+export interface OverflowOutput {
+  x: number;
+  y: number;
+}
+
+export interface PartialLineInput {
+  start?: unknown;
+  end?: unknown;
+}
+
+export interface PartialPointInput {
+  x?: unknown;
+  y?: unknown;
+}
+
+export interface PartialRectInput {
+  left?: unknown;
+  right?: unknown;
+  top?: unknown;
+  bottom?: unknown;
+}
+
+export interface PartialSizeInput {
+  width?: unknown;
+  height?: unknown;
+}
+
+export interface RepetitionCountOutput {
+  kind: number;
+  value?: number;
+}
+
+export interface StyleInput {
+  display?: unknown;
+  itemIsTable?: unknown;
+  itemIsReplaced?: unknown;
+  boxSizing?: unknown;
+  direction?: unknown;
+  overflow?: unknown;
+  scrollbarWidth?: unknown;
+  float?: unknown;
+  clear?: unknown;
+  position?: unknown;
+  inset?: unknown;
+  size?: unknown;
+  minSize?: unknown;
+  maxSize?: unknown;
+  aspectRatio?: unknown;
+  margin?: unknown;
+  padding?: unknown;
+  border?: unknown;
+  alignItems?: unknown;
+  alignSelf?: unknown;
+  justifyItems?: unknown;
+  justifySelf?: unknown;
+  alignContent?: unknown;
+  justifyContent?: unknown;
+  gap?: unknown;
+  textAlign?: unknown;
+  flexDirection?: unknown;
+  flexWrap?: unknown;
+  flexBasis?: unknown;
+  flexGrow?: unknown;
+  flexShrink?: unknown;
+  gridTemplateRows?: unknown;
+  gridTemplateColumns?: unknown;
+  gridAutoRows?: unknown;
+  gridAutoColumns?: unknown;
+  gridAutoFlow?: unknown;
+  gridTemplateAreas?: unknown;
+  gridTemplateColumnNames?: unknown;
+  gridTemplateRowNames?: unknown;
+  gridRow?: unknown;
+  gridColumn?: unknown;
+}
+
+export interface StyleOutput {
+  display: number;
+  itemIsTable: boolean;
+  itemIsReplaced: boolean;
+  boxSizing: number;
+  direction: number;
+  overflow: OverflowOutput;
+  scrollbarWidth: number;
+  float: number;
+  clear: number;
+  position: number;
+  inset: LengthRectOutput;
+  size: LengthSizeOutput;
+  minSize: LengthSizeOutput;
+  maxSize: LengthSizeOutput;
+  aspectRatio: number | null;
+  margin: LengthRectOutput;
+  padding: LengthRectOutput;
+  border: LengthRectOutput;
+  alignItems: number | null;
+  alignSelf: number | null;
+  justifyItems: number | null;
+  justifySelf: number | null;
+  alignContent: number | null;
+  justifyContent: number | null;
+  gap: LengthSizeOutput;
+  textAlign: number;
+  flexDirection: number;
+  flexWrap: number;
+  flexBasis: LengthOutput;
+  flexGrow: number;
+  flexShrink: number;
+  gridTemplateRows: Array<GridTemplateComponentOutput>;
+  gridTemplateColumns: Array<GridTemplateComponentOutput>;
+  gridAutoRows: Array<TrackSizingOutput>;
+  gridAutoColumns: Array<TrackSizingOutput>;
+  gridAutoFlow: number;
+  gridTemplateAreas: GridTemplateAreasOutput | null;
+  gridTemplateColumnNames: Array<Array<string>>;
+  gridTemplateRowNames: Array<Array<string>>;
+  gridRow: GridPlacementLineOutput;
+  gridColumn: GridPlacementLineOutput;
+}
+
+export interface TaggedGridInput {
+  kind: unknown;
+  value?: unknown;
+}
+
+export interface TaggedLengthInput {
+  unit: unknown;
+  value?: unknown;
+}
+
+export interface TrackSizingInput {
+  min: unknown;
+  max: unknown;
+}
+
+export interface TrackSizingOutput {
+  min: TrackSizingValueOutput;
+  max: TrackSizingValueOutput;
+}
+
+export interface TrackSizingValueOutput {
+  kind: number;
+  value?: number | LengthOutput;
 }

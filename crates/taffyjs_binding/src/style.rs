@@ -1,5 +1,6 @@
-use napi::bindgen_prelude::{FromNapiValue, Object, Unknown};
-use napi::{Env, JsValue, ValueType};
+use napi::ValueType;
+use napi::bindgen_prelude::{FromNapiValue, Unknown};
+use napi_derive::napi;
 use taffy::geometry::{Rect, Size};
 use taffy::style::{
     AlignContent, AlignItems, BoxSizing, Clear, Direction, Display, FlexDirection, FlexWrap, Float,
@@ -12,7 +13,7 @@ use crate::generated_numeric::{
     FlexDirectionCode, FlexWrapCode, FloatCode, GridAutoFlowCode, OverflowCode, PositionCode,
     TextAlignCode,
 };
-use crate::{geometry, grid, length, number};
+use crate::{geometry, grid, js_object, length, number};
 
 pub(crate) const STYLE_FIELDS: &[&str] = &[
     "display",
@@ -58,40 +59,127 @@ pub(crate) const STYLE_FIELDS: &[&str] = &[
     "gridColumn",
 ];
 
-struct StyleObject<'env>(Object<'env>);
+#[napi(object, object_to_js = false)]
+pub struct StyleInput<'env> {
+    pub display: Option<Unknown<'env>>,
+    pub item_is_table: Option<Unknown<'env>>,
+    pub item_is_replaced: Option<Unknown<'env>>,
+    pub box_sizing: Option<Unknown<'env>>,
+    pub direction: Option<Unknown<'env>>,
+    pub overflow: Option<Unknown<'env>>,
+    pub scrollbar_width: Option<Unknown<'env>>,
+    #[napi(js_name = "float")]
+    pub r#float: Option<Unknown<'env>>,
+    pub clear: Option<Unknown<'env>>,
+    pub position: Option<Unknown<'env>>,
+    pub inset: Option<Unknown<'env>>,
+    pub size: Option<Unknown<'env>>,
+    pub min_size: Option<Unknown<'env>>,
+    pub max_size: Option<Unknown<'env>>,
+    pub aspect_ratio: Option<Unknown<'env>>,
+    pub margin: Option<Unknown<'env>>,
+    pub padding: Option<Unknown<'env>>,
+    pub border: Option<Unknown<'env>>,
+    pub align_items: Option<Unknown<'env>>,
+    pub align_self: Option<Unknown<'env>>,
+    pub justify_items: Option<Unknown<'env>>,
+    pub justify_self: Option<Unknown<'env>>,
+    pub align_content: Option<Unknown<'env>>,
+    pub justify_content: Option<Unknown<'env>>,
+    pub gap: Option<Unknown<'env>>,
+    pub text_align: Option<Unknown<'env>>,
+    pub flex_direction: Option<Unknown<'env>>,
+    pub flex_wrap: Option<Unknown<'env>>,
+    pub flex_basis: Option<Unknown<'env>>,
+    pub flex_grow: Option<Unknown<'env>>,
+    pub flex_shrink: Option<Unknown<'env>>,
+    pub grid_template_rows: Option<Unknown<'env>>,
+    pub grid_template_columns: Option<Unknown<'env>>,
+    pub grid_auto_rows: Option<Unknown<'env>>,
+    pub grid_auto_columns: Option<Unknown<'env>>,
+    pub grid_auto_flow: Option<Unknown<'env>>,
+    pub grid_template_areas: Option<Unknown<'env>>,
+    pub grid_template_column_names: Option<Unknown<'env>>,
+    pub grid_template_row_names: Option<Unknown<'env>>,
+    pub grid_row: Option<Unknown<'env>>,
+    pub grid_column: Option<Unknown<'env>>,
+}
 
-impl<'env> StyleObject<'env> {
-    fn read(value: Unknown<'env>) -> NativeResult<Self> {
-        if value
-            .get_type()
-            .map_err(|_| type_error("Expected a Style object"))?
-            != ValueType::Object
-        {
-            return Err(type_error("Expected a Style object"));
-        }
-        let object = unsafe {
-            value
-                .cast::<Object<'env>>()
-                .map_err(|_| type_error("Expected a Style object"))?
-        };
-        if object
-            .is_array()
-            .map_err(|_| type_error("Expected a Style object"))?
-        {
-            return Err(type_error("Expected a Style object"));
-        }
-        let keys = Object::keys(&object).map_err(|_| type_error("Could not read Style keys"))?;
-        if keys.iter().any(|key| !STYLE_FIELDS.contains(&key.as_str())) {
-            return Err(type_error("Style object contains an unknown field"));
-        }
-        Ok(Self(object))
-    }
+#[napi(object, object_to_js = false)]
+pub struct MaybeTaggedLengthInput<'env> {
+    pub unit: Option<Unknown<'env>>,
+}
 
-    fn get(&self, field: &str) -> NativeResult<Option<Unknown<'env>>> {
-        self.0
-            .get(field)
-            .map_err(|_| type_error(format!("Could not read Style field {field}")))
-    }
+#[napi(object, object_from_js = false)]
+pub struct OverflowOutput {
+    pub x: u8,
+    pub y: u8,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct LengthSizeOutput {
+    pub width: length::LengthOutput,
+    pub height: length::LengthOutput,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct LengthRectOutput {
+    pub left: length::LengthOutput,
+    pub right: length::LengthOutput,
+    pub top: length::LengthOutput,
+    pub bottom: length::LengthOutput,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct GridPlacementLineOutput {
+    pub start: grid::GridPlacementOutput,
+    pub end: grid::GridPlacementOutput,
+}
+
+#[napi(object, use_nullable = true, object_from_js = false)]
+pub struct StyleOutput {
+    pub display: u8,
+    pub item_is_table: bool,
+    pub item_is_replaced: bool,
+    pub box_sizing: u8,
+    pub direction: u8,
+    pub overflow: OverflowOutput,
+    pub scrollbar_width: f64,
+    #[napi(js_name = "float")]
+    pub r#float: u8,
+    pub clear: u8,
+    pub position: u8,
+    pub inset: LengthRectOutput,
+    pub size: LengthSizeOutput,
+    pub min_size: LengthSizeOutput,
+    pub max_size: LengthSizeOutput,
+    pub aspect_ratio: Option<f64>,
+    pub margin: LengthRectOutput,
+    pub padding: LengthRectOutput,
+    pub border: LengthRectOutput,
+    pub align_items: Option<u8>,
+    pub align_self: Option<u8>,
+    pub justify_items: Option<u8>,
+    pub justify_self: Option<u8>,
+    pub align_content: Option<u8>,
+    pub justify_content: Option<u8>,
+    pub gap: LengthSizeOutput,
+    pub text_align: u8,
+    pub flex_direction: u8,
+    pub flex_wrap: u8,
+    pub flex_basis: length::LengthOutput,
+    pub flex_grow: f64,
+    pub flex_shrink: f64,
+    pub grid_template_rows: Vec<grid::GridTemplateComponentOutput>,
+    pub grid_template_columns: Vec<grid::GridTemplateComponentOutput>,
+    pub grid_auto_rows: Vec<grid::TrackSizingOutput>,
+    pub grid_auto_columns: Vec<grid::TrackSizingOutput>,
+    pub grid_auto_flow: u8,
+    pub grid_template_areas: Option<grid::GridTemplateAreasOutput>,
+    pub grid_template_column_names: Vec<Vec<String>>,
+    pub grid_template_row_names: Vec<Vec<String>>,
+    pub grid_row: GridPlacementLineOutput,
+    pub grid_column: GridPlacementLineOutput,
 }
 
 fn cast<'env, T: FromNapiValue>(value: Unknown<'env>, name: &str) -> NativeResult<T> {
@@ -128,15 +216,9 @@ fn is_tagged_length(value: Unknown<'_>) -> NativeResult<bool> {
     {
         return Ok(false);
     }
-    let object = unsafe {
-        value
-            .cast::<Object<'_>>()
-            .map_err(|_| type_error("Expected a length or geometry object"))?
-    };
-    object
-        .get::<Unknown<'_>>("unit")
-        .map(|unit| unit.is_some())
-        .map_err(|_| type_error("Could not read length unit"))
+    let input: MaybeTaggedLengthInput<'_> =
+        js_object::input(value, "a length or geometry object", None)?;
+    Ok(input.unit.is_some())
 }
 
 fn dimension_size(
@@ -340,163 +422,163 @@ fn grid_auto_flow(value: Unknown<'_>) -> NativeResult<GridAutoFlow> {
 }
 
 pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
-    let object = StyleObject::read(value)?;
+    let input: StyleInput<'_> = js_object::input(value, "a Style object", Some(STYLE_FIELDS))?;
     let mut style = Style::default();
 
-    if let Some(value) = object.get("display")? {
+    if let Some(value) = input.display {
         style.display = display(value)?;
     }
-    if let Some(value) = object.get("itemIsTable")? {
+    if let Some(value) = input.item_is_table {
         style.item_is_table = cast(value, "itemIsTable")?;
     }
-    if let Some(value) = object.get("itemIsReplaced")? {
+    if let Some(value) = input.item_is_replaced {
         style.item_is_replaced = cast(value, "itemIsReplaced")?;
     }
-    if let Some(value) = object.get("boxSizing")? {
+    if let Some(value) = input.box_sizing {
         style.box_sizing = box_sizing(value)?;
     }
-    if let Some(value) = object.get("direction")? {
+    if let Some(value) = input.direction {
         style.direction = direction(value)?;
     }
-    if let Some(value) = object.get("overflow")? {
+    if let Some(value) = input.overflow {
         style.overflow = geometry::partial_point(value, style.overflow, overflow)?;
     }
-    if let Some(value) = object.get("scrollbarWidth")? {
+    if let Some(value) = input.scrollbar_width {
         style.scrollbar_width = number::to_f32(number(value, "scrollbarWidth")?);
     }
-    if let Some(value) = object.get("float")? {
+    if let Some(value) = input.r#float {
         style.float = float(value)?;
     }
-    if let Some(value) = object.get("clear")? {
+    if let Some(value) = input.clear {
         style.clear = clear(value)?;
     }
-    if let Some(value) = object.get("position")? {
+    if let Some(value) = input.position {
         style.position = position(value)?;
     }
-    if let Some(value) = object.get("inset")? {
+    if let Some(value) = input.inset {
         style.inset = auto_rect(value, style.inset)?;
     }
-    if let Some(value) = object.get("size")? {
+    if let Some(value) = input.size {
         style.size = dimension_size(value, style.size)?;
     }
-    if let Some(value) = object.get("minSize")? {
+    if let Some(value) = input.min_size {
         style.min_size = dimension_size(value, style.min_size)?;
     }
-    if let Some(value) = object.get("maxSize")? {
+    if let Some(value) = input.max_size {
         style.max_size = dimension_size(value, style.max_size)?;
     }
-    if let Some(value) = object.get("aspectRatio")? {
+    if let Some(value) = input.aspect_ratio {
         style.aspect_ratio = if is_null(value)? {
             None
         } else {
             Some(number::to_f32(number(value, "aspectRatio")?))
         };
     }
-    if let Some(value) = object.get("margin")? {
+    if let Some(value) = input.margin {
         style.margin = auto_rect(value, style.margin)?;
     }
-    if let Some(value) = object.get("padding")? {
+    if let Some(value) = input.padding {
         style.padding = length_rect(value, style.padding)?;
     }
-    if let Some(value) = object.get("border")? {
+    if let Some(value) = input.border {
         style.border = length_rect(value, style.border)?;
     }
-    if let Some(value) = object.get("alignItems")? {
+    if let Some(value) = input.align_items {
         style.align_items = if is_null(value)? {
             None
         } else {
             Some(align_items(value)?)
         };
     }
-    if let Some(value) = object.get("alignSelf")? {
+    if let Some(value) = input.align_self {
         style.align_self = if is_null(value)? {
             None
         } else {
             Some(align_items(value)?)
         };
     }
-    if let Some(value) = object.get("justifyItems")? {
+    if let Some(value) = input.justify_items {
         style.justify_items = if is_null(value)? {
             None
         } else {
             Some(align_items(value)?)
         };
     }
-    if let Some(value) = object.get("justifySelf")? {
+    if let Some(value) = input.justify_self {
         style.justify_self = if is_null(value)? {
             None
         } else {
             Some(align_items(value)?)
         };
     }
-    if let Some(value) = object.get("alignContent")? {
+    if let Some(value) = input.align_content {
         style.align_content = if is_null(value)? {
             None
         } else {
             Some(align_content(value)?)
         };
     }
-    if let Some(value) = object.get("justifyContent")? {
+    if let Some(value) = input.justify_content {
         style.justify_content = if is_null(value)? {
             None
         } else {
             Some(align_content(value)?)
         };
     }
-    if let Some(value) = object.get("gap")? {
+    if let Some(value) = input.gap {
         style.gap = length_size(value, style.gap)?;
     }
-    if let Some(value) = object.get("textAlign")? {
+    if let Some(value) = input.text_align {
         style.text_align = text_align(value)?;
     }
-    if let Some(value) = object.get("flexDirection")? {
+    if let Some(value) = input.flex_direction {
         style.flex_direction = flex_direction(value)?;
     }
-    if let Some(value) = object.get("flexWrap")? {
+    if let Some(value) = input.flex_wrap {
         style.flex_wrap = flex_wrap(value)?;
     }
-    if let Some(value) = object.get("flexBasis")? {
+    if let Some(value) = input.flex_basis {
         style.flex_basis = length::dimension(value)?;
     }
-    if let Some(value) = object.get("flexGrow")? {
+    if let Some(value) = input.flex_grow {
         style.flex_grow = number::to_f32(number(value, "flexGrow")?);
     }
-    if let Some(value) = object.get("flexShrink")? {
+    if let Some(value) = input.flex_shrink {
         style.flex_shrink = number::to_f32(number(value, "flexShrink")?);
     }
-    if let Some(value) = object.get("gridTemplateRows")? {
+    if let Some(value) = input.grid_template_rows {
         style.grid_template_rows = grid::template_components(cast(value, "gridTemplateRows")?)?;
     }
-    if let Some(value) = object.get("gridTemplateColumns")? {
+    if let Some(value) = input.grid_template_columns {
         style.grid_template_columns =
             grid::template_components(cast(value, "gridTemplateColumns")?)?;
     }
-    if let Some(value) = object.get("gridAutoRows")? {
+    if let Some(value) = input.grid_auto_rows {
         style.grid_auto_rows = cast::<Vec<Unknown<'_>>>(value, "gridAutoRows")?
             .into_iter()
             .map(grid::track_sizing)
             .collect::<NativeResult<Vec<_>>>()?;
     }
-    if let Some(value) = object.get("gridAutoColumns")? {
+    if let Some(value) = input.grid_auto_columns {
         style.grid_auto_columns = cast::<Vec<Unknown<'_>>>(value, "gridAutoColumns")?
             .into_iter()
             .map(grid::track_sizing)
             .collect::<NativeResult<Vec<_>>>()?;
     }
-    if let Some(value) = object.get("gridAutoFlow")? {
+    if let Some(value) = input.grid_auto_flow {
         style.grid_auto_flow = grid_auto_flow(value)?;
     }
-    if let Some(value) = object.get("gridTemplateAreas")? {
+    if let Some(value) = input.grid_template_areas {
         style.grid_template_areas = if is_null(value)? {
             None
         } else {
             Some(grid::template_areas(value)?)
         };
     }
-    if let Some(value) = object.get("gridTemplateColumnNames")? {
+    if let Some(value) = input.grid_template_column_names {
         style.grid_template_column_names = cast(value, "gridTemplateColumnNames")?;
     }
-    if let Some(value) = object.get("gridTemplateRowNames")? {
+    if let Some(value) = input.grid_template_row_names {
         style.grid_template_row_names = cast(value, "gridTemplateRowNames")?;
     }
     grid::validate_template_line_names(&style.grid_template_rows, &style.grid_template_row_names)?;
@@ -504,10 +586,10 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         &style.grid_template_columns,
         &style.grid_template_column_names,
     )?;
-    if let Some(value) = object.get("gridRow")? {
+    if let Some(value) = input.grid_row {
         style.grid_row = geometry::partial_line(value, style.grid_row, grid::grid_placement)?;
     }
-    if let Some(value) = object.get("gridColumn")? {
+    if let Some(value) = input.grid_column {
         style.grid_column = geometry::partial_line(value, style.grid_column, grid::grid_placement)?;
     }
 
@@ -659,151 +741,109 @@ fn grid_auto_flow_output(value: GridAutoFlow) -> u8 {
     }
 }
 
-pub(crate) fn output<'env>(env: &Env, style: &Style) -> napi::Result<Object<'env>> {
-    let mut output = Object::new(env)?;
-    output.set("display", display_output(style.display))?;
-    output.set("itemIsTable", style.item_is_table)?;
-    output.set("itemIsReplaced", style.item_is_replaced)?;
-    output.set("boxSizing", box_sizing_output(style.box_sizing))?;
-    output.set("direction", direction_output(style.direction))?;
-    output.set(
-        "overflow",
-        geometry::point_output(env, &style.overflow, |value| Ok(overflow_output(*value)))?,
-    )?;
-    output.set("scrollbarWidth", f64::from(style.scrollbar_width))?;
-    output.set("float", float_output(style.float))?;
-    output.set("clear", clear_output(style.clear))?;
-    output.set("position", position_output(style.position))?;
-    output.set(
-        "inset",
-        geometry::rect_output(env, &style.inset, |value| {
-            length::length_percentage_auto_object(env, *value)
-        })?,
-    )?;
-    output.set(
-        "size",
-        geometry::size_output(env, &style.size, |value| {
-            length::dimension_object(env, *value)
-        })?,
-    )?;
-    output.set(
-        "minSize",
-        geometry::size_output(env, &style.min_size, |value| {
-            length::dimension_object(env, *value)
-        })?,
-    )?;
-    output.set(
-        "maxSize",
-        geometry::size_output(env, &style.max_size, |value| {
-            length::dimension_object(env, *value)
-        })?,
-    )?;
-    output.set("aspectRatio", style.aspect_ratio.map(f64::from))?;
-    output.set(
-        "margin",
-        geometry::rect_output(env, &style.margin, |value| {
-            length::length_percentage_auto_object(env, *value)
-        })?,
-    )?;
-    output.set(
-        "padding",
-        geometry::rect_output(env, &style.padding, |value| {
-            length::length_percentage_object(env, *value)
-        })?,
-    )?;
-    output.set(
-        "border",
-        geometry::rect_output(env, &style.border, |value| {
-            length::length_percentage_object(env, *value)
-        })?,
-    )?;
-    output.set("alignItems", style.align_items.map(align_items_output))?;
-    output.set("alignSelf", style.align_self.map(align_items_output))?;
-    output.set("justifyItems", style.justify_items.map(align_items_output))?;
-    output.set("justifySelf", style.justify_self.map(align_items_output))?;
-    output.set(
-        "alignContent",
-        style.align_content.map(align_content_output),
-    )?;
-    output.set(
-        "justifyContent",
-        style.justify_content.map(align_content_output),
-    )?;
-    output.set(
-        "gap",
-        geometry::size_output(env, &style.gap, |value| {
-            length::length_percentage_object(env, *value)
-        })?,
-    )?;
-    output.set("textAlign", text_align_output(style.text_align))?;
-    output.set("flexDirection", flex_direction_output(style.flex_direction))?;
-    output.set("flexWrap", flex_wrap_output(style.flex_wrap))?;
-    output.set(
-        "flexBasis",
-        length::dimension_object(env, style.flex_basis)?,
-    )?;
-    output.set("flexGrow", f64::from(style.flex_grow))?;
-    output.set("flexShrink", f64::from(style.flex_shrink))?;
-    output.set(
-        "gridTemplateRows",
-        style
+fn size_output<T>(
+    value: &Size<T>,
+    convert: impl Fn(&T) -> length::LengthOutput,
+) -> LengthSizeOutput {
+    LengthSizeOutput {
+        width: convert(&value.width),
+        height: convert(&value.height),
+    }
+}
+
+fn rect_output<T>(
+    value: &Rect<T>,
+    convert: impl Fn(&T) -> length::LengthOutput,
+) -> LengthRectOutput {
+    LengthRectOutput {
+        left: convert(&value.left),
+        right: convert(&value.right),
+        top: convert(&value.top),
+        bottom: convert(&value.bottom),
+    }
+}
+
+fn placement_line_output(
+    value: &taffy::geometry::Line<taffy::GridPlacement<String>>,
+) -> GridPlacementLineOutput {
+    GridPlacementLineOutput {
+        start: grid::placement_output(&value.start),
+        end: grid::placement_output(&value.end),
+    }
+}
+
+pub(crate) fn output(style: &Style) -> StyleOutput {
+    StyleOutput {
+        display: display_output(style.display),
+        item_is_table: style.item_is_table,
+        item_is_replaced: style.item_is_replaced,
+        box_sizing: box_sizing_output(style.box_sizing),
+        direction: direction_output(style.direction),
+        overflow: OverflowOutput {
+            x: overflow_output(style.overflow.x),
+            y: overflow_output(style.overflow.y),
+        },
+        scrollbar_width: f64::from(style.scrollbar_width),
+        r#float: float_output(style.float),
+        clear: clear_output(style.clear),
+        position: position_output(style.position),
+        inset: rect_output(&style.inset, |value| {
+            length::length_percentage_auto_output(*value)
+        }),
+        size: size_output(&style.size, |value| length::dimension_output(*value)),
+        min_size: size_output(&style.min_size, |value| length::dimension_output(*value)),
+        max_size: size_output(&style.max_size, |value| length::dimension_output(*value)),
+        aspect_ratio: style.aspect_ratio.map(f64::from),
+        margin: rect_output(&style.margin, |value| {
+            length::length_percentage_auto_output(*value)
+        }),
+        padding: rect_output(&style.padding, |value| {
+            length::length_percentage_output(*value)
+        }),
+        border: rect_output(&style.border, |value| {
+            length::length_percentage_output(*value)
+        }),
+        align_items: style.align_items.map(align_items_output),
+        align_self: style.align_self.map(align_items_output),
+        justify_items: style.justify_items.map(align_items_output),
+        justify_self: style.justify_self.map(align_items_output),
+        align_content: style.align_content.map(align_content_output),
+        justify_content: style.justify_content.map(align_content_output),
+        gap: size_output(&style.gap, |value| length::length_percentage_output(*value)),
+        text_align: text_align_output(style.text_align),
+        flex_direction: flex_direction_output(style.flex_direction),
+        flex_wrap: flex_wrap_output(style.flex_wrap),
+        flex_basis: length::dimension_output(style.flex_basis),
+        flex_grow: f64::from(style.flex_grow),
+        flex_shrink: f64::from(style.flex_shrink),
+        grid_template_rows: style
             .grid_template_rows
             .iter()
-            .map(|value| grid::template_component_output(env, value))
-            .collect::<napi::Result<Vec<_>>>()?,
-    )?;
-    output.set(
-        "gridTemplateColumns",
-        style
+            .map(grid::template_component_output)
+            .collect(),
+        grid_template_columns: style
             .grid_template_columns
             .iter()
-            .map(|value| grid::template_component_output(env, value))
-            .collect::<napi::Result<Vec<_>>>()?,
-    )?;
-    output.set(
-        "gridAutoRows",
-        style
+            .map(grid::template_component_output)
+            .collect(),
+        grid_auto_rows: style
             .grid_auto_rows
             .iter()
-            .map(|value| grid::track_sizing_output(env, value))
-            .collect::<napi::Result<Vec<_>>>()?,
-    )?;
-    output.set(
-        "gridAutoColumns",
-        style
+            .map(grid::track_sizing_output)
+            .collect(),
+        grid_auto_columns: style
             .grid_auto_columns
             .iter()
-            .map(|value| grid::track_sizing_output(env, value))
-            .collect::<napi::Result<Vec<_>>>()?,
-    )?;
-    output.set("gridAutoFlow", grid_auto_flow_output(style.grid_auto_flow))?;
-    output.set(
-        "gridTemplateAreas",
-        style
+            .map(grid::track_sizing_output)
+            .collect(),
+        grid_auto_flow: grid_auto_flow_output(style.grid_auto_flow),
+        grid_template_areas: style
             .grid_template_areas
             .as_ref()
-            .map(|value| grid::template_areas_output(env, value))
-            .transpose()?,
-    )?;
-    output.set(
-        "gridTemplateColumnNames",
-        style.grid_template_column_names.clone(),
-    )?;
-    output.set(
-        "gridTemplateRowNames",
-        style.grid_template_row_names.clone(),
-    )?;
-    output.set(
-        "gridRow",
-        geometry::line_output(env, &style.grid_row, |value| {
-            grid::placement_output(env, value)
-        })?,
-    )?;
-    output.set(
-        "gridColumn",
-        geometry::line_output(env, &style.grid_column, |value| {
-            grid::placement_output(env, value)
-        })?,
-    )?;
-    Ok(output)
+            .map(grid::template_areas_output),
+        grid_template_column_names: style.grid_template_column_names.clone(),
+        grid_template_row_names: style.grid_template_row_names.clone(),
+        grid_row: placement_line_output(&style.grid_row),
+        grid_column: placement_line_output(&style.grid_column),
+    }
 }

@@ -6,6 +6,7 @@ mod error;
 mod generated_numeric;
 mod geometry;
 mod grid;
+mod js_object;
 mod layout;
 mod length;
 mod measure;
@@ -21,8 +22,8 @@ use error::{
     NativeResult, child_index_out_of_bounds_error, internal_error, into_napi,
     invalid_topology_error, type_error,
 };
-use napi::bindgen_prelude::{BigInt, Function, Object, Unknown};
-use napi::{Env, JsValue, Status, ValueType};
+use napi::bindgen_prelude::{BigInt, Function, Unknown};
+use napi::{Env, Status};
 use napi_derive::napi;
 use owner::TreeOwner;
 use taffy::{NodeId, TraversePartialTree};
@@ -30,6 +31,12 @@ use taffy::{NodeId, TraversePartialTree};
 #[napi]
 pub struct NativeTaffyTree {
     owner: TreeOwner,
+}
+
+#[napi(object, object_to_js = false)]
+pub struct ChildRangeInput<'env> {
+    pub start: Unknown<'env>,
+    pub end: Unknown<'env>,
 }
 
 #[cfg(feature = "test-hooks")]
@@ -514,18 +521,18 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawGetStyle")]
-    pub fn get_style<'env>(
+    pub fn get_style(
         &self,
         env: Env,
         node: BigInt,
         public_method: String,
-    ) -> napi::Result<Object<'env>> {
+    ) -> napi::Result<style::StyleOutput> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
                 let value = tree.style(node).map_err(|_| internal_error())?;
-                style::output(&env, value).map_err(|_| internal_error())
+                Ok(style::output(value))
             }),
         )
     }
@@ -551,51 +558,50 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawGetLayout")]
-    pub fn get_layout<'env>(
+    pub fn get_layout(
         &self,
         env: Env,
         node: BigInt,
         public_method: String,
-    ) -> napi::Result<Object<'env>> {
+    ) -> napi::Result<layout::LayoutOutput> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
                 let value = tree.layout(node).map_err(|_| internal_error())?;
-                layout::output(&env, value).map_err(|_| internal_error())
+                Ok(layout::output(value))
             }),
         )
     }
 
     #[napi(js_name = "rawGetUnroundedLayout")]
-    pub fn get_unrounded_layout<'env>(
+    pub fn get_unrounded_layout(
         &self,
         env: Env,
         node: BigInt,
         public_method: String,
-    ) -> napi::Result<Object<'env>> {
+    ) -> napi::Result<layout::LayoutOutput> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
-                layout::output(&env, tree.unrounded_layout(node)).map_err(|_| internal_error())
+                Ok(layout::output(tree.unrounded_layout(node)))
             }),
         )
     }
 
     #[napi(js_name = "rawGetDetailedLayoutInfo")]
-    pub fn get_detailed_layout_info<'env>(
+    pub fn get_detailed_layout_info(
         &self,
         env: Env,
         node: BigInt,
         public_method: String,
-    ) -> napi::Result<Object<'env>> {
+    ) -> napi::Result<detailed::DetailedLayoutOutput> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
             self.owner.access(&public_method, |tree| {
-                detailed::output(&env, tree.detailed_layout_info(node))
-                    .map_err(|_| internal_error())
+                Ok(detailed::output(tree.detailed_layout_info(node)))
             }),
         )
     }
@@ -628,11 +634,11 @@ impl NativeTaffyTree {
         env: Env,
         node: BigInt,
         available_space: Unknown<'env>,
-        measure: Function<'env, Object<'env>, Unknown<'env>>,
+        measure: Function<'env, measure::MeasureArguments, Unknown<'env>>,
         public_method: String,
     ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
-        let mut session = measure::MeasureSession::new(env, measure);
+        let mut session = measure::MeasureSession::new(measure);
         let result = self.owner.access(&public_method, |tree| {
             let available_space =
                 geometry::size(available_space, available_space::available_space)?;
@@ -673,34 +679,11 @@ fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
 }
 
 fn child_range(value: Unknown<'_>) -> NativeResult<(usize, usize)> {
-    if value
-        .get_type()
-        .map_err(|_| type_error("Expected a child range object"))?
-        != ValueType::Object
-    {
-        return Err(type_error("Expected a child range object"));
-    }
-    let object = unsafe {
-        value
-            .cast::<Object<'_>>()
-            .map_err(|_| type_error("Expected a child range object"))?
-    };
-    if object
-        .is_array()
-        .map_err(|_| type_error("Expected a child range object"))?
-    {
-        return Err(type_error("Expected a child range object"));
-    }
-
-    let read_bound = |name: &str| -> NativeResult<usize> {
-        let value = object
-            .get::<Unknown<'_>>(name)
-            .map_err(|_| type_error(format!("Could not read child range {name}")))?
-            .ok_or_else(|| type_error(format!("Child range {name} is required")))?;
-        number::from_unknown(value, &format!("Child range {name}")).and_then(number::to_safe_usize)
-    };
-
-    Ok((read_bound("start")?, read_bound("end")?))
+    let input: ChildRangeInput<'_> = js_object::input(value, "a child range object", None)?;
+    Ok((
+        number::from_unknown(input.start, "Child range start").and_then(number::to_safe_usize)?,
+        number::from_unknown(input.end, "Child range end").and_then(number::to_safe_usize)?,
+    ))
 }
 
 fn validate_unattached_child(
@@ -740,8 +723,8 @@ fn would_create_cycle(tree: &taffy::TaffyTree<()>, parent: NodeId, child: NodeId
 #[napi]
 impl NativeTaffyTree {
     #[napi(js_name = "__layoutWithOrder")]
-    pub fn layout_with_order(&self, env: Env, order: u32) -> napi::Result<Object<'_>> {
-        layout::output(&env, &taffy::Layout::with_order(order))
+    pub fn layout_with_order(&self, order: u32) -> layout::LayoutOutput {
+        layout::output(&taffy::Layout::with_order(order))
     }
 
     #[napi(js_name = "__triggerError")]

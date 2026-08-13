@@ -1,59 +1,56 @@
-use napi::bindgen_prelude::{Object, Unknown};
-use napi::{JsValue, ValueType};
+use napi::bindgen_prelude::Unknown;
+use napi_derive::napi;
 use taffy::style::AvailableSpace;
 
-use crate::error::{NativeResult, type_error};
+use crate::error::NativeResult;
 use crate::generated_numeric::AvailableSpaceKindCode;
-use crate::number::{to_f32, to_integer};
+use crate::js_object;
+use crate::number::{from_unknown, to_f32, to_integer};
 
-fn read_object<'env>(value: Unknown<'env>) -> NativeResult<Object<'env>> {
-    if value
-        .get_type()
-        .map_err(|_| type_error("Expected an available-space object"))?
-        != ValueType::Object
-    {
-        return Err(type_error("Expected an available-space object"));
-    }
-    let object = unsafe {
-        value
-            .cast::<Object<'env>>()
-            .map_err(|_| type_error("Expected an available-space object"))?
-    };
-    if object
-        .is_array()
-        .map_err(|_| type_error("Expected an available-space object"))?
-    {
-        return Err(type_error("Expected an available-space object"));
-    }
-    Ok(object)
+#[napi(object, object_to_js = false)]
+pub struct AvailableSpaceInput<'env> {
+    pub kind: Unknown<'env>,
+    pub value: Option<Unknown<'env>>,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct AvailableSpaceOutput {
+    pub kind: u8,
+    pub value: Option<f64>,
 }
 
 pub(crate) fn available_space(value: Unknown<'_>) -> NativeResult<AvailableSpace> {
-    let object = read_object(value)?;
-    let kind = object
-        .get::<f64>("kind")
-        .map_err(|_| type_error("Available-space kind must be a number"))?
-        .ok_or_else(|| type_error("Available-space kind is required"))?;
-    Ok(match to_integer::<AvailableSpaceKindCode>(kind)? {
-        AvailableSpaceKindCode::Definite => AvailableSpace::Definite(to_f32(
-            object
-                .get::<f64>("value")
-                .map_err(|_| type_error("Definite available space must be a number"))?
-                .ok_or_else(|| type_error("Definite available space requires a value"))?,
-        )),
-        AvailableSpaceKindCode::MinContent => AvailableSpace::MinContent,
-        AvailableSpaceKindCode::MaxContent => AvailableSpace::MaxContent,
-    })
+    let input: AvailableSpaceInput<'_> =
+        js_object::input(value, "an available-space object", None)?;
+    Ok(
+        match to_integer::<AvailableSpaceKindCode>(from_unknown(
+            input.kind,
+            "Available-space kind",
+        )?)? {
+            AvailableSpaceKindCode::Definite => AvailableSpace::Definite(to_f32(from_unknown(
+                js_object::required(input.value, "Definite available space value")?,
+                "Definite available space",
+            )?)),
+            AvailableSpaceKindCode::MinContent => AvailableSpace::MinContent,
+            AvailableSpaceKindCode::MaxContent => AvailableSpace::MaxContent,
+        },
+    )
 }
 
-pub(crate) fn available_space_output(value: AvailableSpace) -> (u8, Option<f64>) {
+pub(crate) fn available_space_output(value: AvailableSpace) -> AvailableSpaceOutput {
     match value {
-        AvailableSpace::Definite(value) => (
-            AvailableSpaceKindCode::Definite as u8,
-            Some(f64::from(value)),
-        ),
-        AvailableSpace::MinContent => (AvailableSpaceKindCode::MinContent as u8, None),
-        AvailableSpace::MaxContent => (AvailableSpaceKindCode::MaxContent as u8, None),
+        AvailableSpace::Definite(value) => AvailableSpaceOutput {
+            kind: AvailableSpaceKindCode::Definite as u8,
+            value: Some(f64::from(value)),
+        },
+        AvailableSpace::MinContent => AvailableSpaceOutput {
+            kind: AvailableSpaceKindCode::MinContent as u8,
+            value: None,
+        },
+        AvailableSpace::MaxContent => AvailableSpaceOutput {
+            kind: AvailableSpaceKindCode::MaxContent as u8,
+            value: None,
+        },
     }
 }
 
@@ -63,17 +60,13 @@ mod tests {
 
     #[test]
     fn output_uses_public_kind_codes() {
-        assert_eq!(
-            available_space_output(AvailableSpace::Definite(12.0)),
-            (0, Some(12.0))
-        );
-        assert_eq!(
-            available_space_output(AvailableSpace::MinContent),
-            (1, None)
-        );
-        assert_eq!(
-            available_space_output(AvailableSpace::MaxContent),
-            (2, None)
-        );
+        let definite = available_space_output(AvailableSpace::Definite(12.0));
+        assert_eq!((definite.kind, definite.value), (0, Some(12.0)));
+
+        let min_content = available_space_output(AvailableSpace::MinContent);
+        assert_eq!((min_content.kind, min_content.value), (1, None));
+
+        let max_content = available_space_output(AvailableSpace::MaxContent);
+        assert_eq!((max_content.kind, max_content.value), (2, None));
     }
 }

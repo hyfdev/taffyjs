@@ -2,8 +2,9 @@ use std::marker::PhantomData;
 use std::ptr;
 use std::rc::Rc;
 
-use napi::bindgen_prelude::{BigInt, Function, Object, Unknown};
-use napi::{Env, JsValue, sys};
+use napi::bindgen_prelude::{BigInt, Either, Function, ToNapiValue, Undefined, Unknown};
+use napi::{JsValue, sys};
+use napi_derive::napi;
 use taffy::geometry::Size;
 use taffy::style::{AvailableSpace, Style};
 use taffy::{NodeId, TaffyTree};
@@ -11,22 +12,40 @@ use taffy::{NodeId, TaffyTree};
 use crate::error::{NativeError, NativeResult, internal_error, type_error};
 use crate::{available_space, geometry, number, style};
 
+#[napi(object, object_from_js = false)]
+pub struct KnownDimensionsOutput {
+    pub width: Either<f64, Undefined>,
+    pub height: Either<f64, Undefined>,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct AvailableSpaceSizeOutput {
+    pub width: available_space::AvailableSpaceOutput,
+    pub height: available_space::AvailableSpaceOutput,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct MeasureArguments {
+    pub known_dimensions: KnownDimensionsOutput,
+    pub available_space: AvailableSpaceSizeOutput,
+    pub node: BigInt,
+    pub style: style::StyleOutput,
+}
+
 pub(crate) enum MeasureFailure<'env> {
     Callback(Unknown<'env>),
     Native(NativeError),
 }
 
 pub(crate) struct MeasureSession<'env> {
-    env: Env,
-    callback: Function<'env, Object<'env>, Unknown<'env>>,
+    callback: Function<'env, MeasureArguments, Unknown<'env>>,
     failure: Option<MeasureFailure<'env>>,
     not_send: PhantomData<Rc<()>>,
 }
 
 impl<'env> MeasureSession<'env> {
-    pub(crate) fn new(env: Env, callback: Function<'env, Object<'env>, Unknown<'env>>) -> Self {
+    pub(crate) fn new(callback: Function<'env, MeasureArguments, Unknown<'env>>) -> Self {
         Self {
-            env,
             callback,
             failure: None,
             not_send: PhantomData,
@@ -44,11 +63,11 @@ impl<'env> MeasureSession<'env> {
             return Size::ZERO;
         }
 
-        let result = self
-            .arguments(known_dimensions, available_space, node, style)
-            .map_err(|_| MeasureFailure::Native(internal_error()))
-            .and_then(|arguments| call(&self.callback, arguments))
-            .and_then(|value| result_size(value).map_err(MeasureFailure::Native));
+        let result = call(
+            &self.callback,
+            self.arguments(known_dimensions, available_space, node, style),
+        )
+        .and_then(|value| result_size(value).map_err(MeasureFailure::Native));
         match result {
             Ok(size) => size,
             Err(failure) => {
@@ -72,25 +91,19 @@ impl<'env> MeasureSession<'env> {
         available_space: Size<AvailableSpace>,
         node: NodeId,
         style: &Style,
-    ) -> napi::Result<Object<'env>> {
-        let mut output = Object::new(&self.env)?;
-        output.set(
-            "knownDimensions",
-            known_dimensions_output(&self.env, known_dimensions)?,
-        )?;
-        output.set(
-            "availableSpace",
-            available_space_size_output(&self.env, available_space)?,
-        )?;
-        output.set("node", BigInt::from(u64::from(node)))?;
-        output.set("style", style::output(&self.env, style)?)?;
-        Ok(output)
+    ) -> MeasureArguments {
+        MeasureArguments {
+            known_dimensions: known_dimensions_output(known_dimensions),
+            available_space: available_space_size_output(available_space),
+            node: BigInt::from(u64::from(node)),
+            style: style::output(style),
+        }
     }
 }
 
 fn call<'env>(
-    callback: &Function<'env, Object<'env>, Unknown<'env>>,
-    arguments: Object<'env>,
+    callback: &Function<'env, MeasureArguments, Unknown<'env>>,
+    arguments: MeasureArguments,
 ) -> Result<Unknown<'env>, MeasureFailure<'env>> {
     let env = callback.value().env;
     let mut receiver = ptr::null_mut();
@@ -99,7 +112,9 @@ fn call<'env>(
         return Err(MeasureFailure::Native(internal_error()));
     }
 
-    let args = [arguments.raw()];
+    let argument = unsafe { MeasureArguments::to_napi_value(env, arguments) }
+        .map_err(|_| MeasureFailure::Native(internal_error()))?;
+    let args = [argument];
     let mut returned = ptr::null_mut();
     let status = unsafe {
         sys::napi_call_function(
@@ -126,45 +141,25 @@ fn call<'env>(
     }
 }
 
-fn known_dimension_output<'env>(
-    output: &mut Object<'env>,
-    field: &str,
-    value: Option<f32>,
-) -> napi::Result<()> {
+fn known_dimension_output(value: Option<f32>) -> Either<f64, Undefined> {
     match value {
-        Some(value) => output.set(field, f64::from(value)),
-        None => output.set(field, ()),
+        Some(value) => Either::A(f64::from(value)),
+        None => Either::B(()),
     }
 }
 
-fn known_dimensions_output<'env>(
-    env: &Env,
-    value: Size<Option<f32>>,
-) -> napi::Result<Object<'env>> {
-    let mut output = Object::new(env)?;
-    known_dimension_output(&mut output, "width", value.width)?;
-    known_dimension_output(&mut output, "height", value.height)?;
-    Ok(output)
-}
-
-fn available_space_output<'env>(env: &Env, value: AvailableSpace) -> napi::Result<Object<'env>> {
-    let (kind, value) = available_space::available_space_output(value);
-    let mut output = Object::new(env)?;
-    output.set("kind", kind)?;
-    if let Some(value) = value {
-        output.set("value", value)?;
+fn known_dimensions_output(value: Size<Option<f32>>) -> KnownDimensionsOutput {
+    KnownDimensionsOutput {
+        width: known_dimension_output(value.width),
+        height: known_dimension_output(value.height),
     }
-    Ok(output)
 }
 
-fn available_space_size_output<'env>(
-    env: &Env,
-    value: Size<AvailableSpace>,
-) -> napi::Result<Object<'env>> {
-    let mut output = Object::new(env)?;
-    output.set("width", available_space_output(env, value.width)?)?;
-    output.set("height", available_space_output(env, value.height)?)?;
-    Ok(output)
+fn available_space_size_output(value: Size<AvailableSpace>) -> AvailableSpaceSizeOutput {
+    AvailableSpaceSizeOutput {
+        width: available_space::available_space_output(value.width),
+        height: available_space::available_space_output(value.height),
+    }
 }
 
 fn result_size(value: Unknown<'_>) -> NativeResult<Size<f32>> {

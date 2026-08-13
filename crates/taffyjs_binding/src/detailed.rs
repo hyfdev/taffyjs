@@ -1,69 +1,74 @@
-use napi::Env;
-use napi::bindgen_prelude::Object;
+use napi_derive::napi;
 use taffy::{DetailedGridInfo, DetailedGridItemsInfo, DetailedGridTracksInfo, DetailedLayoutInfo};
 
 use crate::generated_numeric::DetailedLayoutInfoKindCode;
 
-fn tracks_output<'env>(env: &Env, value: &DetailedGridTracksInfo) -> napi::Result<Object<'env>> {
-    let mut output = Object::new(env)?;
-    output.set("negativeImplicitTracks", value.negative_implicit_tracks)?;
-    output.set("explicitTracks", value.explicit_tracks)?;
-    output.set("positiveImplicitTracks", value.positive_implicit_tracks)?;
-    output.set(
-        "gutters",
-        value
-            .gutters
-            .iter()
-            .copied()
-            .map(f64::from)
-            .collect::<Vec<_>>(),
-    )?;
-    output.set(
-        "sizes",
-        value
-            .sizes
-            .iter()
-            .copied()
-            .map(f64::from)
-            .collect::<Vec<_>>(),
-    )?;
-    Ok(output)
+#[napi(object, object_from_js = false)]
+pub struct DetailedGridTracksOutput {
+    pub negative_implicit_tracks: u16,
+    pub explicit_tracks: u16,
+    pub positive_implicit_tracks: u16,
+    pub gutters: Vec<f64>,
+    pub sizes: Vec<f64>,
 }
 
-fn item_output<'env>(env: &Env, value: &DetailedGridItemsInfo) -> napi::Result<Object<'env>> {
-    let mut output = Object::new(env)?;
-    output.set("rowStart", value.row_start)?;
-    output.set("rowEnd", value.row_end)?;
-    output.set("columnStart", value.column_start)?;
-    output.set("columnEnd", value.column_end)?;
-    Ok(output)
+#[napi(object, object_from_js = false)]
+pub struct DetailedGridItemOutput {
+    pub row_start: u16,
+    pub row_end: u16,
+    pub column_start: u16,
+    pub column_end: u16,
 }
 
-fn grid_output<'env>(env: &Env, value: &DetailedGridInfo) -> napi::Result<Object<'env>> {
-    let mut output = Object::new(env)?;
-    output.set("rows", tracks_output(env, &value.rows)?)?;
-    output.set("columns", tracks_output(env, &value.columns)?)?;
-    output.set(
-        "items",
-        value
-            .items
-            .iter()
-            .map(|item| item_output(env, item))
-            .collect::<napi::Result<Vec<_>>>()?,
-    )?;
-    Ok(output)
+#[napi(object, object_from_js = false)]
+pub struct DetailedGridOutput {
+    pub rows: DetailedGridTracksOutput,
+    pub columns: DetailedGridTracksOutput,
+    pub items: Vec<DetailedGridItemOutput>,
 }
 
-pub(crate) fn output<'env>(env: &Env, value: &DetailedLayoutInfo) -> napi::Result<Object<'env>> {
-    let mut output = Object::new(env)?;
-    match value {
-        DetailedLayoutInfo::None => {
-            output.set("kind", DetailedLayoutInfoKindCode::None as u8)?;
-        }
-        DetailedLayoutInfo::Grid(value) => {
-            output.set("kind", DetailedLayoutInfoKindCode::Grid as u8)?;
-            output.set("value", grid_output(env, value)?)?;
-        }
+#[napi(object, object_from_js = false)]
+pub struct DetailedLayoutOutput {
+    pub kind: u8,
+    pub value: Option<DetailedGridOutput>,
+}
+
+fn tracks_output(value: &DetailedGridTracksInfo) -> DetailedGridTracksOutput {
+    DetailedGridTracksOutput {
+        negative_implicit_tracks: value.negative_implicit_tracks,
+        explicit_tracks: value.explicit_tracks,
+        positive_implicit_tracks: value.positive_implicit_tracks,
+        gutters: value.gutters.iter().copied().map(f64::from).collect(),
+        sizes: value.sizes.iter().copied().map(f64::from).collect(),
     }
-    Ok(output)
+}
+
+fn item_output(value: &DetailedGridItemsInfo) -> DetailedGridItemOutput {
+    DetailedGridItemOutput {
+        row_start: value.row_start,
+        row_end: value.row_end,
+        column_start: value.column_start,
+        column_end: value.column_end,
+    }
+}
+
+fn grid_output(value: &DetailedGridInfo) -> DetailedGridOutput {
+    DetailedGridOutput {
+        rows: tracks_output(&value.rows),
+        columns: tracks_output(&value.columns),
+        items: value.items.iter().map(item_output).collect(),
+    }
+}
+
+pub(crate) fn output(value: &DetailedLayoutInfo) -> DetailedLayoutOutput {
+    match value {
+        DetailedLayoutInfo::None => DetailedLayoutOutput {
+            kind: DetailedLayoutInfoKindCode::None as u8,
+            value: None,
+        },
+        DetailedLayoutInfo::Grid(value) => DetailedLayoutOutput {
+            kind: DetailedLayoutInfoKindCode::Grid as u8,
+            value: Some(grid_output(value)),
+        },
+    }
 }
