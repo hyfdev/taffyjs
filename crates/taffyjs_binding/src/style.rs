@@ -62,8 +62,8 @@ pub(crate) const STYLE_FIELDS: &[&str] = &[
 #[napi(object, object_to_js = false)]
 pub struct StyleInput<'env> {
     pub display: Option<Unknown<'env>>,
-    pub item_is_table: Option<Unknown<'env>>,
-    pub item_is_replaced: Option<Unknown<'env>>,
+    pub item_is_table: Option<bool>,
+    pub item_is_replaced: Option<bool>,
     pub box_sizing: Option<Unknown<'env>>,
     pub direction: Option<Unknown<'env>>,
     pub overflow: Option<Unknown<'env>>,
@@ -99,8 +99,8 @@ pub struct StyleInput<'env> {
     pub grid_auto_columns: Option<Unknown<'env>>,
     pub grid_auto_flow: Option<Unknown<'env>>,
     pub grid_template_areas: Option<Unknown<'env>>,
-    pub grid_template_column_names: Option<Unknown<'env>>,
-    pub grid_template_row_names: Option<Unknown<'env>>,
+    pub grid_template_column_names: Option<Vec<Vec<String>>>,
+    pub grid_template_row_names: Option<Vec<Vec<String>>>,
     pub grid_row: Option<Unknown<'env>>,
     pub grid_column: Option<Unknown<'env>>,
 }
@@ -429,10 +429,10 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         style.display = display(value)?;
     }
     if let Some(value) = input.item_is_table {
-        style.item_is_table = cast(value, "itemIsTable")?;
+        style.item_is_table = value;
     }
     if let Some(value) = input.item_is_replaced {
-        style.item_is_replaced = cast(value, "itemIsReplaced")?;
+        style.item_is_replaced = value;
     }
     if let Some(value) = input.box_sizing {
         style.box_sizing = box_sizing(value)?;
@@ -576,10 +576,10 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         };
     }
     if let Some(value) = input.grid_template_column_names {
-        style.grid_template_column_names = cast(value, "gridTemplateColumnNames")?;
+        style.grid_template_column_names = value;
     }
     if let Some(value) = input.grid_template_row_names {
-        style.grid_template_row_names = cast(value, "gridTemplateRowNames")?;
+        style.grid_template_row_names = value;
     }
     grid::validate_template_line_names(&style.grid_template_rows, &style.grid_template_row_names)?;
     grid::validate_template_line_names(

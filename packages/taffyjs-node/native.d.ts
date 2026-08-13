@@ -253,8 +253,8 @@ export interface RepetitionCountOutput {
 
 export interface StyleInput {
   display?: unknown;
-  itemIsTable?: unknown;
-  itemIsReplaced?: unknown;
+  itemIsTable?: boolean;
+  itemIsReplaced?: boolean;
   boxSizing?: unknown;
   direction?: unknown;
   overflow?: unknown;
@@ -289,8 +289,8 @@ export interface StyleInput {
   gridAutoColumns?: unknown;
   gridAutoFlow?: unknown;
   gridTemplateAreas?: unknown;
-  gridTemplateColumnNames?: unknown;
-  gridTemplateRowNames?: unknown;
+  gridTemplateColumnNames?: Array<Array<string>>;
+  gridTemplateRowNames?: Array<Array<string>>;
   gridRow?: unknown;
   gridColumn?: unknown;
 }
