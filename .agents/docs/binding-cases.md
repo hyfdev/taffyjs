@@ -74,7 +74,7 @@ This registry contains one entry for each node currently stored in the TaffyTree
 
 Before native access, the wrapper confirms that each NodeId is a bigint with the complete private format, was issued by the target tree, and still matches the current registry entry for its raw Taffy NodeId. An ordinary object, a malformed bigint, a NodeId from another tree, and a NodeId for a removed node produce controlled JavaScript errors through @taffyjs/node.
 
-The JavaScript registry is the sole NodeId-validity registry for the supported API, so its single current-node lookup happens immediately before the synchronous native call in the ordinary value-object path. The baseline does not add a second lookup or a dedicated defensive copy solely for a getter or Proxy trap that mutates the same tree during argument conversion; that re-entrant value-object behavior is outside the initial guarantee. This is an internal implementation constraint rather than additional public NodeId behavior. Direct calls to the separately published @taffyjs/binding-<platform> packages bypass the wrapper and are deliberately outside the public API and its safety guarantee.
+The JavaScript registry is the sole NodeId-validity registry for the supported API, so its single current-node lookup happens immediately before the synchronous native call in the ordinary value-object path. The baseline does not add a second lookup or a dedicated defensive copy solely for a getter or Proxy trap that mutates the same tree during argument conversion; that re-entrant value-object behavior is outside the initial guarantee. This is an internal implementation constraint rather than additional public NodeId behavior. Direct calls to the separate private platform packages bypass the wrapper and are deliberately outside the public API and its safety guarantee.
 
 A successful creation adds the corresponding registry entry, a successful removal deletes it, and clearing the tree clears the registry. A supported operation must not report success while exposing disagreement between the native tree and that registry. If a later node receives the same raw Taffy NodeId, it receives a new binding-issued serial and therefore a different public NodeId. The old bigint remains an ordinary JavaScript value but no longer passes the registry check.
 
@@ -211,11 +211,11 @@ Semantic lengths use a numeric literal discriminator and ordinary payload record
 The conceptual declarations are:
 
 ```ts
-export const LengthUnit = defineNumericEnum({
+export const LengthUnit = Object.freeze({
   Length: 0,
   Percent: 1,
   Auto: 2,
-});
+} as const);
 export type LengthUnit = EnumValue<typeof LengthUnit>;
 
 export interface LengthInput {
@@ -302,7 +302,7 @@ Each runtime family and TypeScript type follows the selected closed-enum rules. 
 
 Only named public combinations receive codes. The binding does not manufacture the full product of Taffy's position-keyword and safety fields: there is no `SafeBaseline`, `SafeStretch`, or `SafeSpaceBetween`. CSS does not define those combinations, and Taffy's parser rejects them. Ordinary members such as `Start` already carry Taffy's default `Unsafe` state, so parallel `Unsafe*` names would only duplicate values. This membership boundary selects the public semantic vocabulary rather than adding JavaScript-side layout normalization.
 
-Acceptance cases cover every listed member in its expected family, named-constant and raw-literal input, same-code output, nullable field round-trip, TypeScript rejection of unknown literals and widened numbers, structural acceptance of a same-code value from another family, runtime rejection of non-member codes before Style replacement, `SafeStart` preservation, a `SafeCenter` overflow integration case, and absence of raw keyword-safety records, string spellings, invalid `Safe*` combinations, and redundant `Unsafe*` members.
+Representative behavior cases cover named-constant and raw-literal input, same-code output, nullable field round-trip, TypeScript rejection of invalid values, and runtime rejection before Style replacement. Complete family membership belongs to the maintained generator input and generated outputs rather than a test that repeats every member or every alignment combination.
 
 ### Selected geometry record representation
 
@@ -391,11 +391,11 @@ Taffy's `AvailableSpace` has one data-carrying variant, `Definite(f32)`, and two
 The selected public representation therefore uses an ordinary tagged record for every variant. Its `kind` discriminator is the numeric-literal `AvailableSpaceKind` family with PascalCase `Definite`, `MinContent`, and `MaxContent` members. Conceptually:
 
 ```ts
-export const AvailableSpaceKind = defineNumericEnum({
+export const AvailableSpaceKind = Object.freeze({
   Definite: 0,
   MinContent: 1,
   MaxContent: 2,
-});
+} as const);
 
 export type AvailableSpaceInput =
   | {
@@ -426,7 +426,7 @@ The same-named value namespace provides `AvailableSpace.Definite(value)`, `Avail
 
 `AvailableSpace.Definite(value)` accepts only a JavaScript number and applies the already selected ordinary `f64`-to-`f32` pass-through, including negative and non-finite values. A missing definite payload, an unknown kind, a bare number, a string, or a symbol is not an `AvailableSpaceInput`. The content variants do not read a payload; an extra input property named `value` does not change their mapping and is not reproduced in output. The binding does not reserve any JavaScript number as a special encoding, pack the variant into numeric payload bits, or introduce a separate primitive-symbol vocabulary. Exact numeric kind codes come from the shared generator input. The two fieldless conveniences are shared frozen objects, but whole-record identity has no semantic meaning. Readonly callback values are materialized eagerly as ordinary objects.
 
-Acceptance cases cover direct records and all three conveniences, runtime rejection of unknown numeric kind codes, declaration-level acceptance of valid raw kind literals, rejection of unknown literals and widened numbers, structural acceptance of a same-code member from another family, required definite payloads, ignored extra structural properties on content inputs, JavaScript-number-only definite input, scalar precision and non-finite pass-through, rejection of bare whole-value numbers, strings, and symbols, readonly canonical callback output, ordinary switch narrowing, and output-to-input round-trip.
+Representative behavior cases cover direct records and all three conveniences, invalid kind and payload rejection, inactive payload handling, numeric conversion, helper materialization, and output shapes. Type tests cover the public tagged union and narrowing without copying the complete generated numeric-family table.
 
 ### Selected Grid representation
 

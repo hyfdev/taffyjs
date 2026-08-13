@@ -11,7 +11,7 @@ const readmePath = resolve(root, "packages/taffyjs-node/README.md");
 function example(source: string, name: string) {
   const fence = "```";
   const match = new RegExp(
-    `<!-- example:${name} -->\\n\\s*${fence}ts\\n([\\s\\S]*?)\\n${fence}`,
+    `<!-- example:${name} -->\\r?\\n\\s*${fence}ts\\r?\\n([\\s\\S]*?)\\r?\\n${fence}`,
     "u",
   ).exec(source);
   assert.ok(match, `Missing ${name} example`);

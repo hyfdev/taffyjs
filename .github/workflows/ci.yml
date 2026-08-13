@@ -13,31 +13,31 @@ jobs:
     name: Build and test Ubuntu x64
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
         with:
           version: 11.20.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.18.0
-          cache: pnpm
+          runtime: node@22.18.0
+          cache: true
+          install: false
       - uses: dtolnay/rust-toolchain@stable
       - run: pnpm install --frozen-lockfile
       - name: Build and run all tests
         run: pnpm exec vp run --concurrency-limit 1 check:test
+      - name: Verify committed package outputs are current
+        run: git diff --exit-code -- packages/taffyjs-node/index.js packages/taffyjs-node/index.d.ts packages/taffyjs-node/native.js packages/taffyjs-node/native.d.ts
 
   test-windows-x64-msvc:
     name: Build and test Windows x64
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
         with:
           version: 11.20.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.18.0
-          cache: pnpm
+          runtime: node@22.18.0
+          cache: true
+          install: false
       - uses: dtolnay/rust-toolchain@stable
       - run: pnpm install --frozen-lockfile
       - name: Build and run all tests
@@ -47,14 +47,13 @@ jobs:
     name: Node checks
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
         with:
           version: 11.20.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.18.0
-          cache: pnpm
+          runtime: node@22.18.0
+          cache: true
+          install: false
       - run: pnpm install --frozen-lockfile
       - name: Check formatting
         run: pnpm exec vp run check:format
@@ -67,11 +66,11 @@ jobs:
     name: Rust checks
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
       - name: Check formatting
         run: cargo fmt --all -- --check
       - name: Run Clippy
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings

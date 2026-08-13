@@ -2,7 +2,7 @@ import { defineConfig } from "vite-plus";
 
 const testTasks = {
   "check:test:rust": {
-    command: "cargo test --workspace --all-features",
+    command: "cargo test --workspace --all-features --locked",
   },
   "check:test:native": {
     command:
@@ -62,7 +62,7 @@ export default defineConfig({
       },
       "check:rust": {
         command:
-          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings",
+          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
       },
       ...testTasks,
       "check:test": {
