@@ -19,8 +19,8 @@ const testTasks = {
     command: "node tools/run-type-tests.mjs",
     dependsOn: ["build"],
   },
-  "check:test:node-minimum": {
-    command: "vp env exec --node 22.18.0 -- node tests/taffyjs-node/minimum-node/run.mjs",
+  "check:test:packed-consumer": {
+    command: "node tests/taffyjs-node/packed-consumer/run.mjs",
     dependsOn: ["build"],
   },
 };

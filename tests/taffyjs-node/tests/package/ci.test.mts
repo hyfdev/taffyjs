@@ -55,7 +55,7 @@ test("ready runs every local check", async () => {
     "check:test:wrapper",
     "check:test:integration",
     "check:test:types",
-    "check:test:node-minimum",
+    "check:test:packed-consumer",
   ]) {
     assert.equal(seen.has(required), true, required);
   }

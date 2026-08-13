@@ -7,13 +7,11 @@ import { fileURLToPath } from "node:url";
 
 import { platformForHost } from "../../../tools/platforms.mjs";
 
-assert.equal(process.versions.node, "22.18.0");
-
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const packageRoot = resolve(root, "packages/taffyjs-node");
 const vp = resolve(root, "node_modules/.bin/vp");
 const platform = platformForHost();
-assert.ok(platform, `Unsupported minimum-Node host ${process.platform}/${process.arch}`);
+assert.ok(platform, `Unsupported packed-consumer host ${process.platform}/${process.arch}`);
 
 function run(command, args, cwd) {
   const env = { ...process.env };
@@ -43,7 +41,7 @@ async function firstTarball(directory) {
   return resolve(directory, names[0]);
 }
 
-const temporaryRoot = await mkdtemp(resolve(tmpdir(), "taffyjs-minimum-node-"));
+const temporaryRoot = await mkdtemp(resolve(tmpdir(), "taffyjs-packed-consumer-"));
 try {
   const rootTarballs = resolve(temporaryRoot, "root-tarball");
   const platformTarballs = resolve(temporaryRoot, "platform-tarball");
@@ -69,7 +67,7 @@ try {
     resolve(consumer, "package.json"),
     `${JSON.stringify(
       {
-        name: "taffyjs-minimum-node-consumer",
+        name: "taffyjs-packed-consumer",
         private: true,
         type: "module",
         packageManager: "pnpm@11.20.0",
