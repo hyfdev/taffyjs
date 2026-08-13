@@ -52,6 +52,16 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09 and 2026-08-10; explicitly approved these binding principles before concrete API design and later approved a private JavaScript NodeId registry while keeping Taffy's actual tree and layout state native.
 
+### Bounded per-node selective reads
+
+**Ruling:** Any additive @taffyjs/node API for reading only part of a node's Style, Layout, or DetailedLayoutInfo should use an explicit finite selector list for that one node and kind of data. JavaScript should resolve a public selector through generated static metadata before the native call, and native code should directly read and convert the selected Rust value rather than interpret a general query language or construct unrequested parent values.
+
+**Limits:** This ruling establishes a reference design; it does not require that the API ship, replace complete getters, or fix its public name, call signature, selector spelling and inventory, canonical-list format, private operation numbering, native method shape, absence and error behavior, batching, or performance acceptance thresholds. Selectors may follow fixed records, tagged variants, and collections only to depths explicitly listed by the project. They must not implicitly traverse the node tree or recursively enter values managed outside Style, Layout, or DetailedLayoutInfo. If a future public value is recursive, the existing query may return that value or a reference to it as a whole, or the project may design a separate API for it.
+
+**Why:** Consumers may need one field or one nested collection value without paying to convert the complete native object. The three current per-node values have finite, non-recursive public shapes even though the Taffy node tree and CSS calculation expressions are themselves recursive. A finite project-owned selector list keeps the API type-checkable and maintainable, while generated cross-language metadata prevents JavaScript and Rust contracts from drifting. Complete getters remain the better path when a consumer needs most of a value.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-13; accepted this constrained design as sound for the current and foreseeable Style and layout data and requested that the high-level design be recorded for later implementation. See [Selective query design notes](query-api-design.md).
+
 ### Direct layout-state behavior
 
 [VOUCHED @hyfdev 2026-08-09]
@@ -171,3 +181,9 @@ This ledger records only judgments that Yunfei explicitly expressed about @taffy
 **Why:** The generated root loader plus one optional package per platform is napi-rs's current maintained release model. It already gives @taffyjs/node the required package boundary; another binding package or loader build would add machinery for requirements that TaffyJS does not currently have.
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09 and 2026-08-10; accepted the current model if it remained the official napi-rs recommendation, preferred avoiding an additional custom packaging layer without a concrete need, and explicitly excluded direct platform-package use from @taffyjs/node's API and safety contract. The maintained model is described in napi-rs's [native package release documentation](https://napi.rs/docs/deep-dive/release).
+
+## Open
+
+### Selective query implementation details
+
+The concrete API and selector inventory, canonical-list representation, private dispatch shape, index and absence semantics, error behavior, batching relationship, and performance acceptance thresholds remain open. The settled boundary and the questions intentionally deferred to implementation work are recorded in [Selective query design notes](query-api-design.md).
