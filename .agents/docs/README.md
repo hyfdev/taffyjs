@@ -5,5 +5,5 @@
 - [Taffy-to-Node binding mapping](binding-mapping.md) — the repeatable rules for selecting Taffy's high-level Rust surface, mapping it through napi-rs, and preserving safety at the JavaScript boundary.
 - [@taffyjs/node API alignment TODOs](api-alignment-todos.md) — performance and optional API questions that still require evidence.
 - [Technology stack](technology-stack.md) — why napi-rs and Vite+ own different build stages and how repository tasks are composed.
-- [@taffyjs/node decisions](taffyjs-node-decisions.md) — current choices for the Node binding's role, API priorities, module format, distribution, and testing strategy; the compressed wording awaits renewed human review.
+- [@taffyjs/node decisions](taffyjs-node-decisions.md) — vouched choices for the Node binding's role, API priorities, module format, distribution, and testing strategy.
 - [Tooling decisions](tooling-decisions.md) — vouched rulings for JavaScript package builds and repository command orchestration.

@@ -4,17 +4,23 @@ This ledger keeps only judgments Yunfei explicitly expressed; an implementation,
 
 ## Direct high-level binding
 
+[VOUCHED @hyfdev 2026-08-14]
+
 `@taffyjs/node` is the thin native foundation for Taffy's high-level `TaffyTree` workflow. Rust and Taffy own layout state and behavior; JavaScript must not maintain a shadow tree or reimplement layout. Thin does not mean exposing every public Rust symbol: low-level custom-tree traits, cache internals, CSS parsing, and Yoga compatibility stay outside this package.
 
 Additive convenience or measured performance APIs may coexist with the direct methods, but they must not replace them or require callers to adopt a higher-level JavaScript abstraction.
 
 ## Safe boundary with Taffy-owned semantics
 
+[VOUCHED @hyfdev 2026-08-14]
+
 Supported `@taffyjs/node` calls must prevent JavaScript-controlled values, ownership mistakes, callback re-entry, and known Taffy panic paths from violating Rust or native state. Expected misuse produces controlled JavaScript errors. Direct platform-package use is an unsupported implementation path and does not receive this guarantee.
 
 After the binding has produced a complete representable Rust value and satisfied its explicit identity, absence, ownership, lifetime, and safety rules, Taffy owns the semantic result. The direct binding does not add JavaScript-side clamping, CSS policy, Yoga normalization, or defensive defaults merely because a safely representable value is unusual.
 
 ## Public data model
+
+[VOUCHED @hyfdev 2026-08-14]
 
 Readable ordinary JavaScript data objects are the default input and output representation. Input records and helper-produced input values are mutable. Binding-produced snapshots are detached and recursively readonly in TypeScript, but runtime objects are not frozen, sealed, proxied, cached, or backed by a live Rust borrow.
 
@@ -24,17 +30,23 @@ Closed fieldless families use singular PascalCase frozen objects with stable num
 
 ## Value-based NodeId
 
+[VOUCHED @hyfdev 2026-08-14]
+
 Public `NodeId` is an opaque bigint with a TypeScript marker and a private per-tree encoding, not Taffy's raw `u64` and not a JavaScript node object. Stable bigint equality must work in ordinary JavaScript collections without a native call.
 
 The public wrapper keeps one current-node registry and validates owner, creation serial, and raw ID before native access. Native code does not duplicate that registry. IDs are not persistent or transferable across trees, workers, module evaluations, or separately installed package copies.
 
 ## Explicit layout and JavaScript context
 
+[VOUCHED @hyfdev 2026-08-14]
+
 Layout computation stays explicit through separate `computeLayout` and `computeLayoutWithMeasure` methods. Layout getters return Taffy's stored value without computing, and `isDirty` keeps Taffy's cache-state meaning rather than promising current output.
 
 Arbitrary node context remains owned by JavaScript; native `TaffyTree<()>` stores only presence. `undefined` means absence, `setNodeContext` marks the node dirty, and in-place context or captured-data changes require caller-managed `markDirty` when they affect measurement. The initial implementation has no JavaScript cache of Taffy-owned data.
 
 ## Measurement boundary
+
+[VOUCHED @hyfdev 2026-08-14]
 
 The direct measure callback is synchronous, scoped to one compute, and receives owned boundary values. Taffy and its cache control invocation count, ordering, and constraints. Same-tree native access while it runs fails with `ERR_TAFFY_TREE_BUSY`; an independent tree remains usable.
 
@@ -44,10 +56,14 @@ Retained, asynchronous, off-thread, cancellable, or transactionally rolled-back 
 
 ## Package and testing boundaries
 
+[VOUCHED @hyfdev 2026-08-14]
+
 The public package is ESM-only. napi-rs supplies the private root loader and optional platform packages; do not add a generic intermediate binding package, a dedicated CommonJS build, or a custom loader without a concrete supported-consumer need.
 
 JavaScript integration and packed-consumer tests are the primary proof of public behavior. Rust unit tests are reserved for small critical behavior that is clearer below Node-API, including panic containment and measurement internals. Test volume is not a goal; preserve distinct behavior without multiplying methods by every equivalent error case.
 
 ## Reopen only with evidence
+
+[VOUCHED @hyfdev 2026-08-14]
 
 New public state owners, compatibility layers, retained JavaScript values, callback models, private transports, batching, caches, or output representations require a concrete consumer need. Performance changes additionally require retained end-to-end measurements that include JavaScript conversion cost. Open work is tracked in [API alignment TODOs](api-alignment-todos.md).
