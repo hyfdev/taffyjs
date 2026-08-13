@@ -42,12 +42,8 @@ export default defineConfig({
   run: {
     cache: false,
     tasks: {
-      "check:generated": {
-        command: "node tools/generate-numeric-families.mjs --check",
-      },
       "build:binding": {
         command: "vp run @taffyjs/node#build",
-        dependsOn: ["check:generated"],
       },
       build: {
         command: "echo build ok",
@@ -72,7 +68,7 @@ export default defineConfig({
       },
       check: {
         command: "echo check ok",
-        dependsOn: ["check:generated", "check:format", "check:lint", "check:rust", "check:test"],
+        dependsOn: ["check:format", "check:lint", "check:rust", "check:test"],
       },
       "ready:body": {
         command: "echo ready checks passed",

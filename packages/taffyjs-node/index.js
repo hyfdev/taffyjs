@@ -1,142 +1,255 @@
 import { createRequire } from "node:module";
 import "#native";
-//#region src/generated/numeric-families.ts
+//#region src/numeric-families.ts
+/** Lists the supported display choices as stable numeric constants. */
 const Display = Object.freeze({
+	/** Selects the Block choice from the Display numeric family. */
 	Block: 0,
+	/** Selects the FlowRoot choice from the Display numeric family. */
 	FlowRoot: 1,
+	/** Selects the Flex choice from the Display numeric family. */
 	Flex: 2,
+	/** Selects the Grid choice from the Display numeric family. */
 	Grid: 3,
+	/** Selects the None choice from the Display numeric family. */
 	None: 4
 });
+/** Lists the supported box sizing choices as stable numeric constants. */
 const BoxSizing = Object.freeze({
+	/** Selects the BorderBox choice from the BoxSizing numeric family. */
 	BorderBox: 0,
+	/** Selects the ContentBox choice from the BoxSizing numeric family. */
 	ContentBox: 1
 });
+/** Lists the supported direction choices as stable numeric constants. */
 const Direction = Object.freeze({
+	/** Selects the Ltr choice from the Direction numeric family. */
 	Ltr: 0,
+	/** Selects the Rtl choice from the Direction numeric family. */
 	Rtl: 1
 });
+/** Lists the supported overflow choices as stable numeric constants. */
 const Overflow = Object.freeze({
+	/** Selects the Visible choice from the Overflow numeric family. */
 	Visible: 0,
+	/** Selects the Clip choice from the Overflow numeric family. */
 	Clip: 1,
+	/** Selects the Hidden choice from the Overflow numeric family. */
 	Hidden: 2,
+	/** Selects the Scroll choice from the Overflow numeric family. */
 	Scroll: 3
 });
+/** Lists the supported float choices as stable numeric constants. */
 const Float = Object.freeze({
+	/** Selects the Left choice from the Float numeric family. */
 	Left: 0,
+	/** Selects the Right choice from the Float numeric family. */
 	Right: 1,
+	/** Selects the None choice from the Float numeric family. */
 	None: 2
 });
+/** Lists the supported clear choices as stable numeric constants. */
 const Clear = Object.freeze({
+	/** Selects the Left choice from the Clear numeric family. */
 	Left: 0,
+	/** Selects the Right choice from the Clear numeric family. */
 	Right: 1,
+	/** Selects the Both choice from the Clear numeric family. */
 	Both: 2,
+	/** Selects the None choice from the Clear numeric family. */
 	None: 3
 });
+/** Lists the supported position choices as stable numeric constants. */
 const Position = Object.freeze({
+	/** Selects the Relative choice from the Position numeric family. */
 	Relative: 0,
+	/** Selects the Absolute choice from the Position numeric family. */
 	Absolute: 1
 });
+/** Lists the supported text align choices as stable numeric constants. */
 const TextAlign = Object.freeze({
+	/** Selects the Auto choice from the TextAlign numeric family. */
 	Auto: 0,
+	/** Selects the LegacyLeft choice from the TextAlign numeric family. */
 	LegacyLeft: 1,
+	/** Selects the LegacyRight choice from the TextAlign numeric family. */
 	LegacyRight: 2,
+	/** Selects the LegacyCenter choice from the TextAlign numeric family. */
 	LegacyCenter: 3
 });
+/** Lists the supported flex direction choices as stable numeric constants. */
 const FlexDirection = Object.freeze({
+	/** Selects the Row choice from the FlexDirection numeric family. */
 	Row: 0,
+	/** Selects the Column choice from the FlexDirection numeric family. */
 	Column: 1,
+	/** Selects the RowReverse choice from the FlexDirection numeric family. */
 	RowReverse: 2,
+	/** Selects the ColumnReverse choice from the FlexDirection numeric family. */
 	ColumnReverse: 3
 });
+/** Lists the supported flex wrap choices as stable numeric constants. */
 const FlexWrap = Object.freeze({
+	/** Selects the NoWrap choice from the FlexWrap numeric family. */
 	NoWrap: 0,
+	/** Selects the Wrap choice from the FlexWrap numeric family. */
 	Wrap: 1,
+	/** Selects the WrapReverse choice from the FlexWrap numeric family. */
 	WrapReverse: 2
 });
+/** Lists the supported grid auto flow choices as stable numeric constants. */
 const GridAutoFlow = Object.freeze({
+	/** Selects the Row choice from the GridAutoFlow numeric family. */
 	Row: 0,
+	/** Selects the Column choice from the GridAutoFlow numeric family. */
 	Column: 1,
+	/** Selects the RowDense choice from the GridAutoFlow numeric family. */
 	RowDense: 2,
+	/** Selects the ColumnDense choice from the GridAutoFlow numeric family. */
 	ColumnDense: 3
 });
+/** Lists the supported align items choices as stable numeric constants. */
 const AlignItems = Object.freeze({
+	/** Selects the Start choice from the AlignItems numeric family. */
 	Start: 0,
+	/** Selects the End choice from the AlignItems numeric family. */
 	End: 1,
+	/** Selects the FlexStart choice from the AlignItems numeric family. */
 	FlexStart: 2,
+	/** Selects the FlexEnd choice from the AlignItems numeric family. */
 	FlexEnd: 3,
+	/** Selects the SelfStart choice from the AlignItems numeric family. */
 	SelfStart: 4,
+	/** Selects the SelfEnd choice from the AlignItems numeric family. */
 	SelfEnd: 5,
+	/** Selects the Center choice from the AlignItems numeric family. */
 	Center: 6,
+	/** Selects the Baseline choice from the AlignItems numeric family. */
 	Baseline: 7,
+	/** Selects the Stretch choice from the AlignItems numeric family. */
 	Stretch: 8,
+	/** Selects the SafeStart choice from the AlignItems numeric family. */
 	SafeStart: 9,
+	/** Selects the SafeEnd choice from the AlignItems numeric family. */
 	SafeEnd: 10,
+	/** Selects the SafeFlexStart choice from the AlignItems numeric family. */
 	SafeFlexStart: 11,
+	/** Selects the SafeFlexEnd choice from the AlignItems numeric family. */
 	SafeFlexEnd: 12,
+	/** Selects the SafeSelfStart choice from the AlignItems numeric family. */
 	SafeSelfStart: 13,
+	/** Selects the SafeSelfEnd choice from the AlignItems numeric family. */
 	SafeSelfEnd: 14,
+	/** Selects the SafeCenter choice from the AlignItems numeric family. */
 	SafeCenter: 15
 });
+/** Lists the supported align content choices as stable numeric constants. */
 const AlignContent = Object.freeze({
+	/** Selects the Start choice from the AlignContent numeric family. */
 	Start: 0,
+	/** Selects the End choice from the AlignContent numeric family. */
 	End: 1,
+	/** Selects the FlexStart choice from the AlignContent numeric family. */
 	FlexStart: 2,
+	/** Selects the FlexEnd choice from the AlignContent numeric family. */
 	FlexEnd: 3,
+	/** Selects the Center choice from the AlignContent numeric family. */
 	Center: 4,
+	/** Selects the Stretch choice from the AlignContent numeric family. */
 	Stretch: 5,
+	/** Selects the SpaceBetween choice from the AlignContent numeric family. */
 	SpaceBetween: 6,
+	/** Selects the SpaceEvenly choice from the AlignContent numeric family. */
 	SpaceEvenly: 7,
+	/** Selects the SpaceAround choice from the AlignContent numeric family. */
 	SpaceAround: 8,
+	/** Selects the SafeStart choice from the AlignContent numeric family. */
 	SafeStart: 9,
+	/** Selects the SafeEnd choice from the AlignContent numeric family. */
 	SafeEnd: 10,
+	/** Selects the SafeFlexStart choice from the AlignContent numeric family. */
 	SafeFlexStart: 11,
+	/** Selects the SafeFlexEnd choice from the AlignContent numeric family. */
 	SafeFlexEnd: 12,
+	/** Selects the SafeCenter choice from the AlignContent numeric family. */
 	SafeCenter: 13
 });
+/** Lists the supported length unit choices as stable numeric constants. */
 const LengthUnit = Object.freeze({
+	/** Selects the Length choice from the LengthUnit numeric family. */
 	Length: 0,
+	/** Selects the Percent choice from the LengthUnit numeric family. */
 	Percent: 1,
+	/** Selects the Auto choice from the LengthUnit numeric family. */
 	Auto: 2
 });
+/** Lists the supported available space kind choices as stable numeric constants. */
 const AvailableSpaceKind = Object.freeze({
+	/** Selects the Definite choice from the AvailableSpaceKind numeric family. */
 	Definite: 0,
+	/** Selects the MinContent choice from the AvailableSpaceKind numeric family. */
 	MinContent: 1,
+	/** Selects the MaxContent choice from the AvailableSpaceKind numeric family. */
 	MaxContent: 2
 });
+/** Lists the supported grid placement kind choices as stable numeric constants. */
 const GridPlacementKind = Object.freeze({
+	/** Selects the Auto choice from the GridPlacementKind numeric family. */
 	Auto: 0,
+	/** Selects the Line choice from the GridPlacementKind numeric family. */
 	Line: 1,
+	/** Selects the NamedLine choice from the GridPlacementKind numeric family. */
 	NamedLine: 2,
+	/** Selects the Span choice from the GridPlacementKind numeric family. */
 	Span: 3,
+	/** Selects the NamedSpan choice from the GridPlacementKind numeric family. */
 	NamedSpan: 4
 });
+/** Lists the supported track sizing kind choices as stable numeric constants. */
 const TrackSizingKind = Object.freeze({
+	/** Selects the Length choice from the TrackSizingKind numeric family. */
 	Length: 0,
+	/** Selects the Percent choice from the TrackSizingKind numeric family. */
 	Percent: 1,
+	/** Selects the Auto choice from the TrackSizingKind numeric family. */
 	Auto: 2,
+	/** Selects the MinContent choice from the TrackSizingKind numeric family. */
 	MinContent: 3,
+	/** Selects the MaxContent choice from the TrackSizingKind numeric family. */
 	MaxContent: 4,
+	/** Selects the FitContent choice from the TrackSizingKind numeric family. */
 	FitContent: 5,
+	/** Selects the Fr choice from the TrackSizingKind numeric family. */
 	Fr: 6
 });
+/** Lists the supported repetition count kind choices as stable numeric constants. */
 const RepetitionCountKind = Object.freeze({
+	/** Selects the Count choice from the RepetitionCountKind numeric family. */
 	Count: 0,
+	/** Selects the AutoFill choice from the RepetitionCountKind numeric family. */
 	AutoFill: 1,
+	/** Selects the AutoFit choice from the RepetitionCountKind numeric family. */
 	AutoFit: 2
 });
+/** Lists the supported grid template component kind choices as stable numeric constants. */
 const GridTemplateComponentKind = Object.freeze({
+	/** Selects the Single choice from the GridTemplateComponentKind numeric family. */
 	Single: 0,
+	/** Selects the Repeat choice from the GridTemplateComponentKind numeric family. */
 	Repeat: 1
 });
+/** Lists the supported detailed layout info kind choices as stable numeric constants. */
 const DetailedLayoutInfoKind = Object.freeze({
+	/** Selects the None choice from the DetailedLayoutInfoKind numeric family. */
 	None: 0,
+	/** Selects the Grid choice from the DetailedLayoutInfoKind numeric family. */
 	Grid: 1
 });
 //#endregion
 //#region src/available-space.ts
 const minContent = Object.freeze({ kind: AvailableSpaceKind.MinContent });
 const maxContent = Object.freeze({ kind: AvailableSpaceKind.MaxContent });
+/** Provides constructors and shared values for readable available-space inputs. */
 const AvailableSpace = Object.freeze({
 	Definite(value) {
 		return {
@@ -150,6 +263,7 @@ const AvailableSpace = Object.freeze({
 //#endregion
 //#region src/grid.ts
 const gridPlacementAuto = Object.freeze({ kind: GridPlacementKind.Auto });
+/** Provides constructors and a shared Auto value for Grid placement inputs. */
 const GridPlacement = Object.freeze({
 	Auto: gridPlacementAuto,
 	Line(index) {
@@ -189,6 +303,7 @@ function frozenTrack(kind) {
 const trackAuto = frozenTrack(TrackSizingKind.Auto);
 const trackMinContent = frozenTrack(TrackSizingKind.MinContent);
 const trackMaxContent = frozenTrack(TrackSizingKind.MaxContent);
+/** Provides constructors and shared values for Grid track sizing inputs. */
 const TrackSizingFunction = Object.freeze({
 	Length(value) {
 		return {
@@ -244,6 +359,7 @@ const TrackSizingFunction = Object.freeze({
 });
 const autoFill = Object.freeze({ kind: RepetitionCountKind.AutoFill });
 const autoFit = Object.freeze({ kind: RepetitionCountKind.AutoFit });
+/** Provides constructors and shared values for Grid repetition counts. */
 const RepetitionCount = Object.freeze({
 	Count(value) {
 		return {
@@ -254,6 +370,7 @@ const RepetitionCount = Object.freeze({
 	AutoFill: autoFill,
 	AutoFit: autoFit
 });
+/** Provides constructors for Grid template components. */
 const GridTemplateComponent = Object.freeze({
 	Single(value) {
 		return {
@@ -275,6 +392,7 @@ const GridTemplateComponent = Object.freeze({
 //#endregion
 //#region src/length.ts
 const auto = Object.freeze({ unit: LengthUnit.Auto });
+/** Provides constructors and a shared Auto value for readable dimension inputs. */
 const Dimension = Object.freeze({
 	Length(value) {
 		return {
@@ -367,7 +485,8 @@ var NodeIdRegistry = class {
 const { NativeTaffyTree } = createRequire(import.meta.url)("#native");
 const privateConstructor = Symbol();
 const secureRandom = (bytes) => globalThis.crypto.getRandomValues(bytes);
-var TaffyTree = class {
+/** Creates an independent Taffy tree with its own NodeId namespace. */
+const TaffyTree = class TaffyTree {
 	#inner;
 	#nodes;
 	#contexts = /* @__PURE__ */ new Map();
@@ -376,94 +495,124 @@ var TaffyTree = class {
 		this.#nodes = new NodeIdRegistry(options.randomSource ?? secureRandom, options.nextSerial);
 		this.#inner = new NativeTaffyTree();
 	}
+	/** Enables pixel rounding for subsequently computed public layouts. */
 	enableRounding() {
 		this.#inner.rawEnableRounding("enableRounding");
 	}
+	/** Disables pixel rounding while retaining unrounded layout values. */
 	disableRounding() {
 		this.#inner.rawDisableRounding("disableRounding");
 	}
+	/** Returns the number of live nodes owned by this tree. */
 	getNodeCount() {
 		return this.#getNodeCount();
 	}
+	/** Returns the current number of children for one parent. */
 	getChildCount(parent) {
 		return this.#getChildCount(parent);
 	}
+	/** Returns the current parent or null for a root node. */
 	getParent(node) {
 		return this.#getParent(node);
 	}
+	/** Returns a detached readonly snapshot of the ordered children. */
 	getChildren(parent) {
 		return this.#getChildren(parent);
 	}
+	/** Returns the child at the requested parent index. */
 	getChildAtIndex(parent, index) {
 		return this.#getChildAtIndex(parent, index);
 	}
+	/** Appends an existing node to the parent child list. */
 	addChild(parent, child) {
 		this.#addChild(parent, child);
 	}
+	/** Inserts an existing child at the requested parent index. */
 	insertChildAtIndex(parent, index, child) {
 		this.#insertChildAtIndex(parent, index, child);
 	}
+	/** Replaces the complete ordered child list for one parent. */
 	setChildren(parent, children) {
 		this.#setChildren(parent, children);
 	}
+	/** Detaches the selected child from its current parent. */
 	removeChild(parent, child) {
 		this.#removeChild(parent, child);
 	}
+	/** Detaches and returns the child at the requested index. */
 	removeChildAtIndex(parent, index) {
 		return this.#removeChildAtIndex(parent, index);
 	}
+	/** Detaches children in the supplied half-open index range. */
 	removeChildrenRange(parent, range) {
 		this.#removeChildrenRange(parent, range);
 	}
+	/** Replaces and returns the child at the requested index. */
 	replaceChildAtIndex(parent, index, newChild) {
 		return this.#replaceChildAtIndex(parent, index, newChild);
 	}
+	/** Creates a leaf node from the supplied public style input. */
 	newLeaf(style) {
 		return this.#newLeaf(style);
 	}
+	/** Creates a leaf node and associates optional JavaScript context. */
 	newLeafWithContext(style, context) {
 		return this.#newLeafWithContext(style, context);
 	}
+	/** Creates a parent node with the supplied ordered children. */
 	newWithChildren(style, children) {
 		return this.#newWithChildren(style, children);
 	}
+	/** Removes one node and invalidates its public NodeId. */
 	remove(node) {
 		this.#remove(node);
 	}
+	/** Returns the JavaScript context currently associated with one node. */
 	getNodeContext(node) {
 		return this.#getNodeContext(node);
 	}
+	/** Replaces or clears the JavaScript context for one node. */
 	setNodeContext(node, context) {
 		this.#setNodeContext(node, context);
 	}
+	/** Replaces a node style and marks affected layout state dirty. */
 	setStyle(node, style) {
 		const raw = this.#nodes.resolve(node);
 		this.#inner.rawSetStyle(raw, style, "setStyle");
 	}
+	/** Returns a detached readable snapshot of the node style. */
 	getStyle(node) {
 		return this.#getStyle(node);
 	}
+	/** Returns the most recently stored rounded layout snapshot. */
 	getLayout(node) {
 		return this.#getLayout(node);
 	}
+	/** Returns the most recently stored unrounded layout snapshot. */
 	getUnroundedLayout(node) {
 		return this.#getUnroundedLayout(node);
 	}
+	/** Returns detailed Grid tracks and item placement when available. */
 	getDetailedLayoutInfo(node) {
 		return this.#getDetailedLayoutInfo(node);
 	}
+	/** Explicitly marks a node for layout recomputation. */
 	markDirty(node) {
 		this.#markDirty(node);
 	}
+	/** Reports whether a node currently needs layout recomputation. */
 	isDirty(node) {
 		return this.#isDirty(node);
 	}
+	/** Removes every node and context value from this tree. */
 	clear() {
 		this.#clear();
 	}
+	/** Computes and stores layout for a tree root synchronously. */
 	computeLayout(options) {
 		this.#computeLayout(options);
 	}
+	/** Computes synchronously with a per-call measurement callback. */
 	computeLayoutWithMeasure(options) {
 		this.#computeLayoutWithMeasure(options);
 	}

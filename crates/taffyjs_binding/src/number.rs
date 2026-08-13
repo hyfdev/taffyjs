@@ -42,7 +42,7 @@ pub(crate) fn to_safe_usize(value: f64) -> NativeResult<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generated_numeric::DisplayCode;
+    use crate::numeric::DisplayCode;
 
     #[test]
     fn f32_conversion_matches_rust_cast() {

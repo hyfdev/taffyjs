@@ -6,7 +6,7 @@ export default defineConfig({
     format: "esm",
     outDir: ".",
     clean: false,
-    dts: false,
+    dts: true,
     platform: "node",
     target: "node22.18",
     fixedExtension: false,

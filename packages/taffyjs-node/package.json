@@ -29,8 +29,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "node ../../tools/generate-numeric-families.mjs --check && napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm --release && vp fmt native.js native.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack && napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir node_modules/.cache/taffyjs-test-hooks --platform --js test-hooks.js --dts test-hooks.d.ts --esm --release --features test-hooks",
-    "build:debug": "node ../../tools/generate-numeric-families.mjs --check && napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm && vp fmt native.js native.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack",
+    "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm --release && vp fmt native.js native.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack && napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir node_modules/.cache/taffyjs-test-hooks --platform --js test-hooks.js --dts test-hooks.d.ts --esm --release --features test-hooks",
+    "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm && vp fmt native.js native.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack",
     "check": "vp check",
     "test": "vp test"
   },

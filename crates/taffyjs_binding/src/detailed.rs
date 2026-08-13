@@ -1,7 +1,7 @@
 use napi_derive::napi;
 use taffy::{DetailedGridInfo, DetailedGridItemsInfo, DetailedGridTracksInfo, DetailedLayoutInfo};
 
-use crate::generated_numeric::DetailedLayoutInfoKindCode;
+use crate::numeric::DetailedLayoutInfoKindCode;
 
 #[napi(object, object_from_js = false)]
 pub struct DetailedGridTracksOutput {

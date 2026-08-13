@@ -3,7 +3,6 @@
 mod available_space;
 mod detailed;
 mod error;
-mod generated_numeric;
 mod geometry;
 mod grid;
 mod js_object;
@@ -11,6 +10,7 @@ mod layout;
 mod length;
 mod measure;
 mod number;
+mod numeric;
 mod owner;
 mod style;
 

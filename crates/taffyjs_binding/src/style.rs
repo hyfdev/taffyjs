@@ -8,7 +8,7 @@ use taffy::style::{
 };
 
 use crate::error::{NativeResult, type_error};
-use crate::generated_numeric::{
+use crate::numeric::{
     AlignContentCode, AlignItemsCode, BoxSizingCode, ClearCode, DirectionCode, DisplayCode,
     FlexDirectionCode, FlexWrapCode, FloatCode, GridAutoFlowCode, OverflowCode, PositionCode,
     TextAlignCode,

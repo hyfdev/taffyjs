@@ -7,13 +7,13 @@ use taffy::style::{
 };
 
 use crate::error::{NativeResult, range_error, type_error};
-use crate::generated_numeric::{
-    GridPlacementKindCode, GridTemplateComponentKindCode, RepetitionCountKindCode,
-    TrackSizingKindCode,
-};
 use crate::js_object;
 use crate::length::{self, LengthOutput};
 use crate::number::{from_unknown, to_f32, to_integer};
+use crate::numeric::{
+    GridPlacementKindCode, GridTemplateComponentKindCode, RepetitionCountKindCode,
+    TrackSizingKindCode,
+};
 
 #[napi(object, object_to_js = false)]
 pub struct TaggedGridInput<'env> {
@@ -402,11 +402,11 @@ fn min_track_output(value: MinTrackSizingFunction) -> TrackSizingValueOutput {
 fn fit_content_output(raw: CompactLength) -> LengthOutput {
     match raw.tag() {
         CompactLength::FIT_CONTENT_PX_TAG => LengthOutput {
-            unit: crate::generated_numeric::LengthUnitCode::Length as u8,
+            unit: crate::numeric::LengthUnitCode::Length as u8,
             value: Some(f64::from(raw.value())),
         },
         CompactLength::FIT_CONTENT_PERCENT_TAG => LengthOutput {
-            unit: crate::generated_numeric::LengthUnitCode::Percent as u8,
+            unit: crate::numeric::LengthUnitCode::Percent as u8,
             value: Some(f64::from(raw.value()) * 100.0),
         },
         _ => panic!("unsupported Taffy fit-content tag"),

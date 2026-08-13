@@ -3,9 +3,9 @@ use napi_derive::napi;
 use taffy::style::{CompactLength, Dimension, LengthPercentage, LengthPercentageAuto};
 
 use crate::error::{NativeResult, type_error};
-use crate::generated_numeric::LengthUnitCode;
 use crate::js_object;
 use crate::number::{from_unknown, to_f32, to_integer};
+use crate::numeric::LengthUnitCode;
 
 #[napi(object, object_to_js = false)]
 pub struct TaggedLengthInput<'env> {

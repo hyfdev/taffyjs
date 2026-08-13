@@ -1,5 +1,16 @@
 import { createRequire } from "node:module";
 import { NodeIdRegistry, type NodeId, type RandomSource } from "./node-id.js";
+import type {
+  AvailableSpace,
+  ChildRangeInput,
+  ComputeLayoutOptions,
+  ComputeLayoutWithMeasureOptions,
+  DetailedLayoutInfo,
+  Layout,
+  Size,
+  Style,
+  StyleInput,
+} from "./public-types.js";
 
 type NativeModule = typeof import("#native");
 type NativeTree = InstanceType<NativeModule["NativeTaffyTree"]>;
@@ -15,37 +26,107 @@ const privateConstructor = Symbol();
 type PrivateConstructorArgs = [] | [key: typeof privateConstructor, options: PrivateTreeOptions];
 
 type RawMeasureArgs = {
-  knownDimensions: unknown;
-  availableSpace: unknown;
+  knownDimensions: Size<number | undefined>;
+  availableSpace: Size<AvailableSpace>;
   node: bigint;
-  style: object;
+  style: Style;
 };
 
-export interface ComputeLayoutWithMeasureOptions<TContext> {
-  root: NodeId;
-  availableSpace: unknown;
-  measure: (args: {
-    knownDimensions: unknown;
-    availableSpace: unknown;
-    node: NodeId;
-    context: TContext | undefined;
-    style: object;
-  }) => unknown;
-}
-
-export interface ChildRangeInput {
-  start: number;
-  end: number;
-}
-
-export interface ComputeLayoutOptions {
-  root: NodeId;
-  availableSpace: unknown;
+/** Describes the public operations of one independent Taffy tree. */
+// oxlint-disable-next-line typescript/no-unsafe-declaration-merging -- The implementation explicitly implements this interface, and the shared name preserves the public constructor name.
+export interface TaffyTree<TContext = unknown> {
+  /** Enables pixel rounding for subsequently computed public layouts. */ enableRounding(): void;
+  /** Disables pixel rounding while retaining unrounded layout values. */ disableRounding(): void;
+  /** Creates a leaf node from the supplied public style input. */ newLeaf(
+    style: StyleInput,
+  ): NodeId;
+  /** Creates a leaf node and associates optional JavaScript context. */ newLeafWithContext(
+    style: StyleInput,
+    context: TContext | undefined,
+  ): NodeId;
+  /** Creates a parent node with the supplied ordered children. */ newWithChildren(
+    style: StyleInput,
+    children: readonly NodeId[],
+  ): NodeId;
+  /** Removes every node and context value from this tree. */ clear(): void;
+  /** Removes one node and invalidates its public NodeId. */ remove(node: NodeId): void;
+  /** Replaces or clears the JavaScript context for one node. */ setNodeContext(
+    node: NodeId,
+    context: TContext | undefined,
+  ): void;
+  /** Returns the JavaScript context currently associated with one node. */ getNodeContext(
+    node: NodeId,
+  ): TContext | undefined;
+  /** Appends an existing node to the parent child list. */ addChild(
+    parent: NodeId,
+    child: NodeId,
+  ): void;
+  /** Inserts an existing child at the requested parent index. */ insertChildAtIndex(
+    parent: NodeId,
+    index: number,
+    child: NodeId,
+  ): void;
+  /** Replaces the complete ordered child list for one parent. */ setChildren(
+    parent: NodeId,
+    children: readonly NodeId[],
+  ): void;
+  /** Detaches the selected child from its current parent. */ removeChild(
+    parent: NodeId,
+    child: NodeId,
+  ): void;
+  /** Detaches and returns the child at the requested index. */ removeChildAtIndex(
+    parent: NodeId,
+    index: number,
+  ): NodeId;
+  /** Detaches children in the supplied half-open index range. */ removeChildrenRange(
+    parent: NodeId,
+    range: ChildRangeInput,
+  ): void;
+  /** Replaces and returns the child at the requested index. */ replaceChildAtIndex(
+    parent: NodeId,
+    index: number,
+    newChild: NodeId,
+  ): NodeId;
+  /** Returns the child at the requested parent index. */ getChildAtIndex(
+    parent: NodeId,
+    index: number,
+  ): NodeId;
+  /** Returns the current number of children for one parent. */ getChildCount(
+    parent: NodeId,
+  ): number;
+  /** Returns the number of live nodes owned by this tree. */ getNodeCount(): number;
+  /** Returns the current parent or null for a root node. */ getParent(node: NodeId): NodeId | null;
+  /** Returns a detached readonly snapshot of the ordered children. */ getChildren(
+    parent: NodeId,
+  ): readonly NodeId[];
+  /** Replaces a node style and marks affected layout state dirty. */ setStyle(
+    node: NodeId,
+    style: StyleInput,
+  ): void;
+  /** Returns a detached readable snapshot of the node style. */ getStyle(node: NodeId): Style;
+  /** Returns the most recently stored rounded layout snapshot. */ getLayout(node: NodeId): Layout;
+  /** Returns the most recently stored unrounded layout snapshot. */ getUnroundedLayout(
+    node: NodeId,
+  ): Layout;
+  /** Returns detailed Grid tracks and item placement when available. */ getDetailedLayoutInfo(
+    node: NodeId,
+  ): DetailedLayoutInfo;
+  /** Explicitly marks a node for layout recomputation. */ markDirty(node: NodeId): void;
+  /** Reports whether a node currently needs layout recomputation. */ isDirty(
+    node: NodeId,
+  ): boolean;
+  /** Computes and stores layout for a tree root synchronously. */ computeLayout(
+    options: ComputeLayoutOptions,
+  ): void;
+  /** Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying. */ computeLayoutWithMeasure(
+    options: ComputeLayoutWithMeasureOptions<TContext>,
+  ): void;
 }
 
 const secureRandom: RandomSource = (bytes) => globalThis.crypto.getRandomValues(bytes);
 
-export class TaffyTree<TContext = unknown> {
+/** Owns one independent node tree, its contexts, styles, and stored layouts. */
+const TaffyTreeImplementation = class TaffyTree<TContext = unknown> implements TaffyTree<TContext> {
   readonly #inner: NativeTree;
   readonly #nodes: NodeIdRegistry;
   readonly #contexts = new Map<NodeId, TContext>();
@@ -56,134 +137,164 @@ export class TaffyTree<TContext = unknown> {
     this.#inner = new NativeTaffyTree();
   }
 
+  /** Enables pixel rounding for subsequently computed public layouts. */
   enableRounding(): void {
     this.#inner.rawEnableRounding("enableRounding");
   }
 
+  /** Disables pixel rounding while retaining unrounded layout values. */
   disableRounding(): void {
     this.#inner.rawDisableRounding("disableRounding");
   }
 
+  /** Returns the number of live nodes owned by this tree. */
   getNodeCount(): number {
     return this.#getNodeCount();
   }
 
+  /** Returns the current number of children for one parent. */
   getChildCount(parent: NodeId): number {
     return this.#getChildCount(parent);
   }
 
+  /** Returns the current parent or null for a root node. */
   getParent(node: NodeId): NodeId | null {
     return this.#getParent(node);
   }
 
+  /** Returns a detached readonly snapshot of the ordered children. */
   getChildren(parent: NodeId): readonly NodeId[] {
     return this.#getChildren(parent);
   }
 
+  /** Returns the child at the requested parent index. */
   getChildAtIndex(parent: NodeId, index: number): NodeId {
     return this.#getChildAtIndex(parent, index);
   }
 
+  /** Appends an existing node to the parent child list. */
   addChild(parent: NodeId, child: NodeId): void {
     this.#addChild(parent, child);
   }
 
+  /** Inserts an existing child at the requested parent index. */
   insertChildAtIndex(parent: NodeId, index: number, child: NodeId): void {
     this.#insertChildAtIndex(parent, index, child);
   }
 
+  /** Replaces the complete ordered child list for one parent. */
   setChildren(parent: NodeId, children: readonly NodeId[]): void {
     this.#setChildren(parent, children);
   }
 
+  /** Detaches the selected child from its current parent. */
   removeChild(parent: NodeId, child: NodeId): void {
     this.#removeChild(parent, child);
   }
 
+  /** Detaches and returns the child at the requested index. */
   removeChildAtIndex(parent: NodeId, index: number): NodeId {
     return this.#removeChildAtIndex(parent, index);
   }
 
+  /** Detaches children in the supplied half-open index range. */
   removeChildrenRange(parent: NodeId, range: ChildRangeInput): void {
     this.#removeChildrenRange(parent, range);
   }
 
+  /** Replaces and returns the child at the requested index. */
   replaceChildAtIndex(parent: NodeId, index: number, newChild: NodeId): NodeId {
     return this.#replaceChildAtIndex(parent, index, newChild);
   }
 
-  newLeaf(style: unknown): NodeId {
+  /** Creates a leaf node from the supplied public style input. */
+  newLeaf(style: StyleInput): NodeId {
     return this.#newLeaf(style);
   }
 
-  newLeafWithContext(style: unknown, context: TContext | undefined): NodeId {
+  /** Creates a leaf node and associates optional JavaScript context. */
+  newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId {
     return this.#newLeafWithContext(style, context);
   }
 
-  newWithChildren(style: unknown, children: readonly NodeId[]): NodeId {
+  /** Creates a parent node with the supplied ordered children. */
+  newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId {
     return this.#newWithChildren(style, children);
   }
 
+  /** Removes one node and invalidates its public NodeId. */
   remove(node: NodeId): void {
     this.#remove(node);
   }
 
+  /** Returns the JavaScript context currently associated with one node. */
   getNodeContext(node: NodeId): TContext | undefined {
     return this.#getNodeContext(node);
   }
 
+  /** Replaces or clears the JavaScript context for one node. */
   setNodeContext(node: NodeId, context: TContext | undefined): void {
     this.#setNodeContext(node, context);
   }
 
-  setStyle(node: NodeId, style: unknown): void {
+  /** Replaces a node style and marks affected layout state dirty. */
+  setStyle(node: NodeId, style: StyleInput): void {
     const raw = this.#nodes.resolve(node);
     this.#inner.rawSetStyle(raw, style, "setStyle");
   }
 
-  getStyle(node: NodeId): object {
+  /** Returns a detached readable snapshot of the node style. */
+  getStyle(node: NodeId): Style {
     return this.#getStyle(node);
   }
 
-  getLayout(node: NodeId): object {
+  /** Returns the most recently stored rounded layout snapshot. */
+  getLayout(node: NodeId): Layout {
     return this.#getLayout(node);
   }
 
-  getUnroundedLayout(node: NodeId): object {
+  /** Returns the most recently stored unrounded layout snapshot. */
+  getUnroundedLayout(node: NodeId): Layout {
     return this.#getUnroundedLayout(node);
   }
 
-  getDetailedLayoutInfo(node: NodeId): object {
+  /** Returns detailed Grid tracks and item placement when available. */
+  getDetailedLayoutInfo(node: NodeId): DetailedLayoutInfo {
     return this.#getDetailedLayoutInfo(node);
   }
 
+  /** Explicitly marks a node for layout recomputation. */
   markDirty(node: NodeId): void {
     this.#markDirty(node);
   }
 
+  /** Reports whether a node currently needs layout recomputation. */
   isDirty(node: NodeId): boolean {
     return this.#isDirty(node);
   }
 
+  /** Removes every node and context value from this tree. */
   clear(): void {
     this.#clear();
   }
 
+  /** Computes and stores layout for a tree root synchronously. */
   computeLayout(options: ComputeLayoutOptions): void {
     this.#computeLayout(options);
   }
 
+  /** Computes synchronously with a per-call measurement callback. */
   computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void {
     this.#computeLayoutWithMeasure(options);
   }
 
-  #newLeaf(style: unknown): NodeId {
+  #newLeaf(style: StyleInput): NodeId {
     const serial = this.#nodes.reserveSerial();
     const raw = this.#inner.rawNewLeaf(style, "newLeaf");
     return this.#nodes.register(raw, serial);
   }
 
-  #newLeafWithContext(style: unknown, context: TContext | undefined): NodeId {
+  #newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId {
     const serial = this.#nodes.reserveSerial();
     const hasContext = context !== undefined;
     const raw = this.#inner.rawNewLeafWithContext(style, hasContext, "newLeafWithContext");
@@ -192,7 +303,7 @@ export class TaffyTree<TContext = unknown> {
     return node;
   }
 
-  #newWithChildren(style: unknown, children: readonly NodeId[]): NodeId {
+  #newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId {
     if (!Array.isArray(children)) throw new TypeError("children must be an array");
     const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
     const serial = this.#nodes.reserveSerial();
@@ -247,24 +358,24 @@ export class TaffyTree<TContext = unknown> {
     return this.#inner.rawNodeCount("getNodeCount");
   }
 
-  #getStyle(node: NodeId): object {
+  #getStyle(node: NodeId): Style {
     const raw = this.#nodes.resolve(node);
-    return this.#inner.rawGetStyle(raw, "getStyle");
+    return this.#inner.rawGetStyle(raw, "getStyle") as Style;
   }
 
-  #getLayout(node: NodeId): object {
+  #getLayout(node: NodeId): Layout {
     const raw = this.#nodes.resolve(node);
     return this.#inner.rawGetLayout(raw, "getLayout");
   }
 
-  #getUnroundedLayout(node: NodeId): object {
+  #getUnroundedLayout(node: NodeId): Layout {
     const raw = this.#nodes.resolve(node);
     return this.#inner.rawGetUnroundedLayout(raw, "getUnroundedLayout");
   }
 
-  #getDetailedLayoutInfo(node: NodeId): object {
+  #getDetailedLayoutInfo(node: NodeId): DetailedLayoutInfo {
     const raw = this.#nodes.resolve(node);
-    return this.#inner.rawGetDetailedLayoutInfo(raw, "getDetailedLayoutInfo");
+    return this.#inner.rawGetDetailedLayoutInfo(raw, "getDetailedLayoutInfo") as DetailedLayoutInfo;
   }
 
   #markDirty(node: NodeId): void {
@@ -356,10 +467,19 @@ export class TaffyTree<TContext = unknown> {
     );
     return this.#nodes.fromRaw(rawOldChild);
   }
+};
+
+interface TaffyTreeConstructor {
+  // oxlint-disable-next-line typescript/no-explicit-any -- A generic class constructor exposes its prototype with the same TypeScript any behavior.
+  readonly prototype: TaffyTree<any>;
+  new <TContext = unknown>(): TaffyTree<TContext>;
 }
 
-export function createTaffyTreeForTesting(options: PrivateTreeOptions = {}) {
-  return new TaffyTree(privateConstructor, options);
+/** Creates an independent Taffy tree with its own NodeId namespace. */
+export const TaffyTree: TaffyTreeConstructor = TaffyTreeImplementation;
+
+export function createTaffyTreeForTesting(options: PrivateTreeOptions = {}): TaffyTree<unknown> {
+  return new TaffyTreeImplementation(privateConstructor, options);
 }
 
 export type { NodeId };

@@ -23,7 +23,7 @@ export {
   TextAlign,
   TrackSizingKind,
   type EnumValue,
-} from "./generated/numeric-families.js";
+} from "./numeric-families.js";
 export {
   GridPlacement,
   GridTemplateComponent,
@@ -32,9 +32,53 @@ export {
 } from "./grid.js";
 export { Dimension } from "./length.js";
 export type { NodeId } from "./node-id.js";
-export {
-  TaffyTree,
-  type ChildRangeInput,
-  type ComputeLayoutOptions,
-  type ComputeLayoutWithMeasureOptions,
-} from "./tree.js";
+export type {
+  AutoInput,
+  AvailableSpaceInput,
+  ChildRangeInput,
+  ComputeLayoutOptions,
+  ComputeLayoutWithMeasureOptions,
+  DetailedGridInfo,
+  DetailedGridItemInfo,
+  DetailedGridTracksInfo,
+  DetailedLayoutInfo,
+  DimensionInput,
+  GridPlacementInput,
+  GridTemplateArea,
+  GridTemplateAreaInput,
+  GridTemplateAreas,
+  GridTemplateAreasInput,
+  GridTemplateComponentInput,
+  GridTemplateRepetition,
+  GridTemplateRepetitionInput,
+  Layout,
+  LengthInput,
+  LengthPercentage,
+  LengthPercentageAuto,
+  LengthPercentageAutoInput,
+  LengthPercentageInput,
+  Line,
+  LineInput,
+  MaxTrackSizingFunction,
+  MaxTrackSizingFunctionInput,
+  MeasureArgs,
+  MeasureFunction,
+  MinTrackSizingFunction,
+  MinTrackSizingFunctionInput,
+  PartialLineInput,
+  PartialPointInput,
+  PartialRectInput,
+  PartialSizeInput,
+  PercentInput,
+  Point,
+  PointInput,
+  Rect,
+  RectInput,
+  RepetitionCountInput,
+  Size,
+  SizeInput,
+  Style,
+  StyleInput,
+  TrackSizingFunctionInput,
+} from "./public-types.js";
+export { TaffyTree } from "./tree.js";

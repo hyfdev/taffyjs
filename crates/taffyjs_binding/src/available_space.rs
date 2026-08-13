@@ -3,9 +3,9 @@ use napi_derive::napi;
 use taffy::style::AvailableSpace;
 
 use crate::error::NativeResult;
-use crate::generated_numeric::AvailableSpaceKindCode;
 use crate::js_object;
 use crate::number::{from_unknown, to_f32, to_integer};
+use crate::numeric::AvailableSpaceKindCode;
 
 #[napi(object, object_to_js = false)]
 pub struct AvailableSpaceInput<'env> {

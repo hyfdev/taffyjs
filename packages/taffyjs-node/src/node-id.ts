@@ -1,5 +1,6 @@
 declare const phantomMarker: unique symbol;
 
+/** Identifies a node in one TaffyTree without exposing its native identity. */
 export type NodeId = bigint & { readonly [phantomMarker]: never };
 
 const U64_BITS = 64n;
