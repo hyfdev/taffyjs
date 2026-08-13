@@ -3,7 +3,6 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { test } from "vite-plus/test";
-import { platforms } from "../../../../tools/platforms.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
@@ -65,16 +64,12 @@ test("ready runs every local check", async () => {
   assert.equal(integrationManifest.scripts.test, "vp test");
 });
 
-test("CI builds every supported native target", async () => {
+test("CI runs complete Ubuntu checks and builds the Windows addon", async () => {
   const { workflow } = await sources();
-  const targets = Array.from(workflow.matchAll(/^\s+- target: ([^\s]+)$/gmu), (match) => match[1]);
-  assert.deepEqual(
-    targets.toSorted((left, right) => left.localeCompare(right)),
-    platforms
-      .map((platform) => platform.target)
-      .toSorted((left, right) => left.localeCompare(right)),
-  );
-  assert.equal(new Set(targets).size, targets.length);
+  assert.match(workflow, /runs-on: ubuntu-24\.04/u);
+  assert.match(workflow, /runs-on: windows-2022/u);
+  assert.match(workflow, /--target x86_64-pc-windows-msvc/u);
+  assert.doesNotMatch(workflow, /(?:macos-|apple-darwin)/u);
   assert.match(workflow, /node-version: 22\.18\.0/u);
   assert.match(workflow, /run: pnpm exec vp run --concurrency-limit 1 ready:body/u);
   assert.doesNotMatch(workflow, /(?:npm|pnpm|cargo|napi)\s+(?:pre)?publish\b/u);
