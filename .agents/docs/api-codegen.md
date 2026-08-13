@@ -4,7 +4,7 @@
 
 `tools/api-codegen` is the repository's long-term home for generators that keep one API description aligned across Rust and TypeScript. New API generators should extend this tool instead of adding isolated scripts with their own parsing, writing, and checking rules.
 
-This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The first planned use is the numeric families shared by the Node wrapper and Rust binding; the future query design is recorded separately in [API query code generation](api-codegen-query.md).
+This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The first implemented family is the numeric constants shared by the Node wrapper and Rust binding; the future query design is recorded separately in [API query code generation](api-codegen-query.md).
 
 ## One maintained input
 

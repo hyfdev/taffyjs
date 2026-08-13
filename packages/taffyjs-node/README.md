@@ -169,7 +169,7 @@ Returned styles, layouts, child arrays, detailed Grid data, and nested records a
 
 Inputs and detached outputs use named TypeScript types for Style, geometry, Layout, detailed Grid data, available space, and measurement. Closed choices such as `Display`, `Overflow`, and alignment use frozen numeric constant objects. `Dimension`, `AvailableSpace`, `GridPlacement`, `TrackSizingFunction`, `RepetitionCount`, and `GridTemplateComponent` construct readable tagged values.
 
-The generated declaration file and its JSDoc provide the complete export list, signatures, fields, and numeric members. Their maintained source is in this package's `src` directory.
+The generated declaration file and its JSDoc provide the complete export list, signatures, fields, and numeric members. Most maintained source is in this package's `src` directory; numeric families are generated there from the shared `api/numeric-families.json` input.
 
 ## Unsupported surfaces
 
