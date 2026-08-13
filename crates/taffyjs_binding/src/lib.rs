@@ -14,10 +14,6 @@ mod numeric;
 mod owner;
 mod style;
 
-use std::collections::HashSet;
-#[cfg(feature = "test-hooks")]
-use std::sync::atomic::{AtomicUsize, Ordering};
-
 use error::{
     NativeResult, child_index_out_of_bounds_error, internal_error, into_napi,
     invalid_topology_error, type_error,
@@ -26,6 +22,7 @@ use napi::bindgen_prelude::{BigInt, Function, Unknown};
 use napi::{Env, Status};
 use napi_derive::napi;
 use owner::TreeOwner;
+use std::collections::HashSet;
 use taffy::{NodeId, TraversePartialTree};
 
 #[napi]
@@ -39,25 +36,20 @@ pub struct ChildRangeInput {
     pub end: f64,
 }
 
-#[cfg(feature = "test-hooks")]
-static LIVE_NATIVE_TREE_COUNT: AtomicUsize = AtomicUsize::new(0);
-
 #[napi]
 impl NativeTaffyTree {
     #[napi(constructor)]
     pub fn new() -> Self {
-        #[cfg(feature = "test-hooks")]
-        LIVE_NATIVE_TREE_COUNT.fetch_add(1, Ordering::SeqCst);
         Self {
             owner: TreeOwner::new(),
         }
     }
 
     #[napi(js_name = "rawEnableRounding")]
-    pub fn enable_rounding(&self, env: Env, public_method: String) -> napi::Result<()> {
+    pub fn enable_rounding(&self, env: Env) -> napi::Result<()> {
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("enableRounding", |tree| {
                 tree.enable_rounding();
                 Ok(())
             }),
@@ -65,10 +57,10 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawDisableRounding")]
-    pub fn disable_rounding(&self, env: Env, public_method: String) -> napi::Result<()> {
+    pub fn disable_rounding(&self, env: Env) -> napi::Result<()> {
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("disableRounding", |tree| {
                 tree.disable_rounding();
                 Ok(())
             }),
@@ -76,25 +68,20 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawNodeCount")]
-    pub fn node_count(&self, env: Env, public_method: String) -> napi::Result<u32> {
+    pub fn node_count(&self, env: Env) -> napi::Result<u32> {
         into_napi(
             env,
             self.owner
-                .access(&public_method, |tree| Ok(tree.total_node_count() as u32)),
+                .access("getNodeCount", |tree| Ok(tree.total_node_count() as u32)),
         )
     }
 
     #[napi(js_name = "rawChildCount")]
-    pub fn child_count(
-        &self,
-        env: Env,
-        parent: BigInt,
-        public_method: String,
-    ) -> napi::Result<f64> {
+    pub fn child_count(&self, env: Env, parent: BigInt) -> napi::Result<f64> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("getChildCount", |tree| {
                 let count = tree.child_count(parent);
                 if count > 9_007_199_254_740_991usize {
                     return Err(internal_error());
@@ -105,16 +92,11 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawParent")]
-    pub fn parent(
-        &self,
-        env: Env,
-        node: BigInt,
-        public_method: String,
-    ) -> napi::Result<Option<BigInt>> {
+    pub fn parent(&self, env: Env, node: BigInt) -> napi::Result<Option<BigInt>> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("getParent", |tree| {
                 Ok(tree
                     .parent(node)
                     .map(|parent| BigInt::from(u64::from(parent))))
@@ -123,16 +105,11 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawChildren")]
-    pub fn children(
-        &self,
-        env: Env,
-        parent: BigInt,
-        public_method: String,
-    ) -> napi::Result<Vec<BigInt>> {
+    pub fn children(&self, env: Env, parent: BigInt) -> napi::Result<Vec<BigInt>> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("getChildren", |tree| {
                 tree.children(parent)
                     .map(|children| {
                         children
@@ -146,21 +123,12 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawChildAtIndex")]
-    pub fn child_at_index(
-        &self,
-        env: Env,
-        parent: BigInt,
-        index: Unknown<'_>,
-        public_method: String,
-    ) -> napi::Result<BigInt> {
+    pub fn child_at_index(&self, env: Env, parent: BigInt, index: f64) -> napi::Result<BigInt> {
         let parent = into_napi(env, raw_node_id(&parent))?;
-        let index = into_napi(
-            env,
-            number::from_unknown(index, "Child index").and_then(number::to_safe_usize),
-        )?;
+        let index = into_napi(env, number::to_safe_usize(index))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("getChildAtIndex", |tree| {
                 let child_count = tree.child_count(parent);
                 if index >= child_count {
                     return Err(child_index_out_of_bounds_error(format!(
@@ -175,18 +143,12 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawAddChild")]
-    pub fn add_child(
-        &self,
-        env: Env,
-        parent: BigInt,
-        child: BigInt,
-        public_method: String,
-    ) -> napi::Result<()> {
+    pub fn add_child(&self, env: Env, parent: BigInt, child: BigInt) -> napi::Result<()> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let child = into_napi(env, raw_node_id(&child))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("addChild", |tree| {
                 validate_unattached_child(tree, parent, child)?;
                 tree.add_child(parent, child).map_err(|_| internal_error())
             }),
@@ -198,19 +160,15 @@ impl NativeTaffyTree {
         &self,
         env: Env,
         parent: BigInt,
-        index: Unknown<'_>,
+        index: f64,
         child: BigInt,
-        public_method: String,
     ) -> napi::Result<()> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let child = into_napi(env, raw_node_id(&child))?;
-        let index = into_napi(
-            env,
-            number::from_unknown(index, "Child index").and_then(number::to_safe_usize),
-        )?;
+        let index = into_napi(env, number::to_safe_usize(index))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("insertChildAtIndex", |tree| {
                 let child_count = tree.child_count(parent);
                 if index > child_count {
                     return Err(child_index_out_of_bounds_error(format!(
@@ -230,7 +188,6 @@ impl NativeTaffyTree {
         env: Env,
         parent: BigInt,
         children: Vec<BigInt>,
-        public_method: String,
     ) -> napi::Result<()> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let children = into_napi(
@@ -242,7 +199,7 @@ impl NativeTaffyTree {
         )?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("setChildren", |tree| {
                 let mut unique_children = HashSet::with_capacity(children.len());
                 for child in &children {
                     if !unique_children.insert(*child) {
@@ -266,18 +223,12 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawRemoveChild")]
-    pub fn remove_child(
-        &self,
-        env: Env,
-        parent: BigInt,
-        child: BigInt,
-        public_method: String,
-    ) -> napi::Result<()> {
+    pub fn remove_child(&self, env: Env, parent: BigInt, child: BigInt) -> napi::Result<()> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let child = into_napi(env, raw_node_id(&child))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("removeChild", |tree| {
                 if tree.parent(child) != Some(parent) {
                     return Err(invalid_topology_error(
                         "Node is not a direct child of parent",
@@ -295,17 +246,13 @@ impl NativeTaffyTree {
         &self,
         env: Env,
         parent: BigInt,
-        index: Unknown<'_>,
-        public_method: String,
+        index: f64,
     ) -> napi::Result<BigInt> {
         let parent = into_napi(env, raw_node_id(&parent))?;
-        let index = into_napi(
-            env,
-            number::from_unknown(index, "Child index").and_then(number::to_safe_usize),
-        )?;
+        let index = into_napi(env, number::to_safe_usize(index))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("removeChildAtIndex", |tree| {
                 let child_count = tree.child_count(parent);
                 if index >= child_count {
                     return Err(child_index_out_of_bounds_error(format!(
@@ -324,14 +271,13 @@ impl NativeTaffyTree {
         &self,
         env: Env,
         parent: BigInt,
-        range: Unknown<'_>,
-        public_method: String,
+        range: ChildRangeInput,
     ) -> napi::Result<()> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let (start, end) = into_napi(env, child_range(range))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("removeChildrenRange", |tree| {
                 let child_count = tree.child_count(parent);
                 if start > end || end > child_count {
                     return Err(error::range_error(format!(
@@ -349,19 +295,15 @@ impl NativeTaffyTree {
         &self,
         env: Env,
         parent: BigInt,
-        index: Unknown<'_>,
+        index: f64,
         new_child: BigInt,
-        public_method: String,
     ) -> napi::Result<BigInt> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let new_child = into_napi(env, raw_node_id(&new_child))?;
-        let index = into_napi(
-            env,
-            number::from_unknown(index, "Child index").and_then(number::to_safe_usize),
-        )?;
+        let index = into_napi(env, number::to_safe_usize(index))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("replaceChildAtIndex", |tree| {
                 let child_count = tree.child_count(parent);
                 if index >= child_count {
                     return Err(child_index_out_of_bounds_error(format!(
@@ -383,21 +325,21 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawRemove")]
-    pub fn remove(&self, env: Env, node: BigInt, public_method: String) -> napi::Result<()> {
+    pub fn remove(&self, env: Env, node: BigInt) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("remove", |tree| {
                 tree.remove(node).map(|_| ()).map_err(|_| internal_error())
             }),
         )
     }
 
     #[napi(js_name = "rawClear")]
-    pub fn clear(&self, env: Env, public_method: String) -> napi::Result<()> {
+    pub fn clear(&self, env: Env) -> napi::Result<()> {
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("clear", |tree| {
                 tree.clear();
                 Ok(())
             }),
@@ -405,16 +347,11 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawNewLeaf")]
-    pub fn new_leaf(
-        &self,
-        env: Env,
-        style: Unknown<'_>,
-        public_method: String,
-    ) -> napi::Result<BigInt> {
+    pub fn new_leaf(&self, env: Env, style: Unknown<'_>) -> napi::Result<BigInt> {
         let style = into_napi(env, style::input(style))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("newLeaf", |tree| {
                 tree.new_leaf(style)
                     .map(|node| BigInt::from(u64::from(node)))
                     .map_err(|_| internal_error())
@@ -428,12 +365,11 @@ impl NativeTaffyTree {
         env: Env,
         style: Unknown<'_>,
         has_context: bool,
-        public_method: String,
     ) -> napi::Result<BigInt> {
         let style = into_napi(env, style::input(style))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("newLeafWithContext", |tree| {
                 let node = if has_context {
                     tree.new_leaf_with_context(style, ())
                 } else {
@@ -451,7 +387,6 @@ impl NativeTaffyTree {
         env: Env,
         style: Unknown<'_>,
         children: Vec<BigInt>,
-        public_method: String,
     ) -> napi::Result<BigInt> {
         let children = into_napi(
             env,
@@ -463,7 +398,7 @@ impl NativeTaffyTree {
         let style = into_napi(env, style::input(style))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("newWithChildren", |tree| {
                 let mut unique_children = HashSet::with_capacity(children.len());
                 for child in &children {
                     if !unique_children.insert(*child) {
@@ -485,35 +420,23 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawSetStyle")]
-    pub fn set_style(
-        &self,
-        env: Env,
-        node: BigInt,
-        style: Unknown<'_>,
-        public_method: String,
-    ) -> napi::Result<()> {
+    pub fn set_style(&self, env: Env, node: BigInt, style: Unknown<'_>) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
         let style = into_napi(env, style::input(style))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("setStyle", |tree| {
                 tree.set_style(node, style).map_err(|_| internal_error())
             }),
         )
     }
 
     #[napi(js_name = "rawSetNodeContext")]
-    pub fn set_node_context(
-        &self,
-        env: Env,
-        node: BigInt,
-        has_context: bool,
-        public_method: String,
-    ) -> napi::Result<()> {
+    pub fn set_node_context(&self, env: Env, node: BigInt, has_context: bool) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("setNodeContext", |tree| {
                 tree.set_node_context(node, has_context.then_some(()))
                     .map_err(|_| internal_error())
             }),
@@ -521,16 +444,11 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawGetStyle")]
-    pub fn get_style(
-        &self,
-        env: Env,
-        node: BigInt,
-        public_method: String,
-    ) -> napi::Result<style::StyleOutput> {
+    pub fn get_style(&self, env: Env, node: BigInt) -> napi::Result<style::StyleOutput> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("getStyle", |tree| {
                 let value = tree.style(node).map_err(|_| internal_error())?;
                 Ok(style::output(value))
             }),
@@ -543,7 +461,6 @@ impl NativeTaffyTree {
         env: Env,
         node: BigInt,
         available_space: Unknown<'_>,
-        public_method: String,
     ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
         let available_space = into_napi(
@@ -552,7 +469,7 @@ impl NativeTaffyTree {
         )?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("computeLayout", |tree| {
                 tree.compute_layout(node, available_space)
                     .map_err(|_| internal_error())
             }),
@@ -560,16 +477,11 @@ impl NativeTaffyTree {
     }
 
     #[napi(js_name = "rawGetLayout")]
-    pub fn get_layout(
-        &self,
-        env: Env,
-        node: BigInt,
-        public_method: String,
-    ) -> napi::Result<layout::LayoutOutput> {
+    pub fn get_layout(&self, env: Env, node: BigInt) -> napi::Result<layout::LayoutOutput> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("getLayout", |tree| {
                 let value = tree.layout(node).map_err(|_| internal_error())?;
                 Ok(layout::output(value))
             }),
@@ -581,12 +493,11 @@ impl NativeTaffyTree {
         &self,
         env: Env,
         node: BigInt,
-        public_method: String,
     ) -> napi::Result<layout::LayoutOutput> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("getUnroundedLayout", |tree| {
                 Ok(layout::output(tree.unrounded_layout(node)))
             }),
         )
@@ -597,34 +508,33 @@ impl NativeTaffyTree {
         &self,
         env: Env,
         node: BigInt,
-        public_method: String,
     ) -> napi::Result<detailed::DetailedLayoutOutput> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("getDetailedLayoutInfo", |tree| {
                 Ok(detailed::output(tree.detailed_layout_info(node)))
             }),
         )
     }
 
     #[napi(js_name = "rawMarkDirty")]
-    pub fn mark_dirty(&self, env: Env, node: BigInt, public_method: String) -> napi::Result<()> {
+    pub fn mark_dirty(&self, env: Env, node: BigInt) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("markDirty", |tree| {
                 tree.mark_dirty(node).map_err(|_| internal_error())
             }),
         )
     }
 
     #[napi(js_name = "rawIsDirty")]
-    pub fn is_dirty(&self, env: Env, node: BigInt, public_method: String) -> napi::Result<bool> {
+    pub fn is_dirty(&self, env: Env, node: BigInt) -> napi::Result<bool> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
-            self.owner.access(&public_method, |tree| {
+            self.owner.access("isDirty", |tree| {
                 tree.dirty(node).map_err(|_| internal_error())
             }),
         )
@@ -637,7 +547,6 @@ impl NativeTaffyTree {
         node: BigInt,
         available_space: Unknown<'env>,
         measure: Function<'env, measure::MeasureArguments, Unknown<'env>>,
-        public_method: String,
     ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
         let available_space = into_napi(
@@ -645,7 +554,7 @@ impl NativeTaffyTree {
             geometry::size(available_space, available_space::available_space),
         )?;
         let mut session = measure::MeasureSession::new(measure);
-        let result = self.owner.access(&public_method, |tree| {
+        let result = self.owner.access("computeLayoutWithMeasure", |tree| {
             tree.compute_layout_with_measure(
                 node,
                 available_space,
@@ -682,8 +591,7 @@ fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
     Ok(NodeId::from(value))
 }
 
-fn child_range(value: Unknown<'_>) -> NativeResult<(usize, usize)> {
-    let input: ChildRangeInput = js_object::input(value, "a child range object", None)?;
+fn child_range(input: ChildRangeInput) -> NativeResult<(usize, usize)> {
     Ok((
         number::to_safe_usize(input.start)?,
         number::to_safe_usize(input.end)?,
@@ -721,66 +629,6 @@ fn would_create_cycle(tree: &taffy::TaffyTree<()>, parent: NodeId, child: NodeId
         ancestor = tree.parent(node);
     }
     false
-}
-
-#[cfg(feature = "test-hooks")]
-#[napi]
-impl NativeTaffyTree {
-    #[napi(js_name = "__layoutWithOrder")]
-    pub fn layout_with_order(&self, order: u32) -> layout::LayoutOutput {
-        layout::output(&taffy::Layout::with_order(order))
-    }
-
-    #[napi(js_name = "__triggerError")]
-    pub fn trigger_error(&self, env: Env, condition: String) -> napi::Result<()> {
-        let error = match condition.as_str() {
-            "wrong-type-or-shape" | "node-id-not-bigint" => error::type_error("Test type error"),
-            "discrete-range-or-enum" | "node-id-serial-exhaustion" => {
-                error::range_error("Test range error")
-            }
-            "child-index-out-of-bounds" => {
-                error::child_index_out_of_bounds_error("Test child index error")
-            }
-            "malformed-node-id" => error::invalid_node_id_error("Test invalid node ID"),
-            "foreign-node-id" => error::foreign_node_id_error("Test foreign node ID"),
-            "stale-node-id" => error::stale_node_id_error("Test stale node ID"),
-            "random-source-failure" => error::plain_error("Test random source error"),
-            "invalid-topology" => error::invalid_topology_error("Test topology error"),
-            _ => error::type_error("Unknown test error condition"),
-        };
-        into_napi(env, Err(error))
-    }
-
-    #[napi(js_name = "__throwValue")]
-    pub fn throw_value(&self, env: Env, value: Unknown<'_>) -> napi::Result<()> {
-        env.throw(value)?;
-        Err(napi::Error::new(
-            napi::Status::PendingException,
-            "Callback threw",
-        ))
-    }
-
-    #[napi(js_name = "__triggerPanic")]
-    pub fn trigger_panic(&self, env: Env) -> napi::Result<()> {
-        into_napi(
-            env,
-            self.owner
-                .access("__triggerPanic", |_| owner::injected_unexpected_panic()),
-        )
-    }
-}
-
-#[cfg(feature = "test-hooks")]
-impl Drop for NativeTaffyTree {
-    fn drop(&mut self) {
-        LIVE_NATIVE_TREE_COUNT.fetch_sub(1, Ordering::SeqCst);
-    }
-}
-
-#[cfg(feature = "test-hooks")]
-#[napi(js_name = "__liveNativeTreeCount")]
-pub fn live_native_tree_count() -> u32 {
-    u32::try_from(LIVE_NATIVE_TREE_COUNT.load(Ordering::SeqCst)).unwrap_or(u32::MAX)
 }
 
 impl Default for NativeTaffyTree {

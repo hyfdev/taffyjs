@@ -27,19 +27,10 @@ test("construct", () => {
 test("export-boundary", () => {
   const Tree = TaffyTree();
   const tree = new Tree();
-  let injectedRandomCalled = false;
-  const treeWithIgnoredOptions = new (Tree as unknown as new (options: object) => Tree)({
-    randomSource() {
-      injectedRandomCalled = true;
-      throw new Error("public constructor reached private options");
-    },
-  });
 
   assert.equal(Reflect.get(api, "NativeTaffyTree"), undefined);
   assert.equal(Reflect.get(api, "__bootstrap"), undefined);
   assert.equal(Reflect.get(api, "default"), undefined);
   assert.equal(Reflect.get(tree, "rawNewLeaf"), undefined);
   assert.equal(Reflect.get(tree, "inner"), undefined);
-  assert.equal(injectedRandomCalled, false);
-  assert.ok(treeWithIgnoredOptions instanceof Tree);
 });

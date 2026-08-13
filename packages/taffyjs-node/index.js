@@ -417,9 +417,9 @@ const NODE_ID_LIMIT = 1n << 256n;
 function codedError(code, message) {
 	return Object.assign(new Error(message), { code });
 }
-function randomToken(randomSource) {
+function randomToken() {
 	const bytes = /* @__PURE__ */ new Uint8Array(16);
-	randomSource(bytes);
+	globalThis.crypto.getRandomValues(bytes);
 	let token = 0n;
 	for (const byte of bytes) token = token << 8n | BigInt(byte);
 	return token;
@@ -430,12 +430,10 @@ function isEncodedNodeId(value) {
 }
 var NodeIdRegistry = class {
 	#token;
-	#nextSerial;
+	#nextSerial = 1n;
 	#serialByRaw = /* @__PURE__ */ new Map();
-	#rawByPublic = /* @__PURE__ */ new Map();
-	constructor(randomSource, nextSerial = 1n) {
-		this.#token = randomToken(randomSource);
-		this.#nextSerial = nextSerial;
+	constructor() {
+		this.#token = randomToken();
 	}
 	reserveSerial() {
 		const serial = this.#nextSerial;
@@ -445,9 +443,7 @@ var NodeIdRegistry = class {
 	register(raw, serial) {
 		if (serial !== this.#nextSerial || raw < 0n || raw > U64_MAX || this.#serialByRaw.has(raw)) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
 		const node = this.#token << TOKEN_SHIFT | serial << U64_BITS | raw;
-		if (this.#rawByPublic.has(node)) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
 		this.#serialByRaw.set(raw, serial);
-		this.#rawByPublic.set(node, raw);
 		this.#nextSerial = serial + 1n;
 		return node;
 	}
@@ -455,307 +451,171 @@ var NodeIdRegistry = class {
 		if (typeof value !== "bigint") throw new TypeError("NodeId must be a bigint");
 		if (!isEncodedNodeId(value)) throw codedError("ERR_TAFFY_INVALID_NODE_ID", "The bigint is not a valid NodeId");
 		if (value >> TOKEN_SHIFT !== this.#token) throw codedError("ERR_TAFFY_FOREIGN_NODE_ID", "The NodeId belongs to another TaffyTree");
-		const node = value;
-		const raw = this.#rawByPublic.get(node);
-		if (raw === void 0) throw codedError("ERR_TAFFY_STALE_NODE_ID", "The NodeId no longer names a current node");
 		const serial = value >> U64_BITS & U64_MAX;
-		if (this.#serialByRaw.get(raw) !== serial) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+		const raw = value & U64_MAX;
+		if (this.#serialByRaw.get(raw) !== serial) throw codedError("ERR_TAFFY_STALE_NODE_ID", "The NodeId no longer names a current node");
 		return raw;
 	}
 	fromRaw(raw) {
 		const serial = this.#serialByRaw.get(raw);
 		if (serial === void 0) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
-		const node = this.#token << TOKEN_SHIFT | serial << U64_BITS | raw;
-		if (this.#rawByPublic.get(node) !== raw) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
-		return node;
+		return this.#token << TOKEN_SHIFT | serial << U64_BITS | raw;
 	}
 	unregister(node, raw) {
 		const serial = node >> U64_BITS & U64_MAX;
-		if (this.#rawByPublic.get(node) !== raw || this.#serialByRaw.get(raw) !== serial) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
-		this.#rawByPublic.delete(node);
+		if ((node & U64_MAX) !== raw || this.#serialByRaw.get(raw) !== serial) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
 		this.#serialByRaw.delete(raw);
 	}
 	clear() {
 		this.#serialByRaw.clear();
-		this.#rawByPublic.clear();
 	}
 };
 //#endregion
 //#region src/tree.ts
 const { NativeTaffyTree } = createRequire(import.meta.url)("#native");
-const privateConstructor = Symbol();
-const secureRandom = (bytes) => globalThis.crypto.getRandomValues(bytes);
+function checkedChildIndex(index) {
+	if (typeof index !== "number") throw new TypeError("Child index must be a number");
+	return index;
+}
 /** Creates an independent Taffy tree with its own NodeId namespace. */
 const TaffyTree = class TaffyTree {
 	#inner;
-	#nodes;
+	#nodes = new NodeIdRegistry();
 	#contexts = /* @__PURE__ */ new Map();
-	constructor(...args) {
-		const options = args.length === 2 && args[0] === privateConstructor ? args[1] : {};
-		this.#nodes = new NodeIdRegistry(options.randomSource ?? secureRandom, options.nextSerial);
+	constructor() {
 		this.#inner = new NativeTaffyTree();
 	}
-	/** Enables pixel rounding for subsequently computed public layouts. */
 	enableRounding() {
-		this.#inner.rawEnableRounding("enableRounding");
+		this.#inner.rawEnableRounding();
 	}
-	/** Disables pixel rounding while retaining unrounded layout values. */
 	disableRounding() {
-		this.#inner.rawDisableRounding("disableRounding");
+		this.#inner.rawDisableRounding();
 	}
-	/** Returns the number of live nodes owned by this tree. */
 	getNodeCount() {
-		return this.#getNodeCount();
+		return this.#inner.rawNodeCount();
 	}
-	/** Returns the current number of children for one parent. */
 	getChildCount(parent) {
-		return this.#getChildCount(parent);
+		return this.#inner.rawChildCount(this.#nodes.resolve(parent));
 	}
-	/** Returns the current parent or null for a root node. */
 	getParent(node) {
-		return this.#getParent(node);
+		const rawParent = this.#inner.rawParent(this.#nodes.resolve(node));
+		return rawParent === null ? null : this.#nodes.fromRaw(rawParent);
 	}
-	/** Returns a detached readonly snapshot of the ordered children. */
 	getChildren(parent) {
-		return this.#getChildren(parent);
+		return this.#inner.rawChildren(this.#nodes.resolve(parent)).map((child) => this.#nodes.fromRaw(child));
 	}
-	/** Returns the child at the requested parent index. */
 	getChildAtIndex(parent, index) {
-		return this.#getChildAtIndex(parent, index);
+		const rawChild = this.#inner.rawChildAtIndex(this.#nodes.resolve(parent), checkedChildIndex(index));
+		return this.#nodes.fromRaw(rawChild);
 	}
-	/** Appends an existing node to the parent child list. */
 	addChild(parent, child) {
-		this.#addChild(parent, child);
+		const rawParent = this.#nodes.resolve(parent);
+		const rawChild = this.#nodes.resolve(child);
+		this.#inner.rawAddChild(rawParent, rawChild);
 	}
-	/** Inserts an existing child at the requested parent index. */
 	insertChildAtIndex(parent, index, child) {
-		this.#insertChildAtIndex(parent, index, child);
+		const rawParent = this.#nodes.resolve(parent);
+		const rawChild = this.#nodes.resolve(child);
+		this.#inner.rawInsertChildAtIndex(rawParent, checkedChildIndex(index), rawChild);
 	}
-	/** Replaces the complete ordered child list for one parent. */
 	setChildren(parent, children) {
-		this.#setChildren(parent, children);
+		const rawParent = this.#nodes.resolve(parent);
+		if (!Array.isArray(children)) throw new TypeError("children must be an array");
+		const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
+		this.#inner.rawSetChildren(rawParent, rawChildren);
 	}
-	/** Detaches the selected child from its current parent. */
 	removeChild(parent, child) {
-		this.#removeChild(parent, child);
+		const rawParent = this.#nodes.resolve(parent);
+		const rawChild = this.#nodes.resolve(child);
+		this.#inner.rawRemoveChild(rawParent, rawChild);
 	}
-	/** Detaches and returns the child at the requested index. */
 	removeChildAtIndex(parent, index) {
-		return this.#removeChildAtIndex(parent, index);
+		const rawChild = this.#inner.rawRemoveChildAtIndex(this.#nodes.resolve(parent), checkedChildIndex(index));
+		return this.#nodes.fromRaw(rawChild);
 	}
-	/** Detaches children in the supplied half-open index range. */
 	removeChildrenRange(parent, range) {
-		this.#removeChildrenRange(parent, range);
+		this.#inner.rawRemoveChildrenRange(this.#nodes.resolve(parent), range);
 	}
-	/** Replaces and returns the child at the requested index. */
 	replaceChildAtIndex(parent, index, newChild) {
-		return this.#replaceChildAtIndex(parent, index, newChild);
+		const rawParent = this.#nodes.resolve(parent);
+		const rawNewChild = this.#nodes.resolve(newChild);
+		const rawOldChild = this.#inner.rawReplaceChildAtIndex(rawParent, checkedChildIndex(index), rawNewChild);
+		return this.#nodes.fromRaw(rawOldChild);
 	}
-	/** Creates a leaf node from the supplied public style input. */
 	newLeaf(style) {
-		return this.#newLeaf(style);
+		const serial = this.#nodes.reserveSerial();
+		return this.#nodes.register(this.#inner.rawNewLeaf(style), serial);
 	}
-	/** Creates a leaf node and associates optional JavaScript context. */
 	newLeafWithContext(style, context) {
-		return this.#newLeafWithContext(style, context);
-	}
-	/** Creates a parent node with the supplied ordered children. */
-	newWithChildren(style, children) {
-		return this.#newWithChildren(style, children);
-	}
-	/** Removes one node and invalidates its public NodeId. */
-	remove(node) {
-		this.#remove(node);
-	}
-	/** Returns the JavaScript context currently associated with one node. */
-	getNodeContext(node) {
-		return this.#getNodeContext(node);
-	}
-	/** Replaces or clears the JavaScript context for one node. */
-	setNodeContext(node, context) {
-		this.#setNodeContext(node, context);
-	}
-	/** Replaces a node style and marks affected layout state dirty. */
-	setStyle(node, style) {
-		const raw = this.#nodes.resolve(node);
-		this.#inner.rawSetStyle(raw, style, "setStyle");
-	}
-	/** Returns a detached readable snapshot of the node style. */
-	getStyle(node) {
-		return this.#getStyle(node);
-	}
-	/** Returns the most recently stored rounded layout snapshot. */
-	getLayout(node) {
-		return this.#getLayout(node);
-	}
-	/** Returns the most recently stored unrounded layout snapshot. */
-	getUnroundedLayout(node) {
-		return this.#getUnroundedLayout(node);
-	}
-	/** Returns detailed Grid tracks and item placement when available. */
-	getDetailedLayoutInfo(node) {
-		return this.#getDetailedLayoutInfo(node);
-	}
-	/** Explicitly marks a node for layout recomputation. */
-	markDirty(node) {
-		this.#markDirty(node);
-	}
-	/** Reports whether a node currently needs layout recomputation. */
-	isDirty(node) {
-		return this.#isDirty(node);
-	}
-	/** Removes every node and context value from this tree. */
-	clear() {
-		this.#clear();
-	}
-	/** Computes and stores layout for a tree root synchronously. */
-	computeLayout(options) {
-		this.#computeLayout(options);
-	}
-	/** Computes synchronously with a per-call measurement callback. */
-	computeLayoutWithMeasure(options) {
-		this.#computeLayoutWithMeasure(options);
-	}
-	#newLeaf(style) {
 		const serial = this.#nodes.reserveSerial();
-		const raw = this.#inner.rawNewLeaf(style, "newLeaf");
-		return this.#nodes.register(raw, serial);
-	}
-	#newLeafWithContext(style, context) {
-		const serial = this.#nodes.reserveSerial();
-		const hasContext = context !== void 0;
-		const raw = this.#inner.rawNewLeafWithContext(style, hasContext, "newLeafWithContext");
+		const raw = this.#inner.rawNewLeafWithContext(style, context !== void 0);
 		const node = this.#nodes.register(raw, serial);
 		if (context !== void 0) this.#contexts.set(node, context);
 		return node;
 	}
-	#newWithChildren(style, children) {
+	newWithChildren(style, children) {
 		if (!Array.isArray(children)) throw new TypeError("children must be an array");
 		const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
 		const serial = this.#nodes.reserveSerial();
-		const raw = this.#inner.rawNewWithChildren(style, rawChildren, "newWithChildren");
-		return this.#nodes.register(raw, serial);
+		return this.#nodes.register(this.#inner.rawNewWithChildren(style, rawChildren), serial);
 	}
-	#remove(node) {
+	remove(node) {
 		const raw = this.#nodes.resolve(node);
-		this.#inner.rawRemove(raw, "remove");
+		this.#inner.rawRemove(raw);
 		this.#nodes.unregister(node, raw);
 		this.#contexts.delete(node);
 	}
-	#getNodeContext(node) {
+	getNodeContext(node) {
 		this.#nodes.resolve(node);
 		return this.#contexts.get(node);
 	}
-	#setNodeContext(node, context) {
+	setNodeContext(node, context) {
 		const raw = this.#nodes.resolve(node);
-		this.#inner.rawSetNodeContext(raw, context !== void 0, "setNodeContext");
+		this.#inner.rawSetNodeContext(raw, context !== void 0);
 		if (context === void 0) this.#contexts.delete(node);
 		else this.#contexts.set(node, context);
 	}
-	#clear() {
-		this.#inner.rawClear("clear");
+	setStyle(node, style) {
+		this.#inner.rawSetStyle(this.#nodes.resolve(node), style);
+	}
+	getStyle(node) {
+		return this.#inner.rawGetStyle(this.#nodes.resolve(node));
+	}
+	getLayout(node) {
+		return this.#inner.rawGetLayout(this.#nodes.resolve(node));
+	}
+	getUnroundedLayout(node) {
+		return this.#inner.rawGetUnroundedLayout(this.#nodes.resolve(node));
+	}
+	getDetailedLayoutInfo(node) {
+		return this.#inner.rawGetDetailedLayoutInfo(this.#nodes.resolve(node));
+	}
+	markDirty(node) {
+		this.#inner.rawMarkDirty(this.#nodes.resolve(node));
+	}
+	isDirty(node) {
+		return this.#inner.rawIsDirty(this.#nodes.resolve(node));
+	}
+	clear() {
+		this.#inner.rawClear();
 		this.#nodes.clear();
 		this.#contexts.clear();
 	}
-	#getChildCount(parent) {
-		const rawParent = this.#nodes.resolve(parent);
-		return this.#inner.rawChildCount(rawParent, "getChildCount");
+	computeLayout(options) {
+		this.#inner.rawComputeLayout(this.#nodes.resolve(options.root), options.availableSpace);
 	}
-	#getParent(node) {
-		const rawNode = this.#nodes.resolve(node);
-		const rawParent = this.#inner.rawParent(rawNode, "getParent");
-		return rawParent === null ? null : this.#nodes.fromRaw(rawParent);
-	}
-	#getChildren(parent) {
-		const rawParent = this.#nodes.resolve(parent);
-		return this.#inner.rawChildren(rawParent, "getChildren").map((child) => this.#nodes.fromRaw(child));
-	}
-	#getNodeCount() {
-		return this.#inner.rawNodeCount("getNodeCount");
-	}
-	#getStyle(node) {
-		const raw = this.#nodes.resolve(node);
-		return this.#inner.rawGetStyle(raw, "getStyle");
-	}
-	#getLayout(node) {
-		const raw = this.#nodes.resolve(node);
-		return this.#inner.rawGetLayout(raw, "getLayout");
-	}
-	#getUnroundedLayout(node) {
-		const raw = this.#nodes.resolve(node);
-		return this.#inner.rawGetUnroundedLayout(raw, "getUnroundedLayout");
-	}
-	#getDetailedLayoutInfo(node) {
-		const raw = this.#nodes.resolve(node);
-		return this.#inner.rawGetDetailedLayoutInfo(raw, "getDetailedLayoutInfo");
-	}
-	#markDirty(node) {
-		const raw = this.#nodes.resolve(node);
-		this.#inner.rawMarkDirty(raw, "markDirty");
-	}
-	#isDirty(node) {
-		const raw = this.#nodes.resolve(node);
-		return this.#inner.rawIsDirty(raw, "isDirty");
-	}
-	#computeLayout(options) {
-		const rawRoot = this.#nodes.resolve(options.root);
-		this.#inner.rawComputeLayout(rawRoot, options.availableSpace, "computeLayout");
-	}
-	#computeLayoutWithMeasure(options) {
-		const rawRoot = this.#nodes.resolve(options.root);
-		const measure = options.measure;
-		this.#inner.rawComputeLayoutWithMeasure(rawRoot, options.availableSpace, (value) => {
+	computeLayoutWithMeasure(options) {
+		this.#inner.rawComputeLayoutWithMeasure(this.#nodes.resolve(options.root), options.availableSpace, (value) => {
 			const args = value;
 			const node = this.#nodes.fromRaw(args.node);
-			return measure({
+			return options.measure({
 				knownDimensions: args.knownDimensions,
 				availableSpace: args.availableSpace,
 				node,
 				context: this.#contexts.get(node),
 				style: args.style
 			});
-		}, "computeLayoutWithMeasure");
-	}
-	#getChildAtIndex(parent, index) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawChild = this.#inner.rawChildAtIndex(rawParent, index, "getChildAtIndex");
-		return this.#nodes.fromRaw(rawChild);
-	}
-	#addChild(parent, child) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawChild = this.#nodes.resolve(child);
-		this.#inner.rawAddChild(rawParent, rawChild, "addChild");
-	}
-	#insertChildAtIndex(parent, index, child) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawChild = this.#nodes.resolve(child);
-		this.#inner.rawInsertChildAtIndex(rawParent, index, rawChild, "insertChildAtIndex");
-	}
-	#setChildren(parent, children) {
-		const rawParent = this.#nodes.resolve(parent);
-		if (!Array.isArray(children)) throw new TypeError("children must be an array");
-		const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
-		this.#inner.rawSetChildren(rawParent, rawChildren, "setChildren");
-	}
-	#removeChild(parent, child) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawChild = this.#nodes.resolve(child);
-		this.#inner.rawRemoveChild(rawParent, rawChild, "removeChild");
-	}
-	#removeChildAtIndex(parent, index) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawChild = this.#inner.rawRemoveChildAtIndex(rawParent, index, "removeChildAtIndex");
-		return this.#nodes.fromRaw(rawChild);
-	}
-	#removeChildrenRange(parent, range) {
-		const rawParent = this.#nodes.resolve(parent);
-		this.#inner.rawRemoveChildrenRange(rawParent, range, "removeChildrenRange");
-	}
-	#replaceChildAtIndex(parent, index, newChild) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawNewChild = this.#nodes.resolve(newChild);
-		const rawOldChild = this.#inner.rawReplaceChildAtIndex(rawParent, index, rawNewChild, "replaceChildAtIndex");
-		return this.#nodes.fromRaw(rawOldChild);
+		});
 	}
 };
 //#endregion

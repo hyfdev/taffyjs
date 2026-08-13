@@ -66,6 +66,7 @@ pub struct StyleInput<'env> {
     pub item_is_replaced: Option<bool>,
     pub box_sizing: Option<f64>,
     pub direction: Option<f64>,
+    // A nested napi-rs object would coerce arrays and primitives and ignore extra fields.
     pub overflow: Option<Unknown<'env>>,
     pub scrollbar_width: Option<f64>,
     #[napi(js_name = "float")]
@@ -98,7 +99,7 @@ pub struct StyleInput<'env> {
     pub grid_auto_rows: Option<Vec<Unknown<'env>>>,
     pub grid_auto_columns: Option<Vec<Unknown<'env>>>,
     pub grid_auto_flow: Option<f64>,
-    pub grid_template_areas: Option<Unknown<'env>>,
+    pub grid_template_areas: Option<Either<grid::GridTemplateAreasInput, Null>>,
     pub grid_template_column_names: Option<Vec<Vec<String>>>,
     pub grid_template_row_names: Option<Vec<Vec<String>>>,
     pub grid_row: Option<Unknown<'env>>,
@@ -106,8 +107,8 @@ pub struct StyleInput<'env> {
 }
 
 #[napi(object, object_to_js = false)]
-pub struct MaybeTaggedLengthInput<'env> {
-    pub unit: Option<Unknown<'env>>,
+pub struct MaybeTaggedLengthInput {
+    pub unit: Option<f64>,
 }
 
 #[napi(object, object_from_js = false)]
@@ -189,13 +190,6 @@ where
     number::to_integer(value)
 }
 
-fn is_null(value: Unknown<'_>) -> NativeResult<bool> {
-    value
-        .get_type()
-        .map(|kind| kind == ValueType::Null)
-        .map_err(|_| type_error("Could not inspect a Style field"))
-}
-
 fn is_tagged_length(value: Unknown<'_>) -> NativeResult<bool> {
     if value
         .get_type()
@@ -204,7 +198,7 @@ fn is_tagged_length(value: Unknown<'_>) -> NativeResult<bool> {
     {
         return Ok(false);
     }
-    let input: MaybeTaggedLengthInput<'_> =
+    let input: MaybeTaggedLengthInput =
         js_object::input(value, "a length or geometry object", None)?;
     Ok(input.unit.is_some())
 }
@@ -545,10 +539,9 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         style.grid_auto_flow = grid_auto_flow(value)?;
     }
     if let Some(value) = input.grid_template_areas {
-        style.grid_template_areas = if is_null(value)? {
-            None
-        } else {
-            Some(grid::template_areas(value)?)
+        style.grid_template_areas = match value {
+            Either::A(value) => Some(grid::template_areas(value)?),
+            Either::B(_) => None,
         };
     }
     if let Some(value) = input.grid_template_column_names {

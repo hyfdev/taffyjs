@@ -8,15 +8,13 @@ const TOKEN_SHIFT = 128n;
 const U64_MAX = (1n << U64_BITS) - 1n;
 const NODE_ID_LIMIT = 1n << 256n;
 
-export type RandomSource = (bytes: Uint8Array) => Uint8Array;
-
 function codedError(code: string, message: string): Error & { code: string } {
   return Object.assign(new Error(message), { code });
 }
 
-function randomToken(randomSource: RandomSource): bigint {
+function randomToken(): bigint {
   const bytes = new Uint8Array(16);
-  randomSource(bytes);
+  globalThis.crypto.getRandomValues(bytes);
   let token = 0n;
   for (const byte of bytes) token = (token << 8n) | BigInt(byte);
   return token;
@@ -29,13 +27,11 @@ function isEncodedNodeId(value: bigint): boolean {
 
 export class NodeIdRegistry {
   readonly #token: bigint;
-  #nextSerial: bigint;
+  #nextSerial = 1n;
   readonly #serialByRaw = new Map<bigint, bigint>();
-  readonly #rawByPublic = new Map<NodeId, bigint>();
 
-  constructor(randomSource: RandomSource, nextSerial = 1n) {
-    this.#token = randomToken(randomSource);
-    this.#nextSerial = nextSerial;
+  constructor() {
+    this.#token = randomToken();
   }
 
   reserveSerial(): bigint {
@@ -51,11 +47,7 @@ export class NodeIdRegistry {
       throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
     }
     const node = ((this.#token << TOKEN_SHIFT) | (serial << U64_BITS) | raw) as NodeId;
-    if (this.#rawByPublic.has(node)) {
-      throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
-    }
     this.#serialByRaw.set(raw, serial);
-    this.#rawByPublic.set(node, raw);
     this.#nextSerial = serial + 1n;
     return node;
   }
@@ -68,14 +60,10 @@ export class NodeIdRegistry {
     if (value >> TOKEN_SHIFT !== this.#token) {
       throw codedError("ERR_TAFFY_FOREIGN_NODE_ID", "The NodeId belongs to another TaffyTree");
     }
-    const node = value as NodeId;
-    const raw = this.#rawByPublic.get(node);
-    if (raw === undefined) {
-      throw codedError("ERR_TAFFY_STALE_NODE_ID", "The NodeId no longer names a current node");
-    }
     const serial = (value >> U64_BITS) & U64_MAX;
+    const raw = value & U64_MAX;
     if (this.#serialByRaw.get(raw) !== serial) {
-      throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
+      throw codedError("ERR_TAFFY_STALE_NODE_ID", "The NodeId no longer names a current node");
     }
     return raw;
   }
@@ -85,24 +73,18 @@ export class NodeIdRegistry {
     if (serial === undefined) {
       throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
     }
-    const node = ((this.#token << TOKEN_SHIFT) | (serial << U64_BITS) | raw) as NodeId;
-    if (this.#rawByPublic.get(node) !== raw) {
-      throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
-    }
-    return node;
+    return ((this.#token << TOKEN_SHIFT) | (serial << U64_BITS) | raw) as NodeId;
   }
 
   unregister(node: NodeId, raw: bigint): void {
     const serial = (node >> U64_BITS) & U64_MAX;
-    if (this.#rawByPublic.get(node) !== raw || this.#serialByRaw.get(raw) !== serial) {
+    if ((node & U64_MAX) !== raw || this.#serialByRaw.get(raw) !== serial) {
       throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
     }
-    this.#rawByPublic.delete(node);
     this.#serialByRaw.delete(raw);
   }
 
   clear(): void {
     this.#serialByRaw.clear();
-    this.#rawByPublic.clear();
   }
 }

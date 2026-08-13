@@ -58,10 +58,10 @@ const nullableFields = [
 
 type RawStyle = Record<string, unknown>;
 type NativeTaffyTree = {
-  rawGetStyle(node: bigint, publicMethod: string): RawStyle;
-  rawNewLeaf(style: unknown, publicMethod: string): bigint;
-  rawNodeCount(publicMethod: string): number;
-  rawSetStyle(node: bigint, style: unknown, publicMethod: string): void;
+  rawGetStyle(node: bigint): RawStyle;
+  rawNewLeaf(style: unknown): bigint;
+  rawNodeCount(): number;
+  rawSetStyle(node: bigint, style: unknown): void;
 };
 type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
 
@@ -80,8 +80,8 @@ function createOwner(): NativeTaffyTree {
 
 function storedStyle(style: unknown): RawStyle {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(style, "newLeaf");
-  return owner.rawGetStyle(node, "getStyle");
+  const node = owner.rawNewLeaf(style);
+  return owner.rawGetStyle(node);
 }
 
 test("output contains every public style field", () => {
@@ -108,8 +108,8 @@ test("only optional Taffy values accept null", () => {
   const nullable = new Set<string>(nullableFields);
   for (const field of styleFields.filter((field) => !nullable.has(field))) {
     const owner = createOwner();
-    assert.throws(() => owner.rawNewLeaf({ [field]: null }, "newLeaf"), TypeError, field);
-    assert.equal(owner.rawNodeCount("getNodeCount"), 0, field);
+    assert.throws(() => owner.rawNewLeaf({ [field]: null }), TypeError, field);
+    assert.equal(owner.rawNodeCount(), 0, field);
   }
 });
 
@@ -135,8 +135,8 @@ test("style input accepts objects and rejects other values", () => {
 
   for (const value of [undefined, null, 0, "", true, 1n, Symbol("style"), () => {}, []]) {
     const owner = createOwner();
-    assert.throws(() => owner.rawNewLeaf(value, "newLeaf"), TypeError);
-    assert.equal(owner.rawNodeCount("getNodeCount"), 0);
+    assert.throws(() => owner.rawNewLeaf(value), TypeError);
+    assert.equal(owner.rawNodeCount(), 0);
   }
 });
 
@@ -147,41 +147,35 @@ test("unknown style fields and calc values are rejected", () => {
     { flexBasis: { calc: "1px + 2%" } },
   ]) {
     const owner = createOwner();
-    assert.throws(() => owner.rawNewLeaf(style, "newLeaf"), TypeError);
-    assert.equal(owner.rawNodeCount("getNodeCount"), 0);
+    assert.throws(() => owner.rawNewLeaf(style), TypeError);
+    assert.equal(owner.rawNodeCount(), 0);
   }
 });
 
 test("style conversion finishes before native state changes", () => {
   const owner = createOwner();
-  const node = owner.rawNewLeaf({ flexGrow: 1 }, "newLeaf");
+  const node = owner.rawNewLeaf({ flexGrow: 1 });
 
-  owner.rawSetStyle(node, { flexGrow: 2 }, "setStyle");
-  assert.equal(owner.rawGetStyle(node, "getStyle").flexGrow, 2);
+  owner.rawSetStyle(node, { flexGrow: 2 });
+  assert.equal(owner.rawGetStyle(node).flexGrow, 2);
 
-  const before = owner.rawGetStyle(node, "getStyle");
-  assert.throws(
-    () => owner.rawSetStyle(node, { flexGrow: 3, display: 255 }, "setStyle"),
-    RangeError,
-  );
-  assert.deepEqual(owner.rawGetStyle(node, "getStyle"), before);
+  const before = owner.rawGetStyle(node);
+  assert.throws(() => owner.rawSetStyle(node, { flexGrow: 3, display: 255 }), RangeError);
+  assert.deepEqual(owner.rawGetStyle(node), before);
 
-  assert.throws(() => owner.rawNewLeaf({ flexGrow: 3, display: 255 }, "newLeaf"), RangeError);
-  assert.equal(owner.rawNodeCount("getNodeCount"), 1);
+  assert.throws(() => owner.rawNewLeaf({ flexGrow: 3, display: 255 }), RangeError);
+  assert.equal(owner.rawNodeCount(), 1);
 });
 
 test("output snapshots are detached", () => {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(
-    {
-      flexGrow: 2,
-      size: { width: { unit: 0, value: 10 } },
-      gridTemplateRowNames: [["row"]],
-    },
-    "newLeaf",
-  );
-  const first = owner.rawGetStyle(node, "getStyle");
-  const second = owner.rawGetStyle(node, "getStyle");
+  const node = owner.rawNewLeaf({
+    flexGrow: 2,
+    size: { width: { unit: 0, value: 10 } },
+    gridTemplateRowNames: [["row"]],
+  });
+  const first = owner.rawGetStyle(node);
+  const second = owner.rawGetStyle(node);
 
   assert.deepEqual(Object.keys(first), styleFields);
   assert.deepEqual(first, second);
@@ -195,7 +189,7 @@ test("output snapshots are detached", () => {
   (first.size as { width: { value: number } }).width.value = 20;
   (first.gridTemplateRowNames as string[][])[0][0] = "changed";
 
-  const third = owner.rawGetStyle(node, "getStyle");
+  const third = owner.rawGetStyle(node);
   assert.equal(third.flexGrow, 2);
   assert.deepEqual((third.size as { width: unknown }).width, { unit: 0, value: 10 });
   assert.deepEqual(third.gridTemplateRowNames, [["row"]]);

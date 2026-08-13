@@ -10,9 +10,9 @@ type Track = { min: TrackPart; max: TrackPart };
 type Count = { kind: number; value?: number };
 type Component = { kind: number; value: unknown };
 type NativeTaffyTree = {
-  rawGetStyle(node: bigint, publicMethod: string): RawStyle;
-  rawNewLeaf(style: RawStyle, publicMethod: string): bigint;
-  rawNodeCount(publicMethod: string): number;
+  rawGetStyle(node: bigint): RawStyle;
+  rawNewLeaf(style: RawStyle): bigint;
+  rawNodeCount(): number;
 };
 type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
 type GridHelpers = {
@@ -76,14 +76,14 @@ function helpers(): GridHelpers {
 
 function storedStyle(style: RawStyle): RawStyle {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(style, "newLeaf");
-  return owner.rawGetStyle(node, "getStyle");
+  const node = owner.rawNewLeaf(style);
+  return owner.rawGetStyle(node);
 }
 
 function rejectsWithoutNode(style: RawStyle, error: typeof TypeError | typeof RangeError): void {
   const owner = createOwner();
-  assert.throws(() => owner.rawNewLeaf(style, "newLeaf"), error);
-  assert.equal(owner.rawNodeCount("getNodeCount"), 0);
+  assert.throws(() => owner.rawNewLeaf(style), error);
+  assert.equal(owner.rawNodeCount(), 0);
 }
 
 function repeat(count: Count, tracks: Track[], lineNames = [["start"], ["end"]]): Component {
@@ -272,15 +272,12 @@ test("nested Grid input and output collections are detached copies", () => {
     columnCount: 1,
   };
   const owner = createOwner();
-  const node = owner.rawNewLeaf(
-    { gridTemplateRows: [component], gridTemplateAreas: areas },
-    "newLeaf",
-  );
+  const node = owner.rawNewLeaf({ gridTemplateRows: [component], gridTemplateAreas: areas });
   track.min.value = 99;
   lineNames[0][0] = "changed";
   areas.areas[0].name = "changed";
 
-  const first = owner.rawGetStyle(node, "getStyle");
+  const first = owner.rawGetStyle(node);
   assert.equal(
     ((first.gridTemplateRows as Component[])[0].value as { tracks: Track[] }).tracks[0].min.value,
     10,
@@ -293,7 +290,7 @@ test("nested Grid input and output collections are detached copies", () => {
 
   ((first.gridTemplateRows as Component[])[0].value as { lineNames: string[][] }).lineNames[0][0] =
     "output";
-  const second = owner.rawGetStyle(node, "getStyle");
+  const second = owner.rawGetStyle(node);
   assert.equal(
     ((second.gridTemplateRows as Component[])[0].value as { lineNames: string[][] })
       .lineNames[0][0],

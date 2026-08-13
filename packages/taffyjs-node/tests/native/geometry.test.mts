@@ -4,9 +4,9 @@ import { test } from "vite-plus/test";
 
 type RawStyle = Record<string, unknown>;
 type NativeTaffyTree = {
-  rawGetStyle(node: bigint, publicMethod: string): RawStyle;
-  rawNewLeaf(style: RawStyle, publicMethod: string): bigint;
-  rawNodeCount(publicMethod: string): number;
+  rawGetStyle(node: bigint): RawStyle;
+  rawNewLeaf(style: RawStyle): bigint;
+  rawNodeCount(): number;
 };
 type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
 
@@ -25,14 +25,14 @@ function createOwner(): NativeTaffyTree {
 
 function storedStyle(style: RawStyle): RawStyle {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(style, "newLeaf");
-  return owner.rawGetStyle(node, "getStyle");
+  const node = owner.rawNewLeaf(style);
+  return owner.rawGetStyle(node);
 }
 
 function rejectsWithoutNode(style: RawStyle): void {
   const owner = createOwner();
-  assert.throws(() => owner.rawNewLeaf(style, "newLeaf"), TypeError);
-  assert.equal(owner.rawNodeCount("getNodeCount"), 0);
+  assert.throws(() => owner.rawNewLeaf(style), TypeError);
+  assert.equal(owner.rawNodeCount(), 0);
 }
 
 const length = (value: number) => ({ unit: 0, value });
@@ -115,17 +115,14 @@ test("only semantic-length Size and Rect fields accept a scalar", () => {
 
 test("geometry output is detached and can be reused as input", () => {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(
-    {
-      overflow: { x: 1, y: 2 },
-      size: { width: length(10), height: percent(50) },
-      padding: length(3),
-      gridRow: { start: { kind: 1, index: 2 }, end: { kind: 0 } },
-    },
-    "newLeaf",
-  );
-  const first = owner.rawGetStyle(node, "getStyle");
-  const second = owner.rawGetStyle(node, "getStyle");
+  const node = owner.rawNewLeaf({
+    overflow: { x: 1, y: 2 },
+    size: { width: length(10), height: percent(50) },
+    padding: length(3),
+    gridRow: { start: { kind: 1, index: 2 }, end: { kind: 0 } },
+  });
+  const first = owner.rawGetStyle(node);
+  const second = owner.rawGetStyle(node);
   for (const field of ["overflow", "size", "padding", "gridRow"]) {
     assert.notEqual(first[field], second[field], field);
     assert.equal(Object.isFrozen(first[field]), false, field);

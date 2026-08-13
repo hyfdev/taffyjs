@@ -42,7 +42,7 @@ impl TreeOwner {
     }
 }
 
-#[cfg(any(test, feature = "test-hooks"))]
+#[cfg(test)]
 pub(crate) fn injected_unexpected_panic() -> ! {
     panic!("injected unexpected panic")
 }

@@ -2,50 +2,44 @@
 /* eslint-disable */
 export declare class NativeTaffyTree {
   constructor();
-  rawEnableRounding(publicMethod: string): void;
-  rawDisableRounding(publicMethod: string): void;
-  rawNodeCount(publicMethod: string): number;
-  rawChildCount(parent: bigint, publicMethod: string): number;
-  rawParent(node: bigint, publicMethod: string): bigint | null;
-  rawChildren(parent: bigint, publicMethod: string): Array<bigint>;
-  rawChildAtIndex(parent: bigint, index: unknown, publicMethod: string): bigint;
-  rawAddChild(parent: bigint, child: bigint, publicMethod: string): void;
-  rawInsertChildAtIndex(parent: bigint, index: unknown, child: bigint, publicMethod: string): void;
-  rawSetChildren(parent: bigint, children: Array<bigint>, publicMethod: string): void;
-  rawRemoveChild(parent: bigint, child: bigint, publicMethod: string): void;
-  rawRemoveChildAtIndex(parent: bigint, index: unknown, publicMethod: string): bigint;
-  rawRemoveChildrenRange(parent: bigint, range: unknown, publicMethod: string): void;
-  rawReplaceChildAtIndex(
-    parent: bigint,
-    index: unknown,
-    newChild: bigint,
-    publicMethod: string,
-  ): bigint;
-  rawRemove(node: bigint, publicMethod: string): void;
-  rawClear(publicMethod: string): void;
-  rawNewLeaf(style: unknown, publicMethod: string): bigint;
-  rawNewLeafWithContext(style: unknown, hasContext: boolean, publicMethod: string): bigint;
-  rawNewWithChildren(style: unknown, children: Array<bigint>, publicMethod: string): bigint;
-  rawSetStyle(node: bigint, style: unknown, publicMethod: string): void;
-  rawSetNodeContext(node: bigint, hasContext: boolean, publicMethod: string): void;
-  rawGetStyle(node: bigint, publicMethod: string): StyleOutput;
-  rawComputeLayout(node: bigint, availableSpace: unknown, publicMethod: string): void;
-  rawGetLayout(node: bigint, publicMethod: string): LayoutOutput;
-  rawGetUnroundedLayout(node: bigint, publicMethod: string): LayoutOutput;
-  rawGetDetailedLayoutInfo(node: bigint, publicMethod: string): DetailedLayoutOutput;
-  rawMarkDirty(node: bigint, publicMethod: string): void;
-  rawIsDirty(node: bigint, publicMethod: string): boolean;
+  rawEnableRounding(): void;
+  rawDisableRounding(): void;
+  rawNodeCount(): number;
+  rawChildCount(parent: bigint): number;
+  rawParent(node: bigint): bigint | null;
+  rawChildren(parent: bigint): Array<bigint>;
+  rawChildAtIndex(parent: bigint, index: number): bigint;
+  rawAddChild(parent: bigint, child: bigint): void;
+  rawInsertChildAtIndex(parent: bigint, index: number, child: bigint): void;
+  rawSetChildren(parent: bigint, children: Array<bigint>): void;
+  rawRemoveChild(parent: bigint, child: bigint): void;
+  rawRemoveChildAtIndex(parent: bigint, index: number): bigint;
+  rawRemoveChildrenRange(parent: bigint, range: ChildRangeInput): void;
+  rawReplaceChildAtIndex(parent: bigint, index: number, newChild: bigint): bigint;
+  rawRemove(node: bigint): void;
+  rawClear(): void;
+  rawNewLeaf(style: unknown): bigint;
+  rawNewLeafWithContext(style: unknown, hasContext: boolean): bigint;
+  rawNewWithChildren(style: unknown, children: Array<bigint>): bigint;
+  rawSetStyle(node: bigint, style: unknown): void;
+  rawSetNodeContext(node: bigint, hasContext: boolean): void;
+  rawGetStyle(node: bigint): StyleOutput;
+  rawComputeLayout(node: bigint, availableSpace: unknown): void;
+  rawGetLayout(node: bigint): LayoutOutput;
+  rawGetUnroundedLayout(node: bigint): LayoutOutput;
+  rawGetDetailedLayoutInfo(node: bigint): DetailedLayoutOutput;
+  rawMarkDirty(node: bigint): void;
+  rawIsDirty(node: bigint): boolean;
   rawComputeLayoutWithMeasure(
     node: bigint,
     availableSpace: unknown,
     measure: (arg: MeasureArguments) => unknown,
-    publicMethod: string,
   ): void;
 }
 
 export interface AvailableSpaceInput {
   kind: number;
-  value?: unknown;
+  value?: number;
 }
 
 export interface AvailableSpaceOutput {
@@ -96,9 +90,9 @@ export interface DetailedLayoutOutput {
 
 export interface GridPlacementInput {
   kind: number;
-  name?: unknown;
-  index?: unknown;
-  span?: unknown;
+  name?: string;
+  index?: number;
+  span?: number;
 }
 
 export interface GridPlacementLineOutput {
@@ -130,7 +124,7 @@ export interface GridTemplateAreaOutput {
 }
 
 export interface GridTemplateAreasInput {
-  areas: Array<unknown>;
+  areas: Array<GridTemplateAreaInput>;
   rowCount: number;
   columnCount: number;
 }
@@ -192,7 +186,7 @@ export interface LengthSizeOutput {
 }
 
 export interface MaybeTaggedLengthInput {
-  unit?: unknown;
+  unit?: number;
 }
 
 export interface MeasureArguments {
@@ -293,7 +287,7 @@ export interface StyleInput {
   gridAutoRows?: Array<unknown>;
   gridAutoColumns?: Array<unknown>;
   gridAutoFlow?: number;
-  gridTemplateAreas?: unknown;
+  gridTemplateAreas?: GridTemplateAreasInput | null;
   gridTemplateColumnNames?: Array<Array<string>>;
   gridTemplateRowNames?: Array<Array<string>>;
   gridRow?: unknown;
@@ -351,7 +345,7 @@ export interface TaggedGridInput {
 
 export interface TaggedLengthInput {
   unit: number;
-  value?: unknown;
+  value?: number;
 }
 
 export interface TrackSizingInput {

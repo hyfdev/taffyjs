@@ -5,9 +5,9 @@ import { test } from "vite-plus/test";
 
 type RawStyle = Record<string, unknown>;
 type NativeTaffyTree = {
-  rawGetStyle(node: bigint, publicMethod: string): RawStyle;
-  rawNewLeaf(style: RawStyle, publicMethod: string): bigint;
-  rawNodeCount(publicMethod: string): number;
+  rawGetStyle(node: bigint): RawStyle;
+  rawNewLeaf(style: RawStyle): bigint;
+  rawNodeCount(): number;
 };
 type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
 type DimensionHelper = Readonly<{
@@ -38,14 +38,14 @@ function dimension(): DimensionHelper {
 
 function storedStyle(style: RawStyle): RawStyle {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(style, "newLeaf");
-  return owner.rawGetStyle(node, "getStyle");
+  const node = owner.rawNewLeaf(style);
+  return owner.rawGetStyle(node);
 }
 
 function rejectsWithoutNode(style: RawStyle, error: typeof TypeError | typeof RangeError): void {
   const owner = createOwner();
-  assert.throws(() => owner.rawNewLeaf(style, "newLeaf"), error);
-  assert.equal(owner.rawNodeCount("getNodeCount"), 0);
+  assert.throws(() => owner.rawNewLeaf(style), error);
+  assert.equal(owner.rawNodeCount(), 0);
 }
 
 test("Dimension helpers and direct tagged records store the same values", () => {

@@ -68,3 +68,13 @@ pub(crate) fn output(value: &Layout) -> LayoutOutput {
         margin: rect_output(&value.margin),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn layout_order_preserves_the_full_u32_range() {
+        assert_eq!(output(&Layout::with_order(u32::MAX)).order, u32::MAX);
+    }
+}

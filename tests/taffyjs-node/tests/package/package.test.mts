@@ -354,24 +354,13 @@ test("tarballs contain only the published files", async () => {
 });
 
 test("garbage collection releases native state", async () => {
-  const testHooksRoot = resolve(packageRoot, "node_modules/.cache/taffyjs-test-hooks");
-  const nativeLibraries = (await readdir(testHooksRoot)).filter((name) => name.endsWith(".node"));
-  assert.equal(nativeLibraries.length, 1);
-  const testHooksPath = resolve(testHooksRoot, nativeLibraries[0]);
   const child = await run(
     process.execPath,
     ["--expose-gc", fileURLToPath(new URL("./fixtures/package-cleanup.mjs", import.meta.url))],
     root,
-    {
-      environment: {
-        NAPI_RS_NATIVE_LIBRARY_PATH: testHooksPath,
-        TAFFYJS_TEST_HOOKS_PATH: testHooksPath,
-      },
-    },
   );
   assert.deepEqual(JSON.parse(child.stdout), {
     wrapperCollected: true,
-    ownedNativeCollected: true,
     contextCollected: true,
     callbackCollected: true,
     retainedTreesAlive: true,

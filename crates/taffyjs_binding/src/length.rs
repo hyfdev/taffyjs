@@ -4,13 +4,13 @@ use taffy::style::{CompactLength, Dimension, LengthPercentage, LengthPercentageA
 
 use crate::error::{NativeResult, type_error};
 use crate::js_object;
-use crate::number::{from_unknown, to_f32, to_integer};
+use crate::number::{to_f32, to_integer};
 use crate::numeric::LengthUnitCode;
 
 #[napi(object, object_to_js = false)]
-pub struct TaggedLengthInput<'env> {
+pub struct TaggedLengthInput {
     pub unit: f64,
-    pub value: Option<Unknown<'env>>,
+    pub value: Option<f64>,
 }
 
 #[napi(object, object_from_js = false)]
@@ -20,13 +20,12 @@ pub struct LengthOutput {
 }
 
 fn read_parts(value: Unknown<'_>) -> NativeResult<(LengthUnitCode, f64)> {
-    let input: TaggedLengthInput<'_> = js_object::input(value, "a tagged length object", None)?;
+    let input: TaggedLengthInput = js_object::input(value, "a tagged length object", None)?;
     let unit = to_integer::<LengthUnitCode>(input.unit)?;
     let value = match unit {
-        LengthUnitCode::Length | LengthUnitCode::Percent => from_unknown(
-            js_object::required(input.value, "Length value")?,
-            "Length value",
-        )?,
+        LengthUnitCode::Length | LengthUnitCode::Percent => {
+            js_object::required(input.value, "Length value")?
+        }
         LengthUnitCode::Auto => 0.0,
     };
     Ok((unit, value))

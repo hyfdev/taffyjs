@@ -8,9 +8,6 @@ publish = false
 [lib]
 crate-type = ["cdylib"]
 
-[features]
-test-hooks = []
-
 [dependencies]
 napi.workspace = true
 napi-derive.workspace = true

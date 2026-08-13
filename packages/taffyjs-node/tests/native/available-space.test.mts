@@ -5,9 +5,9 @@ import { test } from "vite-plus/test";
 
 type RawLayout = { size: { width: number; height: number } } & Record<string, unknown>;
 type NativeTaffyTree = {
-  rawComputeLayout(node: bigint, availableSpace: unknown, publicMethod: string): void;
-  rawGetLayout(node: bigint, publicMethod: string): RawLayout;
-  rawNewLeaf(style: Record<string, unknown>, publicMethod: string): bigint;
+  rawComputeLayout(node: bigint, availableSpace: unknown): void;
+  rawGetLayout(node: bigint): RawLayout;
+  rawNewLeaf(style: Record<string, unknown>): bigint;
 };
 type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
 type AvailableSpaceHelper = Readonly<{
@@ -38,22 +38,19 @@ function availableSpace(): AvailableSpaceHelper {
 
 function layoutFor(width: unknown, height: unknown = width): RawLayout {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(
-    {
-      size: {
-        width: { unit: 1, value: 100 },
-        height: { unit: 1, value: 100 },
-      },
+  const node = owner.rawNewLeaf({
+    size: {
+      width: { unit: 1, value: 100 },
+      height: { unit: 1, value: 100 },
     },
-    "newLeaf",
-  );
-  owner.rawComputeLayout(node, { width, height }, "computeLayout");
-  return owner.rawGetLayout(node, "getLayout");
+  });
+  owner.rawComputeLayout(node, { width, height });
+  return owner.rawGetLayout(node);
 }
 
 test("available space requires complete named width and height fields", () => {
   const owner = createOwner();
-  const node = owner.rawNewLeaf({}, "newLeaf");
+  const node = owner.rawNewLeaf({});
   for (const value of [
     [
       { kind: 0, value: 10 },
@@ -63,7 +60,7 @@ test("available space requires complete named width and height fields", () => {
     { height: { kind: 0, value: 20 } },
     { width: { kind: 0, value: 10 }, height: { kind: 0, value: 20 }, depth: { kind: 1 } },
   ]) {
-    assert.throws(() => owner.rawComputeLayout(node, value, "computeLayout"), TypeError);
+    assert.throws(() => owner.rawComputeLayout(node, value), TypeError);
   }
 });
 

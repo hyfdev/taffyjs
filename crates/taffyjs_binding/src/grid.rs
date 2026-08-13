@@ -22,11 +22,11 @@ pub struct TaggedGridInput<'env> {
 }
 
 #[napi(object, object_to_js = false)]
-pub struct GridPlacementInput<'env> {
+pub struct GridPlacementInput {
     pub kind: f64,
-    pub name: Option<Unknown<'env>>,
-    pub index: Option<Unknown<'env>>,
-    pub span: Option<Unknown<'env>>,
+    pub name: Option<String>,
+    pub index: Option<f64>,
+    pub span: Option<f64>,
 }
 
 #[napi(object, object_to_js = false)]
@@ -52,8 +52,8 @@ pub struct GridTemplateAreaInput {
 }
 
 #[napi(object, object_to_js = false)]
-pub struct GridTemplateAreasInput<'env> {
-    pub areas: Vec<Unknown<'env>>,
+pub struct GridTemplateAreasInput {
+    pub areas: Vec<GridTemplateAreaInput>,
     pub row_count: f64,
     pub column_count: f64,
 }
@@ -128,48 +128,23 @@ fn tagged_value<'env>(input: &TaggedGridInput<'env>, name: &str) -> NativeResult
     js_object::required(input.value, name)
 }
 
-fn string(value: Unknown<'_>, name: &str) -> NativeResult<String> {
-    unsafe {
-        value
-            .cast::<String>()
-            .map_err(|_| type_error(format!("{name} must be a string")))
-    }
-}
-
 pub(crate) fn grid_placement(value: Unknown<'_>) -> NativeResult<GridPlacement<String>> {
-    let input: GridPlacementInput<'_> = js_object::input(value, "a GridPlacement object", None)?;
+    let input: GridPlacementInput = js_object::input(value, "a GridPlacement object", None)?;
     Ok(match to_integer::<GridPlacementKindCode>(input.kind)? {
         GridPlacementKindCode::Auto => GridPlacement::Auto,
         GridPlacementKindCode::Line => GridPlacement::Line(
-            to_integer::<i16>(from_unknown(
-                js_object::required(input.index, "Grid line index")?,
-                "Grid line index",
-            )?)?
-            .into(),
+            to_integer::<i16>(js_object::required(input.index, "Grid line index")?)?.into(),
         ),
         GridPlacementKindCode::NamedLine => GridPlacement::NamedLine(
-            string(
-                js_object::required(input.name, "Grid line name")?,
-                "Grid line name",
-            )?,
-            to_integer::<i16>(from_unknown(
-                js_object::required(input.index, "Grid line index")?,
-                "Grid line index",
-            )?)?,
+            js_object::required(input.name, "Grid line name")?,
+            to_integer::<i16>(js_object::required(input.index, "Grid line index")?)?,
         ),
-        GridPlacementKindCode::Span => GridPlacement::Span(to_integer::<u16>(from_unknown(
+        GridPlacementKindCode::Span => GridPlacement::Span(to_integer::<u16>(
             js_object::required(input.span, "Grid span")?,
-            "Grid span",
-        )?)?),
+        )?),
         GridPlacementKindCode::NamedSpan => GridPlacement::NamedSpan(
-            string(
-                js_object::required(input.name, "Grid span name")?,
-                "Grid span name",
-            )?,
-            to_integer::<u16>(from_unknown(
-                js_object::required(input.span, "Grid span")?,
-                "Grid span",
-            )?)?,
+            js_object::required(input.name, "Grid span name")?,
+            to_integer::<u16>(js_object::required(input.span, "Grid span")?)?,
         ),
     })
 }
@@ -301,8 +276,7 @@ pub(crate) fn validate_template_line_names(
     Ok(())
 }
 
-fn template_area(value: Unknown<'_>) -> NativeResult<GridTemplateArea<String>> {
-    let input: GridTemplateAreaInput = js_object::input(value, "a GridTemplateArea object", None)?;
+fn template_area(input: GridTemplateAreaInput) -> NativeResult<GridTemplateArea<String>> {
     Ok(GridTemplateArea {
         name: input.name,
         row_start: to_integer::<u16>(input.row_start)?,
@@ -312,9 +286,9 @@ fn template_area(value: Unknown<'_>) -> NativeResult<GridTemplateArea<String>> {
     })
 }
 
-pub(crate) fn template_areas(value: Unknown<'_>) -> NativeResult<GridTemplateAreas<String>> {
-    let input: GridTemplateAreasInput<'_> =
-        js_object::input(value, "a GridTemplateAreas object", None)?;
+pub(crate) fn template_areas(
+    input: GridTemplateAreasInput,
+) -> NativeResult<GridTemplateAreas<String>> {
     Ok(GridTemplateAreas {
         areas: input
             .areas

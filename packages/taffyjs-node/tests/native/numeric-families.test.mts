@@ -59,9 +59,9 @@ const numericFamilies = {
 } as const;
 
 type NativeTaffyTree = {
-  rawGetStyle(node: bigint, publicMethod: string): { display: number };
-  rawNewLeaf(style: object, publicMethod: string): bigint;
-  rawNodeCount(publicMethod: string): number;
+  rawGetStyle(node: bigint): { display: number };
+  rawNewLeaf(style: object): bigint;
+  rawNodeCount(): number;
 };
 type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
 
@@ -88,13 +88,13 @@ test("numeric families are frozen", () => {
 
 test("native input accepts a numeric literal", () => {
   const owner = new NativeTaffyTree();
-  const node = owner.rawNewLeaf({ display: 0 }, "newLeaf");
-  assert.equal(owner.rawGetStyle(node, "getStyle").display, 0);
+  const node = owner.rawNewLeaf({ display: 0 });
+  assert.equal(owner.rawGetStyle(node).display, 0);
 });
 
 test("native input rejects an invalid numeric value atomically", () => {
   const owner = new NativeTaffyTree();
-  const before = owner.rawNodeCount("getNodeCount");
-  assert.throws(() => owner.rawNewLeaf({ display: 255 }, "newLeaf"), RangeError);
-  assert.equal(owner.rawNodeCount("getNodeCount"), before);
+  const before = owner.rawNodeCount();
+  assert.throws(() => owner.rawNewLeaf({ display: 255 }), RangeError);
+  assert.equal(owner.rawNodeCount(), before);
 });
