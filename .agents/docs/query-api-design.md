@@ -8,23 +8,38 @@ The proposed addition is a way to read only the requested value. It complements 
 
 ## Reference design
 
-A single selective-query request reads one value from one node's Style, Layout, or DetailedLayoutInfo.
+A single selective-query request reads one value from one node's Style, rounded Layout, unrounded Layout, or DetailedLayoutInfo. If the API ships, its four public entry points are `queryStyle`, `queryLayout`, `queryUnroundedLayout`, and `queryDetailedLayoutInfo`. Each name owns both its single and batch overloads. `queryLayout` and `queryUnroundedLayout` expose the same Layout selector set and selector-to-result type mapping while reading their distinct underlying values.
 
 - Every value reachable through the public JavaScript shape is queryable. This includes top-level fields, complete intermediate records and tagged variants, their nested fields, collection lengths, individual collection elements, and values below nested collections. Numbers, strings, booleans, enums, IDs, and references to data managed elsewhere end a path rather than opening another object graph.
 - Selectors are derived mechanically from that complete public shape rather than admitted through a separately curated list. Adding a reachable field to the public value also adds the corresponding selectors; generation must fail rather than silently leave a public field unqueryable.
-- Collection indices are values supplied separately from the selector. Numeric text, wildcards, filters, slices, callbacks, and arbitrary path expressions are not part of the selector language.
+- Selector spelling is fixed: public field names are joined with `.`, `[]` marks one separately supplied collection index, and `.length` selects a collection length. Numeric text, wildcards, filters, slices, callbacks, optional chaining, and arbitrary path expressions are not part of the selector language.
 - JavaScript resolves the selector through generated static metadata before entering native code. Native code receives a private operation identifier, exhaustively dispatches it, and directly reads and converts the selected Rust value. Native code does not parse the public selector or create a parent JavaScript object and then extract one child.
 - One canonical description of the public values keeps the TypeScript calls and result types, JavaScript lookup and index count, and Rust dispatch contract consistent. People decide the public data shape; generation provides complete query coverage for it.
 
+The selector forms include:
+
+```ts
+queryStyle(node, "display");
+queryLayout(node, "size.width");
+queryStyle(node, "gridTemplateRows");
+queryStyle(node, "gridTemplateRows.length");
+queryStyle(node, "gridTemplateRows[]", 0);
+queryStyle(node, "gridTemplateRows[].value.tracks[].max", 0, 1);
+```
+
+Selecting a record or collection path returns that complete intermediate value. Each `[]` consumes one trailing index argument from left to right. There is no selector for the complete root Style, Layout, or DetailedLayoutInfo value; the corresponding complete getter already serves that operation.
+
+Generated TypeScript must autocomplete the complete finite selector set and preserve the exact relationship between each selector, its number of `number` index arguments, and its result type. Unknown selectors, missing indices, and extra indices must be type errors for statically known calls. A path that can be absent because of an out-of-bounds index, inactive tagged variant, or null ancestor includes `undefined` in its result type. TypeScript cannot prove that an arbitrary number is an integer or within the current collection, so runtime validation and absence handling remain authoritative.
+
 When the selector and indices form a valid query but the current data has no value at that position, the result is `undefined`. This includes an out-of-bounds index, an inactive tagged variant, or attempting to continue below `null`. Querying a nullable field itself still returns its actual `null` value. An unknown selector, the wrong number of indices, or an invalid index is a malformed call and produces a controlled JavaScript error instead.
 
-The single request is also the only model used to define batching. A data kind exposes its single and batch forms through overloads of the same public method name; for example, Style uses `queryStyle` for both rather than adding `queryStyleBatch`. The batch form accepts an ordered collection of ordinary single requests and returns their results in the same order.
+The single request is also the only model used to define batching. Each public entry point exposes its single and batch forms through overloads of the same method name; for example, Style uses `queryStyle` for both rather than adding `queryStyleBatch`. The batch form accepts an ordered collection of ordinary single requests and returns their results in the same order.
 
 Generation defines the valid single-request tuples and their result types once. The batch TypeScript result is derived by mapping those same relationships over the input collection, JavaScript reuses the same selector metadata and validation, and native code reuses the same per-request dispatcher. A private native batch entry may wrap that dispatcher so the complete collection crosses the JavaScript-to-native boundary once; the public batch overload must not be implemented as repeated native calls through the single overload.
 
-Each batch stays within one data kind and its public method. It may contain requests for different NodeIds owned by the receiving tree. Its only batch input shape is an ordered array of complete single-request argument tuples, so the NodeId, selector, and selector indices of each item retain exactly the single-request relationship. There is no second same-node shorthand and no general batch that mixes Style, Layout, and DetailedLayoutInfo requests.
+Each batch stays within one public entry point. It may contain requests for different NodeIds owned by the receiving tree. Its only batch input shape is an ordered array of complete single-request argument tuples, so the NodeId, selector, and selector indices of each item retain exactly the single-request relationship. There is no second same-node shorthand and no general batch that mixes `queryStyle`, `queryLayout`, `queryUnroundedLayout`, and `queryDetailedLayoutInfo` requests.
 
-For example, if the Style method is named `queryStyle`, its two forms conceptually look like:
+The `queryStyle` entry point's two forms conceptually look like:
 
 ```ts
 queryStyle(node, "display");
@@ -35,6 +50,8 @@ queryStyle([
   [nodeC, "gridTemplateRows[].value.tracks[].max", 0, 1],
 ]);
 ```
+
+For an inline batch such as this one, TypeScript must infer a positionally corresponding result tuple without requiring `as const`, a helper, or a query builder. Each position retains the exact result type of its ordinary single request. The concrete generated declaration structure remains an implementation choice as long as it provides this observable behavior.
 
 A malformed request makes the complete batch throw without returning partial results. Malformed requests include unknown selectors, the wrong number of indices, invalid indices, and invalid, stale, or foreign NodeIds. Valid queries whose current values are absent still produce `undefined` only at their corresponding result positions. Before validation, the wrapper must copy every caller-controlled batch entry and request argument into an ordinary internal snapshot; it then validates the complete snapshot and immediately enters native code, so an accessor or Proxy cannot invalidate an earlier NodeId between validation and native use.
 
@@ -54,7 +71,7 @@ single request or ordered batch
 
 This design is deliberately smaller than a general query language.
 
-- Each request starts from one NodeId and one kind of per-node data: Style, Layout, or DetailedLayoutInfo.
+- Each request starts from one NodeId through exactly one of the four fixed public entry points. Rounded and unrounded Layout use separate entry points even though they share the same public value shape and selector set.
 - A selector may only follow paths generated from the public value shape. It cannot discover or execute an arbitrary path at runtime.
 - It does not search, filter, sort, or traverse the Taffy node tree.
 - It does not combine unrelated fields into a caller-defined result shape.
@@ -77,9 +94,7 @@ New layout features may add fields, variants, collections, or relationships betw
 
 This design does not yet decide:
 
-- the exact public method names and overload declaration details;
-- the exact selector spelling;
-- how the canonical public value shapes are represented for generation;
+- how the canonical public value shapes are represented for generation or how the generated TypeScript declarations are implemented internally;
 - private operation numbering, native method signatures, and the concrete private batch entry;
 - the supported integer range and exact error classes for malformed calls;
 - batch size limits;
