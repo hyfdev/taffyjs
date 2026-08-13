@@ -1,4 +1,4 @@
-import { NativeTaffyTree } from "#native";
+import { NativeTaffyTree } from "./binding.js";
 import { NodeIdRegistry, type NodeId } from "./node-id.js";
 import type {
   AvailableSpace,

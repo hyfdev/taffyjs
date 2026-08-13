@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { NativeTaffyTree } from "../../native.js";
+import { NativeTaffyTree } from "../../src/binding.ts";
 import { test } from "vite-plus/test";
 
 function createOwner() {

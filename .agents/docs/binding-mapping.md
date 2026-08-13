@@ -10,7 +10,7 @@ Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScri
 
 Taffy remains the only owner of topology, Style, Layout, cache, and computation state. The authored JavaScript wrapper owns only data that Taffy cannot represent safely for JavaScript: public NodeId validity metadata and arbitrary JavaScript context values. There is no JavaScript shadow tree or cache of Taffy-owned data.
 
-The napi-rs class and generated loader are private implementation modules. Public consumers import only `@taffyjs/node`; direct platform-package access bypasses the wrapper's guarantees.
+The napi-rs class and generated loader are private implementation modules. `packages/taffyjs-node/src/binding.ts` is the only maintained TypeScript file that imports the generated loader; the wrapper and private native tests use that entry. Public consumers import only `@taffyjs/node`; direct platform-package access bypasses the wrapper's guarantees.
 
 ## Public and native calls
 
