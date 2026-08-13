@@ -2,23 +2,23 @@
 
 ## Native bindings and distribution
 
-napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, target-specific package metadata, and native release artifact flow. @taffyjs/node passes `--esm` to the napi-rs build rather than transforming the generated loader into another module format.
+napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, and target-specific package metadata. `@taffyjs/node` passes `--esm` to the napi-rs build rather than transforming the generated loader into another module format.
 
-The generated ESM loader is publishable output inside @taffyjs/node but is not the supported public entry. It uses Node.js createRequire internally because native `.node` files and target packages are loaded through the CommonJS loader, exposes static ESM exports, and has no top-level await. The authored public wrapper imports that loader privately and does not re-export its raw operations.
+The generated ESM loader is packaged inside `@taffyjs/node` but is not a public entry. The authored wrapper imports it privately and does not re-export raw native operations.
 
-The maintained napi-rs distribution model uses one root loader package with exact-version optional packages for each target. In this repository the root is @taffyjs/node and the target packages are named @taffyjs/binding-<platform> through `napi.packageName`.
+The root package has exact-version optional packages for the two supported targets: `@taffyjs/binding-linux-x64-gnu` and `@taffyjs/binding-win32-x64-msvc`. Publication is not configured.
 
-The bigint NodeId, its private TypeScript phantom marker, and its JavaScript validity registry require an authored public wrapper, but they do not require a custom native loader or another npm package. Additional runtimes or custom fallback logic may still require a separate loader decision later.
+The bigint NodeId marker and its JavaScript validity registry require the authored wrapper, but not a custom loader or another package.
 
 ## JavaScript package builds
 
-Vite+ is the repository's JavaScript toolchain. Authored JavaScript or TypeScript libraries use `vp pack`, which provides the tsdown-based library build through Vite+; the repository does not add a direct tsdown dependency or a separate tsdown configuration.
+Vite+ is the JavaScript toolchain. `vp pack` compiles the public source in `packages/taffyjs-node/src` and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private napi-rs loader and declarations are generated separately and packaged beside that output.
 
-The authored @taffyjs/node public layer uses `vp pack`. Its public `index.d.ts` is maintained as authored package source because it carries the supported API's detailed readonly shapes and JSDoc; `vp pack` does not replace it with declarations inferred from the private native boundary. The napi-rs-generated loader is not transformed by `vp pack`; it remains an explicit private module whose native artifact paths belong to napi-rs and is packaged alongside the authored output.
+CI uses Node.js 22.18.0. Ubuntu x64 runs the complete verification flow; Windows x64 verifies the native build. macOS and publication workflows are not configured.
 
 ## Task orchestration
 
-The root vite.config.ts defines the repository verification graph with explicit build and test dependencies. Native build completion precedes package-local and consumer integration tests, while formatting, linting, and Rust checks can run in parallel.
+The root `vite.config.ts` defines build and verification dependencies. Native build completion precedes package-local and consumer tests.
 
 Task caching is disabled at the root. This keeps native artifacts and runtime tests from being skipped or restored from stale task outputs until the project makes a new explicit caching decision.
 
