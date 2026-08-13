@@ -6,5 +6,6 @@
 - [Binding mapping cases](binding-cases.md) — worked Rust-behavior-to-JavaScript-boundary examples used to test and refine the mapping rules.
 - [@taffyjs/node API alignment TODOs](api-alignment-todos.md) — the high-level Taffy capabilities and transitive boundary questions that need later JavaScript alignment, with process and acceptance deliberately deferred.
 - [Technology stack](technology-stack.md) — why napi-rs and Vite+ own different build stages and how repository tasks are composed.
+- [API code generation reference](api-codegen.md) — a future-facing compiler-shaped organization for one public data model, deterministic Rust and TypeScript generation, generated-file ownership, and independent verification.
 - [@taffyjs/node decisions](taffyjs-node-decisions.md) — vouched rulings for the Node binding's role, API priorities, module format, distribution, and testing strategy.
 - [Tooling decisions](tooling-decisions.md) — vouched rulings for JavaScript package builds and repository command orchestration.
