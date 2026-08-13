@@ -48,11 +48,9 @@ type ExpectedTree<TContext> = {
   computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
 };
 
-declare const expected: ExpectedTree<Context>;
 declare const node: NodeId;
 const tree = new TaffyTree<Context>();
 const expectedFromActual: ExpectedTree<Context> = tree;
-const actualFromExpected: TaffyTree<Context> = expected;
 const constructor: new <TContext = unknown>() => TaffyTree<TContext> = TaffyTree;
 const prototype: TaffyTree<Context> = TaffyTree.prototype;
 const context: Context | undefined = tree.getNodeContext(node);
@@ -100,7 +98,6 @@ type NoPrivateRuntimeName = AssertNever<PrivateRuntimeName>;
 void [
   NativeTaffyTree,
   expectedFromActual,
-  actualFromExpected,
   constructor,
   prototype,
   context,

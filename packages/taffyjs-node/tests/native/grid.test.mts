@@ -1,83 +1,27 @@
 import assert from "node:assert/strict";
-import * as native from "../../native.js";
-import * as publicApi from "../../src/index.ts";
+import { NativeTaffyTree } from "../../native.js";
+import {
+  GridPlacement,
+  GridTemplateComponent,
+  RepetitionCount,
+  TrackSizingFunction,
+} from "../../src/index.ts";
 import { test } from "vite-plus/test";
 
 type RawStyle = Record<string, unknown>;
 type Placement = { kind: number; name?: string; index?: number; span?: number };
 type TrackPart = { kind: number; value?: unknown };
 type Track = { min: TrackPart; max: TrackPart };
-type Count = { kind: number; value?: number };
+type Count = { kind: 0; value: number } | { kind: 1 } | { kind: 2 };
 type Component = { kind: number; value: unknown };
-type NativeTaffyTree = {
-  rawGetStyle(node: bigint): RawStyle;
-  rawNewLeaf(style: RawStyle): bigint;
-  rawNodeCount(): number;
-};
-type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
-type GridHelpers = {
-  GridPlacement: Readonly<{
-    Auto: Readonly<Placement>;
-    Line(index: number): Placement;
-    NamedLine(name: string, index: number): Placement;
-    Span(span: number): Placement;
-    NamedSpan(name: string, span: number): Placement;
-  }>;
-  TrackSizingFunction: Readonly<{
-    Length(value: number): Track;
-    Percent(value: number): Track;
-    Auto: Readonly<Track>;
-    MinContent: Readonly<Track>;
-    MaxContent: Readonly<Track>;
-    FitContent(value: unknown): Track;
-    Fr(value: number): Track;
-    MinMax(min: TrackPart, max: TrackPart): Track;
-  }>;
-  RepetitionCount: Readonly<{
-    Count(value: number): Count;
-    AutoFill: Readonly<Count>;
-    AutoFit: Readonly<Count>;
-  }>;
-  GridTemplateComponent: Readonly<{
-    Single(value: Track): Component;
-    Repeat(count: Count, tracks: Track[], lineNames?: string[][]): Component;
-  }>;
-};
-
-const NativeTaffyTree = Reflect.get(
-  native,
-  "NativeTaffyTree",
-) as unknown as NativeTaffyTreeConstructor;
-
-function createOwner(): NativeTaffyTree {
-  const owner = new NativeTaffyTree();
-  for (const method of ["rawGetStyle", "rawNewLeaf", "rawNodeCount"] as const) {
-    assert.equal(typeof owner[method], "function", `${method} is available`);
-  }
-  return owner;
-}
-
-function helpers(): GridHelpers {
-  const names = [
-    "GridPlacement",
-    "TrackSizingFunction",
-    "RepetitionCount",
-    "GridTemplateComponent",
-  ] as const;
-  const result: Record<string, unknown> = {};
-  for (const name of names) {
-    const value = Reflect.get(publicApi, name);
-    assert.equal(typeof value, "object", `${name} is exported`);
-    assert.notEqual(value, null, `${name} is exported`);
-    result[name] = value;
-  }
-  return result as GridHelpers;
+function createOwner() {
+  return new NativeTaffyTree();
 }
 
 function storedStyle(style: RawStyle): RawStyle {
   const owner = createOwner();
   const node = owner.rawNewLeaf(style);
-  return owner.rawGetStyle(node);
+  return owner.rawGetStyle(node) as unknown as RawStyle;
 }
 
 function rejectsWithoutNode(style: RawStyle, error: typeof TypeError | typeof RangeError): void {
@@ -91,7 +35,6 @@ function repeat(count: Count, tracks: Track[], lineNames = [["start"], ["end"]])
 }
 
 test("Grid helpers and direct tagged records store the same values", () => {
-  const { GridPlacement, TrackSizingFunction, RepetitionCount, GridTemplateComponent } = helpers();
   const placements: Array<[Placement, Placement]> = [
     [GridPlacement.Auto, { kind: 0 }],
     [GridPlacement.Line(-2), { kind: 1, index: -2 }],
@@ -105,9 +48,9 @@ test("Grid helpers and direct tagged records store the same values", () => {
     assert.deepEqual(fromHelper, fromDirect);
   }
 
-  const length = { kind: 0, value: 10 };
-  const semanticLength = { unit: 0, value: 10 };
-  const auto = { kind: 2 };
+  const length = { kind: 0, value: 10 } as const;
+  const semanticLength = { unit: 0, value: 10 } as const;
+  const auto = { kind: 2 } as const;
   const tracks: Array<[Track, Track]> = [
     [TrackSizingFunction.Length(10), { min: length, max: length }],
     [TrackSizingFunction.Percent(25), { min: { kind: 1, value: 25 }, max: { kind: 1, value: 25 } }],
@@ -310,7 +253,6 @@ test("grid template areas use null for absence and records for values", () => {
 });
 
 test("Grid output reports stored values without helper history", () => {
-  const { GridPlacement, TrackSizingFunction } = helpers();
   const placement = GridPlacement.NamedLine("a", 2);
   const track = TrackSizingFunction.Fr(3);
   const output = storedStyle({ gridRow: { start: placement }, gridAutoRows: [track] });

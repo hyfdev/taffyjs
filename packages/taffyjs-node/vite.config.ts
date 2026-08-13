@@ -14,8 +14,11 @@ export default defineConfig({
       neverBundle: [/^#native$/u],
     },
   },
-  fmt: {},
+  fmt: {
+    ignorePatterns: ["index.js", "index.d.ts"],
+  },
   lint: {
+    ignorePatterns: ["index.js", "index.d.ts", "native.js", "native.d.ts"],
     options: {
       typeAware: true,
       typeCheck: true,

@@ -1,55 +1,25 @@
 import assert from "node:assert/strict";
-import * as native from "../../native.js";
-import * as publicApi from "../../src/index.ts";
+import { NativeTaffyTree } from "../../native.js";
+import { Dimension } from "../../src/index.ts";
 import { test } from "vite-plus/test";
 
-type RawStyle = Record<string, unknown>;
-type NativeTaffyTree = {
-  rawGetStyle(node: bigint): RawStyle;
-  rawNewLeaf(style: RawStyle): bigint;
-  rawNodeCount(): number;
-};
-type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
-type DimensionHelper = Readonly<{
-  Length(value: number): { unit: number; value: number };
-  Percent(value: number): { unit: number; value: number };
-  Auto: Readonly<{ unit: number }>;
-}>;
-
-const NativeTaffyTree = Reflect.get(
-  native,
-  "NativeTaffyTree",
-) as unknown as NativeTaffyTreeConstructor;
-
-function createOwner(): NativeTaffyTree {
-  const owner = new NativeTaffyTree();
-  for (const method of ["rawGetStyle", "rawNewLeaf", "rawNodeCount"] as const) {
-    assert.equal(typeof owner[method], "function", `${method} is available`);
-  }
-  return owner;
+function createOwner() {
+  return new NativeTaffyTree();
 }
 
-function dimension(): DimensionHelper {
-  const value = Reflect.get(publicApi, "Dimension");
-  assert.equal(typeof value, "object", "Dimension is exported");
-  assert.notEqual(value, null, "Dimension is exported");
-  return value as DimensionHelper;
-}
-
-function storedStyle(style: RawStyle): RawStyle {
+function storedStyle(style: unknown) {
   const owner = createOwner();
   const node = owner.rawNewLeaf(style);
   return owner.rawGetStyle(node);
 }
 
-function rejectsWithoutNode(style: RawStyle, error: typeof TypeError | typeof RangeError): void {
+function rejectsWithoutNode(style: unknown, error: typeof TypeError | typeof RangeError): void {
   const owner = createOwner();
   assert.throws(() => owner.rawNewLeaf(style), error);
   assert.equal(owner.rawNodeCount(), 0);
 }
 
 test("Dimension helpers and direct tagged records store the same values", () => {
-  const Dimension = dimension();
   for (const [helper, direct] of [
     [Dimension.Length(12), { unit: 0, value: 12 }],
     [Dimension.Percent(50), { unit: 1, value: 50 }],
@@ -105,7 +75,6 @@ test("Auto ignores fields from payload-carrying variants", () => {
 });
 
 test("length output is canonical, detached, and reusable", () => {
-  const Dimension = dimension();
   const input = Dimension.Length(8);
   const first = storedStyle({ flexBasis: input }).flexBasis;
   const second = storedStyle({ flexBasis: { unit: 0, value: 8, ignored: true } }).flexBasis;

@@ -1,35 +1,18 @@
 import assert from "node:assert/strict";
-import * as native from "../../native.js";
+import { NativeTaffyTree } from "../../native.js";
 import { test } from "vite-plus/test";
 
-type RawStyle = Record<string, unknown>;
-type NativeTaffyTree = {
-  rawGetStyle(node: bigint): RawStyle;
-  rawNewLeaf(style: RawStyle): bigint;
-  rawNodeCount(): number;
-};
-type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
-
-const NativeTaffyTree = Reflect.get(
-  native,
-  "NativeTaffyTree",
-) as unknown as NativeTaffyTreeConstructor;
-
-function createOwner(): NativeTaffyTree {
-  const owner = new NativeTaffyTree();
-  for (const method of ["rawGetStyle", "rawNewLeaf", "rawNodeCount"] as const) {
-    assert.equal(typeof owner[method], "function", `${method} is available`);
-  }
-  return owner;
+function createOwner() {
+  return new NativeTaffyTree();
 }
 
-function storedStyle(style: RawStyle): RawStyle {
+function storedStyle(style: unknown) {
   const owner = createOwner();
   const node = owner.rawNewLeaf(style);
   return owner.rawGetStyle(node);
 }
 
-function rejectsWithoutNode(style: RawStyle, error: typeof TypeError | typeof RangeError): void {
+function rejectsWithoutNode(style: unknown, error: typeof TypeError | typeof RangeError): void {
   const owner = createOwner();
   assert.throws(() => owner.rawNewLeaf(style), error);
   assert.equal(owner.rawNodeCount(), 0);

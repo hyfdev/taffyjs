@@ -1,42 +1,13 @@
 import assert from "node:assert/strict";
-import * as native from "../../native.js";
-import * as publicApi from "../../src/index.ts";
+import { NativeTaffyTree } from "../../native.js";
+import { AvailableSpace } from "../../src/index.ts";
 import { test } from "vite-plus/test";
 
-type RawLayout = { size: { width: number; height: number } } & Record<string, unknown>;
-type NativeTaffyTree = {
-  rawComputeLayout(node: bigint, availableSpace: unknown): void;
-  rawGetLayout(node: bigint): RawLayout;
-  rawNewLeaf(style: Record<string, unknown>): bigint;
-};
-type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
-type AvailableSpaceHelper = Readonly<{
-  Definite(value: number): { kind: number; value: number };
-  MinContent: Readonly<{ kind: number }>;
-  MaxContent: Readonly<{ kind: number }>;
-}>;
-
-const NativeTaffyTree = Reflect.get(
-  native,
-  "NativeTaffyTree",
-) as unknown as NativeTaffyTreeConstructor;
-
-function createOwner(): NativeTaffyTree {
-  const owner = new NativeTaffyTree();
-  for (const method of ["rawComputeLayout", "rawGetLayout", "rawNewLeaf"] as const) {
-    assert.equal(typeof owner[method], "function", `${method} is available`);
-  }
-  return owner;
+function createOwner() {
+  return new NativeTaffyTree();
 }
 
-function availableSpace(): AvailableSpaceHelper {
-  const value = Reflect.get(publicApi, "AvailableSpace");
-  assert.equal(typeof value, "object", "AvailableSpace is exported");
-  assert.notEqual(value, null, "AvailableSpace is exported");
-  return value as AvailableSpaceHelper;
-}
-
-function layoutFor(width: unknown, height: unknown = width): RawLayout {
+function layoutFor(width: unknown, height: unknown = width) {
   const owner = createOwner();
   const node = owner.rawNewLeaf({
     size: {
@@ -65,7 +36,6 @@ test("available space requires complete named width and height fields", () => {
 });
 
 test("AvailableSpace helpers and direct tagged records compute the same layout", () => {
-  const AvailableSpace = availableSpace();
   for (const [helper, direct] of [
     [AvailableSpace.Definite(120), { kind: 0, value: 120 }],
     [AvailableSpace.MinContent, { kind: 1 }],

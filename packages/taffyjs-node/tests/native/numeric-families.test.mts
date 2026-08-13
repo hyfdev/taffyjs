@@ -1,16 +1,7 @@
 import assert from "node:assert/strict";
-import * as native from "../../native.js";
+import { NativeTaffyTree } from "../../native.js";
 import { AlignItems, DetailedLayoutInfoKind, Display, TrackSizingKind } from "../../src/index.ts";
 import { test } from "vite-plus/test";
-
-type NativeTaffyTree = {
-  rawGetStyle(node: bigint): { display: number };
-  rawNewLeaf(style: object): bigint;
-  rawNodeCount(): number;
-};
-type NativeTaffyTreeConstructor = new () => NativeTaffyTree;
-
-const NativeTaffyTree = Reflect.get(native, "NativeTaffyTree") as NativeTaffyTreeConstructor;
 
 test("representative numeric values are stable", () => {
   assert.equal(Display.Block, 0);

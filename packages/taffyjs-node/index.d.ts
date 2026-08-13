@@ -1,4 +1,3 @@
-import "#native";
 //#region src/numeric-families.d.ts
 /** Numeric constants shared by public JavaScript values and the native conversion layer. */
 type EnumValue<Family extends Readonly<Record<string, number>>> = Family[keyof Family];
@@ -807,44 +806,71 @@ declare const Dimension: Readonly<{
 }>;
 //#endregion
 //#region src/tree.d.ts
-/** Describes the public operations of one independent Taffy tree. */
-interface TaffyTree<TContext = unknown> {
-  /** Enables pixel rounding for subsequently computed public layouts. */ enableRounding(): void;
-  /** Disables pixel rounding while retaining unrounded layout values. */ disableRounding(): void;
-  /** Creates a leaf node from the supplied public style input. */ newLeaf(style: StyleInput): NodeId;
-  /** Creates a leaf node and associates optional JavaScript context. */ newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId;
-  /** Creates a parent node with the supplied ordered children. */ newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
-  /** Removes every node and context value from this tree. */ clear(): void;
-  /** Removes one node and invalidates its public NodeId. */ remove(node: NodeId): void;
-  /** Replaces or clears the JavaScript context for one node. */ setNodeContext(node: NodeId, context: TContext | undefined): void;
-  /** Returns the JavaScript context currently associated with one node. */ getNodeContext(node: NodeId): TContext | undefined;
-  /** Appends an existing node to the parent child list. */ addChild(parent: NodeId, child: NodeId): void;
-  /** Inserts an existing child at the requested parent index. */ insertChildAtIndex(parent: NodeId, index: number, child: NodeId): void;
-  /** Replaces the complete ordered child list for one parent. */ setChildren(parent: NodeId, children: readonly NodeId[]): void;
-  /** Detaches the selected child from its current parent. */ removeChild(parent: NodeId, child: NodeId): void;
-  /** Detaches and returns the child at the requested index. */ removeChildAtIndex(parent: NodeId, index: number): NodeId;
-  /** Detaches children in the supplied half-open index range. */ removeChildrenRange(parent: NodeId, range: ChildRangeInput): void;
-  /** Replaces and returns the child at the requested index. */ replaceChildAtIndex(parent: NodeId, index: number, newChild: NodeId): NodeId;
-  /** Returns the child at the requested parent index. */ getChildAtIndex(parent: NodeId, index: number): NodeId;
-  /** Returns the current number of children for one parent. */ getChildCount(parent: NodeId): number;
-  /** Returns the number of live nodes owned by this tree. */ getNodeCount(): number;
-  /** Returns the current parent or null for a root node. */ getParent(node: NodeId): NodeId | null;
-  /** Returns a detached readonly snapshot of the ordered children. */ getChildren(parent: NodeId): readonly NodeId[];
-  /** Replaces a node style and marks affected layout state dirty. */ setStyle(node: NodeId, style: StyleInput): void;
-  /** Returns a detached readable snapshot of the node style. */ getStyle(node: NodeId): Style;
-  /** Returns the most recently stored rounded layout snapshot. */ getLayout(node: NodeId): Layout;
-  /** Returns the most recently stored unrounded layout snapshot. */ getUnroundedLayout(node: NodeId): Layout;
-  /** Returns detailed Grid tracks and item placement when available. */ getDetailedLayoutInfo(node: NodeId): DetailedLayoutInfo;
-  /** Explicitly marks a node for layout recomputation. */ markDirty(node: NodeId): void;
-  /** Reports whether a node currently needs layout recomputation. */ isDirty(node: NodeId): boolean;
-  /** Computes and stores layout for a tree root synchronously. */ computeLayout(options: ComputeLayoutOptions): void;
-  /** Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying. */ computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
+/** Owns one independent node tree, its contexts, styles, and stored layouts. */
+declare class TaffyTree<TContext = unknown> {
+  #private;
+  /** Creates an independent Taffy tree with its own NodeId namespace. */
+  constructor();
+  /** Enables pixel rounding for subsequently computed public layouts. */
+  enableRounding(): void;
+  /** Disables pixel rounding while retaining unrounded layout values. */
+  disableRounding(): void;
+  /** Returns the number of live nodes owned by this tree. */
+  getNodeCount(): number;
+  /** Returns the current number of children for one parent. */
+  getChildCount(parent: NodeId): number;
+  /** Returns the current parent or null for a root node. */
+  getParent(node: NodeId): NodeId | null;
+  /** Returns a detached readonly snapshot of the ordered children. */
+  getChildren(parent: NodeId): readonly NodeId[];
+  /** Returns the child at the requested parent index. */
+  getChildAtIndex(parent: NodeId, index: number): NodeId;
+  /** Appends an existing node to the parent child list. */
+  addChild(parent: NodeId, child: NodeId): void;
+  /** Inserts an existing child at the requested parent index. */
+  insertChildAtIndex(parent: NodeId, index: number, child: NodeId): void;
+  /** Replaces the complete ordered child list for one parent. */
+  setChildren(parent: NodeId, children: readonly NodeId[]): void;
+  /** Detaches the selected child from its current parent. */
+  removeChild(parent: NodeId, child: NodeId): void;
+  /** Detaches and returns the child at the requested index. */
+  removeChildAtIndex(parent: NodeId, index: number): NodeId;
+  /** Detaches children in the supplied half-open index range. */
+  removeChildrenRange(parent: NodeId, range: ChildRangeInput): void;
+  /** Replaces and returns the child at the requested index. */
+  replaceChildAtIndex(parent: NodeId, index: number, newChild: NodeId): NodeId;
+  /** Creates a leaf node from the supplied public style input. */
+  newLeaf(style: StyleInput): NodeId;
+  /** Creates a leaf node and associates optional JavaScript context. */
+  newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId;
+  /** Creates a parent node with the supplied ordered children. */
+  newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
+  /** Removes one node and invalidates its public NodeId. */
+  remove(node: NodeId): void;
+  /** Returns the JavaScript context currently associated with one node. */
+  getNodeContext(node: NodeId): TContext | undefined;
+  /** Replaces or clears the JavaScript context for one node. */
+  setNodeContext(node: NodeId, context: TContext | undefined): void;
+  /** Replaces a node style and marks affected layout state dirty. */
+  setStyle(node: NodeId, style: StyleInput): void;
+  /** Returns a detached readable snapshot of the node style. */
+  getStyle(node: NodeId): Style;
+  /** Returns the most recently stored rounded layout snapshot. */
+  getLayout(node: NodeId): Layout;
+  /** Returns the most recently stored unrounded layout snapshot. */
+  getUnroundedLayout(node: NodeId): Layout;
+  /** Returns detailed Grid tracks and item placement when available. */
+  getDetailedLayoutInfo(node: NodeId): DetailedLayoutInfo;
+  /** Explicitly marks a node for layout recomputation. */
+  markDirty(node: NodeId): void;
+  /** Reports whether a node currently needs layout recomputation. */
+  isDirty(node: NodeId): boolean;
+  /** Removes every node and context value from this tree. */
+  clear(): void;
+  /** Computes and stores layout for a tree root synchronously. */
+  computeLayout(options: ComputeLayoutOptions): void;
+  /** Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying. */
+  computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
 }
-interface TaffyTreeConstructor {
-  readonly prototype: TaffyTree<any>;
-  new <TContext = unknown>(): TaffyTree<TContext>;
-}
-/** Creates an independent Taffy tree with its own NodeId namespace. */
-declare const TaffyTree: TaffyTreeConstructor;
 //#endregion
 export { AlignContent, AlignItems, type AutoInput, AvailableSpace, type AvailableSpaceInput, AvailableSpaceKind, BoxSizing, type ChildRangeInput, Clear, type ComputeLayoutOptions, type ComputeLayoutWithMeasureOptions, type DetailedGridInfo, type DetailedGridItemInfo, type DetailedGridTracksInfo, type DetailedLayoutInfo, DetailedLayoutInfoKind, Dimension, type DimensionInput, Direction, Display, type EnumValue, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, type GridPlacementInput, GridPlacementKind, type GridTemplateArea, type GridTemplateAreaInput, type GridTemplateAreas, type GridTemplateAreasInput, GridTemplateComponent, type GridTemplateComponentInput, GridTemplateComponentKind, type GridTemplateRepetition, type GridTemplateRepetitionInput, type Layout, type LengthInput, type LengthPercentage, type LengthPercentageAuto, type LengthPercentageAutoInput, type LengthPercentageInput, LengthUnit, type Line, type LineInput, type MaxTrackSizingFunction, type MaxTrackSizingFunctionInput, type MeasureArgs, type MeasureFunction, type MinTrackSizingFunction, type MinTrackSizingFunctionInput, type NodeId, Overflow, type PartialLineInput, type PartialPointInput, type PartialRectInput, type PartialSizeInput, type PercentInput, type Point, type PointInput, Position, type Rect, type RectInput, RepetitionCount, type RepetitionCountInput, RepetitionCountKind, type Size, type SizeInput, type Style, type StyleInput, TaffyTree, TextAlign, TrackSizingFunction, type TrackSizingFunctionInput, TrackSizingKind };
