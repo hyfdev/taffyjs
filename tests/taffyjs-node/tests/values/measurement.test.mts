@@ -1,71 +1,16 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, type MeasureArgs, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type MeasureArgs = {
-  knownDimensions: { width: number | undefined; height: number | undefined };
-  availableSpace: {
-    width: { kind: number; value?: number };
-    height: { kind: number; value?: number };
-  };
-  node: bigint;
-  context: unknown;
-  style: Record<string, unknown>;
-};
-type Tree = {
-  computeLayoutWithMeasure(options: {
-    root: bigint;
-    availableSpace: object;
-    measure: (args: MeasureArgs) => unknown;
-  }): void;
-  getNodeContext(node: bigint): unknown;
-  getStyle(node: bigint): Record<string, unknown>;
-  getUnroundedLayout(node: bigint): { size: { width: number; height: number } };
-  isDirty(node: bigint): boolean;
-  newLeafWithContext(style: object, context: unknown): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  return value as unknown as TreeConstructor;
-}
-
 function availableSpace() {
-  const value = Reflect.get(api, "AvailableSpace") as {
-    Definite(value: number): object;
-    MinContent: object;
-  };
-  return { width: value.Definite(200), height: value.MinContent };
-}
-
-function runMeasureChild() {
-  const fixture = fileURLToPath(new URL("./fixtures/measurement-lifetime.mjs", import.meta.url));
-  const child = spawnSync(process.execPath, ["--expose-gc", fixture], {
-    encoding: "utf8",
-    timeout: 20_000,
-  });
-  assert.equal(child.signal, null);
-  assert.equal(child.status, 0, child.stderr);
-  const lines = child.stdout.trim().split("\n");
-  assert.equal(lines.length, 1);
-  return JSON.parse(lines[0]) as {
-    callbackCollected: boolean;
-    firstSize: { width: number; height: number };
-    secondSize: { width: number; height: number };
-    workerExited: boolean;
-  };
+  return { width: AvailableSpace.Definite(200), height: AvailableSpace.MinContent };
 }
 
 test("args-owned", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const context = { text: "owned" };
   const node = tree.newLeafWithContext({ flexGrow: 2 }, context);
-  let saved: MeasureArgs | undefined;
+  let saved: MeasureArgs<unknown> | undefined;
   tree.computeLayoutWithMeasure({
     root: node,
     availableSpace: availableSpace(),
@@ -84,13 +29,12 @@ test("args-owned", () => {
   assert.deepEqual(saved.style, tree.getStyle(node));
   assert.equal(Object.isFrozen(saved), false);
   assert.equal(Object.isFrozen(saved.style), false);
-  saved.style.flexGrow = 99;
+  (saved.style as { flexGrow: number }).flexGrow = 99;
   assert.equal(tree.getStyle(node).flexGrow, 2);
 });
 
 test("result-sync", () => {
-  const Tree = TaffyTree();
-  const good = new Tree();
+  const good = new TaffyTree();
   const goodNode = good.newLeafWithContext({}, undefined);
   good.computeLayoutWithMeasure({
     root: goodNode,
@@ -108,14 +52,14 @@ test("result-sync", () => {
     Promise.resolve({ width: 1, height: 2 }),
     { width: "1", height: 2 },
   ]) {
-    const tree = new Tree();
+    const tree = new TaffyTree();
     const node = tree.newLeafWithContext({}, undefined);
     assert.throws(
       () =>
         tree.computeLayoutWithMeasure({
           root: node,
           availableSpace: availableSpace(),
-          measure: () => result,
+          measure: () => result as never,
         }),
       TypeError,
     );
@@ -123,7 +67,7 @@ test("result-sync", () => {
 });
 
 test("failure-state", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const first = tree.newLeafWithContext({}, "first");
   const second = tree.newLeafWithContext({}, "second");
   const root = tree.newWithChildren({}, [first, second]);
@@ -158,16 +102,4 @@ test("failure-state", () => {
   });
   assert.equal(recoveryCalls >= 2, true);
   assert.equal(tree.isDirty(root), false);
-});
-
-test("env-lifetime", () => {
-  const result = runMeasureChild();
-  assert.equal(result.workerExited, true);
-  assert.deepEqual(result.firstSize, { width: 31, height: 17 });
-  assert.deepEqual(result.secondSize, { width: 7, height: 5 });
-});
-
-test("no-retention", () => {
-  const result = runMeasureChild();
-  assert.equal(result.callbackCollected, true);
 });

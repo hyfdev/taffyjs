@@ -1,22 +1,8 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { Dimension } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type DimensionHelper = Readonly<{
-  Length(value: number): { unit: number; value: number };
-  Percent(value: number): { unit: number; value: number };
-  Auto: Readonly<{ unit: number }>;
-}>;
-
-function dimension(): DimensionHelper {
-  const value = Reflect.get(api, "Dimension");
-  assert.equal(typeof value, "object", "Dimension is exported");
-  assert.notEqual(value, null, "Dimension is exported");
-  return value as DimensionHelper;
-}
-
 test("forms", () => {
-  const Dimension = dimension();
   const length = Dimension.Length(12);
   const percent = Dimension.Percent(50);
   assert.deepEqual(length, { unit: 0, value: 12 });
@@ -28,7 +14,6 @@ test("forms", () => {
 });
 
 test("helper-materialization", () => {
-  const Dimension = dimension();
   assert.equal(Object.isFrozen(Dimension), true);
   assert.equal(Object.isFrozen(Dimension.Auto), true);
   assert.equal(Dimension.Auto, Dimension.Auto);

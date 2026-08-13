@@ -1,47 +1,26 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import {
+  AlignContent,
+  AvailableSpace,
+  Dimension,
+  Display,
+  type NodeId,
+  TaffyTree,
+} from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
-type Tree = {
-  addChild(parent: bigint, child: bigint): void;
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  getUnroundedLayout(node: bigint): { location: { x: number; y: number } };
-  insertChildAtIndex(parent: bigint, index: number, child: bigint): void;
-  isDirty(node: bigint): boolean;
-  markDirty(node: bigint): void;
-  newLeaf(style: object): bigint;
-  newLeafWithContext(style: object, context: unknown): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-  remove(node: bigint): void;
-  removeChild(parent: bigint, child: bigint): void;
-  removeChildAtIndex(parent: bigint, index: number): bigint;
-  removeChildrenRange(parent: bigint, range: { start: number; end: number }): void;
-  replaceChildAtIndex(parent: bigint, index: number, newChild: bigint): bigint;
-  setChildren(parent: bigint, children: readonly bigint[]): void;
-  setNodeContext(node: bigint, context: unknown): void;
-  setStyle(node: bigint, style: object): void;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(typeof Reflect.get(value.prototype, "isDirty"), "function", "isDirty is public");
-  return value as unknown as TreeConstructor;
-}
 
 function availableSpace() {
-  return { width: api.AvailableSpace.MaxContent, height: api.AvailableSpace.MaxContent };
+  return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
 
-function compute(tree: Tree, root: bigint) {
+function compute(tree: TaffyTree, root: NodeId) {
   tree.computeLayout({ root, availableSpace: availableSpace() });
 }
 
 function settledTree() {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({});
   const parent = tree.newWithChildren({}, [child]);
   const root = tree.newWithChildren({}, [parent]);
@@ -50,7 +29,7 @@ function settledTree() {
   return { tree, child, parent, root };
 }
 
-function assertParentDirty(tree: Tree, child: bigint, parent: bigint, root: bigint) {
+function assertParentDirty(tree: TaffyTree, child: NodeId, parent: NodeId, root: NodeId) {
   assert.equal(tree.isDirty(child), false, "unchanged child stays clean");
   assert.equal(tree.isDirty(parent), true, "changed parent is dirty");
   assert.equal(tree.isDirty(root), true, "ancestor is dirty");
@@ -67,7 +46,7 @@ function captureError(body: () => unknown): CodedError {
 }
 
 test("lifecycle", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({});
   const root = tree.newWithChildren({}, [child]);
   assert.equal(tree.isDirty(child), true);
@@ -81,7 +60,7 @@ test("lifecycle", () => {
 
 test("style", () => {
   const { tree, child, parent, root } = settledTree();
-  tree.setStyle(parent, { display: api.Display.Block });
+  tree.setStyle(parent, { display: Display.Block });
   assertParentDirty(tree, child, parent, root);
 
   compute(tree, root);
@@ -89,7 +68,7 @@ test("style", () => {
 });
 
 test("context", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const context = { version: 1 };
   const child = tree.newLeafWithContext({}, context);
   const root = tree.newWithChildren({}, [child]);
@@ -155,21 +134,19 @@ test("explicit", () => {
 });
 
 test("child-nuance", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({
-    size: { width: api.Dimension.Length(10), height: api.Dimension.Length(10) },
+    size: { width: Dimension.Length(10), height: Dimension.Length(10) },
   });
   const rootStyle = {
-    display: api.Display.Flex,
-    size: { width: api.Dimension.Length(100), height: api.Dimension.Length(20) },
+    display: Display.Flex,
+    size: { width: Dimension.Length(100), height: Dimension.Length(20) },
   };
-  const root = tree.newWithChildren({ ...rootStyle, justifyContent: api.AlignContent.Start }, [
-    child,
-  ]);
+  const root = tree.newWithChildren({ ...rootStyle, justifyContent: AlignContent.Start }, [child]);
   compute(tree, root);
   const before = tree.getUnroundedLayout(child).location.x;
 
-  tree.setStyle(root, { ...rootStyle, justifyContent: api.AlignContent.Center });
+  tree.setStyle(root, { ...rootStyle, justifyContent: AlignContent.Center });
   assert.equal(tree.isDirty(root), true);
   assert.equal(tree.isDirty(child), false, "a parent change does not clear the child cache");
   assert.equal(tree.getUnroundedLayout(child).location.x, before);
@@ -180,12 +157,11 @@ test("child-nuance", () => {
 });
 
 test("invalid-id", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
-  const foreign = new Tree().newLeaf({});
+  const tree = new TaffyTree();
+  const foreign = new TaffyTree().newLeaf({});
 
   assert.equal(captureError(() => tree.isDirty(1 as never)).constructor, TypeError);
-  assert.equal(captureError(() => tree.isDirty(0n)).code, "ERR_TAFFY_INVALID_NODE_ID");
+  assert.equal(captureError(() => tree.isDirty(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
   assert.equal(captureError(() => tree.isDirty(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
   const stale = tree.newLeaf({});

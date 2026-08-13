@@ -1,44 +1,22 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type MeasureArgs = { node: bigint; context: unknown };
-type Tree = {
-  computeLayoutWithMeasure(options: {
-    root: bigint;
-    availableSpace: object;
-    measure: (args: MeasureArgs) => object;
-  }): void;
-  getNodeContext(node: bigint): unknown;
-  getNodeCount(): number;
-  newLeafWithContext(style: object, context: unknown): bigint;
-};
-type TreeConstructor = new () => Tree;
+type MeasureArgs = { node: NodeId; context: unknown };
 
 const U64_MASK = (1n << 64n) - 1n;
 
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(
-    typeof Reflect.get(value.prototype, "newLeafWithContext"),
-    "function",
-    "newLeafWithContext is public",
-  );
-  return value as unknown as TreeConstructor;
-}
-
 function availableSpace() {
-  return { width: api.AvailableSpace.MinContent, height: api.AvailableSpace.MinContent };
+  return { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent };
 }
 
-function creationSerial(node: bigint) {
+function creationSerial(node: NodeId) {
   return (node >> 64n) & U64_MASK;
 }
 
-function measure(tree: Tree, root: bigint, callback: (args: MeasureArgs) => void) {
+function measure(tree: TaffyTree, root: NodeId, callback: (args: MeasureArgs) => void) {
   tree.computeLayoutWithMeasure({
     root,
     availableSpace: availableSpace(),
@@ -50,7 +28,7 @@ function measure(tree: Tree, root: bigint, callback: (args: MeasureArgs) => void
 }
 
 test("identity", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const context = { label: "same object" };
   const node = tree.newLeafWithContext({}, context);
   let measured: unknown;
@@ -63,7 +41,7 @@ test("identity", () => {
 });
 
 test("primitive-null-undefined", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const symbol = Symbol("context");
   for (const context of [false, 0, "", 1n, symbol, null]) {
     const node = tree.newLeafWithContext({}, context);
@@ -98,11 +76,12 @@ test("removal-cleanup", () => {
     removedCollected: true,
     clearedCollected: true,
     failedConversionCollected: true,
+    callbackCollected: true,
   });
 });
 
 test("callback-delivery", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const context = { width: 42 };
   const node = tree.newLeafWithContext({}, context);
   let calls = 0;
@@ -116,10 +95,10 @@ test("callback-delivery", () => {
 });
 
 test("conversion-atomic", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const context = { retained: false };
 
-  assert.throws(() => tree.newLeafWithContext({ unknownField: true }, context), TypeError);
+  assert.throws(() => tree.newLeafWithContext({ unknownField: true } as never, context), TypeError);
   assert.equal(tree.getNodeCount(), 0);
 
   const first = tree.newLeafWithContext({}, context);

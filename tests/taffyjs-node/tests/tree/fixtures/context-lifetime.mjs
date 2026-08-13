@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 
 const immediate = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -42,14 +42,36 @@ function failedConversionContext() {
   return { tree, weak };
 }
 
+function completedMeasureCallback() {
+  const tree = new TaffyTree();
+  const node = tree.newLeafWithContext({}, { label: "measured" });
+  let callback = ({ context }) => {
+    assert.equal(context.label, "measured");
+    return { width: 31, height: 17 };
+  };
+  const weak = new WeakRef(callback);
+  tree.computeLayoutWithMeasure({
+    root: node,
+    availableSpace: {
+      width: AvailableSpace.MinContent,
+      height: AvailableSpace.MinContent,
+    },
+    measure: callback,
+  });
+  callback = undefined;
+  return { tree, weak };
+}
+
 if (typeof globalThis.gc !== "function") throw new Error("This fixture requires --expose-gc");
 const removed = removedContext();
 const cleared = clearedContext();
 const failedConversion = failedConversionContext();
+const completedMeasure = completedMeasureCallback();
 process.stdout.write(
   `${JSON.stringify({
     removedCollected: await collect(removed.weak),
     clearedCollected: await collect(cleared.weak),
     failedConversionCollected: await collect(failedConversion.weak),
+    callbackCollected: await collect(completedMeasure.weak),
   })}\n`,
 );

@@ -1,13 +1,17 @@
 import assert from "node:assert/strict";
 
-import {
+import * as api from "@taffyjs/node";
+
+const {
   AvailableSpace,
   Dimension,
   Display,
   GridTemplateComponent,
   TaffyTree,
   TrackSizingFunction,
-} from "@taffyjs/node";
+} = api;
+
+assert.equal(Reflect.get(api, "NativeTaffyTree"), undefined);
 
 const availableSpace = {
   width: AvailableSpace.Definite(100),

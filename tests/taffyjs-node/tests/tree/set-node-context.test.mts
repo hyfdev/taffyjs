@@ -1,39 +1,12 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
-type MeasureArgs = { node: bigint; context: unknown };
-type Tree = {
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  computeLayoutWithMeasure(options: {
-    root: bigint;
-    availableSpace: object;
-    measure: (args: MeasureArgs) => object;
-  }): void;
-  getNodeContext(node: bigint): unknown;
-  isDirty(node: bigint): boolean;
-  newLeaf(style: object): bigint;
-  newLeafWithContext(style: object, context: unknown): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-  setNodeContext(node: bigint, context: unknown): void;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(
-    typeof Reflect.get(value.prototype, "setNodeContext"),
-    "function",
-    "setNodeContext is public",
-  );
-  return value as unknown as TreeConstructor;
-}
+type MeasureArgs = { node: NodeId; context: unknown };
 
 function availableSpace() {
-  return { width: api.AvailableSpace.MinContent, height: api.AvailableSpace.MinContent };
+  return { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent };
 }
 
 function captureError(body: () => unknown): CodedError {
@@ -46,7 +19,7 @@ function captureError(body: () => unknown): CodedError {
   assert.fail("Expected operation to throw");
 }
 
-function computeWithMeasure(tree: Tree, root: bigint, measure: (args: MeasureArgs) => void) {
+function computeWithMeasure(tree: TaffyTree, root: NodeId, measure: (args: MeasureArgs) => void) {
   tree.computeLayoutWithMeasure({
     root,
     availableSpace: availableSpace(),
@@ -58,7 +31,7 @@ function computeWithMeasure(tree: Tree, root: bigint, measure: (args: MeasureArg
 }
 
 test("replace-identity", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const initial = { version: 1 };
   const replacement = { version: 2 };
   const node = tree.newLeafWithContext({}, initial);
@@ -69,7 +42,7 @@ test("replace-identity", () => {
 });
 
 test("undefined-clears", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeafWithContext({}, { present: true });
 
   tree.setNodeContext(node, undefined);
@@ -83,7 +56,7 @@ test("undefined-clears", () => {
 });
 
 test("null-present", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
 
   tree.setNodeContext(node, null);
@@ -97,7 +70,7 @@ test("null-present", () => {
 });
 
 test("always-dirty", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const context = { unchanged: true };
   const child = tree.newLeafWithContext({}, context);
   const root = tree.newWithChildren({}, [child]);
@@ -112,7 +85,7 @@ test("always-dirty", () => {
 });
 
 test("measure-delivery", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeafWithContext({}, { version: 1 });
   const replacement = { version: 2 };
   tree.setNodeContext(node, replacement);
@@ -127,16 +100,15 @@ test("measure-delivery", () => {
 });
 
 test("invalid-atomic", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
+  const tree = new TaffyTree();
   const original = { unchanged: true };
   const replacement = { unchanged: false };
   const node = tree.newLeafWithContext({}, original);
-  const foreign = new Tree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf({});
   tree.computeLayout({ root: node, availableSpace: availableSpace() });
   assert.equal(tree.isDirty(node), false);
 
-  for (const invalid of [1 as never, 0n, foreign]) {
+  for (const invalid of [1 as never, 0n as never, foreign]) {
     captureError(() => tree.setNodeContext(invalid, replacement));
     assert.equal(tree.getNodeContext(node), original);
     assert.equal(tree.isDirty(node), false);

@@ -15,7 +15,7 @@ vp exec pnpm pack packages/taffyjs-node/npm/linux-x64-gnu --pack-destination ./a
 pnpm add ./artifacts/taffyjs-node-0.0.0.tgz ./artifacts/taffyjs-binding-linux-x64-gnu-0.0.0.tgz
 ```
 
-Use the platform directory matching the current machine: `darwin-arm64`, `darwin-x64`, `linux-x64-gnu`, or `win32-x64-msvc`. Only the package root (`@taffyjs/node`) and `@taffyjs/node/package.json` are exported; paths such as `@taffyjs/node/native.js` are private.
+Use the platform directory matching the current machine: `linux-x64-gnu` or `win32-x64-msvc`. Only the package root (`@taffyjs/node`) and `@taffyjs/node/package.json` are exported; paths such as `@taffyjs/node/native.js` are private.
 
 ## Complete examples
 
@@ -310,4 +310,4 @@ Direct absolute-file access to `index.js`, `native.js`, a `.node` file, or a pla
 
 ## CI and release evidence
 
-The repository workflow runs the complete test projection on Ubuntu x64, including the exact Node 22.18.0 packed-consumer check, and separately confirms that the native addon builds on Windows x64. The declared macOS targets are not built by the current CI. Publication and the full release build matrix remain future work. A workflow definition is not proof that a remote target passed: release handover must name the locally executed host separately from remote jobs that have actually run.
+The repository workflow runs the complete test projection on Ubuntu x64 with Node 22.18.0, including the packed-consumer check, and separately confirms that the native addon builds on Windows x64. Publication remains future work. A workflow definition is not proof that a remote target passed: release handover must name the locally executed host separately from remote jobs that have actually run.

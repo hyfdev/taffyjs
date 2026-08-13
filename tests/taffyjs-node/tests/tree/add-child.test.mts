@@ -1,31 +1,11 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
-type Tree = {
-  addChild(parent: bigint, child: bigint): void;
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  getChildren(parent: bigint): readonly bigint[];
-  getNodeCount(): number;
-  getParent(node: bigint): bigint | null;
-  getStyle(node: bigint): object;
-  isDirty(node: bigint): boolean;
-  newLeaf(style: object): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(typeof Reflect.get(value.prototype, "addChild"), "function", "addChild is public");
-  return value as unknown as TreeConstructor;
-}
 
 function maxContentSpace() {
-  return { width: api.AvailableSpace.MaxContent, height: api.AvailableSpace.MaxContent };
+  return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
 
 function captureError(body: () => unknown): CodedError {
@@ -38,7 +18,7 @@ function captureError(body: () => unknown): CodedError {
   assert.fail("Expected operation to throw");
 }
 
-function topology(tree: Tree, nodes: readonly bigint[]) {
+function topology(tree: TaffyTree, nodes: readonly NodeId[]) {
   return {
     count: tree.getNodeCount(),
     nodes: nodes.map((node) => ({
@@ -51,7 +31,7 @@ function topology(tree: Tree, nodes: readonly bigint[]) {
 }
 
 test("append", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const first = tree.newLeaf({});
   const second = tree.newLeaf({});
   const parent = tree.newWithChildren({}, [first]);
@@ -63,7 +43,7 @@ test("append", () => {
 });
 
 test("dirty", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const container = tree.newLeaf({});
   const root = tree.newWithChildren({}, [container]);
   const child = tree.newLeaf({});
@@ -77,7 +57,7 @@ test("dirty", () => {
 });
 
 test("topology-reject", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({});
   const firstParent = tree.newWithChildren({}, [child]);
   const secondParent = tree.newLeaf({});
@@ -103,14 +83,16 @@ test("topology-reject", () => {
 });
 
 test("id-roles", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
+  const tree = new TaffyTree();
   const parent = tree.newLeaf({});
   const child = tree.newLeaf({});
-  const foreign = new Tree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf({});
 
   assert.equal(captureError(() => tree.addChild(1 as never, child)).constructor, TypeError);
-  assert.equal(captureError(() => tree.addChild(parent, 0n)).code, "ERR_TAFFY_INVALID_NODE_ID");
+  assert.equal(
+    captureError(() => tree.addChild(parent, 0n as never)).code,
+    "ERR_TAFFY_INVALID_NODE_ID",
+  );
   assert.equal(captureError(() => tree.addChild(foreign, child)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
   assert.equal(
     captureError(() => tree.addChild(parent, foreign)).code,
@@ -133,7 +115,7 @@ test("id-roles", () => {
 });
 
 test("failure-atomic", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({ flexGrow: 1 });
   const parent = tree.newWithChildren({}, [child]);
   const other = tree.newLeaf({ flexGrow: 2 });

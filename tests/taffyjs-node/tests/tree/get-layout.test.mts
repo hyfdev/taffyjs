@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, Dimension, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
@@ -13,16 +13,6 @@ type Layout = {
   padding: { left: number; right: number; top: number; bottom: number };
   margin: { left: number; right: number; top: number; bottom: number };
 };
-type Tree = {
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  disableRounding(): void;
-  enableRounding(): void;
-  getLayout(node: bigint): Layout;
-  newLeaf(style: object): bigint;
-  setStyle(node: bigint, style: object): void;
-};
-type TreeConstructor = new () => Tree;
 
 const ZERO_LAYOUT: Layout = {
   order: 0,
@@ -35,15 +25,8 @@ const ZERO_LAYOUT: Layout = {
   margin: { left: 0, right: 0, top: 0, bottom: 0 },
 };
 
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(typeof Reflect.get(value.prototype, "getLayout"), "function", "getLayout is public");
-  return value as unknown as TreeConstructor;
-}
-
 function maxContentSpace() {
-  return { width: api.AvailableSpace.MaxContent, height: api.AvailableSpace.MaxContent };
+  return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
 
 function captureError(body: () => unknown): CodedError {
@@ -57,7 +40,7 @@ function captureError(body: () => unknown): CodedError {
 }
 
 test("exact-zero", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
   const layout = tree.getLayout(node);
 
@@ -75,9 +58,9 @@ test("exact-zero", () => {
 });
 
 test("rounding-selection", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(10.5), height: api.Dimension.Length(6.25) },
+    size: { width: Dimension.Length(10.5), height: Dimension.Length(6.25) },
   });
   const options = { root: node, availableSpace: maxContentSpace() };
 
@@ -91,15 +74,15 @@ test("rounding-selection", () => {
 });
 
 test("stale-stored", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(20), height: api.Dimension.Length(10) },
+    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
   });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   const before = tree.getLayout(node);
 
   tree.setStyle(node, {
-    size: { width: api.Dimension.Length(40), height: api.Dimension.Length(30) },
+    size: { width: Dimension.Length(40), height: Dimension.Length(30) },
   });
   assert.deepEqual(tree.getLayout(node), before, "getter does not compute a dirty node");
 
@@ -108,10 +91,10 @@ test("stale-stored", () => {
 });
 
 test("detached", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    margin: { left: api.Dimension.Length(3) },
-    size: { width: api.Dimension.Length(20), height: api.Dimension.Length(10) },
+    margin: { left: Dimension.Length(3) },
+    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
   });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   const first = tree.getLayout(node);
@@ -121,16 +104,21 @@ test("detached", () => {
   assert.notEqual(first.location, second.location);
   assert.notEqual(first.size, second.size);
   assert.notEqual(first.margin, second.margin);
-  first.location.x = 99;
-  first.size.width = 88;
-  first.margin.left = 77;
+  const mutableFirst = first as {
+    location: { x: number };
+    size: { width: number };
+    margin: { left: number };
+  };
+  mutableFirst.location.x = 99;
+  mutableFirst.size.width = 88;
+  mutableFirst.margin.left = 77;
   assert.deepEqual(tree.getLayout(node), second);
 });
 
 test("numeric-widening", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(12.2500001), height: api.Dimension.Length(8.5000001) },
+    size: { width: Dimension.Length(12.2500001), height: Dimension.Length(8.5000001) },
   });
   tree.disableRounding();
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
@@ -143,12 +131,11 @@ test("numeric-widening", () => {
 });
 
 test("invalid-id", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
-  const foreign = new Tree().newLeaf({});
+  const tree = new TaffyTree();
+  const foreign = new TaffyTree().newLeaf({});
 
   assert.equal(captureError(() => tree.getLayout(1 as never)).constructor, TypeError);
-  assert.equal(captureError(() => tree.getLayout(0n)).code, "ERR_TAFFY_INVALID_NODE_ID");
+  assert.equal(captureError(() => tree.getLayout(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
   assert.equal(captureError(() => tree.getLayout(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
   const stale = tree.newLeaf({});

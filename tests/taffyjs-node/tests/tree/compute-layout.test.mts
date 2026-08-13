@@ -1,50 +1,11 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, Dimension, Display, Float, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
-type Layout = {
-  location: { x: number; y: number };
-  size: { width: number; height: number };
-  contentSize: { width: number; height: number };
-};
-type ComputeLayoutOptions = { root: bigint; availableSpace: object };
-type Tree = {
-  clear(): void;
-  computeLayout(options: ComputeLayoutOptions): void;
-  computeLayoutWithMeasure(options: {
-    root: bigint;
-    availableSpace: object;
-    measure: () => object;
-  }): void;
-  disableRounding(): void;
-  enableRounding(): void;
-  getChildren(parent: bigint): readonly bigint[];
-  getLayout(node: bigint): Layout;
-  getNodeContext(node: bigint): unknown;
-  getNodeCount(): number;
-  getParent(node: bigint): bigint | null;
-  getUnroundedLayout(node: bigint): Layout;
-  newLeaf(style: object): bigint;
-  newLeafWithContext(style: object, context: unknown): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-  setStyle(node: bigint, style: object): void;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(
-    typeof Reflect.get(value.prototype, "computeLayout"),
-    "function",
-    "computeLayout is public",
-  );
-  return value as unknown as TreeConstructor;
-}
 
 function maxContentSpace() {
-  return { width: api.AvailableSpace.MaxContent, height: api.AvailableSpace.MaxContent };
+  return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
 
 function captureError(body: () => unknown): CodedError {
@@ -57,7 +18,7 @@ function captureError(body: () => unknown): CodedError {
   assert.fail("Expected operation to throw");
 }
 
-function wrapperState(tree: Tree, nodes: readonly bigint[]) {
+function wrapperState(tree: TaffyTree, nodes: readonly NodeId[]) {
   return {
     count: tree.getNodeCount(),
     nodes: nodes.map((node) => ({
@@ -74,23 +35,23 @@ test("algorithms", () => {
   // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/tree/taffy_tree.rs#L250-L323
   // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/compute/mod.rs#L275-L303
   const cases = [
-    ["Flex", api.Display.Flex, {}],
-    ["Grid", api.Display.Grid, {}],
-    ["Block", api.Display.Block, {}],
-    ["Float", api.Display.Block, { float: api.Float.Left }],
-    ["FlowRoot", api.Display.FlowRoot, {}],
+    ["Flex", Display.Flex, {}],
+    ["Grid", Display.Grid, {}],
+    ["Block", Display.Block, {}],
+    ["Float", Display.Block, { float: Float.Left }],
+    ["FlowRoot", Display.FlowRoot, {}],
   ] as const;
 
   for (const [name, display, childExtra] of cases) {
-    const tree = new (TaffyTree())();
+    const tree = new TaffyTree();
     const child = tree.newLeaf({
-      size: { width: api.Dimension.Length(30), height: api.Dimension.Length(10) },
+      size: { width: Dimension.Length(30), height: Dimension.Length(10) },
       ...childExtra,
     });
     const root = tree.newWithChildren(
       {
         display,
-        size: { width: api.Dimension.Length(100), height: api.Dimension.Length(50) },
+        size: { width: Dimension.Length(100), height: Dimension.Length(50) },
       },
       [child],
     );
@@ -105,14 +66,14 @@ test("algorithms", () => {
     assert.deepEqual(childLayout.size, { width: 30, height: 10 }, name);
   }
 
-  const noneTree = new (TaffyTree())();
+  const noneTree = new TaffyTree();
   const noneChild = noneTree.newLeaf({
-    size: { width: api.Dimension.Length(30), height: api.Dimension.Length(10) },
+    size: { width: Dimension.Length(30), height: Dimension.Length(10) },
   });
   const noneRoot = noneTree.newWithChildren(
     {
-      display: api.Display.None,
-      size: { width: api.Dimension.Length(100), height: api.Dimension.Length(50) },
+      display: Display.None,
+      size: { width: Dimension.Length(100), height: Dimension.Length(50) },
     },
     [noneChild],
   );
@@ -128,14 +89,14 @@ test("algorithms", () => {
 test("percentage-content", () => {
   // Pinned upstream block percentage and content-size source for these values:
   // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/compute/block.rs#L548-L707
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({
-    size: { width: api.Dimension.Percent(50), height: api.Dimension.Length(80) },
+    size: { width: Dimension.Percent(50), height: Dimension.Length(80) },
   });
   const root = tree.newWithChildren(
     {
-      display: api.Display.Block,
-      size: { width: api.Dimension.Length(200), height: api.Dimension.Length(50) },
+      display: Display.Block,
+      size: { width: Dimension.Length(200), height: Dimension.Length(50) },
     },
     [child],
   );
@@ -146,9 +107,9 @@ test("percentage-content", () => {
 });
 
 test("stored-output", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(64), height: api.Dimension.Length(32) },
+    size: { width: Dimension.Length(64), height: Dimension.Length(32) },
   });
   assert.deepEqual(tree.getLayout(node).size, { width: 0, height: 0 });
 
@@ -158,7 +119,7 @@ test("stored-output", () => {
 });
 
 test("cache", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const root = tree.newLeafWithContext({}, true);
   const availableSpace = maxContentSpace();
   let calls = 0;
@@ -179,9 +140,9 @@ test("cache", () => {
 });
 
 test("rounding", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(10.5), height: api.Dimension.Length(6.25) },
+    size: { width: Dimension.Length(10.5), height: Dimension.Length(6.25) },
   });
   const options = { root: node, availableSpace: maxContentSpace() };
 
@@ -196,15 +157,14 @@ test("rounding", () => {
 });
 
 test("invalid-root", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
-  const foreign = new Tree().newLeaf({});
-  const options = (root: bigint) => ({ root, availableSpace: maxContentSpace() });
+  const foreign = new TaffyTree().newLeaf({});
+  const options = (root: NodeId) => ({ root, availableSpace: maxContentSpace() });
 
   assert.equal(captureError(() => tree.computeLayout(options(1 as never))).constructor, TypeError);
   assert.equal(
-    captureError(() => tree.computeLayout(options(0n))).code,
+    captureError(() => tree.computeLayout(options(0n as never))).code,
     "ERR_TAFFY_INVALID_NODE_ID",
   );
   assert.equal(
@@ -221,28 +181,26 @@ test("invalid-root", () => {
 });
 
 test("invalid-space", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(20), height: api.Dimension.Length(10) },
+    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
   });
   const invalidSpaces = [
     null,
     [],
-    { width: api.AvailableSpace.MinContent },
-    { width: 1, height: api.AvailableSpace.MinContent },
-    { width: { kind: 99 }, height: api.AvailableSpace.MinContent },
+    { width: AvailableSpace.MinContent },
+    { width: 1, height: AvailableSpace.MinContent },
+    { width: { kind: 99 }, height: AvailableSpace.MinContent },
   ];
 
   for (const availableSpace of invalidSpaces) {
-    captureError(() =>
-      tree.computeLayout({ root: node, availableSpace: availableSpace as object }),
-    );
+    captureError(() => tree.computeLayout({ root: node, availableSpace: availableSpace as never }));
     assert.deepEqual(tree.getLayout(node).size, { width: 0, height: 0 });
   }
 });
 
 test("no-measure", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeafWithContext({}, { measured: true });
   let calls = 0;
   tree.computeLayoutWithMeasure({
@@ -263,7 +221,7 @@ test("no-measure", () => {
 });
 
 test("wrapper-atomic", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const context = { unchanged: true };
   const child = tree.newLeafWithContext({}, context);
   const root = tree.newWithChildren({}, [child]);
@@ -273,11 +231,11 @@ test("wrapper-atomic", () => {
   captureError(() =>
     tree.computeLayout({
       root,
-      availableSpace: { width: api.AvailableSpace.MinContent },
+      availableSpace: { width: AvailableSpace.MinContent } as never,
     }),
   );
   assert.deepEqual(wrapperState(tree, nodes), before);
 
-  captureError(() => tree.computeLayout(null as unknown as ComputeLayoutOptions));
+  captureError(() => tree.computeLayout(null as never));
   assert.deepEqual(wrapperState(tree, nodes), before);
 });

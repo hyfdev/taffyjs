@@ -1,16 +1,8 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { Dimension, Display, TaffyTree, TrackSizingFunction } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
-type Style = Record<string, unknown>;
-type Tree = {
-  clear(): void;
-  getStyle(node: bigint): Style;
-  newLeaf(style: object): bigint;
-  setStyle(node: bigint, style: object): void;
-};
-type TreeConstructor = new () => Tree;
 
 const STYLE_FIELDS = [
   "display",
@@ -56,13 +48,6 @@ const STYLE_FIELDS = [
   "gridColumn",
 ];
 
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(typeof Reflect.get(value.prototype, "getStyle"), "function", "getStyle is public");
-  return value as unknown as TreeConstructor;
-}
-
 function captureError(body: () => unknown): CodedError {
   try {
     body();
@@ -74,16 +59,16 @@ function captureError(body: () => unknown): CodedError {
 }
 
 test("exact-keys", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const defaults = tree.getStyle(tree.newLeaf({}));
-  const changed = tree.getStyle(tree.newLeaf({ display: api.Display.Grid, flexGrow: 2 }));
+  const changed = tree.getStyle(tree.newLeaf({ display: Display.Grid, flexGrow: 2 }));
 
   assert.deepEqual(Object.keys(defaults), STYLE_FIELDS);
   assert.deepEqual(Object.keys(changed), STYLE_FIELDS);
 });
 
 test("null-output", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
     aspectRatio: null,
     alignItems: null,
@@ -105,18 +90,18 @@ test("null-output", () => {
     "alignContent",
     "justifyContent",
     "gridTemplateAreas",
-  ]) {
+  ] as const) {
     assert.equal(style[field], null, field);
   }
 });
 
 test("stored-f32", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
     scrollbarWidth: 0.1,
     flexGrow: -0,
     flexShrink: Number.POSITIVE_INFINITY,
-    size: { width: api.Dimension.Percent(1e39) },
+    size: { width: Dimension.Percent(1e39) },
   });
   const style = tree.getStyle(node);
 
@@ -130,27 +115,27 @@ test("stored-f32", () => {
 });
 
 test("deep-detached", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(10) },
+    size: { width: Dimension.Length(10) },
     gridTemplateRowNames: [["start"], ["end"]],
-    gridAutoRows: [api.TrackSizingFunction.Fr(2)],
+    gridAutoRows: [TrackSizingFunction.Fr(2)],
   });
   const first = tree.getStyle(node);
 
   assert.equal(Object.isFrozen(first), false);
   (first.size as { width: { value: number } }).width.value = 90;
   (first.gridTemplateRowNames as string[][])[0][0] = "changed";
-  (first.gridAutoRows as unknown[]).push(api.TrackSizingFunction.Auto);
+  (first.gridAutoRows as unknown[]).push(TrackSizingFunction.Auto);
 
   const second = tree.getStyle(node);
-  assert.deepEqual((second.size as { width: unknown }).width, api.Dimension.Length(10));
+  assert.deepEqual((second.size as { width: unknown }).width, Dimension.Length(10));
   assert.deepEqual(second.gridTemplateRowNames, [["start"], ["end"]]);
-  assert.deepEqual(second.gridAutoRows, [api.TrackSizingFunction.Fr(2)]);
+  assert.deepEqual(second.gridAutoRows, [TrackSizingFunction.Fr(2)]);
 });
 
 test("independent-snapshots", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({ gridTemplateRowNames: [["row"]] });
   const first = tree.getStyle(node);
   const second = tree.getStyle(node);
@@ -166,12 +151,11 @@ test("independent-snapshots", () => {
 });
 
 test("invalid-id", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
-  const foreign = new Tree().newLeaf({});
+  const tree = new TaffyTree();
+  const foreign = new TaffyTree().newLeaf({});
 
   assert.equal(captureError(() => tree.getStyle(1 as never)).constructor, TypeError);
-  assert.equal(captureError(() => tree.getStyle(0n)).code, "ERR_TAFFY_INVALID_NODE_ID");
+  assert.equal(captureError(() => tree.getStyle(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
   assert.equal(captureError(() => tree.getStyle(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
   const stale = tree.newLeaf({});

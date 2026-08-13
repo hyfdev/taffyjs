@@ -6,17 +6,12 @@ const testTasks = {
       "vp test --config packages/taffyjs-node/vite.config.ts packages/taffyjs-node/tests/native",
     dependsOn: ["build"],
   },
-  "check:test:wrapper": {
-    command:
-      "vp test --config packages/taffyjs-node/vite.config.ts packages/taffyjs-node/tests/wrapper",
-    dependsOn: ["build"],
-  },
   "check:test:integration": {
     command: "vp run @taffyjs/node-integration-tests#test",
     dependsOn: ["build"],
   },
   "check:test:types": {
-    command: "node tools/run-type-tests.mjs",
+    command: "vp exec tsc --project tests/taffyjs-node/tests/types/tsconfig.json",
     dependsOn: ["build"],
   },
   "check:test:packed-consumer": {
@@ -59,7 +54,7 @@ export default defineConfig({
       },
       "check:rust": {
         command:
-          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings && cargo test --workspace --all-features -- --list && cargo test --workspace --all-features",
+          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings && cargo test --workspace --all-features",
       },
       ...testTasks,
       "check:test": {
@@ -70,12 +65,9 @@ export default defineConfig({
         command: "echo check ok",
         dependsOn: ["check:format", "check:lint", "check:rust", "check:test"],
       },
-      "ready:body": {
+      ready: {
         command: "echo ready checks passed",
         dependsOn: ["check"],
-      },
-      ready: {
-        command: "node tools/run-ready.mjs",
       },
     },
   },

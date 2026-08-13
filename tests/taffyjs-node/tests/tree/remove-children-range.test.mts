@@ -1,30 +1,9 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
 type ChildRangeInput = { start: number; end: number };
-type Tree = {
-  addChild(parent: bigint, child: bigint): void;
-  getChildren(parent: bigint): readonly bigint[];
-  getNodeCount(): number;
-  getParent(node: bigint): bigint | null;
-  newLeaf(style: object): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-  removeChildrenRange(parent: bigint, range: ChildRangeInput): void;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(
-    typeof Reflect.get(value.prototype, "removeChildrenRange"),
-    "function",
-    "removeChildrenRange is public",
-  );
-  return value as unknown as TreeConstructor;
-}
 
 function captureError(body: () => unknown): CodedError {
   try {
@@ -36,7 +15,7 @@ function captureError(body: () => unknown): CodedError {
   assert.fail("Expected operation to throw");
 }
 
-function topology(tree: Tree, nodes: readonly bigint[]) {
+function topology(tree: TaffyTree, nodes: readonly NodeId[]) {
   return {
     count: tree.getNodeCount(),
     nodes: nodes.map((node) => ({
@@ -48,7 +27,7 @@ function topology(tree: Tree, nodes: readonly bigint[]) {
 }
 
 test("ranges", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const children = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
   const parent = tree.newWithChildren({}, children);
 
@@ -61,7 +40,7 @@ test("ranges", () => {
 });
 
 test("detached-live", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const [first, second, third] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
   const parent = tree.newWithChildren({}, [first, second, third]);
   const nextParent = tree.newLeaf({});
@@ -77,7 +56,7 @@ test("detached-live", () => {
 });
 
 test("range-errors", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const children = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
   const parent = tree.newWithChildren({}, children);
   const invalidRanges = [
@@ -98,7 +77,7 @@ test("range-errors", () => {
 });
 
 test("extra-properties", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const [first, second] = [tree.newLeaf({}), tree.newLeaf({})];
   const parent = tree.newWithChildren({}, [first, second]);
 
@@ -107,7 +86,7 @@ test("extra-properties", () => {
 });
 
 test("failure-atomic", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const [first, second, third] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
   const parent = tree.newWithChildren({}, [first, second, third]);
   const nodes = [first, second, third, parent];

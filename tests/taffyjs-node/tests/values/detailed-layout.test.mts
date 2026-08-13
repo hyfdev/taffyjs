@@ -1,5 +1,14 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import {
+  AvailableSpace,
+  DetailedLayoutInfoKind,
+  Display,
+  GridPlacement,
+  GridTemplateComponent,
+  type NodeId,
+  TaffyTree,
+  TrackSizingFunction,
+} from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type Tracks = {
@@ -20,31 +29,8 @@ type GridInfo = {
   }>;
 };
 type Detail = { kind: number } | { kind: number; value: GridInfo };
-type Tree = {
-  computeLayout(options: object): void;
-  getDetailedLayoutInfo(node: bigint): Detail;
-  newLeaf(style: object): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-  setStyle(node: bigint, style: object): void;
-};
-type TreeConstructor = new () => Tree;
 
-function constants() {
-  return {
-    Detail: Reflect.get(api, "DetailedLayoutInfoKind") as { None: number; Grid: number },
-    Display: Reflect.get(api, "Display") as { None: number; Flex: number; Grid: number },
-    AvailableSpace: Reflect.get(api, "AvailableSpace") as { MinContent: object },
-  };
-}
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  return value as unknown as TreeConstructor;
-}
-
-function compute(tree: Tree, root: bigint) {
-  const { AvailableSpace } = constants();
+function compute(tree: TaffyTree, root: NodeId) {
   tree.computeLayout({
     root,
     availableSpace: { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent },
@@ -52,24 +38,17 @@ function compute(tree: Tree, root: bigint) {
 }
 
 function singleLengthTrack(value: number) {
-  return {
-    kind: 0,
-    value: {
-      min: { kind: 0, value },
-      max: { kind: 0, value },
-    },
-  };
+  return GridTemplateComponent.Single(TrackSizingFunction.Length(value));
 }
 
-function explicitGrid(tree: Tree) {
-  const { Display } = constants();
+function explicitGrid(tree: TaffyTree) {
   const first = tree.newLeaf({
-    gridRow: { start: { kind: 1, index: 1 }, end: { kind: 1, index: 2 } },
-    gridColumn: { start: { kind: 1, index: 1 }, end: { kind: 1, index: 2 } },
+    gridRow: { start: GridPlacement.Line(1), end: GridPlacement.Line(2) },
+    gridColumn: { start: GridPlacement.Line(1), end: GridPlacement.Line(2) },
   });
   const second = tree.newLeaf({
-    gridRow: { start: { kind: 1, index: 2 }, end: { kind: 1, index: 3 } },
-    gridColumn: { start: { kind: 1, index: 2 }, end: { kind: 1, index: 3 } },
+    gridRow: { start: GridPlacement.Line(2), end: GridPlacement.Line(3) },
+    gridColumn: { start: GridPlacement.Line(2), end: GridPlacement.Line(3) },
   });
   return tree.newWithChildren(
     {
@@ -82,18 +61,16 @@ function explicitGrid(tree: Tree) {
 }
 
 function gridValue(value: Detail): GridInfo {
-  const { Detail } = constants();
-  assert.equal(value.kind, Detail.Grid);
+  assert.equal(value.kind, DetailedLayoutInfoKind.Grid);
   assert.equal("value" in value, true);
   return (value as Extract<Detail, { value: GridInfo }>).value;
 }
 
 test("variants", () => {
-  const { Detail, Display } = constants();
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const hidden = tree.newLeaf({ display: Display.None });
   const node = tree.newWithChildren({}, [hidden]);
-  assert.deepEqual(tree.getDetailedLayoutInfo(node), { kind: Detail.None });
+  assert.deepEqual(tree.getDetailedLayoutInfo(node), { kind: DetailedLayoutInfoKind.None });
 
   tree.setStyle(node, { display: Display.Grid });
   compute(tree, node);
@@ -113,7 +90,7 @@ test("variants", () => {
 });
 
 test("numeric-widening", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const root = explicitGrid(tree);
   compute(tree, root);
   const grid = gridValue(tree.getDetailedLayoutInfo(root));
@@ -132,7 +109,7 @@ test("numeric-widening", () => {
 });
 
 test("detached", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const root = explicitGrid(tree);
   compute(tree, root);
   const first = gridValue(tree.getDetailedLayoutInfo(root));
@@ -151,16 +128,15 @@ test("detached", () => {
 });
 
 test("lifecycle", () => {
-  const { Detail, Display } = constants();
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const hidden = tree.newLeaf({ display: Display.None });
   const node = tree.newWithChildren({}, [hidden]);
-  assert.deepEqual(tree.getDetailedLayoutInfo(node), { kind: Detail.None });
+  assert.deepEqual(tree.getDetailedLayoutInfo(node), { kind: DetailedLayoutInfoKind.None });
 
   tree.setStyle(node, { display: Display.Grid });
   compute(tree, node);
   const grid = tree.getDetailedLayoutInfo(node);
-  assert.equal(grid.kind, Detail.Grid);
+  assert.equal(grid.kind, DetailedLayoutInfoKind.Grid);
 
   tree.setStyle(node, { display: Display.Flex });
   compute(tree, node);

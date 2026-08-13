@@ -1,14 +1,6 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
-
-type Tree = {
-  computeLayout(options: object): void;
-  getLayout(node: bigint): Layout;
-  getUnroundedLayout(node: bigint): Layout;
-  newLeaf(style: object): bigint;
-};
-type TreeConstructor = new () => Tree;
 type Layout = {
   order: number;
   location: { x: number; y: number };
@@ -31,28 +23,19 @@ const ZERO_LAYOUT: Layout = {
   margin: { left: 0, right: 0, top: 0, bottom: 0 },
 };
 
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  return value as unknown as TreeConstructor;
-}
-
 function minContentSpace() {
-  const value = Reflect.get(api, "AvailableSpace") as {
-    MinContent: object;
-  };
-  return { width: value.MinContent, height: value.MinContent };
+  return { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent };
 }
 
 test("zero", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
   assert.deepEqual(tree.getLayout(node), ZERO_LAYOUT);
   assert.deepEqual(tree.getUnroundedLayout(node), ZERO_LAYOUT);
 });
 
 test("f32-special", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
     size: { width: { unit: 0, value: Infinity }, height: { unit: 0, value: Infinity } },
     border: { right: { unit: 0, value: NaN } },
@@ -67,7 +50,7 @@ test("f32-special", () => {
 });
 
 test("exact-keys", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
   const layout = tree.getLayout(node);
   assert.deepEqual(Object.keys(layout), [
@@ -88,7 +71,7 @@ test("exact-keys", () => {
 });
 
 test("detached", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
   const first = tree.getLayout(node);
   const second = tree.getLayout(node);
@@ -96,14 +79,15 @@ test("detached", () => {
   assert.notEqual(first.location, second.location);
   assert.notEqual(first.size, second.size);
   assert.equal(Object.isFrozen(first), false);
-  first.location.x = 99;
-  first.padding.left = 88;
+  const mutableFirst = first as { location: { x: number }; padding: { left: number } };
+  mutableFirst.location.x = 99;
+  mutableFirst.padding.left = 88;
   assert.deepEqual(second, ZERO_LAYOUT);
   assert.deepEqual(tree.getLayout(node), ZERO_LAYOUT);
 });
 
 test("shared-converter", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
   const rounded = tree.getLayout(node);
   const unrounded = tree.getUnroundedLayout(node);

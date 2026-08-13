@@ -1,41 +1,19 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, Dimension, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type Tree = {
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  disableRounding(): void;
-  enableRounding(): void;
-  getLayout(node: bigint): { size: { width: number; height: number } };
-  getUnroundedLayout(node: bigint): { size: { width: number; height: number } };
-  newLeaf(style: object): bigint;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(
-    typeof Reflect.get(value.prototype, "enableRounding"),
-    "function",
-    "enableRounding is public",
-  );
-  return value as unknown as TreeConstructor;
-}
-
 function maxContentSpace() {
-  return { width: api.AvailableSpace.MaxContent, height: api.AvailableSpace.MaxContent };
+  return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
 
-function fractionalNode(tree: Tree) {
+function fractionalNode(tree: TaffyTree) {
   return tree.newLeaf({
-    size: { width: api.Dimension.Length(10.5), height: api.Dimension.Length(6.25) },
+    size: { width: Dimension.Length(10.5), height: Dimension.Length(6.25) },
   });
 }
 
 test("select-rounded", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = fractionalNode(tree);
 
   tree.enableRounding();
@@ -45,7 +23,7 @@ test("select-rounded", () => {
 });
 
 test("reenable", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   let node = fractionalNode(tree);
   const options = () => ({ root: node, availableSpace: maxContentSpace() });
 
@@ -64,7 +42,7 @@ test("reenable", () => {
 });
 
 test("no-compute", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = fractionalNode(tree);
 
   tree.enableRounding();

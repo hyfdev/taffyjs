@@ -1,23 +1,11 @@
 import assert from "node:assert/strict";
 import * as api from "@taffyjs/node";
+import { TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type Tree = {
-  getNodeCount(): number;
-  newLeaf(style: object): bigint;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  return value as unknown as TreeConstructor;
-}
-
 test("construct", () => {
-  const Tree = TaffyTree();
-  const first = new Tree();
-  const second = new Tree();
+  const first = new TaffyTree();
+  const second = new TaffyTree();
 
   assert.equal(first.getNodeCount(), 0);
   assert.equal(second.getNodeCount(), 0);
@@ -25,8 +13,7 @@ test("construct", () => {
 });
 
 test("export-boundary", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
+  const tree = new TaffyTree();
 
   assert.equal(Reflect.get(api, "NativeTaffyTree"), undefined);
   assert.equal(Reflect.get(api, "__bootstrap"), undefined);

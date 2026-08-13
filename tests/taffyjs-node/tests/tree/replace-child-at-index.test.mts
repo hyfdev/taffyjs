@@ -1,35 +1,11 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
-type Tree = {
-  addChild(parent: bigint, child: bigint): void;
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  getChildren(parent: bigint): readonly bigint[];
-  getNodeCount(): number;
-  getParent(node: bigint): bigint | null;
-  isDirty(node: bigint): boolean;
-  newLeaf(style: object): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-  replaceChildAtIndex(parent: bigint, index: number, newChild: bigint): bigint;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(
-    typeof Reflect.get(value.prototype, "replaceChildAtIndex"),
-    "function",
-    "replaceChildAtIndex is public",
-  );
-  return value as unknown as TreeConstructor;
-}
 
 function maxContentSpace() {
-  return { width: api.AvailableSpace.MaxContent, height: api.AvailableSpace.MaxContent };
+  return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
 
 function captureError(body: () => unknown): CodedError {
@@ -42,7 +18,7 @@ function captureError(body: () => unknown): CodedError {
   assert.fail("Expected operation to throw");
 }
 
-function topology(tree: Tree, nodes: readonly bigint[]) {
+function topology(tree: TaffyTree, nodes: readonly NodeId[]) {
   return {
     count: tree.getNodeCount(),
     nodes: nodes.map((node) => ({
@@ -54,7 +30,7 @@ function topology(tree: Tree, nodes: readonly bigint[]) {
 }
 
 test("replace", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const [first, second, third, replacement] = [
     tree.newLeaf({}),
     tree.newLeaf({}),
@@ -70,7 +46,7 @@ test("replace", () => {
 });
 
 test("returned-id", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const oldChild = tree.newLeaf({});
   const replacement = tree.newLeaf({});
   const parent = tree.newWithChildren({}, [oldChild]);
@@ -85,7 +61,7 @@ test("returned-id", () => {
 });
 
 test("dirty", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({});
   const replacement = tree.newLeaf({});
   const parent = tree.newWithChildren({}, [child]);
@@ -100,7 +76,7 @@ test("dirty", () => {
 });
 
 test("same-noop", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({});
   const parent = tree.newWithChildren({}, [child]);
   tree.computeLayout({ root: parent, availableSpace: maxContentSpace() });
@@ -113,7 +89,7 @@ test("same-noop", () => {
 });
 
 test("reject", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const [first, second, free] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
   const parent = tree.newWithChildren({}, [first, second]);
 
@@ -148,19 +124,18 @@ test("reject", () => {
 });
 
 test("id-roles", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({});
   const replacement = tree.newLeaf({});
   const parent = tree.newWithChildren({}, [child]);
-  const foreign = new Tree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf({});
 
   assert.equal(
     captureError(() => tree.replaceChildAtIndex(1 as never, 0, replacement)).constructor,
     TypeError,
   );
   assert.equal(
-    captureError(() => tree.replaceChildAtIndex(parent, 0, 0n)).code,
+    captureError(() => tree.replaceChildAtIndex(parent, 0, 0n as never)).code,
     "ERR_TAFFY_INVALID_NODE_ID",
   );
   assert.equal(
@@ -188,7 +163,7 @@ test("id-roles", () => {
 });
 
 test("failure-atomic", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const [first, second, attached, free] = [
     tree.newLeaf({}),
     tree.newLeaf({}),

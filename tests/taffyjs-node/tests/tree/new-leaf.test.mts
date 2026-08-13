@@ -1,53 +1,40 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { BoxSizing, Dimension, Display, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
-
-type Tree = {
-  getNodeCount(): number;
-  getStyle(node: bigint): Record<string, unknown>;
-  newLeaf(style: object): bigint;
-};
-type TreeConstructor = new () => Tree;
 
 const U64_MASK = (1n << 64n) - 1n;
 
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  return value as unknown as TreeConstructor;
-}
-
-function creationSerial(node: bigint) {
+function creationSerial(node: NodeId) {
   return (node >> 64n) & U64_MASK;
 }
 
 test("default-style", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
   const style = tree.getStyle(node);
 
-  assert.equal(style.display, api.Display.Flex);
-  assert.equal(style.boxSizing, api.BoxSizing.BorderBox);
+  assert.equal(style.display, Display.Flex);
+  assert.equal(style.boxSizing, BoxSizing.BorderBox);
   assert.equal(style.flexGrow, 0);
   assert.equal(style.aspectRatio, null);
 });
 
 test("nondefault-style", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    display: api.Display.Flex,
+    display: Display.Flex,
     flexGrow: 1.25,
-    size: { width: api.Dimension.Length(12) },
+    size: { width: Dimension.Length(12) },
   });
   const style = tree.getStyle(node);
 
-  assert.equal(style.display, api.Display.Flex);
+  assert.equal(style.display, Display.Flex);
   assert.equal(style.flexGrow, Math.fround(1.25));
-  assert.deepEqual((style.size as { width: unknown }).width, api.Dimension.Length(12));
+  assert.deepEqual((style.size as { width: unknown }).width, Dimension.Length(12));
 });
 
 test("stable-id", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const first = tree.newLeaf({});
   const second = tree.newLeaf({});
 
@@ -58,10 +45,10 @@ test("stable-id", () => {
 });
 
 test("conversion-atomic", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
 
-  assert.throws(() => tree.newLeaf({ unknownField: true }), TypeError);
-  assert.throws(() => tree.newLeaf({ display: 999 }), RangeError);
+  assert.throws(() => tree.newLeaf({ unknownField: true } as never), TypeError);
+  assert.throws(() => tree.newLeaf({ display: 999 } as never), RangeError);
   assert.equal(tree.getNodeCount(), 0);
 
   const first = tree.newLeaf({});

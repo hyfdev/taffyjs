@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, Dimension, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
@@ -13,16 +13,6 @@ type Layout = {
   padding: { left: number; right: number; top: number; bottom: number };
   margin: { left: number; right: number; top: number; bottom: number };
 };
-type Tree = {
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  disableRounding(): void;
-  enableRounding(): void;
-  getUnroundedLayout(node: bigint): Layout;
-  newLeaf(style: object): bigint;
-  setStyle(node: bigint, style: object): void;
-};
-type TreeConstructor = new () => Tree;
 
 const ZERO_LAYOUT: Layout = {
   order: 0,
@@ -35,19 +25,8 @@ const ZERO_LAYOUT: Layout = {
   margin: { left: 0, right: 0, top: 0, bottom: 0 },
 };
 
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(
-    typeof Reflect.get(value.prototype, "getUnroundedLayout"),
-    "function",
-    "getUnroundedLayout is public",
-  );
-  return value as unknown as TreeConstructor;
-}
-
 function maxContentSpace() {
-  return { width: api.AvailableSpace.MaxContent, height: api.AvailableSpace.MaxContent };
+  return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
 
 function captureError(body: () => unknown): CodedError {
@@ -61,16 +40,16 @@ function captureError(body: () => unknown): CodedError {
 }
 
 test("exact-zero", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({});
   assert.deepEqual(tree.getUnroundedLayout(node), ZERO_LAYOUT);
 });
 
 test("fractional", () => {
   for (const rounding of ["enabled", "disabled"] as const) {
-    const tree = new (TaffyTree())();
+    const tree = new TaffyTree();
     const node = tree.newLeaf({
-      size: { width: api.Dimension.Length(10.5), height: api.Dimension.Length(6.25) },
+      size: { width: Dimension.Length(10.5), height: Dimension.Length(6.25) },
     });
     if (rounding === "enabled") tree.enableRounding();
     else tree.disableRounding();
@@ -81,15 +60,15 @@ test("fractional", () => {
 });
 
 test("stale-stored", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(20), height: api.Dimension.Length(10) },
+    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
   });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   const before = tree.getUnroundedLayout(node);
 
   tree.setStyle(node, {
-    size: { width: api.Dimension.Length(40), height: api.Dimension.Length(30) },
+    size: { width: Dimension.Length(40), height: Dimension.Length(30) },
   });
   assert.deepEqual(tree.getUnroundedLayout(node), before);
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
@@ -97,9 +76,9 @@ test("stale-stored", () => {
 });
 
 test("detached", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: api.Dimension.Length(20), height: api.Dimension.Length(10) },
+    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
   });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   const first = tree.getUnroundedLayout(node);
@@ -107,18 +86,21 @@ test("detached", () => {
 
   assert.notEqual(first, second);
   assert.notEqual(first.size, second.size);
-  first.size.width = 99;
-  first.padding.left = 88;
+  const mutableFirst = first as { size: { width: number }; padding: { left: number } };
+  mutableFirst.size.width = 99;
+  mutableFirst.padding.left = 88;
   assert.deepEqual(tree.getUnroundedLayout(node), second);
 });
 
 test("invalid-id", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
-  const foreign = new Tree().newLeaf({});
+  const tree = new TaffyTree();
+  const foreign = new TaffyTree().newLeaf({});
 
   assert.equal(captureError(() => tree.getUnroundedLayout(1 as never)).constructor, TypeError);
-  assert.equal(captureError(() => tree.getUnroundedLayout(0n)).code, "ERR_TAFFY_INVALID_NODE_ID");
+  assert.equal(
+    captureError(() => tree.getUnroundedLayout(0n as never)).code,
+    "ERR_TAFFY_INVALID_NODE_ID",
+  );
   assert.equal(
     captureError(() => tree.getUnroundedLayout(foreign)).code,
     "ERR_TAFFY_FOREIGN_NODE_ID",

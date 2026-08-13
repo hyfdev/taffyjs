@@ -1,61 +1,14 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import {
+  Dimension,
+  GridPlacement,
+  GridTemplateComponent,
+  RepetitionCount,
+  TrackSizingFunction,
+} from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type Placement = { kind: number; name?: string; index?: number; span?: number };
-type TrackPart = { kind: number; value?: unknown };
-type Track = { min: TrackPart; max: TrackPart };
-type Count = { kind: number; value?: number };
-type Component = { kind: number; value: unknown };
-
-type GridHelpers = {
-  GridPlacement: Readonly<{
-    Auto: Readonly<Placement>;
-    Line(index: number): Placement;
-    NamedLine(name: string, index: number): Placement;
-    Span(span: number): Placement;
-    NamedSpan(name: string, span: number): Placement;
-  }>;
-  TrackSizingFunction: Readonly<{
-    Length(value: number): Track;
-    Percent(value: number): Track;
-    Auto: Readonly<Track>;
-    MinContent: Readonly<Track>;
-    MaxContent: Readonly<Track>;
-    FitContent(value: unknown): Track;
-    Fr(value: number): Track;
-    MinMax(min: TrackPart, max: TrackPart): Track;
-  }>;
-  RepetitionCount: Readonly<{
-    Count(value: number): Count;
-    AutoFill: Readonly<Count>;
-    AutoFit: Readonly<Count>;
-  }>;
-  GridTemplateComponent: Readonly<{
-    Single(value: Track): Component;
-    Repeat(count: Count, tracks: Track[], lineNames?: string[][]): Component;
-  }>;
-};
-
-function helpers(): GridHelpers {
-  const names = [
-    "GridPlacement",
-    "TrackSizingFunction",
-    "RepetitionCount",
-    "GridTemplateComponent",
-  ] as const;
-  const result: Record<string, unknown> = {};
-  for (const name of names) {
-    const value = Reflect.get(api, name);
-    assert.equal(typeof value, "object", `${name} is exported`);
-    assert.notEqual(value, null, `${name} is exported`);
-    result[name] = value;
-  }
-  return result as GridHelpers;
-}
-
 test("families", () => {
-  const { GridPlacement, TrackSizingFunction, RepetitionCount, GridTemplateComponent } = helpers();
   assert.deepEqual(GridPlacement.Auto, { kind: 0 });
   assert.deepEqual(GridPlacement.Line(-2), { kind: 1, index: -2 });
   assert.deepEqual(GridPlacement.NamedLine("main", 3), { kind: 2, name: "main", index: 3 });
@@ -84,12 +37,11 @@ test("families", () => {
 });
 
 test("minmax", () => {
-  const { TrackSizingFunction } = helpers();
-  const length = { kind: 0, value: 10 };
-  const percent = { kind: 1, value: 25 };
+  const length = Dimension.Length(10);
+  const percent = TrackSizingFunction.Percent(25).min;
   const auto = { kind: 2 };
   const minContent = { kind: 3 };
-  const maxContent = { kind: 4 };
+  const maxContent = TrackSizingFunction.MaxContent.max;
   assert.deepEqual(TrackSizingFunction.Auto, { min: auto, max: auto });
   assert.deepEqual(TrackSizingFunction.MinContent, { min: minContent, max: minContent });
   assert.deepEqual(TrackSizingFunction.MaxContent, { min: maxContent, max: maxContent });
@@ -105,7 +57,6 @@ test("minmax", () => {
 });
 
 test("repeat-lines", () => {
-  const { TrackSizingFunction, RepetitionCount, GridTemplateComponent } = helpers();
   const count = RepetitionCount.Count(2);
   const tracks = [TrackSizingFunction.Length(10), TrackSizingFunction.Fr(1)];
   const lineNames = [["start"], ["middle"], ["end"]];
@@ -120,7 +71,6 @@ test("repeat-lines", () => {
 });
 
 test("helper-materialization", () => {
-  const { GridPlacement, TrackSizingFunction, RepetitionCount, GridTemplateComponent } = helpers();
   for (const value of [
     GridPlacement,
     TrackSizingFunction,
@@ -145,8 +95,8 @@ test("helper-materialization", () => {
   assert.notEqual(line1, line2);
   assert.equal(Object.isFrozen(line1), false);
 
-  const min = { kind: 0, value: 1 };
-  const max = { kind: 6, value: 2 };
+  const min = TrackSizingFunction.Length(1).min;
+  const max = TrackSizingFunction.Fr(2).max;
   const minmax = TrackSizingFunction.MinMax(min, max);
   assert.equal(minmax.min, min);
   assert.equal(minmax.max, max);
@@ -155,21 +105,15 @@ test("helper-materialization", () => {
   const count = RepetitionCount.Count(2);
   const tracks = [TrackSizingFunction.Auto];
   const lineNames = [["a"], ["b"]];
-  const repeat = GridTemplateComponent.Repeat(count, tracks, lineNames) as {
-    value: { count: Count; tracks: Track[]; lineNames: string[][] };
-  };
+  const repeat = GridTemplateComponent.Repeat(count, tracks, lineNames);
   assert.equal(repeat.value.count, count);
   assert.equal(repeat.value.tracks, tracks);
   assert.equal(repeat.value.lineNames, lineNames);
   assert.equal(Object.isFrozen(repeat), false);
   assert.equal(Object.isFrozen(repeat.value), false);
 
-  const firstDefault = GridTemplateComponent.Repeat(count, tracks) as {
-    value: { lineNames: string[][] };
-  };
-  const secondDefault = GridTemplateComponent.Repeat(count, tracks) as {
-    value: { lineNames: string[][] };
-  };
+  const firstDefault = GridTemplateComponent.Repeat(count, tracks);
+  const secondDefault = GridTemplateComponent.Repeat(count, tracks);
   assert.notEqual(firstDefault, secondDefault);
   assert.notEqual(firstDefault.value, secondDefault.value);
   assert.notEqual(firstDefault.value.lineNames, secondDefault.value.lineNames);

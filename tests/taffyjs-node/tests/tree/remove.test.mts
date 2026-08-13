@@ -1,39 +1,16 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, Dimension, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
-type Tree = {
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  getChildren(parent: bigint): readonly bigint[];
-  getLayout(node: bigint): object;
-  getNodeContext(node: bigint): unknown;
-  getNodeCount(): number;
-  getParent(node: bigint): bigint | null;
-  isDirty(node: bigint): boolean;
-  markDirty(node: bigint): void;
-  newLeaf(style: object): bigint;
-  newLeafWithContext(style: object, context: unknown): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-  remove(node: bigint): void;
-};
-type TreeConstructor = new () => Tree;
 
 const SLOT_MASK = (1n << 32n) - 1n;
 
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(typeof Reflect.get(value.prototype, "remove"), "function", "remove is public");
-  return value as unknown as TreeConstructor;
-}
-
 function availableSpace() {
-  return { width: api.AvailableSpace.MaxContent, height: api.AvailableSpace.MaxContent };
+  return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
 
-function compute(tree: Tree, root: bigint) {
+function compute(tree: TaffyTree, root: NodeId) {
   tree.computeLayout({ root, availableSpace: availableSpace() });
 }
 
@@ -47,7 +24,7 @@ function captureError(body: () => unknown): CodedError {
   assert.fail("Expected operation to throw");
 }
 
-function snapshot(tree: Tree, child: bigint, parent: bigint, root: bigint) {
+function snapshot(tree: TaffyTree, child: NodeId, parent: NodeId, root: NodeId) {
   return {
     count: tree.getNodeCount(),
     childParent: tree.getParent(child),
@@ -61,7 +38,7 @@ function snapshot(tree: Tree, child: bigint, parent: bigint, root: bigint) {
 }
 
 test("remove-root", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const root = tree.newLeaf({});
   assert.equal(tree.getNodeCount(), 1);
 
@@ -70,7 +47,7 @@ test("remove-root", () => {
 });
 
 test("remove-child", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const grandchild = tree.newLeaf({});
   const child = tree.newWithChildren({}, [grandchild]);
   const parent = tree.newWithChildren({}, [child]);
@@ -84,7 +61,7 @@ test("remove-child", () => {
 });
 
 test("id-stale", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const removed = tree.newLeaf({});
   tree.remove(removed);
 
@@ -97,9 +74,9 @@ test("id-stale", () => {
 });
 
 test("parent-not-dirtied", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const child = tree.newLeaf({
-    size: { width: api.Dimension.Length(30), height: api.Dimension.Length(10) },
+    size: { width: Dimension.Length(30), height: Dimension.Length(10) },
   });
   const parent = tree.newWithChildren({}, [child]);
   const root = tree.newWithChildren({}, [parent]);
@@ -121,17 +98,16 @@ test("parent-not-dirtied", () => {
 });
 
 test("invalid-atomic", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
+  const tree = new TaffyTree();
   const context = { retained: true };
   const child = tree.newLeafWithContext({}, context);
   const parent = tree.newWithChildren({}, [child]);
   const root = tree.newWithChildren({}, [parent]);
-  const foreign = new Tree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf({});
   compute(tree, root);
   const before = snapshot(tree, child, parent, root);
 
-  for (const invalid of [1 as never, 0n, foreign]) {
+  for (const invalid of [1 as never, 0n as never, foreign]) {
     captureError(() => tree.remove(invalid));
     assert.deepEqual(snapshot(tree, child, parent, root), before);
   }

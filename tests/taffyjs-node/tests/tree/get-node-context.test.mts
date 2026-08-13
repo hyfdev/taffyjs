@@ -1,38 +1,11 @@
 import assert from "node:assert/strict";
-import * as api from "@taffyjs/node";
+import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
-type Tree = {
-  clear(): void;
-  computeLayout(options: { root: bigint; availableSpace: object }): void;
-  computeLayoutWithMeasure(options: {
-    root: bigint;
-    availableSpace: object;
-    measure: (args: { node: bigint }) => object;
-  }): void;
-  getNodeContext(node: bigint): unknown;
-  isDirty(node: bigint): boolean;
-  markDirty(node: bigint): void;
-  newLeaf(style: object): bigint;
-  newLeafWithContext(style: object, context: unknown): bigint;
-  newWithChildren(style: object, children: readonly bigint[]): bigint;
-};
-type TreeConstructor = new () => Tree;
-
-function TaffyTree(): TreeConstructor {
-  const value = Reflect.get(api, "TaffyTree");
-  assert.equal(typeof value, "function", "TaffyTree is exported");
-  assert.equal(
-    typeof Reflect.get(value.prototype, "getNodeContext"),
-    "function",
-    "getNodeContext is public",
-  );
-  return value as unknown as TreeConstructor;
-}
 
 function availableSpace() {
-  return { width: api.AvailableSpace.MinContent, height: api.AvailableSpace.MinContent };
+  return { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent };
 }
 
 function captureError(body: () => unknown): CodedError {
@@ -46,7 +19,7 @@ function captureError(body: () => unknown): CodedError {
 }
 
 test("absence", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const leaf = tree.newLeaf({});
   const undefinedContext = tree.newLeafWithContext({}, undefined);
   const parent = tree.newWithChildren({}, [leaf, undefinedContext]);
@@ -57,7 +30,7 @@ test("absence", () => {
 });
 
 test("identity", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const object = { mutable: true };
   const symbol = Symbol("context");
   const entries = [object, false, 0, "", 1n, symbol, null];
@@ -78,7 +51,7 @@ test("identity", () => {
 });
 
 test("manual-dirty", () => {
-  const tree = new (TaffyTree())();
+  const tree = new TaffyTree();
   const context = { value: 1 };
   const node = tree.newLeafWithContext({}, context);
   tree.computeLayout({ root: node, availableSpace: availableSpace() });
@@ -94,12 +67,14 @@ test("manual-dirty", () => {
 });
 
 test("invalid-id", () => {
-  const Tree = TaffyTree();
-  const tree = new Tree();
-  const foreign = new Tree().newLeaf({});
+  const tree = new TaffyTree();
+  const foreign = new TaffyTree().newLeaf({});
 
   assert.equal(captureError(() => tree.getNodeContext(1 as never)).constructor, TypeError);
-  assert.equal(captureError(() => tree.getNodeContext(0n)).code, "ERR_TAFFY_INVALID_NODE_ID");
+  assert.equal(
+    captureError(() => tree.getNodeContext(0n as never)).code,
+    "ERR_TAFFY_INVALID_NODE_ID",
+  );
   assert.equal(captureError(() => tree.getNodeContext(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
   const stale = tree.newLeaf({});
