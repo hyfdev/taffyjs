@@ -16,4 +16,4 @@ The two native packages are `@taffyjs/binding-linux-x64-gnu` and `@taffyjs/bindi
 
 ## Development
 
-Install dependencies with `vp install`, then run `vp run --concurrency-limit 1 ready` for formatting, linting, Rust checks, the native build, type checks, JavaScript tests, and the packed-consumer check. After changing an input under `api/`, run `vp run codegen`; the default local checks never run generation. CI separately regenerates source and rejects any resulting Git diff. The public `@taffyjs/node` TypeScript source is built with `vp pack`; napi-rs generates the private native loader separately.
+Install dependencies with `vp install`, then run `vp run --concurrency-limit 1 ready` for formatting, linting, Rust checks, the native build, Rust and JavaScript tests, type checks, and the packed-consumer check. After changing an input under `api/`, run `vp run codegen`; the default local checks never run generation. CI separately regenerates source and rejects any resulting Git diff. The public `@taffyjs/node` TypeScript source is built with `vp pack`; napi-rs generates the private native loader separately.

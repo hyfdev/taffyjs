@@ -16,11 +16,11 @@ Vite+ is the JavaScript toolchain. `vp pack` compiles the public source in `pack
 
 `tools/api-codegen` owns source generation that must keep Rust and TypeScript API facts aligned. Its first maintained input is `api/numeric-families.json`; `vp run codegen` updates both language outputs. CI runs `vp run check:codegen`, which regenerates and rejects any resulting Git diff.
 
-CI uses Node.js 22.18.0. Ubuntu x64 runs the complete verification flow; Windows x64 verifies the native build. macOS and publication workflows are not configured.
+CI has four jobs. Ubuntu x64 and Windows x64 each build the native addon and run all Rust, JavaScript, type, and packed-consumer tests with Node.js 22.18.0. A Node-only job checks formatting, JavaScript and TypeScript, and generated-source drift. A Rust-only job checks formatting and Clippy. macOS and publication workflows are not configured.
 
 ## Task orchestration
 
-The root `vite.config.ts` defines build and verification dependencies. Native build completion precedes package-local and consumer tests. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
+The root `vite.config.ts` defines build and verification dependencies. Native build completion precedes package-local and consumer tests. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Node formatting and linting do not depend on a native build. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
 
 Task caching is disabled at the root. This keeps native artifacts and runtime tests from being skipped or restored from stale task outputs until the project makes a new explicit caching decision.
 

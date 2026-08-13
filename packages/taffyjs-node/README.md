@@ -179,4 +179,4 @@ Direct absolute-file access to `index.js`, `native.js`, a `.node` file, or a pla
 
 ## CI and release evidence
 
-The repository workflow runs the complete test projection on Ubuntu x64 with Node 22.18.0, including the packed-consumer check, and separately confirms that the native addon builds on Windows x64. Publication remains future work. A workflow definition is not proof that a remote target passed: release handover must name the locally executed host separately from remote jobs that have actually run.
+The repository workflow builds the native addon and runs all Rust, JavaScript, type, and packed-consumer tests on both Ubuntu x64 and Windows x64 with Node 22.18.0. Separate Node and Rust jobs run formatting, linting, generated-source drift checks, and Clippy without rebuilding the addon. Publication remains future work. A workflow definition is not proof that a remote target passed: release handover must name the locally executed host separately from remote jobs that have actually run.

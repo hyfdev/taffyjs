@@ -9,7 +9,7 @@ import { platformForHost } from "../../../tools/platforms.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const packageRoot = resolve(root, "packages/taffyjs-node");
-const vp = resolve(root, "node_modules/.bin/vp");
+const vp = resolve(root, "node_modules/vite-plus/bin/vp");
 const platform = platformForHost();
 assert.ok(platform, `Unsupported packed-consumer host ${process.platform}/${process.arch}`);
 
@@ -50,10 +50,14 @@ try {
     mkdir(platformTarballs, { recursive: true }),
   ]);
   await Promise.all([
-    run(vp, ["exec", "pnpm", "pack", "--pack-destination", rootTarballs], packageRoot),
     run(
-      vp,
-      ["exec", "pnpm", "pack", "--pack-destination", platformTarballs],
+      process.execPath,
+      [vp, "exec", "pnpm", "pack", "--pack-destination", rootTarballs],
+      packageRoot,
+    ),
+    run(
+      process.execPath,
+      [vp, "exec", "pnpm", "pack", "--pack-destination", platformTarballs],
       resolve(packageRoot, "npm", platform.directory),
     ),
   ]);
@@ -80,7 +84,11 @@ try {
       2,
     )}\n`,
   );
-  await run(vp, ["install", "--offline", "--no-frozen-lockfile", "--ignore-scripts"], consumer);
+  await run(
+    process.execPath,
+    [vp, "install", "--offline", "--no-frozen-lockfile", "--ignore-scripts"],
+    consumer,
+  );
   await copyFile(new URL("./smoke.mjs", import.meta.url), resolve(consumer, "smoke.mjs"));
   await run(process.execPath, ["smoke.mjs"], consumer);
 } finally {

@@ -1,6 +1,9 @@
 import { defineConfig } from "vite-plus";
 
 const testTasks = {
+  "check:test:rust": {
+    command: "cargo test --workspace --all-features",
+  },
   "check:test:native": {
     command:
       "vp test --config packages/taffyjs-node/vite.config.ts packages/taffyjs-node/tests/native",
@@ -53,15 +56,13 @@ export default defineConfig({
       },
       "check:format": {
         command: "vp fmt --check",
-        dependsOn: ["build"],
       },
       "check:lint": {
         command: "vp lint --deny-warnings",
-        dependsOn: ["build"],
       },
       "check:rust": {
         command:
-          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings && cargo test --workspace --all-features",
+          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings",
       },
       ...testTasks,
       "check:test": {

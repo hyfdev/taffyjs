@@ -53,10 +53,11 @@ test("README examples compile and run", async () => {
         return path;
       }),
     );
-    const tsc = resolve(root, "packages/taffyjs-node/node_modules/.bin/tsc");
+    const tsc = resolve(root, "packages/taffyjs-node/node_modules/typescript/bin/tsc");
     await run(
-      tsc,
+      process.execPath,
       [
+        tsc,
         "--ignoreConfig",
         "--noEmit",
         "--strict",
