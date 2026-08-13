@@ -14,13 +14,13 @@ The bigint NodeId marker and its JavaScript validity registry require the author
 
 Vite+ is the JavaScript toolchain. `vp pack` compiles the public source in `packages/taffyjs-node/src` and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private napi-rs loader and declarations are generated separately and packaged beside that output.
 
-`tools/api-codegen` owns source generation that must keep Rust and TypeScript API facts aligned. Its first maintained input is `api/numeric-families.json`; `vp run codegen` updates both language outputs, while `vp run check:codegen` verifies committed output without modifying source.
+`tools/api-codegen` owns source generation that must keep Rust and TypeScript API facts aligned. Its first maintained input is `api/numeric-families.json`; `vp run codegen` updates both language outputs. CI runs `vp run check:codegen`, which regenerates and rejects any resulting Git diff.
 
 CI uses Node.js 22.18.0. Ubuntu x64 runs the complete verification flow; Windows x64 verifies the native build. macOS and publication workflows are not configured.
 
 ## Task orchestration
 
-The root `vite.config.ts` defines build and verification dependencies. Native build completion precedes package-local and consumer tests, while generated-source drift is checked independently and never rewrites source.
+The root `vite.config.ts` defines build and verification dependencies. Native build completion precedes package-local and consumer tests. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
 
 Task caching is disabled at the root. This keeps native artifacts and runtime tests from being skipped or restored from stale task outputs until the project makes a new explicit caching decision.
 

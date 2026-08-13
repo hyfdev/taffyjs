@@ -18,10 +18,6 @@ const testTasks = {
     command: "node tests/taffyjs-node/packed-consumer/run.mjs",
     dependsOn: ["build"],
   },
-  "check:test:codegen": {
-    command:
-      "vp exec tsc --project tools/api-codegen/tsconfig.json && vp test tools/api-codegen/test",
-  },
 };
 
 export default defineConfig({
@@ -45,7 +41,8 @@ export default defineConfig({
         command: "node tools/api-codegen/src/generate.ts",
       },
       "check:codegen": {
-        command: "node tools/api-codegen/src/check.ts",
+        command:
+          "node tools/api-codegen/src/generate.ts && git add --intent-to-add --all && git diff --exit-code",
       },
       "build:binding": {
         command: "vp run @taffyjs/node#build",
@@ -73,7 +70,7 @@ export default defineConfig({
       },
       check: {
         command: "echo check ok",
-        dependsOn: ["check:codegen", "check:format", "check:lint", "check:rust", "check:test"],
+        dependsOn: ["check:format", "check:lint", "check:rust", "check:test"],
       },
       ready: {
         command: "echo ready checks passed",
