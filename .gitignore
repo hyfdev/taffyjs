@@ -1,0 +1,13 @@
+node_modules/
+target/
+coverage/
+*.node
+*.wasm
+*.log
+*.tgz
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example
+packages/taffyjs-node/npm/
