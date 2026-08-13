@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { AvailableSpace } from "../../src/available-space.js";
 import { Dimension } from "../../src/length.js";
 import { createTaffyTreeForTesting } from "../../src/tree.js";
-import { contractTest } from "../contract-test.mts";
+import { test } from "vite-plus/test";
 
 const U64_MAX = (1n << 64n) - 1n;
 
@@ -29,7 +29,9 @@ function assertRandomFailureIsAtomic() {
   assert.equal(typeof healthyTree.newLeaf({}), "bigint");
 }
 
-function assertSerialExhaustionIsAtomic(owner: "API-TREE-004" | "API-TREE-005" | "API-TREE-006") {
+type NodeCreationMethod = "newLeaf" | "newLeafWithContext" | "newWithChildren";
+
+function assertSerialExhaustionIsAtomic(method: NodeCreationMethod) {
   const randomSource = (bytes: Uint8Array) => bytes.fill(0x5a);
   const tree = createTaffyTreeForTesting({ randomSource, nextSerial: U64_MAX });
   const context = { retained: true };
@@ -63,10 +65,10 @@ function assertSerialExhaustionIsAtomic(owner: "API-TREE-004" | "API-TREE-005" |
   assert.notDeepEqual(before.layout, before.unroundedLayout, "rounding probe");
 
   const operation = {
-    "API-TREE-004": () => tree.newLeaf({}),
-    "API-TREE-005": () => tree.newLeafWithContext({}, { rejected: true }),
-    "API-TREE-006": () => tree.newWithChildren({}, [node]),
-  }[owner];
+    newLeaf: () => tree.newLeaf({}),
+    newLeafWithContext: () => tree.newLeafWithContext({}, { rejected: true }),
+    newWithChildren: () => tree.newWithChildren({}, [node]),
+  }[method];
   assert.throws(operation, (error: unknown) => {
     assert.ok(error instanceof Error);
     assert.equal(error.constructor, RangeError);
@@ -77,15 +79,11 @@ function assertSerialExhaustionIsAtomic(owner: "API-TREE-004" | "API-TREE-005" |
   assert.equal("size" in tree.getStyle(node), true, "tree remains usable");
 }
 
-contractTest("TYPE-NODEID-001/rng", () => {
+test("constructor failure does not create a tree", () => {
   assertRandomFailureIsAtomic();
 });
 
-contractTest("API-TREE-001/rng-failure", () => {
-  assertRandomFailureIsAtomic();
-});
-
-contractTest("TYPE-NODEID-001/serial-boundary", () => {
+test("node serial boundary", () => {
   const randomSource = (bytes: Uint8Array) => bytes.fill(0x5a);
   const lastSerialTree = createTaffyTreeForTesting({ randomSource, nextSerial: U64_MAX });
   const last = lastSerialTree.newLeaf({});
@@ -99,14 +97,8 @@ contractTest("TYPE-NODEID-001/serial-boundary", () => {
   assert.equal(exhaustedTree.getNodeCount(), 0, "exhaustion rejects before native creation");
 });
 
-contractTest("ATOMICITY/API-TREE-004/node-id-serial-exhaustion", () => {
-  assertSerialExhaustionIsAtomic("API-TREE-004");
-});
-
-contractTest("ATOMICITY/API-TREE-005/node-id-serial-exhaustion", () => {
-  assertSerialExhaustionIsAtomic("API-TREE-005");
-});
-
-contractTest("ATOMICITY/API-TREE-006/node-id-serial-exhaustion", () => {
-  assertSerialExhaustionIsAtomic("API-TREE-006");
-});
+for (const method of ["newLeaf", "newLeafWithContext", "newWithChildren"] as const) {
+  test(`${method} rejects an exhausted node serial atomically`, () => {
+    assertSerialExhaustionIsAtomic(method);
+  });
+}

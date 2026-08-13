@@ -60,18 +60,6 @@ impl<'env> GeometryObject<'env> {
     }
 }
 
-#[allow(dead_code, reason = "used by M2 complete Point inputs")]
-pub(crate) fn point<'env, T>(
-    value: Unknown<'env>,
-    mut convert: impl FnMut(Unknown<'env>) -> NativeResult<T>,
-) -> NativeResult<Point<T>> {
-    let object = GeometryObject::read(value, &["x", "y"])?;
-    Ok(Point {
-        x: object.required("x", &mut convert)?,
-        y: object.required("y", &mut convert)?,
-    })
-}
-
 pub(crate) fn partial_point<'env, T>(
     value: Unknown<'env>,
     default: Point<T>,
@@ -111,20 +99,6 @@ pub(crate) fn partial_size<'env, T>(
     })
 }
 
-#[allow(dead_code, reason = "used by M2 complete Rect inputs")]
-pub(crate) fn rect<'env, T>(
-    value: Unknown<'env>,
-    mut convert: impl FnMut(Unknown<'env>) -> NativeResult<T>,
-) -> NativeResult<Rect<T>> {
-    let object = GeometryObject::read(value, &["left", "right", "top", "bottom"])?;
-    Ok(Rect {
-        left: object.required("left", &mut convert)?,
-        right: object.required("right", &mut convert)?,
-        top: object.required("top", &mut convert)?,
-        bottom: object.required("bottom", &mut convert)?,
-    })
-}
-
 pub(crate) fn partial_rect<'env, T>(
     value: Unknown<'env>,
     default: Rect<T>,
@@ -142,18 +116,6 @@ pub(crate) fn partial_rect<'env, T>(
         bottom: object
             .optional("bottom", &mut convert)?
             .unwrap_or(default.bottom),
-    })
-}
-
-#[allow(dead_code, reason = "used by M2 complete Line inputs")]
-pub(crate) fn line<'env, T>(
-    value: Unknown<'env>,
-    mut convert: impl FnMut(Unknown<'env>) -> NativeResult<T>,
-) -> NativeResult<Line<T>> {
-    let object = GeometryObject::read(value, &["start", "end"])?;
-    Ok(Line {
-        start: object.required("start", &mut convert)?,
-        end: object.required("end", &mut convert)?,
     })
 }
 

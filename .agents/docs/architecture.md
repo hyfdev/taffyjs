@@ -29,13 +29,10 @@ The module format and native distribution model are vouched project direction in
 - JavaScript integration and end-to-end tests are the primary test flow for @taffyjs/node because they exercise the observable Node-API and package boundary.
 - tests/taffyjs-node is an independent private JavaScript package that consumes @taffyjs/node through the workspace package dependency rather than a relative source path.
 - Unit tests are exceptional and reserved for very critical isolated behavior. When needed, they live inside packages/taffyjs-node/tests/ and do not form another JavaScript package.
-- crates/taffyjs_binding has no Rust test suite while it remains a thin binding over Taffy without independent behavior. Rust formatting, linting, and compilation checks remain part of repository verification; independent Rust logic would require revisiting the testing boundary.
+- crates/taffyjs_binding keeps small Rust unit tests only for independent binding behavior that is cheaper and clearer to prove there, such as iterative subtree invalidation and the measurement session's thread restriction. Observable binding behavior remains covered from JavaScript.
+- Test directories and filenames follow product areas, public methods, and failure behavior. Temporary run checklists, milestone names, and acceptance identifiers must not define the maintained test layout; those records are removed after their run.
 
 The testing strategy and placement are vouched project direction in [@taffyjs/node decisions](taffyjs-node-decisions.md#javascript-integration-first-testing).
-
-## Bootstrap boundary
-
-The temporary __bootstrap export exists only to prove that the native addon can build and load. It is not a proposed public binding API and should be removed when the first real binding surface is introduced.
 
 ## Complete owned snapshots
 

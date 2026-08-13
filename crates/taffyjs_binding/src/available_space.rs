@@ -46,7 +46,6 @@ pub(crate) fn available_space(value: Unknown<'_>) -> NativeResult<AvailableSpace
     })
 }
 
-#[allow(dead_code, reason = "used by the M2 measure callback")]
 pub(crate) fn available_space_output(value: AvailableSpace) -> (u8, Option<f64>) {
     match value {
         AvailableSpace::Definite(value) => (

@@ -4,7 +4,7 @@ This is the source inventory for later alignment between Taffy 0.13's high-level
 
 The current baseline is Taffy 0.13.0 with its default `std`, `taffy_tree`, `flexbox`, `grid`, `block_layout`, `float_layout`, `calc`, `content_size`, and `detailed_layout_info` features. Apply the rules in [Taffy-to-Node binding mapping](binding-mapping.md) before choosing a representation.
 
-This record deliberately remains the design-stage capability inventory. The exhaustive method-by-method API, Style-field, acceptance, test, sequencing, review, and finish contract is now drafted in [@taffyjs/node maturity loop goal](loop-goal.md). That contract remains inert until Yunfei vouches the whole file; once vouched, it governs implementation and this file remains supporting design history rather than a second execution checklist.
+This record deliberately remains the design-stage capability inventory. The initial binding run is complete, and its run-specific checklist has been removed; the maintained API, declarations, tests, and decisions now describe current behavior. Unchecked items here are historical design prompts or possible future work, not an active execution checklist.
 
 ## Native owner and configuration
 

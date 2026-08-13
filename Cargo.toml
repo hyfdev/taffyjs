@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/taffyjs_binding", "tools/taffy-api/rust-parser"]
+members = ["crates/taffyjs_binding"]
 resolver = "2"
 
 [workspace.package]

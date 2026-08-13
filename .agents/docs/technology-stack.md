@@ -14,7 +14,7 @@ The bigint NodeId, its private TypeScript phantom marker, and its JavaScript val
 
 Vite+ is the repository's JavaScript toolchain. Authored JavaScript or TypeScript libraries use `vp pack`, which provides the tsdown-based library build through Vite+; the repository does not add a direct tsdown dependency or a separate tsdown configuration.
 
-The authored @taffyjs/node public layer uses `vp pack`. The napi-rs-generated loader is not transformed by `vp pack`; it remains an explicit private module whose native artifact paths belong to napi-rs and is packaged alongside the authored output.
+The authored @taffyjs/node public layer uses `vp pack`. Its public `index.d.ts` is maintained as authored package source because it carries the supported API's detailed readonly shapes and JSDoc; `vp pack` does not replace it with declarations inferred from the private native boundary. The napi-rs-generated loader is not transformed by `vp pack`; it remains an explicit private module whose native artifact paths belong to napi-rs and is packaged alongside the authored output.
 
 ## Task orchestration
 

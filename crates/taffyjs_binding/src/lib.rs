@@ -27,8 +27,6 @@ use napi_derive::napi;
 use owner::TreeOwner;
 use taffy::{NodeId, TraversePartialTree};
 
-mod contract_tests;
-
 #[napi]
 pub struct NativeTaffyTree {
     owner: TreeOwner,

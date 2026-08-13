@@ -511,7 +511,7 @@ The case reached closure through four layers, each reusing the previous rules:
 
 1. Fix the outer container, default, absence, unknown-field, replacement, and mutation-boundary semantics above.
 2. Map scalar, closed-enum, alignment, geometry, semantic-length, and grid families, including canonical input and output forms and numeric conversion.
-3. Confirm that every currently known Style type belongs to one of those families. The exhaustive field inventory is not needed to complete this API-design example; implementation completeness still requires the separate 41-field inventory in the maturity loop contract. Only a value that does not fit an established family would add a new alignment question.
+3. Confirm that every currently known Style type belongs to one of those families. The exhaustive 41-field inventory belongs in the maintained Style tests rather than this API-design example. Only a value that does not fit an established family would add a new alignment question.
 4. Select the complete eager plain-object `Style` snapshot as the direct baseline. Later optimization research does not reopen this value-mapping case or add an initial implementation requirement.
 
 ### Selected mapping categories

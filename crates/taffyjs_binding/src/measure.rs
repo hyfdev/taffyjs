@@ -189,10 +189,24 @@ pub(crate) fn invalidate_subtree(tree: &mut TaffyTree<()>, root: NodeId) -> Nati
 
 #[cfg(test)]
 mod tests {
+    use std::marker::PhantomData;
+
     use taffy::TaffyTree;
     use taffy::style::Style;
 
-    use super::invalidate_subtree;
+    use super::{MeasureSession, invalidate_subtree};
+
+    #[test]
+    fn measure_session_stays_on_the_javascript_thread() {
+        struct Check<T: ?Sized>(PhantomData<T>);
+        trait AmbiguousIfSend<Marker> {
+            fn check() {}
+        }
+        impl<T: ?Sized> AmbiguousIfSend<()> for Check<T> {}
+        impl<T: ?Sized + Send> AmbiguousIfSend<u8> for Check<T> {}
+
+        let _ = <Check<MeasureSession<'static>> as AmbiguousIfSend<_>>::check;
+    }
 
     #[test]
     fn invalidate_subtree_handles_deep_trees() {
