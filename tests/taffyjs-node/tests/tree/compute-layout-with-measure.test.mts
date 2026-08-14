@@ -67,6 +67,7 @@ test("callback-args", () => {
   assert.equal(saved.node, node);
   assert.equal(saved.context, context);
   assert.deepEqual(saved.style, tree.getStyle(node));
+  assert.equal(Object.isFrozen(saved), false);
   (saved.style as { flexGrow: number }).flexGrow = 99;
   assert.equal(tree.getStyle(node).flexGrow, Math.fround(1.25));
 });

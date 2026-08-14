@@ -10,8 +10,6 @@ Each example is a complete module. It uses the named numeric constants and value
 
 ### Block
 
-<!-- example:block -->
-
 ```ts
 import assert from "node:assert/strict";
 import { AvailableSpace, Dimension, Display, TaffyTree } from "@taffyjs/node";
@@ -32,8 +30,6 @@ assert.deepEqual(tree.getUnroundedLayout(child).size, { width: 40, height: 12 })
 ```
 
 ### Flex
-
-<!-- example:flex -->
 
 ```ts
 import assert from "node:assert/strict";
@@ -58,8 +54,6 @@ assert.deepEqual(tree.getUnroundedLayout(second).location, { x: 50, y: 0 });
 ```
 
 ### Grid
-
-<!-- example:grid -->
 
 ```ts
 import assert from "node:assert/strict";
@@ -107,8 +101,6 @@ assert.deepEqual(tree.getUnroundedLayout(item), {
 ```
 
 ### Measure callback and context
-
-<!-- example:measure -->
 
 ```ts
 import assert from "node:assert/strict";
