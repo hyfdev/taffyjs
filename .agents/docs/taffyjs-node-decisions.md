@@ -20,6 +20,8 @@ After the binding has produced a complete representable Rust value and satisfied
 
 ## Public data model
 
+[VOUCHED @hyfdev 2026-08-14]
+
 Readable ordinary JavaScript data objects are the default input and output representation. Input record properties and helper-produced objects remain mutable. Collection-valued inputs accept readonly arrays because the binding only reads them; ordinary mutable arrays remain valid inputs. Binding-produced snapshots are detached and recursively readonly in TypeScript, but runtime objects are not frozen, sealed, proxied, cached, or backed by a live Rust borrow.
 
 Closed fieldless families use singular PascalCase frozen objects with stable numeric literal members, such as `Display.Flex`. Payload variants use ordinary numeric-tagged records. Semantic lengths, available space, geometry, alignment, and Grid compose these rules rather than introducing strings, packed values, native owner objects, or CSS grammar.
