@@ -25,7 +25,7 @@ jobs:
       - name: Build and run all tests
         run: pnpm exec vp run check:test
       - name: Verify committed package outputs are current
-        run: git diff --exit-code -- packages/taffyjs-node/index.js packages/taffyjs-node/index.d.ts packages/taffyjs-node/native.js packages/taffyjs-node/native.d.ts
+        run: git diff --exit-code -- packages/taffyjs-node/index.js packages/taffyjs-node/index.d.ts packages/taffyjs-node/binding.js packages/taffyjs-node/binding.d.ts
 
   test-windows-x64-msvc:
     name: Build and test Windows x64

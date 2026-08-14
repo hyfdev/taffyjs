@@ -9,7 +9,7 @@ This repository is a small Rust and JavaScript monorepo with one native binding 
 - `packages/taffyjs-node` owns the public ESM wrapper and declarations, the private napi-rs loader and declarations, and npm metadata. The wrapper owns JavaScript-only NodeId validity data and context; Taffy owns topology, Style, Layout, cache, and computation state.
 - `tests/taffyjs-node` is a private consumer package that tests `@taffyjs/node` through its package boundary.
 
-The public package includes the napi-rs root loader as a private module. That loader selects the matching optional platform package. There is no intermediate binding package, custom loader, JavaScript shadow tree, or separate core crate.
+The public entry bundles the private napi-rs root loader, which selects the matching optional platform package. The generated loader and declaration remain repository build inputs rather than published package files. There is no intermediate binding package, custom loader, JavaScript shadow tree, or separate core crate.
 
 A future Yoga package should be a JavaScript or TypeScript compatibility layer over `@taffyjs/node` unless a concrete need requires a different native boundary.
 
