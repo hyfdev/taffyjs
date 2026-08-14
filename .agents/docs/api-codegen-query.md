@@ -114,7 +114,7 @@ These mechanisms are query-specific safeguards, not requirements for numeric fam
 
 ## Query verification
 
-Compiler tests would cover selector expansion, nested arrays, nullable values, tagged variants, result optionality, recursion rejection, collisions, deterministic ordering, ID assignment, and fingerprint stability. Small valid and invalid inputs should assert the normalized operations and useful diagnostics rather than copy every generated source file into test fixtures.
+CI would regenerate query source and reject any Git diff under the shared code-generation verification rule. The query compiler and emitters would not have a separate test suite.
 
 Target checks would still run rustfmt, Cargo check, Clippy, Rust tests, TypeScript type checking, and the normal package build on generated source.
 
