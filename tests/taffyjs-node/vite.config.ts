@@ -11,5 +11,6 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.test.mts"],
     retry: 0,
+    sequence: { concurrent: true },
   },
 });

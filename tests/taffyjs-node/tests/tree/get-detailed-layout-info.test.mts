@@ -103,7 +103,12 @@ test("grid-payload", () => {
   const tree = new TaffyTree();
   const { root } = explicitGrid(tree);
   compute(tree, root);
-  const grid = gridValue(tree.getDetailedLayoutInfo(root));
+  const output = tree.getDetailedLayoutInfo(root);
+  assert.deepEqual(Object.keys(output), ["kind", "value"]);
+  assert.equal(Object.isFrozen(output), false);
+  const grid = gridValue(output);
+  assert.deepEqual(Object.keys(grid), ["rows", "columns", "items"]);
+  assert.equal(Object.isFrozen(grid), false);
 
   assert.deepEqual(grid.rows, {
     negativeImplicitTracks: 0,

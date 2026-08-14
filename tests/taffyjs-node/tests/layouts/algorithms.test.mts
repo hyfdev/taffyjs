@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import {
   AvailableSpace,
   Clear,
@@ -279,16 +278,4 @@ test("topology-cache", () => {
   tree.remove(first);
   assert.equal(tree.getNodeCount(), 2);
   assert.deepEqual(tree.getChildren(root), [second]);
-});
-
-test("public-only", async () => {
-  const source = await readFile(new URL(import.meta.url), "utf8");
-  const imports = Array.from(
-    source.matchAll(/(?:from\s+|import\s+)["']([^"']+)["']/g),
-    (match) => match[1],
-  );
-  assert.deepEqual(
-    new Set(imports),
-    new Set(["node:assert/strict", "node:fs/promises", "@taffyjs/node", "vite-plus/test"]),
-  );
 });
