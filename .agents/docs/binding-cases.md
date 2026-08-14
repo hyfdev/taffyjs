@@ -204,9 +204,9 @@ Yoga provides a comparable separation without defining taffyjs details: its Java
 
 The scalar acceptance cases therefore include ordinary rounding and truthful readback for `0.1`; pass-through and truthful stored-Style readback for negative and non-finite values; conversion overflow to an infinite `f32`; distinct `null` and `NaN` behavior for a nullable scalar; rejection of non-number JavaScript values without mutation; and no taffyjs-specific clamp or default substitution. Closed-enum codes, integers, indices, counts, and collection lengths retain their separate exact-integer rules.
 
-### Selected tagged semantic-length representation
+### Selected semantic-length input and output representation
 
-Semantic lengths use a numeric literal discriminator and ordinary payload records. They do not use CSS strings, bare numbers, or Taffy's private compact tags. `LengthUnit` is a binding-owned numeric family with `Length`, `Percent`, and `Auto` members, using the same stable-code, `EnumValue`, and naming rules as the other closed numeric families.
+The complete semantic-length form uses a numeric literal discriminator and an ordinary record. Input additionally accepts a direct number as shorthand for the common absolute-length case. The shorthand is equivalent to the complete `Length` record and does not replace `Dimension.Length(value)`. Percent and Auto remain explicit, output always uses the complete tagged form, and CSS strings and Taffy's private compact tags remain outside the public API. `LengthUnit` is a binding-owned numeric family with `Length`, `Percent`, and `Auto` members, using the same stable-code, `EnumValue`, and naming rules as the other closed numeric families.
 
 The conceptual declarations are:
 
@@ -233,7 +233,7 @@ export interface AutoInput {
   unit: typeof LengthUnit.Auto;
 }
 
-export type LengthPercentageInput = LengthInput | PercentInput;
+export type LengthPercentageInput = number | LengthInput | PercentInput;
 export type LengthPercentageAutoInput = LengthPercentageInput | AutoInput;
 export type DimensionInput = LengthPercentageAutoInput;
 
@@ -256,9 +256,9 @@ export type LengthPercentageAuto =
 export type Dimension = LengthPercentageAuto;
 ```
 
-The value-side `Dimension` namespace provides `Dimension.Length(value)`, `Dimension.Percent(value)`, and `Dimension.Auto`. The helpers return the same ordinary records that callers may write directly; they are not native owners, classes, or a second accepted representation. The namespace and members retain the vouched singular PascalCase family style, while a payload-bearing member is necessarily a constructor rather than a numeric primitive.
+The value-side `Dimension` namespace continues to provide `Dimension.Length(value)`, `Dimension.Percent(value)`, and `Dimension.Auto`. The helpers return the same ordinary records that callers may write directly; they are not native owners or classes. A direct numeric input is only an additive shorthand for `Dimension.Length(value)`. The namespace and members retain the vouched singular PascalCase family style.
 
-`Dimension.Percent(50)` converts the user-facing percentage magnitude to Taffy's fractional representation before the final `f32` storage conversion. The reverse mapping reports a percentage magnitude through output. The binding does not require a normal range and does not reject negative, `NaN`, or infinite length and percent payloads. Output reports the stored unit and semantic value using readonly versions of the same tagged records and does not retain the caller's object, numeric precision, or spelling. Its discriminator remains the same numeric-literal `LengthUnit`, so a caller can use `switch (value.unit)` with ordinary TypeScript narrowing and can pass the output value back into a later Style input. Object identity is not meaningful. A valid raw `LengthUnit` literal is accepted in typed and untyped input; invalid unit codes, missing required length or percent payloads, strings, and bare numeric semantic-length values fail structural conversion before Style replacement. An extra input property named `value` does not change an Auto variant and is not reproduced in output; the declaration does not add `value?: never` solely to catch that structural extra field.
+Both a direct number and `Dimension.Length(value)` apply the selected ordinary `f64`-to-`f32` conversion and produce the same Taffy absolute length. `Dimension.Percent(50)` converts the user-facing percentage magnitude to Taffy's fractional representation before the final `f32` storage conversion. The reverse mapping reports a percentage magnitude through output. The binding does not require a normal range and does not reject negative, `NaN`, or infinite length and percent payloads. Output reports the stored unit and semantic value using readonly versions of the tagged records and does not retain the caller's input form, object, numeric precision, or spelling. Its discriminator remains the same numeric-literal `LengthUnit`, so a caller can use `switch (value.unit)` with ordinary TypeScript narrowing and can pass the output value back into a later Style input. Object identity is not meaningful. Invalid unit codes, missing required length or percent payloads, strings, and other unsupported JavaScript types fail conversion before Style replacement. An extra input property named `value` does not change an Auto variant and is not reproduced in output; the declaration does not add `value?: never` solely to catch that structural extra field.
 
 For example, output use remains direct:
 
@@ -277,15 +277,15 @@ switch (width.unit) {
 tree.setStyle(otherNode, { size: { width } });
 ```
 
-Keeping a numeric unit on output is a representation-consistency decision, not a claim that a numeric property is materially cheaper than a string after the tagged record itself has been allocated. Logs and JSON therefore show the numeric code already accepted for the closed-enum design. If self-describing serialization later becomes a requirement, it should trigger a reconsideration of the shared input/output vocabulary instead of adding an output-only spelling.
+Keeping a numeric unit on output makes every returned meaning explicit; it does not require the shorter numeric input to preserve that shape. Logs and JSON therefore show the numeric code already accepted for the closed-enum design. If self-describing serialization later becomes a requirement, it should trigger a reconsideration of the output vocabulary instead of changing the input shorthand.
 
-The tagged record is necessary because a data-carrying variant has two independent values: its unit and numeric payload. A numeric primitive can represent a fieldless member such as `Display.None`, but one tag-free runtime number cannot distinguish a length of 50 from a percentage of 50. The binding therefore does not use packed numbers, bigint encodings, or raw `CompactLength` bits to avoid an object.
+The input shorthand is unambiguous because the API defines a direct number as an absolute length, while Percent and Auto use objects. Complete tagged records are still necessary for output and for explicitly carrying the unit with its payload. The binding does not use packed numbers, bigint encodings, or raw `CompactLength` bits as public values.
 
-Homogeneous `Rect` and `Size` semantic-length fields accept one additional input form that corresponds to Taffy's public aggregate helpers: one valid contained value may be copied to every component. For example, `padding: Dimension.Length(10)` sets all four sides, `margin: Dimension.Percent(5)` sets all four sides to five percent, and `gap: Dimension.Length(10)` sets both axes. The already selected partial record form remains available for component-specific values. Output always expands to a complete readonly `Rect` or `Size` and never preserves which input form was used.
+Homogeneous `Rect` and `Size` semantic-length fields accept one contained value and copy it to every component. For example, `padding: 10` and `padding: Dimension.Length(10)` both set all four sides to an absolute length of ten, `margin: Dimension.Percent(5)` sets all four sides to five percent, and `gap: 10` sets both axes. The already selected partial record form remains available for component-specific values. Output always expands to a complete readonly `Rect` or `Size` and never preserves which input form was used.
 
 This homogeneous form is not a claim of full CSS shorthand support. The initial binding does not parse CSS text, accept one-to-four-value strings or arrays, or infer analogous scalar meanings for `Line`, grid placement, and other records. A later CSS-facing layer may add those grammars without changing the canonical Taffy value mapping.
 
-Acceptance cases cover every valid unit and its required payload, `Dimension` helper and direct-object equivalence, 50-to-0.5 percent conversion, actual stored-value output, output-union narrowing by the shared unit tag, direct output-to-input round-trip, negative and non-finite payload pass-through, invalid unit and payload rejection before mutation, string and bare-number rejection, homogeneous `Rect` and `Size` expansion, partial component defaults, and complete readonly aggregate output.
+Acceptance cases cover numeric shorthand and `Dimension.Length(value)` equivalence, every valid unit and its required payload, `Dimension` helper and direct-object equivalence, 50-to-0.5 percent conversion, actual stored-value output, output-union narrowing by the shared unit tag, direct output-to-input round-trip, negative and non-finite payload pass-through, invalid unit and payload rejection before mutation, unsupported-type rejection, homogeneous `Rect` and `Size` expansion, partial component defaults, and complete readonly aggregate output.
 
 ### Selected alignment representation
 
@@ -386,9 +386,9 @@ Acceptance cases cover each exact component set, complete mutable `*Input` recor
 
 ### Selected AvailableSpace representation
 
-Taffy's `AvailableSpace` has one data-carrying variant, `Definite(f32)`, and two fieldless variants, `MinContent` and `MaxContent`. A primitive numeric code cannot represent either fieldless variant alongside a bare definite number without collision: every JavaScript number, including negative values, `NaN`, and infinities, already belongs to the vouched `Definite` payload domain. TypeScript typing cannot resolve that runtime collision.
+Taffy's `AvailableSpace` has one data-carrying variant, `Definite(f32)`, and two fieldless variants, `MinContent` and `MaxContent`. Input accepts a direct number as additive shorthand for `Definite`; the complete `AvailableSpace.Definite(value)` form remains supported. `MinContent` and `MaxContent` remain explicit objects. JavaScript distinguishes the number shorthand from those objects without reserving a numeric payload or creating a collision, so every number, including negative values, `NaN`, and infinities, remains available to `Definite`.
 
-The selected public representation therefore uses an ordinary tagged record for every variant. Its `kind` discriminator is the numeric-literal `AvailableSpaceKind` family with PascalCase `Definite`, `MinContent`, and `MaxContent` members. Conceptually:
+Complete values use ordinary tagged records. Their `kind` discriminator is the numeric-literal `AvailableSpaceKind` family with PascalCase `Definite`, `MinContent`, and `MaxContent` members. Conceptually:
 
 ```ts
 export const AvailableSpaceKind = Object.freeze({
@@ -398,6 +398,7 @@ export const AvailableSpaceKind = Object.freeze({
 } as const);
 
 export type AvailableSpaceInput =
+  | number
   | {
       kind: typeof AvailableSpaceKind.Definite;
       value: number;
@@ -422,11 +423,11 @@ export type AvailableSpace =
     };
 ```
 
-The same-named value namespace provides `AvailableSpace.Definite(value)`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent` conveniences that produce the selected records; callers may also provide equivalent ordinary mutable `AvailableSpaceInput` records directly. Layout options therefore take `SizeInput<AvailableSpaceInput>`, while the measure callback receives `Size<AvailableSpace>`. Input and output share the same numeric `kind` vocabulary so callback values can be narrowed with an ordinary `switch` and reused as later input without translating tags.
+The same-named value namespace continues to provide `AvailableSpace.Definite(value)`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent` conveniences that produce the complete records; callers may also provide equivalent ordinary mutable records directly. A number is only a shorter equivalent of `AvailableSpace.Definite(value)`. Layout options therefore take `SizeInput<AvailableSpaceInput>`, while the measure callback receives `Size<AvailableSpace>`. Complete input and output share the same numeric `kind` vocabulary so callback values can be narrowed with an ordinary `switch` and reused as later input without translating tags.
 
-`AvailableSpace.Definite(value)` accepts only a JavaScript number and applies the already selected ordinary `f64`-to-`f32` pass-through, including negative and non-finite values. A missing definite payload, an unknown kind, a bare number, a string, or a symbol is not an `AvailableSpaceInput`. The content variants do not read a payload; an extra input property named `value` does not change their mapping and is not reproduced in output. The binding does not reserve any JavaScript number as a special encoding, pack the variant into numeric payload bits, or introduce a separate primitive-symbol vocabulary. Exact numeric kind codes come from the shared generator input. The two fieldless conveniences are shared frozen objects, but whole-record identity has no semantic meaning. Readonly callback values are materialized eagerly as ordinary objects.
+Both a direct number and `AvailableSpace.Definite(value)` apply the already selected ordinary `f64`-to-`f32` pass-through, including negative and non-finite values. A missing definite payload, an unknown kind, a string, a symbol, or another unsupported JavaScript type is not an `AvailableSpaceInput`. The content variants do not read a payload; an extra input property named `value` does not change their mapping and is not reproduced in output. The binding does not reserve any JavaScript number as a special encoding, pack variants into numeric payload bits, or introduce a separate primitive-symbol vocabulary. Exact numeric kind codes come from the shared generator input. The two fieldless conveniences are shared frozen objects, but whole-record identity has no semantic meaning. Readonly callback values are materialized eagerly as ordinary objects.
 
-Representative behavior cases cover direct records and all three conveniences, invalid kind and payload rejection, inactive payload handling, numeric conversion, helper materialization, and output shapes. Type tests cover the public tagged union and narrowing without copying the complete generated numeric-family table.
+Representative behavior cases cover numeric shorthand and `AvailableSpace.Definite(value)` equivalence, direct records and all three conveniences, invalid kind and payload rejection, inactive payload handling, numeric conversion, helper materialization, output-to-input reuse, and output shapes. Type tests cover the input shorthand and public output-union narrowing without copying the complete generated numeric-family table.
 
 ### Selected Grid representation
 
@@ -522,7 +523,7 @@ Representations follow semantic role rather than copy Rust declaration kinds mec
 | Closed keywords                  | `display`, `box_sizing`, `overflow`, `position`, `flex_direction`, `grid_auto_flow`                | Stable member names and codes, shared definition generation, and exhaustive validation without exposing Rust discriminants.                                         |
 | Alignment values                 | `align_items`, `align_content`, and their aliases                                                  | Selected flattened numeric-literal `AlignItems` and `AlignContent` families containing only Taffy's named public combinations.                                      |
 | Geometry records                 | `Point<Overflow>`, `Size<Dimension>`, `Rect<LengthPercentageAuto>`, `Line<GridPlacement>`          | Selected named complete input, Style-only partial input, and complete readonly output types with concrete runtime converters behind truthful TypeScript generics.   |
-| Semantic lengths and track sizes | `Dimension`, `LengthPercentage`, `LengthPercentageAuto`, and track sizing functions                | Selected numeric-unit tagged semantic lengths and full min/max track pairs with numeric-tagged intrinsic, fractional, and fit-content variants.                     |
+| Semantic lengths and track sizes | `Dimension`, `LengthPercentage`, `LengthPercentageAuto`, and track sizing functions                | Selected numeric shorthand plus complete tagged semantic lengths, and full min/max track pairs with numeric-tagged intrinsic, fractional, and fit-content variants. |
 | Grid payloads and collections    | template tracks, repetitions, areas, line names, and placements                                    | Selected numeric-tagged payloads, exact Rust integer bounds, ordinary identifier strings, recursively copied collections, and Taffy-owned safe semantic edge cases. |
 
 ### Input and output are separate decisions
@@ -543,7 +544,7 @@ This case paid for several corrections that should prevent later mapping work fr
 
 - The first Style boundary proposals spent complexity on getter and Proxy side effects and repeated NodeId checks. That was over-defensive for the intended ordinary-object API. Begin with ordinary data objects and add a special boundary only for normal supported behavior, a concrete lifetime requirement, or evidence of a safety failure.
 - The `null` and `undefined` discussion became needlessly abstract by introducing “sentinel” terminology and a three-way impossibility claim before stating observable behavior. Start with the field example: omission and `undefined` select the default, `null` selects `None` only for a nullable field, and output represents `None` as `null`.
-- A primitive symbol proposal for `AvailableSpace` optimized one tag before considering JSON, structured clone, and consistency with other payload-carrying values. Classify the whole value first: fieldless closed values can use numeric literals, while payload-carrying variants use tagged records.
+- A primitive symbol proposal for `AvailableSpace` optimized one tag before considering JSON and structured clone. The later mistake was requiring input and output to share one shape. Treat them separately: a direct input number can mean `Definite`, explicit objects can represent the content variants, and complete output can remain tagged.
 - The first selective-query prototype used raw numeric discriminators, but the draft API still specified branded intersections and incorrectly assumed the same control-flow narrowing. Even though the query optimization is deferred, the lesson remains general: test declaration claims with the exact public type shape because TypeScript 5.9 and 7.0 narrow ordinary numeric literals but not the branded intersection, and requiring `isVariant` would move that mismatch into every user's code.
 - Optional-`never` properties attempted to emulate exact object types across every tagged branch. They multiplied declaration noise without protecting the ordinary runtime path, so branches now declare only the payloads they consume and leave unrelated structural extras to the caller.
 - Early numeric discussion mixed JavaScript-to-Rust representability with layout-domain validation. The binding checks that a selected Rust value can be constructed and prevents known panics; Taffy owns safe downstream semantics, including unusual finite, negative, or non-finite floating-point values.
