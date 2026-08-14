@@ -8,9 +8,9 @@ The landing page should foreground performance and the engine's maturity rather 
 
 Taffy upstream describes the engine as high-performance and lists use by projects including Servo, Bevy, Slint and Zed, which supports the engine-level position. This evidence does not by itself prove the performance of a JavaScript binding. Before the website publishes numerical or comparative TaffyJS performance claims, retained end-to-end measurements must include the JavaScript-to-Rust boundary and JavaScript input and output conversion costs. See the [Taffy repository](https://github.com/DioxusLabs/taffy) and [API alignment TODOs](api-alignment-todos.md).
 
-The landing page speaks for TaffyJS as a family. It identifies the currently usable package and labels future packages as planned rather than implying that they are published.
+The landing page speaks for TaffyJS as a family and presents the intended complete product rather than serving as a release-status page. It may describe the native and WebAssembly packages without labeling unfinished packages as planned; package documentation owns current installation and availability details.
 
-The home page is only a landing page and uses VitePress's default theme. It contains a concise performance-led introduction, short factual summaries of the Rust/Taffy foundation and supported Block, Flexbox and Grid algorithms, the currently usable package, and direct routes to real package documentation and source. Tutorials, complete examples, runtime details and API reference belong to Guide or package documentation rather than the home page. The home page does not use invented testimonials, unsupported benchmark numbers or generic feature text to fill space.
+The home page is only a landing page and uses VitePress's default theme. It contains a concise performance-led introduction, short summaries of the Rust/Taffy foundation, native Node.js performance and portable WebAssembly support, and direct routes to real package documentation and source. Tutorials, complete examples, runtime details and API reference belong to Guide or package documentation rather than the home page. The home page does not use invented testimonials, unsupported benchmark numbers or generic feature text to fill space.
 
 ## Package family
 
@@ -18,7 +18,7 @@ The home page is only a landing page and uses VitePress's default theme. It cont
 - `@taffyjs/wasm` is a planned alternate binding for the same high-level direct JavaScript API. Its package documentation owns WebAssembly loading, initialization, runtime support and binding-specific performance or deployment differences; it must not duplicate or fork the shared API reference merely because the transport differs.
 - `@taffyjs/yoga` is a planned Yoga-compatible API built on `@taffyjs/node`. It has a distinct consumer model and therefore owns its own compatibility, migration and API documentation.
 
-No planned package receives empty reference pages or navigation that makes it look available. Add its visible package section when there is enough implementation and installation evidence to make the section useful; until then the landing page or roadmap may identify it explicitly as planned.
+No planned package receives empty reference pages or documentation navigation that makes it look installable. The landing page may present the intended package family without progress labels, but a package receives a visible documentation section only when there is enough implementation and installation evidence to make that section useful.
 
 ## Documentation structure
 
@@ -39,7 +39,7 @@ The global site navigation and the documentation sidebar serve different purpose
 
 ## Content ownership
 
-- The landing page states the product value, current availability, supported layout modes and the next useful destination.
+- The landing page states the product value, intended package family, supported layout modes and the next useful destination.
 - Guide explains how to complete layout tasks and how the shared model behaves.
 - Package sections explain installation, runtime differences and each package's public API.
 - Complete examples have one maintained home and are linked rather than copied between Guide, package pages and README files.
