@@ -1,7 +1,7 @@
 # Project Context Records
 
 - [Intent](intent.md) — the package family, its intended users, and the questions deliberately left open during bootstrap.
-- [Architecture](architecture.md) — ownership, package boundaries, testing placement, and the complete-snapshot boundary.
+- [Architecture](architecture.md) — ownership, package boundaries, test placement and selection, and the complete-snapshot boundary.
 - [Taffy-to-Node binding mapping](binding-mapping.md) — the repeatable rules for selecting Taffy's high-level Rust surface, mapping it through napi-rs, and preserving safety at the JavaScript boundary.
 - [Selective query design notes](query-api-design.md) — the agreed high-level model for reading only selected Style, Layout, or DetailedLayoutInfo values without turning the API into a general query language.
 - [Complete-output transport optimization](complete-output-transport.md) — the separate benchmark-gated direction for moving complete native values compactly and reconstructing their ordinary JavaScript snapshots.

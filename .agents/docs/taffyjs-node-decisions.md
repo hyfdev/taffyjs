@@ -158,6 +158,12 @@ The public package is ESM-only. napi-rs supplies the private root loader and opt
 
 JavaScript integration tests are the primary proof of public behavior. The repository does not maintain a tarball-install path or packed-consumer test while installing packed tarballs directly from this repository is not a supported scenario. Rust unit tests are reserved for small critical behavior that is clearer below Node-API, including panic containment and measurement internals. Test volume is not a goal; preserve distinct behavior without multiplying methods by every equivalent error case.
 
+## Parallel test scheduling
+
+[VOUCHED @hyfdev 2026-08-14]
+
+Test tasks, test files, and independent tests within a file run in parallel by default. Serial execution is allowed only for a demonstrated shared-state or exclusive-resource dependency that cannot cheaply be removed. Keep that exception in its own `*.sequential.test.mts` file, and make the file explicitly opt out of concurrent execution; do not slow a general test command to accommodate one serial case.
+
 ## Reopen only with evidence
 
 [VOUCHED @hyfdev 2026-08-14]
