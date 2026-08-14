@@ -1,7 +1,5 @@
 # Public Website
 
-[VOUCHED @hyfdev 2026-08-14]
-
 The public TaffyJS site is one VitePress application at `apps/website`. It represents the package family rather than one package and may contain the landing page, documentation, examples, and later blog or showcase material when real content exists.
 
 ## Product position
@@ -12,7 +10,7 @@ Taffy upstream describes the engine as high-performance and lists use by project
 
 The landing page speaks for TaffyJS as a family. It identifies the currently usable package and labels future packages as planned rather than implying that they are published.
 
-The landing page content proceeds from the product claim to proof and use: a concise performance-led introduction; the Rust/Taffy foundation and supported Block, Flexbox and Grid algorithms; one small JavaScript example that creates, computes and reads a layout; the package family with current or planned availability; then direct routes into Guide and package documentation. It does not use invented testimonials, unsupported benchmark numbers or generic feature text to fill the page.
+The home page is only a landing page and uses VitePress's default theme. It contains a concise performance-led introduction, short factual summaries of the Rust/Taffy foundation and supported Block, Flexbox and Grid algorithms, the currently usable package, and direct routes to real package documentation and source. Tutorials, complete examples, runtime details and API reference belong to Guide or package documentation rather than the home page. The home page does not use invented testimonials, unsupported benchmark numbers or generic feature text to fill space.
 
 ## Package family
 
