@@ -5,6 +5,5 @@
     "moduleResolution": "nodenext",
     "allowImportingTsExtensions": true,
     "esModuleInterop": true
-  },
-  "include": ["**/*", "apps/website/.vitepress/**/*"]
+  }
 }
