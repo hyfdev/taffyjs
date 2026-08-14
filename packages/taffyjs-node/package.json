@@ -12,15 +12,11 @@
   "files": [
     "README.md",
     "index.js",
-    "index.d.ts",
-    "native.js"
+    "index.d.ts"
   ],
   "type": "module",
   "main": "./index.js",
   "types": "./index.d.ts",
-  "imports": {
-    "#native": "./native.js"
-  },
   "exports": {
     ".": {
       "types": "./index.d.ts",
@@ -29,8 +25,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm --release -- --locked && vp fmt native.js native.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack",
-    "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js native.js --dts native.d.ts --esm -- --locked && vp fmt native.js native.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack",
+    "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js binding.js --dts binding.d.ts --esm --release -- --locked && vp fmt binding.js binding.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack",
+    "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js binding.js --dts binding.d.ts --esm -- --locked && vp fmt binding.js binding.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack",
     "check": "vp check",
     "test": "vp test"
   },

@@ -2,9 +2,9 @@
 
 ## Native bindings and distribution
 
-napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, and target-specific package metadata. `@taffyjs/node` passes `--esm` to the napi-rs build rather than transforming the generated loader into another module format.
+napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, and target-specific package metadata. It generates an ESM loader, which Vite+ bundles into the ESM public entry without maintaining a custom loader.
 
-The generated ESM loader is packaged inside `@taffyjs/node` but is not a public entry. The authored wrapper imports it privately and does not re-export raw native operations.
+The generated ESM loader is a private build input. The authored wrapper imports it privately, and the bundled public entry does not re-export raw native operations.
 
 The root package has exact-version optional packages for the two supported targets: `@taffyjs/binding-linux-x64-gnu` and `@taffyjs/binding-win32-x64-msvc`. Publication is not configured.
 
@@ -12,7 +12,7 @@ The bigint NodeId marker and its JavaScript validity registry require the author
 
 ## JavaScript package builds
 
-Vite+ is the JavaScript toolchain. `vp pack` compiles the public source in `packages/taffyjs-node/src` and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private napi-rs loader and declarations are generated separately and packaged beside that output.
+Vite+ is the JavaScript toolchain. `vp pack` compiles the public source in `packages/taffyjs-node/src`, bundles the private napi-rs loader, and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private native declaration remains a generated build input rather than a published file.
 
 `tools/api-codegen` owns source generation that must keep Rust and TypeScript API facts aligned. Its first maintained input is `api/numeric-families.json`; `vp run codegen` updates both language outputs. CI runs `vp run check:codegen`, which regenerates and rejects any resulting Git diff.
 

@@ -154,7 +154,7 @@ The generated declaration file and its JSDoc provide the complete export list, s
 
 This package does not provide CSS parsing, Yoga compatibility, serde transport, low-level Taffy tree traits, JavaScript-owned custom trees, retained per-node measure callbacks, async layout, off-thread layout, cancellation, output caches, live native views, selector or query builders, batch APIs, or automatic computation from getters and mutations. Use another layer to translate CSS or schedule work, and pass the resulting explicit `StyleInput` and computation call here.
 
-Direct absolute-file access to `index.js`, `native.js`, a `.node` file, or a platform package is unsupported even if a local filesystem path makes it technically possible. These files may change without notice; package subpath exports intentionally prevent normal bare-specifier access.
+Direct absolute-file access to `index.js`, a `.node` file, or a platform package is unsupported even if a local filesystem path makes it technically possible. These files may change without notice; package subpath exports intentionally prevent normal bare-specifier access.
 
 ## CI and release evidence
 
