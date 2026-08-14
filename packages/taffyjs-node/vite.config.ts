@@ -10,15 +10,12 @@ export default defineConfig({
     platform: "node",
     target: "node22.18",
     fixedExtension: false,
-    deps: {
-      neverBundle: [/^#native$/u],
-    },
   },
   fmt: {
     ignorePatterns: ["index.js", "index.d.ts"],
   },
   lint: {
-    ignorePatterns: ["index.js", "index.d.ts", "native.js", "native.d.ts"],
+    ignorePatterns: ["index.js", "index.d.ts", "binding.js", "binding.d.ts"],
     options: {
       typeAware: true,
       typeCheck: true,
