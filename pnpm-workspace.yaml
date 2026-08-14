@@ -14,6 +14,7 @@ catalog:
   vite: npm:@voidzero-dev/vite-plus-core@0.2.8
   vite-plus: 0.2.8
   vitepress: 2.0.0-alpha.19
+  vue: ^3.5.41
 
 peerDependencyRules:
   allowAny:

@@ -9,6 +9,7 @@
     "preview": "vitepress preview"
   },
   "devDependencies": {
-    "vitepress": "catalog:"
+    "vitepress": "catalog:",
+    "vue": "catalog:"
   }
 }
