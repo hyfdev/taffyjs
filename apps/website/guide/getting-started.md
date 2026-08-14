@@ -1,6 +1,6 @@
 # Getting Started
 
-This page takes one small tree from creation to an observable layout result. It assumes `@taffyjs/node` is already available in your project. The package is currently private and unpublished; the [package README](https://github.com/hyfdev/taffyjs/tree/main/packages/taffyjs-node) records its current availability.
+This page takes one small tree from creation to an observable layout result. It assumes `@taffyjs/node` is already available in your project. The package is currently private and unpublished; the [`@taffyjs/node` overview](../node/index.md) records its current availability.
 
 Create a file such as `layout.ts`:
 

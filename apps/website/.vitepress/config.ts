@@ -7,10 +7,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: "Guide", link: "/guide/" },
-      {
-        text: "@taffyjs/node",
-        link: "https://github.com/hyfdev/taffyjs/tree/main/packages/taffyjs-node",
-      },
+      { text: "@taffyjs/node", link: "/node/" },
     ],
     sidebar: [
       {
@@ -25,6 +22,18 @@ export default defineConfig({
           { text: "Grid", link: "/guide/grid" },
           { text: "Measuring Content", link: "/guide/measuring-content" },
           { text: "Complete Examples", link: "/guide/examples" },
+        ],
+      },
+      {
+        text: "@taffyjs/node",
+        items: [
+          { text: "Overview and Installation", link: "/node/" },
+          { text: "Nodes and Topology", link: "/node/nodes-and-topology" },
+          { text: "Styles and Context", link: "/node/styles-and-context" },
+          { text: "Computing Layout", link: "/node/computing-layout" },
+          { text: "Layout Results", link: "/node/layout-results" },
+          { text: "Value Helpers", link: "/node/value-helpers" },
+          { text: "Errors", link: "/node/errors" },
         ],
       },
     ],

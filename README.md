@@ -26,6 +26,11 @@ npm install @taffyjs/node
 | [`@taffyjs/yoga`](https://www.npmjs.com/package/@taffyjs/yoga)           | Yoga-compatible API backed by `@taffyjs/node`.  | —       |
 | [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | Yoga-compatible API backed by `@taffyjs/wasm`.  | WIP     |
 
+## Documentation
+
+- [Guide](apps/website/guide/index.md) explains the shared layout model and includes complete examples.
+- [`@taffyjs/node`](apps/website/node/index.md) documents package availability and the current public API.
+
 ## Credits
 
 - [Taffy](https://github.com/DioxusLabs/taffy), the layout engine at the core of TaffyJS.
