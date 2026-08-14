@@ -7,7 +7,7 @@ hero:
   actions:
     - theme: brand
       text: Get started
-      link: https://github.com/hyfdev/taffyjs/tree/main/packages/taffyjs-node
+      link: /guide/getting-started
     - theme: alt
       text: GitHub
       link: https://github.com/hyfdev/taffyjs
