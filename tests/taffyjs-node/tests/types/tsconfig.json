@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2022"
+  },
+  "files": ["public-api.test-d.ts", "style.test-d.ts", "values.test-d.ts"]
+}

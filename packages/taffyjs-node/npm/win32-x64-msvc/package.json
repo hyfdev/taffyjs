@@ -1,0 +1,16 @@
+{
+  "name": "@taffyjs/binding-win32-x64-msvc",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": [
+    "taffyjs.win32-x64-msvc.node"
+  ],
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "taffyjs.win32-x64-msvc.node"
+}
