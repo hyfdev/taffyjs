@@ -13,13 +13,10 @@ catalog:
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@0.2.8
   vite-plus: 0.2.8
-  vitepress: 1.6.4
+  vitepress: 2.0.0-alpha.19
 
 peerDependencyRules:
   allowAny:
     - vite
   allowedVersions:
     vite: "*"
-
-allowBuilds:
-  esbuild: false
