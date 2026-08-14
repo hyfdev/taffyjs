@@ -1,5 +1,7 @@
 # Public Website
 
+[VOUCHED @hyfdev 2026-08-14]
+
 The public TaffyJS site is one VitePress application at `apps/website`. It represents the package family rather than one package and may contain the landing page, documentation, examples, and later blog or showcase material when real content exists.
 
 ## Product position

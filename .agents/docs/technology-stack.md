@@ -30,6 +30,8 @@ CI has five jobs. Ubuntu x64 and Windows x64 each build the native addon and run
 
 ## Public website
 
+[VOUCHED @hyfdev 2026-08-14]
+
 The package family has one public VitePress application at `apps/website`. It owns the project landing page, shared Guide, per-package documentation, examples, and any later editorial sections with real content.
 
 The API reference is maintained by humans alongside the Guide rather than emitted by TypeDoc. The current high-level API is stable enough for this, and useful reference prose must explain behavior and relationships that a generated symbol listing would not provide. Source JSDoc remains the complete editor-facing signature and field reference.
