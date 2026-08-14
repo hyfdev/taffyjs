@@ -13,7 +13,7 @@ This repository is a small Rust and JavaScript monorepo with one shared napi-rs 
 
 The `@taffyjs/node` public entry bundles the private napi-rs root loader, which selects the matching optional platform package. Its generated loader and declaration remain repository build inputs rather than published package files. The `@taffyjs/wasm` default entry reaches a no-TLA ESM bridge that imports the shared payload and immediately invokes a synchronous CommonJS factory mechanically derived from napi-rs's eager Node loader; its browser entry reaches a TLA adapter and the unmodified deferred loader. Neither package exposes an intermediate binding package, JavaScript shadow tree, separate core crate, public binding, or public initialization API.
 
-A future Yoga package should be a JavaScript or TypeScript compatibility layer over `@taffyjs/node` unless a concrete need requires a different native boundary.
+A future `@taffyjs/yoga` package should be a JavaScript or TypeScript compatibility layer over `@taffyjs/node` unless a concrete need requires a different native boundary. A future `@taffyjs/wasm` package should preserve the direct package's high-level JavaScript API while replacing the runtime binding layer; its concrete Rust and packaging boundaries remain open until implementation.
 
 ## Testing
 
