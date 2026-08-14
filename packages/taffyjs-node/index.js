@@ -634,10 +634,13 @@ var TaffyTree = class {
 	}
 	/** Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying. */
 	computeLayoutWithMeasure(options) {
-		this.#inner.rawComputeLayoutWithMeasure(this.#nodes.resolve(options.root), options.availableSpace, (value) => {
+		const root = this.#nodes.resolve(options.root);
+		const measure = options.measure;
+		if (typeof measure !== "function") throw new TypeError("measure must be a function");
+		this.#inner.rawComputeLayoutWithMeasure(root, options.availableSpace, (value) => {
 			const args = value;
 			const node = this.#nodes.fromRaw(args.node);
-			return options.measure({
+			return measure({
 				knownDimensions: args.knownDimensions,
 				availableSpace: args.availableSpace,
 				node,

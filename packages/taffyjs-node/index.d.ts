@@ -495,8 +495,8 @@ type RepetitionCount$1 = Readonly<{
 /** Supplies writable grid template repetition data at the public API boundary. */
 interface GridTemplateRepetitionInput {
   /** Supplies the count value used by GridTemplateRepetitionInput. */ count: RepetitionCountInput;
-  /** Supplies the tracks value used by GridTemplateRepetitionInput. */ tracks: TrackSizingFunctionInput[];
-  /** Supplies the line names value used by GridTemplateRepetitionInput. */ lineNames: string[][];
+  /** Supplies the tracks value used by GridTemplateRepetitionInput. */ tracks: readonly TrackSizingFunctionInput[];
+  /** Supplies the line names value used by GridTemplateRepetitionInput. */ lineNames: readonly (readonly string[])[];
 }
 /** Represents the public grid template repetition value used by TaffyJS. */
 interface GridTemplateRepetition {
@@ -522,7 +522,7 @@ type GridTemplateComponent$1 = Readonly<{
 }>;
 /** Supplies writable grid template areas data at the public API boundary. */
 interface GridTemplateAreasInput {
-  /** Supplies the areas value used by GridTemplateAreasInput. */ areas: GridTemplateAreaInput[];
+  /** Supplies the areas value used by GridTemplateAreasInput. */ areas: readonly GridTemplateAreaInput[];
   /** Supplies the row count value used by GridTemplateAreasInput. */ rowCount: number;
   /** Supplies the column count value used by GridTemplateAreasInput. */ columnCount: number;
 }
@@ -581,14 +581,14 @@ interface StyleInput {
   /** Sets the node's flex basis style; omission uses Taffy's default. */ flexBasis?: DimensionInput | undefined;
   /** Sets the node's flex grow style; omission uses Taffy's default. */ flexGrow?: number | undefined;
   /** Sets the node's flex shrink style; omission uses Taffy's default. */ flexShrink?: number | undefined;
-  /** Sets the node's grid template rows style; omission uses Taffy's default. */ gridTemplateRows?: GridTemplateComponentInput[] | undefined;
-  /** Sets the node's grid template columns style; omission uses Taffy's default. */ gridTemplateColumns?: GridTemplateComponentInput[] | undefined;
-  /** Sets the node's grid auto rows style; omission uses Taffy's default. */ gridAutoRows?: TrackSizingFunctionInput[] | undefined;
-  /** Sets the node's grid auto columns style; omission uses Taffy's default. */ gridAutoColumns?: TrackSizingFunctionInput[] | undefined;
+  /** Sets the node's grid template rows style; omission uses Taffy's default. */ gridTemplateRows?: readonly GridTemplateComponentInput[] | undefined;
+  /** Sets the node's grid template columns style; omission uses Taffy's default. */ gridTemplateColumns?: readonly GridTemplateComponentInput[] | undefined;
+  /** Sets the node's grid auto rows style; omission uses Taffy's default. */ gridAutoRows?: readonly TrackSizingFunctionInput[] | undefined;
+  /** Sets the node's grid auto columns style; omission uses Taffy's default. */ gridAutoColumns?: readonly TrackSizingFunctionInput[] | undefined;
   /** Sets the node's grid auto flow style; omission uses Taffy's default. */ gridAutoFlow?: GridAutoFlow | undefined;
   /** Omission or undefined uses the Taffy default; null stores Taffy None. */ gridTemplateAreas?: GridTemplateAreasInput | null | undefined;
-  /** Sets the node's grid template column names style; omission uses Taffy's default. */ gridTemplateColumnNames?: string[][] | undefined;
-  /** Sets the node's grid template row names style; omission uses Taffy's default. */ gridTemplateRowNames?: string[][] | undefined;
+  /** Sets the node's grid template column names style; omission uses Taffy's default. */ gridTemplateColumnNames?: readonly (readonly string[])[] | undefined;
+  /** Sets the node's grid template row names style; omission uses Taffy's default. */ gridTemplateRowNames?: readonly (readonly string[])[] | undefined;
   /** Sets the node's grid row style; omission uses Taffy's default. */ gridRow?: PartialLineInput<GridPlacementInput> | undefined;
   /** Sets the node's grid column style; omission uses Taffy's default. */ gridColumn?: PartialLineInput<GridPlacementInput> | undefined;
 }
@@ -789,7 +789,7 @@ declare const GridTemplateComponent: Readonly<{
   Single(value: TrackSizingFunctionInput): Extract<GridTemplateComponentInput, {
     kind: typeof GridTemplateComponentKind.Single;
   }>;
-  Repeat(count: RepetitionCountInput, tracks: TrackSizingFunctionInput[], lineNames?: string[][]): Extract<GridTemplateComponentInput, {
+  Repeat(count: RepetitionCountInput, tracks: readonly TrackSizingFunctionInput[], lineNames?: readonly (readonly string[])[]): Extract<GridTemplateComponentInput, {
     kind: typeof GridTemplateComponentKind.Repeat;
   }>;
 }>;

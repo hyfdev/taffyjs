@@ -317,8 +317,8 @@ export type RepetitionCount =
 /** Supplies writable grid template repetition data at the public API boundary. */
 export interface GridTemplateRepetitionInput {
   /** Supplies the count value used by GridTemplateRepetitionInput. */ count: RepetitionCountInput;
-  /** Supplies the tracks value used by GridTemplateRepetitionInput. */ tracks: TrackSizingFunctionInput[];
-  /** Supplies the line names value used by GridTemplateRepetitionInput. */ lineNames: string[][];
+  /** Supplies the tracks value used by GridTemplateRepetitionInput. */ tracks: readonly TrackSizingFunctionInput[];
+  /** Supplies the line names value used by GridTemplateRepetitionInput. */ lineNames: readonly (readonly string[])[];
 }
 
 /** Represents the public grid template repetition value used by TaffyJS. */
@@ -352,7 +352,7 @@ export type GridTemplateComponent =
 
 /** Supplies writable grid template areas data at the public API boundary. */
 export interface GridTemplateAreasInput {
-  /** Supplies the areas value used by GridTemplateAreasInput. */ areas: GridTemplateAreaInput[];
+  /** Supplies the areas value used by GridTemplateAreasInput. */ areas: readonly GridTemplateAreaInput[];
   /** Supplies the row count value used by GridTemplateAreasInput. */ rowCount: number;
   /** Supplies the column count value used by GridTemplateAreasInput. */ columnCount: number;
 }
@@ -489,16 +489,16 @@ export interface StyleInput {
     | number
     | undefined;
   /** Sets the node's grid template rows style; omission uses Taffy's default. */ gridTemplateRows?:
-    | GridTemplateComponentInput[]
+    | readonly GridTemplateComponentInput[]
     | undefined;
   /** Sets the node's grid template columns style; omission uses Taffy's default. */ gridTemplateColumns?:
-    | GridTemplateComponentInput[]
+    | readonly GridTemplateComponentInput[]
     | undefined;
   /** Sets the node's grid auto rows style; omission uses Taffy's default. */ gridAutoRows?:
-    | TrackSizingFunctionInput[]
+    | readonly TrackSizingFunctionInput[]
     | undefined;
   /** Sets the node's grid auto columns style; omission uses Taffy's default. */ gridAutoColumns?:
-    | TrackSizingFunctionInput[]
+    | readonly TrackSizingFunctionInput[]
     | undefined;
   /** Sets the node's grid auto flow style; omission uses Taffy's default. */ gridAutoFlow?:
     | GridAutoFlow
@@ -508,10 +508,10 @@ export interface StyleInput {
     | null
     | undefined;
   /** Sets the node's grid template column names style; omission uses Taffy's default. */ gridTemplateColumnNames?:
-    | string[][]
+    | readonly (readonly string[])[]
     | undefined;
   /** Sets the node's grid template row names style; omission uses Taffy's default. */ gridTemplateRowNames?:
-    | string[][]
+    | readonly (readonly string[])[]
     | undefined;
   /** Sets the node's grid row style; omission uses Taffy's default. */ gridRow?:
     | PartialLineInput<GridPlacementInput>

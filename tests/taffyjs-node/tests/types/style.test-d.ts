@@ -13,12 +13,13 @@ import {
 
 declare const node: NodeId;
 const track = TrackSizingFunction.Fr(2);
+const mutableRows = [GridTemplateComponent.Single(track)];
 const input: StyleInput = {
   display: Display.Grid,
   size: { width: Dimension.Length(100), height: Dimension.Percent(50) },
   margin: Dimension.Auto,
   alignItems: AlignItems.Center,
-  gridTemplateRows: [GridTemplateComponent.Single(track)],
+  gridTemplateRows: mutableRows,
   gridTemplateColumns: [
     GridTemplateComponent.Repeat(RepetitionCount.Count(2), [track], [["start"], ["end"]]),
   ],
@@ -26,7 +27,7 @@ const input: StyleInput = {
   aspectRatio: null,
 };
 input.flexGrow = 1;
-input.gridTemplateRows?.push(GridTemplateComponent.Single(TrackSizingFunction.Auto));
+mutableRows.push(GridTemplateComponent.Single(TrackSizingFunction.Auto));
 
 const tree = new TaffyTree();
 tree.setStyle(node, input);

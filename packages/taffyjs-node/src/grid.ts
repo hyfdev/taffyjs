@@ -115,8 +115,8 @@ export const GridTemplateComponent = Object.freeze({
   },
   Repeat(
     count: RepetitionCountInput,
-    tracks: TrackSizingFunctionInput[],
-    lineNames: string[][] = [],
+    tracks: readonly TrackSizingFunctionInput[],
+    lineNames: readonly (readonly string[])[] = [],
   ): Extract<GridTemplateComponentInput, { kind: typeof GridTemplateComponentKind.Repeat }> {
     return {
       kind: GridTemplateComponentKind.Repeat,

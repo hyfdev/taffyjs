@@ -3,7 +3,10 @@ import { NativeTaffyTree } from "@taffyjs/node";
 import * as api from "@taffyjs/node";
 import {
   AvailableSpace,
+  GridTemplateComponent,
+  RepetitionCount,
   TaffyTree,
+  TrackSizingFunction,
   type ComputeLayoutWithMeasureOptions,
   type Layout,
   type NodeId,
@@ -56,6 +59,26 @@ const prototype: TaffyTree<Context> = TaffyTree.prototype;
 const context: Context | undefined = tree.getNodeContext(node);
 const parent: NodeId | null = tree.getParent(node);
 const children: readonly NodeId[] = tree.getChildren(node);
+const readonlyTracks = [TrackSizingFunction.Auto] as const;
+const readonlyLineNames = [["line"]] as const;
+const readonlyComponents = [
+  GridTemplateComponent.Repeat(RepetitionCount.Count(1), readonlyTracks, readonlyLineNames),
+] as const;
+const readonlyAreas = [
+  { name: "area", rowStart: 0, rowEnd: 1, columnStart: 0, columnEnd: 1 },
+] as const;
+const readonlyStyleInput: StyleInput = {
+  gridTemplateRows: readonlyComponents,
+  gridTemplateColumns: readonlyComponents,
+  gridAutoRows: readonlyTracks,
+  gridAutoColumns: readonlyTracks,
+  gridTemplateAreas: { areas: readonlyAreas, rowCount: 1, columnCount: 1 },
+  gridTemplateColumnNames: readonlyLineNames,
+  gridTemplateRowNames: readonlyLineNames,
+};
+const reusableStyleInput: StyleInput = tree.getStyle(node);
+tree.setStyle(node, reusableStyleInput);
+tree.newLeaf(readonlyStyleInput);
 
 tree.computeLayoutWithMeasure({
   root: node,

@@ -121,6 +121,32 @@ test("cache-calls", () => {
   assert.equal(calls > firstCalls, true, "dirty input asks Taffy to measure again");
 });
 
+test("callback-type-before-cache", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeafWithContext({}, true);
+  const options = {
+    root: node,
+    availableSpace: minContentSpace(),
+    measure: () => ({ width: 30, height: 10 }),
+  };
+
+  tree.computeLayoutWithMeasure(options);
+  assert.equal(tree.isDirty(node), false);
+
+  assert.throws(
+    () => tree.computeLayoutWithMeasure({ ...options, measure: 42 as never }),
+    TypeError,
+  );
+  assert.equal(tree.isDirty(node), false, "a cached tree is untouched by callback validation");
+
+  tree.markDirty(node);
+  assert.throws(
+    () => tree.computeLayoutWithMeasure({ ...options, measure: 42 as never }),
+    TypeError,
+  );
+  assert.equal(tree.isDirty(node), true, "a dirty tree is untouched by callback validation");
+});
+
 test("same-tree-busy", () => {
   const fixture = fileURLToPath(new URL("./fixtures/measure-reentrancy.mjs", import.meta.url));
   const child = spawnSync(process.execPath, [fixture], { encoding: "utf8", timeout: 20_000 });
