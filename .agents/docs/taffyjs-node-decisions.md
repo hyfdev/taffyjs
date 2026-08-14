@@ -20,11 +20,13 @@ After the binding has produced a complete representable Rust value and satisfied
 
 ## Public data model
 
-[VOUCHED @hyfdev 2026-08-14]
+[VOUCHED @hyfdev 2026-08-15]
 
-Readable ordinary JavaScript data objects are the default input and output representation. Input record properties and helper-produced objects remain mutable. Collection-valued inputs accept readonly arrays because the binding only reads them; ordinary mutable arrays remain valid inputs. Binding-produced snapshots are detached and recursively readonly in TypeScript, but runtime objects are not frozen, sealed, proxied, cached, or backed by a live Rust borrow.
+Readable ordinary JavaScript values are the public contract. Inputs are designed to be natural to write, while outputs are designed to make their complete meaning visible. Input and output do not need to use the same runtime representation. Input records remain mutable. Collection-valued inputs accept readonly arrays because the binding only reads them; ordinary mutable arrays remain valid inputs. Binding-produced snapshots are detached and recursively readonly in TypeScript, but runtime objects are not frozen, sealed, proxied, cached, or backed by a live Rust borrow.
 
-Closed fieldless families use singular PascalCase frozen objects with stable numeric literal members, such as `Display.Flex`. Payload variants use ordinary numeric-tagged records. Semantic lengths, available space, geometry, alignment, and Grid compose these rules rather than introducing strings, packed values, native owner objects, or CSS grammar.
+Closed choices without associated data use singular PascalCase frozen objects with stable numeric literal members, such as `Display.Flex`. When a numeric input has one clear common meaning, callers may use a number as an additive shorthand: a length number means an absolute length, and an available-space number means `Definite`. The complete forms remain supported, including `Dimension.Length(20)` and `AvailableSpace.Definite(640)`; the shorthand does not replace them. Other meanings remain explicit through values such as `Dimension.Percent(50)`, `Dimension.Auto`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent`. Values returned by the binding keep complete numeric-tagged records, and those returned values remain valid as later inputs. Other values that carry data, including Grid values, continue to use ordinary tagged records. Public values do not use CSS strings, packed numbers, buffers, or native owner objects.
+
+The private representation passed from JavaScript to Rust is a separate implementation choice. Small fixed values may use primitive parameters, and larger values may use a compact buffer when measurements show that it is beneficial. Changing this private representation must not change the public input or output API.
 
 `StyleInput` uses defaults for missing or `undefined` fields, explicit `null` only for publicly nullable fields, strict top-level and partial-geometry field names, and complete replacement in `setStyle`. `getStyle` and measure callbacks receive complete eager snapshots. A measured future optimization may be additive; no selector, query, lazy object, or output cache belongs to the baseline.
 
@@ -169,6 +171,20 @@ Test tasks, test files, and independent tests within a file run in parallel by d
 [VOUCHED @hyfdev 2026-08-14]
 
 New public state owners, compatibility layers, retained JavaScript values, callback models, private transports, batching, caches, or output representations require a concrete consumer need. Performance changes additionally require retained end-to-end measurements that include JavaScript conversion cost. Open work is tracked in [API alignment TODOs](api-alignment-todos.md).
+
+## Decided
+
+### Repository use of numeric shorthand
+
+[VOUCHED @hyfdev 2026-08-15]
+
+**Ruling:** After a public numeric shorthand is implemented, maintained JavaScript and TypeScript examples and ordinary behavior tests must use it by default wherever it expresses the same value. Public JSDoc must state that an absolute-length number is shorthand for `Dimension.Length(value)` and a definite available-space number is shorthand for `AvailableSpace.Definite(value)`.
+
+**Limits:** The complete forms remain supported and should still appear when an example or test specifically explains, exercises, narrows, or round-trips that form. Adding shorthand must not turn complete-form coverage into repeated coverage of ordinary behavior, and documentation must not imply that either complete form is deprecated or unsupported. This repository-writing rule takes effect after the corresponding shorthand is implemented.
+
+**Why:** Yunfei specified this as the repository's default development rule and gave no separate rationale.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-15; required examples and ordinary tests to prefer available shorthand, required JSDoc to name the corresponding complete form, and explicitly asked for this decision to be vouched. The accepted wording was recorded in commit `4d7f96de9f4f9d801ca9624a0e21f8b3dccf4b5e`.
 
 ## Open
 
