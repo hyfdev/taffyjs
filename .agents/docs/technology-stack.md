@@ -16,7 +16,7 @@ Vite+ is the JavaScript toolchain. `vp pack` compiles the public source in `pack
 
 `tools/api-codegen` owns source generation that must keep Rust and TypeScript API facts aligned. Its first maintained input is `api/numeric-families.json`; `vp run codegen` updates both language outputs. CI runs `vp run check:codegen`, which regenerates and rejects any resulting Git diff.
 
-CI has four jobs. Ubuntu x64 and Windows x64 each build the native addon and run all Rust, JavaScript, type, and packed-consumer tests with Node.js 22.18.0. Ubuntu also rejects stale committed package JavaScript and declarations after the build. A Node-only job checks formatting, JavaScript and TypeScript, and generated-source drift. A Rust-only job checks formatting and Clippy. macOS and publication workflows are not configured.
+CI has four jobs. Ubuntu x64 and Windows x64 each build the native addon and run all Rust, JavaScript, and type tests with Node.js 22.18.0. Ubuntu also rejects stale committed package JavaScript and declarations after the build. A Node-only job checks formatting, JavaScript and TypeScript, and generated-source drift. A Rust-only job checks formatting and Clippy. macOS and publication workflows are not configured.
 
 ## Task orchestration
 

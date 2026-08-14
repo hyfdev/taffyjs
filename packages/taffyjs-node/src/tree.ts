@@ -187,7 +187,7 @@ export class TaffyTree<TContext = unknown> {
     return this.#inner.rawGetStyle(this.#nodes.resolve(node)) as Style;
   }
 
-  /** Returns the most recently stored rounded layout snapshot. */
+  /** Returns the most recently stored layout selected by the tree's current rounding mode. */
   getLayout(node: NodeId): Layout {
     return this.#inner.rawGetLayout(this.#nodes.resolve(node));
   }

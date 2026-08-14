@@ -4,19 +4,6 @@
 
 The package currently has version `0.0.0`, is marked private, and requires Node.js 22.18.0 or newer. Nothing in this repository publishes it to a registry.
 
-## Install from this repository
-
-Build first so the root package and the current platform package contain the same native artifact, then pack both directories and install both tarballs into the consumer. The platform package is an implementation detail; application code imports only `@taffyjs/node`.
-
-```sh
-vp run build
-vp exec pnpm pack packages/taffyjs-node --pack-destination ./artifacts
-vp exec pnpm pack packages/taffyjs-node/npm/linux-x64-gnu --pack-destination ./artifacts
-pnpm add ./artifacts/taffyjs-node-0.0.0.tgz ./artifacts/taffyjs-binding-linux-x64-gnu-0.0.0.tgz
-```
-
-Use the platform directory matching the current machine: `linux-x64-gnu` or `win32-x64-msvc`. Only the package root (`@taffyjs/node`) and `@taffyjs/node/package.json` are exported; paths such as `@taffyjs/node/native.js` are private.
-
 ## Complete examples
 
 Each example is a complete module. It uses the named numeric constants and value helpers, computes layout explicitly, and reads a detached layout snapshot.
@@ -179,4 +166,4 @@ Direct absolute-file access to `index.js`, `native.js`, a `.node` file, or a pla
 
 ## CI and release evidence
 
-The repository workflow builds the native addon and runs all Rust, JavaScript, type, and packed-consumer tests on both Ubuntu x64 and Windows x64 with Node 22.18.0. Ubuntu also verifies that the committed package JavaScript and declarations match a fresh build. Separate Node and Rust jobs run formatting, linting, generated-source drift checks, and Clippy without rebuilding the addon. Publication remains future work. A workflow definition is not proof that a remote target passed: release handover must name the locally executed host separately from remote jobs that have actually run.
+The repository workflow builds the native addon and runs all Rust, JavaScript, and type tests on both Ubuntu x64 and Windows x64 with Node 22.18.0. Ubuntu also verifies that the committed package JavaScript and declarations match a fresh build. Separate Node and Rust jobs run formatting, linting, generated-source drift checks, and Clippy without rebuilding the addon. Publication remains future work. A workflow definition is not proof that a remote target passed: release handover must name the locally executed host separately from remote jobs that have actually run.

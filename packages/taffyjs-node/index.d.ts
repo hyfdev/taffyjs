@@ -855,7 +855,7 @@ declare class TaffyTree<TContext = unknown> {
   setStyle(node: NodeId, style: StyleInput): void;
   /** Returns a detached readable snapshot of the node style. */
   getStyle(node: NodeId): Style;
-  /** Returns the most recently stored rounded layout snapshot. */
+  /** Returns the most recently stored layout selected by the tree's current rounding mode. */
   getLayout(node: NodeId): Layout;
   /** Returns the most recently stored unrounded layout snapshot. */
   getUnroundedLayout(node: NodeId): Layout;

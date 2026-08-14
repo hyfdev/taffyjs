@@ -15,7 +15,7 @@ A future Yoga package should be a JavaScript or TypeScript compatibility layer o
 
 ## Testing
 
-JavaScript integration and packed-consumer tests are the primary proof of observable behavior. Package-local JavaScript and Rust unit tests are limited to critical behavior that is clearer in isolation. Maintained test names follow product behavior rather than temporary milestone or acceptance labels.
+JavaScript integration tests are the primary proof of observable behavior. Package-local JavaScript and Rust unit tests are limited to critical behavior that is clearer in isolation. Maintained test names follow product behavior rather than temporary milestone or acceptance labels.
 
 ## Read boundary
 

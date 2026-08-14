@@ -17,10 +17,6 @@ const testTasks = {
     command: "vp exec tsc --project tests/taffyjs-node/tests/types/tsconfig.json",
     dependsOn: ["build"],
   },
-  "check:test:packed-consumer": {
-    command: "node tests/taffyjs-node/packed-consumer/run.mjs",
-    dependsOn: ["build"],
-  },
 };
 
 export default defineConfig({

@@ -56,11 +56,9 @@ Retained, asynchronous, off-thread, cancellable, or transactionally rolled-back 
 
 ## Package and testing boundaries
 
-[VOUCHED @hyfdev 2026-08-14]
-
 The public package is ESM-only. napi-rs supplies the private root loader and optional platform packages; do not add a generic intermediate binding package, a dedicated CommonJS build, or a custom loader without a concrete supported-consumer need.
 
-JavaScript integration and packed-consumer tests are the primary proof of public behavior. Rust unit tests are reserved for small critical behavior that is clearer below Node-API, including panic containment and measurement internals. Test volume is not a goal; preserve distinct behavior without multiplying methods by every equivalent error case.
+JavaScript integration tests are the primary proof of public behavior. The repository does not maintain a tarball-install path or packed-consumer test while installing packed tarballs directly from this repository is not a supported scenario. Rust unit tests are reserved for small critical behavior that is clearer below Node-API, including panic containment and measurement internals. Test volume is not a goal; preserve distinct behavior without multiplying methods by every equivalent error case.
 
 ## Reopen only with evidence
 
