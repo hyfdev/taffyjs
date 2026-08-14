@@ -184,7 +184,7 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 **Why:** Yunfei specified this as the repository's default development rule and gave no separate rationale.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-15; required examples and ordinary tests to prefer available shorthand, required JSDoc to name the corresponding complete form, and explicitly asked for this decision to be vouched.
+**Source:** Yunfei (`@hyfdev`), 2026-08-15; required examples and ordinary tests to prefer available shorthand, required JSDoc to name the corresponding complete form, and explicitly asked for this decision to be vouched. The accepted wording was recorded in commit `4d7f96de9f4f9d801ca9624a0e21f8b3dccf4b5e`.
 
 ## Open
 
