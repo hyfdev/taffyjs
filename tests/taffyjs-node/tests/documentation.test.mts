@@ -75,7 +75,12 @@ test("README examples compile and run", async () => {
       ],
       root,
     );
-    for (const path of paths) await run(process.execPath, [path], temporaryRoot);
+    const results = await Promise.allSettled(
+      paths.map((path) => run(process.execPath, [path], temporaryRoot)),
+    );
+    for (const result of results) {
+      if (result.status === "rejected") throw result.reason;
+    }
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }
