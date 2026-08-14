@@ -4,7 +4,7 @@
 
 `tools/api-codegen` is the repository's long-term home for generators that keep one API description aligned across Rust and TypeScript. New API generators should extend this tool instead of adding isolated scripts with their own parsing, writing, and checking rules.
 
-This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The first implemented family is the numeric constants shared by the Node wrapper and Rust binding; the future query design is recorded separately in [API query code generation](api-codegen-query.md).
+This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The first implemented family is the numeric constants shared by the Node wrapper and Rust binding. Generated ownership of the accepted absolute-length and definite-available-space input shorthands is designed below but not implemented yet; the future query design is recorded separately in [API query code generation](api-codegen-query.md).
 
 ## One maintained input
 
@@ -13,6 +13,18 @@ Each shared fact has exactly one human-maintained home in versioned input files 
 Inputs use a small, explicit vocabulary. They may name known Rust or TypeScript concepts, but they must not contain arbitrary target-language source snippets. Each format has a version and a schema for its basic shape; code performs checks that a schema cannot express, such as duplicate numeric values, invalid references, or conflicting public names.
 
 Generation is appropriate when the same finite facts must agree in more than one output. Ordinary handwritten logic stays handwritten when sharing an input would not remove a real drift risk.
+
+## Generated tagged inputs
+
+The mapping from a primitive shorthand to a complete tagged branch is one shared API fact. A focused versioned input under `api/` must describe the tagged value name, tag field, referenced numeric family, branches, payload fields, public input aliases, and the optional input-only number shorthand. The compiler resolves every family and branch reference against the numeric-family model and rejects an unknown branch, incompatible payload, duplicate public name, or ambiguous shorthand before either target is emitted. This is a separate input family within `tools/api-codegen`, not a property added to `numeric-families.json`: numbers in that file are discriminator codes, while shorthand numbers are payload values.
+
+The initial generated family covers only semantic lengths and available space. It records that a number accepted by `LengthPercentageInput`, `LengthPercentageAutoInput`, or `DimensionInput` maps to the complete `Length(value)` branch, and that a number accepted by `AvailableSpaceInput` maps to `Definite(value)`. `Percent`, `Auto`, `MinContent`, and `MaxContent` remain explicit. Complete tagged inputs remain valid, output types remain complete tagged values, and the generator must not infer the same shorthand for track sizing, Grid values, or another family.
+
+The TypeScript emitter owns the affected public input and output declarations, their JSDoc, and the `Dimension` and `AvailableSpace` complete-form helpers so their names, fields, tags, payloads, and shorthand descriptions come from the same model. Handwritten public entry modules may re-export generated values and types but must not restate their shapes.
+
+The Rust emitter owns boundary parsing into small generated Rust values such as `Length(value)`, `Percent(value)`, `Auto`, `Definite(value)`, `MinContent`, and `MaxContent`. A JavaScript number and its equivalent tagged object converge in that parser. The JavaScript wrapper must not normalize a number by allocating a tagged object or recursively walking Style before the native call. Handwritten Rust continues to map the generated boundary value to Taffy, including percentage scaling and the exact Taffy constructors; handwritten geometry and Style code continues to decide where each accepted input type is used.
+
+Verification follows the repository-wide rule below: `check:codegen` detects stale generated files, while focused public type and behavior tests prove that each shorthand is accepted only in its declared input types, matches the complete form, and still produces complete tagged output. Ordinary behavior tests and examples use the shorthand once it exists; focused coverage keeps the complete form. Do not add tests of the generator itself or use generated data as the only behavioral oracle.
 
 ## Tool organization
 

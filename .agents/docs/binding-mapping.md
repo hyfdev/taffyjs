@@ -62,6 +62,8 @@ Available-space inputs accept a direct number as shorthand for `Definite`. The c
 
 Once implemented, maintained examples and ordinary behavior tests use these numeric shorthands by default. Focused tests and explanations retain the complete forms where those forms are the subject. Public JSDoc names the corresponding `Dimension.Length(value)` or `AvailableSpace.Definite(value)` form whenever it documents a numeric shorthand.
 
+The accepted implementation makes these mappings part of the repository generator contract. Generated TypeScript declarations, JSDoc, complete-form helpers, and Rust boundary parsing share one tagged-input model. Rust parses a number or tagged record directly into the same boundary value; JavaScript does not allocate a replacement tagged object or walk nested Style solely to normalize the shorthand. Taffy-specific conversion and the use of each input type inside geometry and Style remain handwritten. [API code generation](api-codegen.md#generated-tagged-inputs) records the boundary in detail.
+
 Other values that carry data, including Grid placement, track sizing, repetition counts, and template components, use ordinary records with numeric discriminators. A branch requires its own payload fields; unrelated structural properties do not become part of complete output.
 
 Grid integers use checked `i16` or `u16` conversion, strings remain ordinary identifiers rather than a CSS grammar, and nested collections are copied completely before mutation. The binding prevents the known Taffy 0.13 named-line underflow shape but otherwise leaves safely representable Grid semantics to Taffy.

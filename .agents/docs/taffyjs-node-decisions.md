@@ -174,17 +174,17 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 ## Decided
 
-### Repository use of numeric shorthand
+### Generated numeric input shorthand
 
 [VOUCHED @hyfdev 2026-08-15]
 
-**Ruling:** After a public numeric shorthand is implemented, maintained JavaScript and TypeScript examples and ordinary behavior tests must use it by default wherever it expresses the same value. Public JSDoc must state that an absolute-length number is shorthand for `Dimension.Length(value)` and a definite available-space number is shorthand for `AvailableSpace.Definite(value)`.
+**Ruling:** The direct-number mappings for absolute lengths and definite available space must be maintained once in the repository API generator rather than repeated by hand across TypeScript and Rust. The generated public TypeScript types, JSDoc, and complete-form helpers and the generated Rust input parser must agree that a number maps to the `Length(value)` or `Definite(value)` branch. Both the number and its complete tagged form must reach the same Rust boundary value without first allocating a replacement tagged object in JavaScript. After the shorthand is implemented, maintained JavaScript and TypeScript examples and ordinary behavior tests must use it by default wherever it expresses the same value.
 
-**Limits:** The complete forms remain supported and should still appear when an example or test specifically explains, exercises, narrows, or round-trips that form. Adding shorthand must not turn complete-form coverage into repeated coverage of ordinary behavior, and documentation must not imply that either complete form is deprecated or unsupported. This repository-writing rule takes effect after the corresponding shorthand is implemented.
+**Limits:** `Dimension.Length(value)`, `AvailableSpace.Definite(value)`, direct tagged records, and tagged outputs passed back as input remain supported. Output remains a complete tagged value. Focused examples and tests retain complete forms when explaining, exercising, narrowing, or round-tripping them, and documentation must not imply that they are deprecated. The generator owns the public boundary shape and input normalization for these two accepted shorthands, not Taffy-specific conversion such as percentage scaling, Style traversal, private transport choices, Grid values, or query generation. This decision does not create a general binding-description language or approve additional primitive shorthands.
 
-**Why:** Yunfei specified this as the repository's default development rule and gave no separate rationale.
+**Why:** The shorthand's target branch is one cross-language fact currently represented by TypeScript types and helpers, JSDoc, and Rust parsing, so handwritten copies can drift. Converting the shorthand to an object in JavaScript would add allocation and eventually require an extra walk over nested Style input; direct generated Rust normalization preserves the separation between the ergonomic public input and the private native path.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-15; required examples and ordinary tests to prefer available shorthand, required JSDoc to name the corresponding complete form, and explicitly asked for this decision to be vouched. The accepted wording was recorded in commit `4d7f96de9f4f9d801ca9624a0e21f8b3dccf4b5e`.
+**Source:** Yunfei (`@hyfdev`), 2026-08-15; required examples and ordinary tests to prefer available shorthand, required JSDoc to name the corresponding complete form, accepted generator ownership with direct Rust normalization instead of JavaScript object materialization, and explicitly asked for the resulting design to be vouched. See [Generated tagged inputs](api-codegen.md#generated-tagged-inputs).
 
 ## Open
 
