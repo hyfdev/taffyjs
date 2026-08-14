@@ -30,6 +30,14 @@ The private representation passed from JavaScript to Rust is a separate implemen
 
 `StyleInput` uses defaults for missing or `undefined` fields, explicit `null` only for publicly nullable fields, strict top-level and partial-geometry field names, and complete replacement in `setStyle`. `getStyle` and measure callbacks receive complete eager snapshots. A measured future optimization may be additive; no selector, query, lazy object, or output cache belongs to the baseline.
 
+## Repository use of numeric shorthand
+
+[VOUCHED @hyfdev 2026-08-15]
+
+After a public numeric shorthand is implemented, maintained JavaScript and TypeScript examples and ordinary behavior tests must use it by default wherever it expresses the same value. The complete forms remain supported and should still appear when an example or test specifically explains, exercises, narrows, or round-trips that form. Adding shorthand must not turn complete-form coverage into repeated coverage of ordinary behavior.
+
+JSDoc for each numeric shorthand must state its equivalent complete form: an absolute-length number is shorthand for `Dimension.Length(value)`, and a definite available-space number is shorthand for `AvailableSpace.Definite(value)`. Documentation must not imply that either complete form is deprecated or unsupported.
+
 ## Value-based NodeId
 
 [VOUCHED @hyfdev 2026-08-14]

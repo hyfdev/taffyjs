@@ -60,6 +60,8 @@ Length inputs accept a direct number as shorthand for an absolute length. The co
 
 Available-space inputs accept a direct number as shorthand for `Definite`. The complete forms remain supported through `AvailableSpace.Definite(value)`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent`, and tagged available-space outputs remain valid later inputs. Every JavaScript number, including negative values, `NaN`, and infinities, retains the existing definite-value conversion behavior; no number is reserved for a special variant.
 
+Once implemented, maintained examples and ordinary behavior tests use these numeric shorthands by default. Focused tests and explanations retain the complete forms where those forms are the subject. Public JSDoc names the corresponding `Dimension.Length(value)` or `AvailableSpace.Definite(value)` form whenever it documents a numeric shorthand.
+
 Other values that carry data, including Grid placement, track sizing, repetition counts, and template components, use ordinary records with numeric discriminators. A branch requires its own payload fields; unrelated structural properties do not become part of complete output.
 
 Grid integers use checked `i16` or `u16` conversion, strings remain ordinary identifiers rather than a CSS grammar, and nested collections are copied completely before mutation. The binding prevents the known Taffy 0.13 named-line underflow shape but otherwise leaves safely representable Grid semantics to Taffy.

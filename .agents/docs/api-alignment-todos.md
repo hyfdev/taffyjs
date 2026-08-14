@@ -4,7 +4,7 @@ The direct Taffy 0.13 binding is implemented. This file contains remaining publi
 
 ## Public input alignment
 
-- [ ] Add direct-number shorthand for absolute semantic lengths and definite available space. Keep `Dimension.Length(value)`, `AvailableSpace.Definite(value)`, direct tagged records, and binding-produced tagged outputs valid as inputs; the shorthand is additive rather than a replacement.
+- [ ] Add direct-number shorthand for absolute semantic lengths and definite available space. Keep `Dimension.Length(value)`, `AvailableSpace.Definite(value)`, direct tagged records, and binding-produced tagged outputs valid as inputs; the shorthand is additive rather than a replacement. Update maintained examples and ordinary behavior tests to prefer the shorthand while retaining focused complete-form coverage, and make the public JSDoc state each shorthand's equivalent complete form.
 
 ## Performance
 
