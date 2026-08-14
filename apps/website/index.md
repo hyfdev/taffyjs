@@ -3,24 +3,19 @@ layout: home
 title: High-performance layout for JavaScript
 hero:
   name: TaffyJS
-  text: High-performance layout for JavaScript
-  tagline: TaffyJS brings Taffy—a mature layout engine written in Rust—to JavaScript through direct bindings.
+  text: A fast, Rust-based layout engine for JavaScript
   actions:
     - theme: brand
-      text: View @taffyjs/node
+      text: Get started
       link: https://github.com/hyfdev/taffyjs/tree/main/packages/taffyjs-node
     - theme: alt
       text: GitHub
       link: https://github.com/hyfdev/taffyjs
 features:
-  - title: Built on Taffy
-    details: Taffy is a mature layout engine written in Rust and used by projects including Servo, Bevy, Slint, and Zed.
-    link: https://github.com/DioxusLabs/taffy
-    linkText: Explore Taffy
-  - title: Block, Flexbox, and Grid
-    details: Compute layouts explicitly without a browser or CSS parser.
-  - title: "@taffyjs/node"
-    details: The first package is a typed, ESM-only Node-API binding for Node.js 22.18 and newer.
-    link: https://github.com/hyfdev/taffyjs/tree/main/packages/taffyjs-node
-    linkText: View package
+  - title: Powered by Rust
+    details: TaffyJS uses Taffy, a mature, high-performance Rust engine for Block, Flexbox, and Grid layout.
+  - title: Native performance
+    details: The Node.js package runs natively and avoids unnecessary work when passing data between JavaScript and Rust.
+  - title: Available everywhere
+    details: Use @taffyjs/wasm in browsers and other runtimes, with the same API as @taffyjs/node.
 ---
