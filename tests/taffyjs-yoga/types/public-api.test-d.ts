@@ -13,6 +13,9 @@ import Yoga, {
   PositionType,
   Unit,
   Wrap,
+  type AlignContentValue,
+  type AlignItemsValue,
+  type AlignSelfValue,
   type Config,
   type DirtiedFunction,
   type MeasureFunction,
@@ -20,6 +23,9 @@ import Yoga, {
 } from "yoga-layout";
 import {
   loadYoga,
+  type AlignContentValue as LoadedAlignContentValue,
+  type AlignItemsValue as LoadedAlignItemsValue,
+  type AlignSelfValue as LoadedAlignSelfValue,
   type Yoga as LoadedYoga,
   type Config as LoadedConfig,
   type Node as LoadedNode,
@@ -33,6 +39,40 @@ type Equal<Left, Right> =
 type Assert<Value extends true> = Value;
 type ConfigMethodNamesMatch = Assert<Equal<keyof Config, keyof OracleConfig>>;
 type NodeMethodNamesMatch = Assert<Equal<keyof Node, keyof OracleNode>>;
+type AlignValueSetsMatch = Assert<
+  Equal<
+    [AlignContentValue, AlignItemsValue, AlignSelfValue],
+    [
+      (
+        | Align.FlexStart
+        | Align.Center
+        | Align.FlexEnd
+        | Align.Stretch
+        | Align.SpaceBetween
+        | Align.SpaceAround
+        | Align.SpaceEvenly
+      ),
+      Align.FlexStart | Align.Center | Align.FlexEnd | Align.Stretch | Align.Baseline,
+      Align.Auto | Align.FlexStart | Align.Center | Align.FlexEnd | Align.Stretch | Align.Baseline,
+    ]
+  >
+>;
+type AlignSetterParametersMatch = Assert<
+  Equal<
+    [
+      Parameters<Node["setAlignContent"]>[0],
+      Parameters<Node["setAlignItems"]>[0],
+      Parameters<Node["setAlignSelf"]>[0],
+    ],
+    [AlignContentValue, AlignItemsValue, AlignSelfValue]
+  >
+>;
+type LoadedAlignValuesMatch = Assert<
+  Equal<
+    [LoadedAlignContentValue, LoadedAlignItemsValue, LoadedAlignSelfValue],
+    [AlignContentValue, AlignItemsValue, AlignSelfValue]
+  >
+>;
 type LegacyAlignConstantIsBroad = Assert<Equal<typeof Yoga.ALIGN_AUTO, Align>>;
 
 declare const replacementConfigFactory: typeof Yoga.Config;
@@ -59,6 +99,21 @@ const errata: Errata = config.getErrata();
 node.setAlignContent(Align.SpaceEvenly);
 node.setAlignItems(Align.Baseline);
 node.setAlignSelf(Align.Auto);
+declare const alignContentValue: AlignContentValue;
+declare const alignItemsValue: AlignItemsValue;
+declare const alignSelfValue: AlignSelfValue;
+node.setAlignContent(alignContentValue);
+node.setAlignItems(alignItemsValue);
+node.setAlignSelf(alignSelfValue);
+const forwardAlignContent = <Value extends AlignContentValue>(value: Value): void => {
+  node.setAlignContent(value);
+};
+const forwardAlignItems = <Value extends AlignItemsValue>(value: Value): void => {
+  node.setAlignItems(value);
+};
+const forwardAlignSelf = <Value extends AlignSelfValue>(value: Value): void => {
+  node.setAlignSelf(value);
+};
 node.setAspectRatio(2);
 node.setBorder(Edge.All, 1);
 node.setDirection(Direction.Inherit);
@@ -150,6 +205,24 @@ node.setAlignContent(Align.Auto);
 node.setAlignItems(Align.SpaceBetween);
 // @ts-expect-error Distribution values are not valid align-self values.
 node.setAlignSelf(Align.SpaceEvenly);
+declare const broadAlign: Align;
+// @ts-expect-error A broad Align may contain a value unsupported by align-content.
+node.setAlignContent(broadAlign);
+// @ts-expect-error A broad Align may contain a value unsupported by align-items.
+node.setAlignItems(broadAlign);
+// @ts-expect-error A broad Align may contain a value unsupported by align-self.
+node.setAlignSelf(broadAlign);
+declare const mixedItemsAlign: Align.Center | Align.SpaceBetween;
+// @ts-expect-error The union still contains an align-items value that is unsupported.
+node.setAlignItems(mixedItemsAlign);
+const forwardBroadAlign = <Value extends Align>(value: Value): void => {
+  // @ts-expect-error A broad generic may contain a value unsupported by align-content.
+  node.setAlignContent(value);
+  // @ts-expect-error A broad generic may contain a value unsupported by align-items.
+  node.setAlignItems(value);
+  // @ts-expect-error A broad generic may contain a value unsupported by align-self.
+  node.setAlignSelf(value);
+};
 // @ts-expect-error Static is omitted and its numeric value is rejected.
 node.setPositionType(0);
 // @ts-expect-error Value-like objects are not accepted by generic setters.
@@ -189,5 +262,17 @@ void [
   0 as unknown as RootYoga,
   0 as unknown as ConfigMethodNamesMatch,
   0 as unknown as NodeMethodNamesMatch,
+  0 as unknown as AlignValueSetsMatch,
+  0 as unknown as AlignSetterParametersMatch,
+  0 as unknown as LoadedAlignValuesMatch,
   0 as unknown as LegacyAlignConstantIsBroad,
+  alignContentValue,
+  alignItemsValue,
+  alignSelfValue,
+  broadAlign,
+  mixedItemsAlign,
+  forwardAlignContent,
+  forwardAlignItems,
+  forwardAlignSelf,
+  forwardBroadAlign,
 ];

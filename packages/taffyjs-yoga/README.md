@@ -48,6 +48,30 @@ node.free();
 
 Each `loadYoga()` call creates an isolated Yoga facade with its own hidden Taffy tree. The root default export is one eagerly created facade.
 
+## TypeScript migration for Align values
+
+Yoga publishes one broad `Align` enum for three setters even though each property supports a different subset. `@taffyjs/yoga` reports unsupported combinations during type checking and exports the accepted sets as `AlignContentValue`, `AlignItemsValue`, and `AlignSelfValue`:
+
+```ts
+import Yoga, { Align, type AlignItemsValue, type Node } from "yoga-layout";
+
+function setItemAlignment(node: Node, value: AlignItemsValue) {
+  node.setAlignItems(value);
+}
+
+const node = Yoga.Node.create();
+setItemAlignment(node, Align.Center);
+node.free();
+```
+
+Code that must compile against either the official package or the replacement can derive the active provider's parameter type instead:
+
+```ts
+type AlignItemsInput = Parameters<Node["setAlignItems"]>[0];
+```
+
+A broad `Align` variable must be narrowed before being passed to one of these setters. JavaScript and other dynamic calls receive the same validation at runtime before Node state changes.
+
 ## Compatibility boundary
 
 The compatibility baseline is exactly Yoga 3.2.1. Config, Style, tree ownership and mutation, calculation on any live Node, computed output, dirty and new-layout state, and synchronous Measure callbacks are implemented. Taffy owns topology and Flex calculation; the facade retains only the Yoga declarations and public state needed to translate inputs and project Yoga-shaped outputs.

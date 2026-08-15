@@ -377,8 +377,14 @@ test("invalid and unsupported dynamic Style inputs fail without changing declara
   const node = Yoga.Node.create();
   node.setWidth(25);
   node.setMargin(Edge.Left, 4);
+  node.setAlignContent(Align.Center);
+  node.setAlignItems(Align.Center);
+  node.setAlignSelf(Align.Center);
   const width = node.getWidth();
   const margin = node.getMargin(Edge.Left);
+  const alignContent = node.getAlignContent();
+  const alignItems = node.getAlignItems();
+  const alignSelf = node.getAlignSelf();
   try {
     assert.throws(() => node.setWidth("12px" as never), TypeError);
     assert.throws(() => node.setWidth({ unit: Unit.Point, value: 12 } as never), TypeError);
@@ -392,6 +398,9 @@ test("invalid and unsupported dynamic Style inputs fail without changing declara
     assert.throws(() => node.setGap(99 as never, 10), TypeError);
     assert.deepEqual(node.getWidth(), width);
     assert.deepEqual(node.getMargin(Edge.Left), margin);
+    assert.equal(node.getAlignContent(), alignContent);
+    assert.equal(node.getAlignItems(), alignItems);
+    assert.equal(node.getAlignSelf(), alignSelf);
 
     const { loadYoga } = await import("yoga-layout/load");
     const otherFacade = await loadYoga();

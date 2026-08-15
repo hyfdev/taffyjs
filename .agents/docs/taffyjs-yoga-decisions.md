@@ -148,15 +148,15 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 
 ### Type and runtime rejection
 
-[VOUCHED @hyfdev 2026-08-14]
+[VOUCHED @hyfdev 2026-08-16]
 
-**Ruling:** A statically known unsupported method or value must be rejected by the public TypeScript declarations where TypeScript can express the restriction, and every unsupported capability must also throw at runtime for JavaScript, `any`, and dynamic values.
+**Ruling:** An unsupported method or value that TypeScript can identify from one call must be rejected by the public declarations even when Yoga's published parameter type is broader, and every unsupported capability must also throw at runtime for JavaScript, `any`, and dynamic values.
 
-**Limits:** The types need not model combinations assembled across multiple mutable setter calls, such as `minWidth` followed by `flexGrow`; those supported-but-different combinations remain callable. Exact error classes, messages, and the complete initial unsupported list remain implementation choices. Unsupported input must not be silently ignored or converted into a result with semantics the package cannot defend.
+**Limits:** A restriction is statically expressible when unsupported status depends only on that call's argument and the supported values form a finite union. A variable or generic whose type still permits any unsupported member must be narrowed before the call; this compile error is intentional migration feedback, not a defect in drop-in replacement. Use simple named unions rather than conditional types designed to special-case the exact broad upstream enum; named type-only aliases may expose those unions as migration aids without changing the runtime surface. Do not narrow an API merely because its result is Different, and do not try to encode combinations across multiple setters, tree state, or layout output. Exact error classes, messages, and the complete initial unsupported list remain implementation choices. Unsupported input must not be silently ignored or converted into a result with semantics the package cannot defend.
 
-**Why:** Yunfei accepted explicit runtime failure for unsupported options and stated that catching an unsupported use during type checking is preferable whenever possible.
+**Why:** Compile-time rejection helps migration find a potentially unsupported path before that path happens to execute. Preserving a broad upstream declaration would instead allow unsupported members to compile and leave discovery to runtime coverage. Simple finite unions keep the restriction predictable and maintainable, while runtime validation still protects untyped and dynamic calls.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-14; explicitly selected type-level rejection plus runtime checking and vouched the consolidated policy.
+**Source:** Yunfei (`@hyfdev`), 2026-08-14, 2026-08-15, and 2026-08-16; selected type-level rejection plus runtime checking, clarified that a broad Align variable or generic must be treated as a migration issue when it may carry an unsupported property value, accepted named type-only aliases as the friendlier migration path, and explicitly vouched this distilled rule.
 
 ### PositionType public shape
 

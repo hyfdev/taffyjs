@@ -18,7 +18,15 @@ export {
   Unit,
   Wrap,
 } from "./enums.js";
-export type { Config, DirtiedFunction, MeasureFunction, Node } from "./types.js";
+export type {
+  AlignContentValue,
+  AlignItemsValue,
+  AlignSelfValue,
+  Config,
+  DirtiedFunction,
+  MeasureFunction,
+  Node,
+} from "./types.js";
 
 import { createYoga } from "./facade.js";
 
