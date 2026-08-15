@@ -27,3 +27,15 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 **Why:** Yunfei selected vue-tui's command graph as the reference and explicitly required caching to remain disabled; no additional rationale was given.
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly selected the [vue-tui Vite+ configuration](https://github.com/vuejs-ai/vue-tui/blob/main/vite.config.ts) as the orchestration reference and requested `run.cache: false`.
+
+### Code generation remains demand-driven
+
+[VOUCHED @hyfdev 2026-08-15]
+
+**Ruling:** The repository API generator must retain one validated model and target-specific emitters, and it must not gain input fields, internal capabilities, or emitter behavior for a family or output that is not implemented in the same change.
+
+**Limits:** This does not freeze file names or implementation details, prevent removal of demonstrated duplication, or prohibit a concrete new generated family. The generator may be extended when a current output needs a new fact and generation prevents actual drift between maintained outputs. Generated-file length and hypothetical reuse alone do not justify another abstraction or a rewrite.
+
+**Why:** The current schema, input, compiler, and emitter stages respectively preserve editor guidance, generator-time structural validation, one-time reference and conflict resolution, and consistent Rust and TypeScript output. The reviewed shortcuts either made public shorthand acceptance implicit, weakened generation-time validation, or moved the same complexity into another dependency or framework. Repetitive generated code is cheaper to maintain than additional generator machinery.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-15; asked whether the implemented generator was over-designed, accepted the reviewed conclusion that its present boundaries are justified, and explicitly asked to record and vouch the rule that future capabilities must follow concrete implemented demand. See [API code generation: Complexity boundary](api-codegen.md#complexity-boundary).
