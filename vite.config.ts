@@ -99,8 +99,17 @@ export default defineConfig({
       "build:binding": {
         command: "vp run @taffyjs/node#build",
       },
+      "build:wasm:binding": {
+        command:
+          "vp exec --filter @taffyjs/wasm -- napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir .napi-build --target wasm32-wasip1 --platform --js binding.js --dts binding.d.cts --esm --release -- --locked",
+      },
+      "build:wasm:entries": {
+        command: "vp exec --filter @taffyjs/wasm -- vp pack",
+        dependsOn: ["build:wasm:binding"],
+      },
       "build:wasm": {
-        command: "vp run @taffyjs/wasm#build",
+        command: "node tools/taffy-wasm/generate-inline-wasm-runtime-files.ts",
+        dependsOn: ["build:wasm:entries"],
       },
       build: {
         command: "echo build ok",

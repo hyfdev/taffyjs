@@ -7,7 +7,7 @@ This repository is a small Rust and JavaScript monorepo with one shared napi-rs 
 - `.agents/` holds durable project intent and decisions that cannot be expressed in code or configuration.
 - `crates/taffyjs_binding` owns the napi-rs adapter and depends directly on Taffy. A shared Rust crate is justified only when a second Rust consumer needs it.
 - `packages/taffyjs-node` owns the public ESM wrapper and declarations, the private napi-rs loader and declarations, and npm metadata. The wrapper owns JavaScript-only NodeId validity data and context; Taffy owns topology, Style, Layout, cache, and computation state.
-- `packages/taffyjs-wasm` compiles the same authored source from `packages/taffyjs-node/src` against generated private Node and browser adapters that share one inline payload. It owns package metadata, generated artifacts, build-time binding redirection, and the strict adapter generator; it has no authored public wrapper source or separate initialization API.
+- `packages/taffyjs-wasm` compiles the same authored source from `packages/taffyjs-node/src` against generated private Node and browser adapters that share one inline payload. It owns package metadata, generated artifacts, and build-time binding redirection; its package-specific typed generator lives under `tools/taffy-wasm`. It has no authored public wrapper source or separate initialization API.
 - `tests/taffyjs-node` is a private consumer package that tests `@taffyjs/node` through its package boundary.
 - `tests/taffyjs-wasm` is a private consumer package that checks the Wasm package through Node and browser package resolution, reuses the existing public type tests, mechanically inspects the published file set, and installs the packed result in fresh npm and pnpm consumers.
 

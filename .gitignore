@@ -12,6 +12,7 @@ coverage/
 !.env.example
 
 packages/taffyjs-wasm/dist/*
+packages/taffyjs-wasm/.napi-build/
 !packages/taffyjs-wasm/dist/index.js
 !packages/taffyjs-wasm/dist/index.browser.js
 !packages/taffyjs-wasm/dist/index.d.ts

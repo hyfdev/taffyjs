@@ -28,6 +28,18 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly selected the [vue-tui Vite+ configuration](https://github.com/vuejs-ai/vue-tui/blob/main/vite.config.ts) as the orchestration reference and requested `run.cache: false`.
 
+### Typed tools with scope-revealing ownership
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Maintained repository tools must be written in TypeScript and covered by repository type checking. Reusable tools belong at an appropriately shared `tools` scope; a tool coupled to one product or build belongs under `tools/<area>`, such as `tools/taffy-wasm`. Tool filenames must describe the transformation they actually perform rather than using a generic workflow-stage name.
+
+**Limits:** This governs maintained code under `tools`; it does not require generated JavaScript, third-party output, or ephemeral local experiments to become TypeScript. Directory placement follows real ownership and reuse rather than anticipated reuse. A tool whose behavior expands must be split or renamed when its existing name no longer describes that behavior. Command ordering remains governed separately by the explicit Vite+ task-graph ruling.
+
+**Why:** Yunfei required tool code to receive TypeScript validation and required generic and area-specific tools to be distinguishable from their location and behavior-based names. No additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required future tools to use TypeScript with type checking and asked to vouch the principle distilled from placing Taffy Wasm-specific behavior under `tools/taffy-wasm` with a behavior-describing filename.
+
 ### Code generation remains demand-driven
 
 [VOUCHED @hyfdev 2026-08-15]
