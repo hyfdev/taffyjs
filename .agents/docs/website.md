@@ -26,6 +26,8 @@ Guide and each documented package have separate sidebars. Guide teaches in learn
 
 Guide uses `@taffyjs/node` by default while it is the first usable package. At points where runtime choice matters, a short callout sends browser or WebAssembly users to `@taffyjs/wasm` and users seeking Yoga compatibility to `@taffyjs/yoga`. The Guide does not repeat itself once per package.
 
+The Introduction first explains what a layout engine does, then why TaffyJS exists, then the package family's feature scope, and finally credits the upstream work it builds on. Its feature-scope section introduces each package by purpose and distinguishing characteristic without adding installation instructions or empty documentation for unfinished packages.
+
 Getting Started owns the shortest installation path, first complete computation, and observable result. The `@taffyjs/node` overview owns supported Node.js and platform combinations, native import rules, and package scope. The rest of that section is the canonical human-written reference for the direct `TaffyTree`, `Style`, layout result, value helper, and error APIs. The `@taffyjs/wasm` section documents only availability, setup and observable runtime differences, then links to the same direct API reference. The `@taffyjs/yoga` section documents its separate Yoga-compatible surface and differences from the direct API.
 
 The target page groups are:

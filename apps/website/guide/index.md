@@ -1,22 +1,44 @@
 # Introduction
 
-TaffyJS calculates layout for a tree of nodes. You supply the tree, styles, and available space; TaffyJS returns the position and size of each node. Rendering remains your responsibility.
+## What is a Layout Engine
 
-The layout work is performed by [Taffy](https://github.com/DioxusLabs/taffy), a Rust engine that implements Block, Flexbox, and Grid. `@taffyjs/node` exposes that engine as an explicit in-memory JavaScript API. It does not create DOM elements, parse CSS text, or draw anything.
+A layout engine calculates where things go. It takes a tree of nodes, the layout rules attached to them, and the space available to the root. It returns a rectangle for each node: its position and size.
 
-This separation is useful when your program already owns its content and needs layout numbers for another system. Examples include a custom renderer, generated images or documents, and server-side work that should not depend on a browser. If you already have HTML and CSS in a browser, the browser's layout engine is usually the more direct choice.
+Browsers run layout as part of a much larger system that also parses HTML and CSS, paints pixels, and handles interaction. Many JavaScript programs already own those pieces. A canvas renderer, document generator, game UI, or server-side renderer may only need the layout calculation.
 
-## The working model
+TaffyJS provides that calculation directly. It supports Block, Flexbox, and Grid, but it does not create DOM elements, parse CSS text, or render the result.
 
-A TaffyJS program follows one visible sequence:
+## Why TaffyJS
 
-1. Create nodes in a `TaffyTree`.
-2. Connect those nodes into a tree.
-3. Compute layout for a root with a chosen amount of available space.
-4. Read stored layout snapshots from the nodes you need.
+TaffyJS brings [Taffy](https://github.com/DioxusLabs/taffy), a mature layout engine written in Rust, to JavaScript. Rather than reimplementing its algorithms in JavaScript, TaffyJS exposes the same explicit model: create a tree, compute its layout, then read the result for each node.
 
-Changing a style, context, or part of the topology does not run layout automatically. You decide when to recompute, which makes the work easy to place in a renderer or update loop.
+- **A proven layout engine:** Taffy implements Block, Flexbox, and Grid and is used by projects including Servo, Bevy, Slint, and Zed.
+- **Native performance:** `@taffyjs/node` runs the Rust engine through a native Node-API binding instead of requiring a WebAssembly runtime.
+- **A JavaScript-facing API:** Inputs and results use typed, readable JavaScript values while the binding handles the lower-level conversion to Rust.
+- **A direct API across runtimes:** The planned WebAssembly package will share the same high-level tree and layout API as the Node.js package.
 
-Styles use JavaScript objects, plain numbers for concrete lengths, and named values such as `Display.Flex` for other choices. Results use ordinary objects containing numbers. The public API stays close to Taffy's tree model rather than pretending to be a browser or a CSS parser.
+If your content is already HTML and CSS in a browser, the browser's layout engine is usually the more direct choice. TaffyJS is for software that needs layout as data.
 
-Start with [Getting Started](./getting-started.md) to run the shortest complete example. The later Guide pages explain the state changes behind that example and introduce Block, Flexbox, Grid, and measured content without turning into a general CSS tutorial.
+## TaffyJS's Feature Scope
+
+TaffyJS is responsible for layout computation. It owns a node tree, accepts styles and available space, supports custom measurement for content, and stores the computed positions and sizes. Parsing, rendering, and interaction remain the responsibility of the program using it.
+
+The package family separates different runtime and compatibility needs:
+
+### `@taffyjs/node`
+
+The native package for Node.js. It calls Taffy through Node-API and is the default package used throughout this guide. Choose it when your program runs on a supported Node.js platform and can use a native binary.
+
+### `@taffyjs/wasm`
+
+A planned WebAssembly package for browsers and other JavaScript runtimes. It will provide the same high-level API as `@taffyjs/node`, so the tree, styles, and layout code can stay the same when the runtime changes.
+
+### `@taffyjs/yoga`
+
+A planned Yoga-compatible API built on `@taffyjs/node`. It is intended for projects that already use Yoga's node and style model or need a straightforward migration path. It will be a compatibility layer rather than another form of the direct `TaffyTree` API.
+
+This guide uses `@taffyjs/node` by default. Its direct API concepts will also apply to `@taffyjs/wasm`; `@taffyjs/yoga` will have a separate consumer-facing model.
+
+## Credits
+
+TaffyJS would not exist without [Taffy](https://github.com/DioxusLabs/taffy), which provides the layout engine and its Block, Flexbox, and Grid implementations. The native binding is built with [napi-rs](https://napi.rs/). We are grateful to the maintainers and contributors of both projects.
