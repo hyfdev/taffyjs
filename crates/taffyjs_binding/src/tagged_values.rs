@@ -58,14 +58,12 @@ fn parse_dimension_tagged_value(
     Ok(parsed)
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum LengthPercentageInputValue {
     Length(f64),
     Percent(f64),
 }
 
-#[allow(dead_code)]
 pub(crate) fn parse_length_percentage(
     value: Unknown<'_>,
 ) -> NativeResult<LengthPercentageInputValue> {
@@ -79,7 +77,6 @@ pub(crate) fn parse_length_percentage(
     })
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum LengthPercentageAutoInputValue {
     Length(f64),
@@ -87,7 +84,6 @@ pub(crate) enum LengthPercentageAutoInputValue {
     Auto,
 }
 
-#[allow(dead_code)]
 pub(crate) fn parse_length_percentage_auto(
     value: Unknown<'_>,
 ) -> NativeResult<LengthPercentageAutoInputValue> {
@@ -99,7 +95,6 @@ pub(crate) fn parse_length_percentage_auto(
     })
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum DimensionInputValue {
     Length(f64),
@@ -107,7 +102,6 @@ pub(crate) enum DimensionInputValue {
     Auto,
 }
 
-#[allow(dead_code)]
 pub(crate) fn parse_dimension(value: Unknown<'_>) -> NativeResult<DimensionInputValue> {
     let parsed = parse_dimension_tagged_value(value, true)?;
     Ok(match parsed {
@@ -162,7 +156,6 @@ fn parse_available_space_tagged_value(
     Ok(parsed)
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum AvailableSpaceInputValue {
     Definite(f64),
@@ -170,7 +163,6 @@ pub(crate) enum AvailableSpaceInputValue {
     MaxContent,
 }
 
-#[allow(dead_code)]
 pub(crate) fn parse_available_space(value: Unknown<'_>) -> NativeResult<AvailableSpaceInputValue> {
     let parsed = parse_available_space_tagged_value(value, true)?;
     Ok(match parsed {

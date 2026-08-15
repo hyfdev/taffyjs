@@ -36,14 +36,9 @@ function emitAlias(lines: string[], family: TaggedFamily, alias: TaggedAlias): v
   const taggedEnumName = `${family.name}TaggedValue`;
   const aliasEnumName = `${alias.name}InputValue`;
   const acceptedBranches = new Set(alias.branches);
-  lines.push(
-    "",
-    "#[allow(dead_code)]",
-    "#[derive(Clone, Copy, Debug, PartialEq)]",
-    `pub(crate) enum ${aliasEnumName} {`,
-  );
+  lines.push("", "#[derive(Clone, Copy, Debug, PartialEq)]", `pub(crate) enum ${aliasEnumName} {`);
   for (const branch of alias.branches) lines.push(`    ${enumVariant(branch)},`);
-  lines.push("}", "", "#[allow(dead_code)]");
+  lines.push("}", "");
   emitFunctionStart(lines, `parse_${alias.rustName}`, aliasEnumName);
   const callArguments =
     family.numberShorthand === undefined ? "value" : `value, ${alias.acceptsNumber}`;

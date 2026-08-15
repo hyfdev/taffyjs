@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 function maxContentSpace() {
@@ -8,7 +8,7 @@ function maxContentSpace() {
 
 function fractionalNode(tree: TaffyTree) {
   return tree.newLeaf({
-    size: { width: Dimension.Length(10.5), height: Dimension.Length(6.25) },
+    size: { width: 10.5, height: 6.25 },
   });
 }
 

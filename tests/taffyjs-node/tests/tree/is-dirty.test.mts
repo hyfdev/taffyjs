@@ -1,12 +1,5 @@
 import assert from "node:assert/strict";
-import {
-  AlignContent,
-  AvailableSpace,
-  Dimension,
-  Display,
-  type NodeId,
-  TaffyTree,
-} from "@taffyjs/node";
+import { AlignContent, AvailableSpace, Display, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
@@ -136,11 +129,11 @@ test("explicit", () => {
 test("child-nuance", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf({
-    size: { width: Dimension.Length(10), height: Dimension.Length(10) },
+    size: { width: 10, height: 10 },
   });
   const rootStyle = {
     display: Display.Flex,
-    size: { width: Dimension.Length(100), height: Dimension.Length(20) },
+    size: { width: 100, height: 20 },
   };
   const root = tree.newWithChildren({ ...rootStyle, justifyContent: AlignContent.Start }, [child]);
   compute(tree, root);

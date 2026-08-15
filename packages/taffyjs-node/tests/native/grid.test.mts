@@ -57,10 +57,7 @@ test("Grid helpers and direct tagged records store the same values", () => {
     [TrackSizingFunction.Auto, { min: auto, max: auto }],
     [TrackSizingFunction.MinContent, { min: { kind: 3 }, max: { kind: 3 } }],
     [TrackSizingFunction.MaxContent, { min: { kind: 4 }, max: { kind: 4 } }],
-    [
-      TrackSizingFunction.FitContent(semanticLength),
-      { min: auto, max: { kind: 5, value: semanticLength } },
-    ],
+    [TrackSizingFunction.FitContent(10), { min: auto, max: { kind: 5, value: semanticLength } }],
     [TrackSizingFunction.Fr(2), { min: auto, max: { kind: 6, value: 2 } }],
     [
       TrackSizingFunction.MinMax(length, { kind: 6, value: 2 }),

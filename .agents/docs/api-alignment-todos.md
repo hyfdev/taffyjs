@@ -1,10 +1,6 @@
 # @taffyjs/node API Alignment TODOs
 
-The direct Taffy 0.13 binding is implemented. This file contains remaining public-input alignment plus open work that needs product evidence or a dependency change.
-
-## Public input alignment
-
-- [ ] Extend `tools/api-codegen` with the accepted tagged-input model, then add direct-number shorthand for absolute semantic lengths and definite available space through generated TypeScript types, JSDoc, complete-form helpers, and Rust boundary parsing. Map numbers and their equivalent tagged records directly to the same Rust boundary value without allocating replacement objects in JavaScript. Keep `Dimension.Length(value)`, `AvailableSpace.Definite(value)`, direct tagged records, and binding-produced tagged outputs valid as inputs; the shorthand is additive rather than a replacement. Update maintained examples and ordinary behavior tests to prefer the shorthand while retaining focused complete-form coverage.
+The direct Taffy 0.13 binding is implemented. This file contains open work that needs product evidence or a dependency change.
 
 ## Performance
 
