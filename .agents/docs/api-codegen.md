@@ -14,6 +14,14 @@ Inputs use a small, explicit vocabulary. They may name known Rust or TypeScript 
 
 Generation is appropriate when the same finite facts must agree in more than one output. Ordinary handwritten logic stays handwritten when sharing an input would not remove a real drift risk.
 
+## Complexity boundary
+
+Keep the generator's input fields, normalized data, and emitter capabilities closed until a concrete output in the same change needs an extension. Do not add machinery for a hypothetical family, payload type, target, or output. A new generated family belongs here only when a finite fact must stay aligned across maintained outputs; target-specific behavior otherwise stays handwritten.
+
+Judge complexity by the rules people maintain, not by the length of generated files. Straight-line generated Rust or TypeScript may repeat itself. Do not replace that repetition with a macro layer, template language, syntax-tree framework, plugin mechanism, runtime metadata system, or general binding description unless a current implementation demonstrates that the replacement removes more maintained concepts than it adds.
+
+The existing stages remain separate because they answer different questions: schemas describe the basic input shape, input code validates what the generator actually reads, compilers resolve references and conflicts once, and emitters render one already-decided model. A simplification must preserve those guarantees instead of making an API boundary implicit, delaying errors until target compilation, or moving the same rules into a new dependency. Concrete duplication may still be removed when it appears; these boundaries do not require keeping an implementation merely because it already exists.
+
 ## Generated tagged inputs
 
 The mapping from a primitive shorthand to a complete tagged branch is one shared API fact. A focused versioned input under `api/` must describe the tagged value name, tag field, referenced numeric family, branches, payload fields, public input aliases, and the optional input-only number shorthand. The compiler resolves every family and branch reference against the numeric-family model and rejects an unknown branch, incompatible payload, duplicate public name, or ambiguous shorthand before either target is emitted. This is a separate input family within `tools/api-codegen`, not a property added to `numeric-families.json`: numbers in that file are discriminator codes, while shorthand numbers are payload values.
