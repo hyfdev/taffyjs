@@ -28,9 +28,11 @@ try {
   });
   const tarballs = (await readdir(packDirectory)).filter((name) => name.endsWith(".tgz"));
   assert.equal(tarballs.length, 1);
-  const tarball = resolve(packDirectory, tarballs[0]);
+  const [tarballName] = tarballs;
+  assert.notEqual(tarballName, undefined);
+  const tarball = resolve(packDirectory, tarballName);
 
-  for (const packageManager of ["npm", "pnpm"]) {
+  for (const packageManager of ["npm", "pnpm"] as const) {
     const consumerDirectory = resolve(temporaryDirectory, packageManager);
     await mkdir(consumerDirectory);
     if (packageManager === "npm") {

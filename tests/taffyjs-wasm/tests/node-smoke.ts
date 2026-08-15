@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
-import { TaffyTree } from "@taffyjs/wasm";
+import { TaffyTree, type MeasureFunction } from "@taffyjs/wasm";
 
-function capture(body) {
+function capture(body: () => unknown): unknown {
   try {
     body();
   } catch (error) {
@@ -12,11 +12,11 @@ function capture(body) {
 }
 
 const context = { label: "wasm-node" };
-const tree = new TaffyTree();
+const tree = new TaffyTree<typeof context>();
 const root = tree.newLeafWithContext({}, context);
 let measureCalls = 0;
 
-const compute = (measure) =>
+const compute = (measure: MeasureFunction<typeof context>) =>
   tree.computeLayoutWithMeasure({
     root,
     availableSpace: { width: 800, height: 600 },

@@ -1,12 +1,24 @@
 import assert from "node:assert/strict";
+
+import type { MeasureFunction } from "@taffyjs/node";
+
+type Context = { label: string };
+type TestModule = typeof import("@taffyjs/node");
+
 const testEntry = process.env.TAFFYJS_TEST_ENTRY ?? "@taffyjs/node";
-const { AvailableSpace, TaffyTree } = await import(testEntry);
+const { AvailableSpace, TaffyTree } = (await import(testEntry)) as TestModule;
 
-const immediate = () => new Promise((resolve) => setImmediate(resolve));
+const collectGarbage = globalThis.gc;
+if (typeof collectGarbage !== "function") {
+  throw new Error("This fixture requires --expose-gc");
+}
+const runGarbageCollection: () => void = collectGarbage;
 
-async function collect(weak) {
+const immediate = () => new Promise<void>((resolve) => setImmediate(resolve));
+
+async function collect<T extends WeakKey>(weak: WeakRef<T>): Promise<boolean> {
   for (let attempt = 0; attempt < 100; attempt += 1) {
-    globalThis.gc();
+    runGarbageCollection();
     await immediate();
     if (weak.deref() === undefined) return true;
     await immediate();
@@ -15,8 +27,8 @@ async function collect(weak) {
 }
 
 function removedContext() {
-  const tree = new TaffyTree();
-  let context = { label: "removed" };
+  const tree = new TaffyTree<Context>();
+  let context: Context | undefined = { label: "removed" };
   const weak = new WeakRef(context);
   const node = tree.newLeafWithContext({}, context);
   context = undefined;
@@ -25,8 +37,8 @@ function removedContext() {
 }
 
 function clearedContext() {
-  const tree = new TaffyTree();
-  let context = { label: "cleared" };
+  const tree = new TaffyTree<Context>();
+  let context: Context | undefined = { label: "cleared" };
   const weak = new WeakRef(context);
   tree.newLeafWithContext({}, context);
   context = undefined;
@@ -35,19 +47,20 @@ function clearedContext() {
 }
 
 function failedConversionContext() {
-  const tree = new TaffyTree();
-  let context = { label: "failed conversion" };
+  const tree = new TaffyTree<Context>();
+  let context: Context | undefined = { label: "failed conversion" };
   const weak = new WeakRef(context);
+  // @ts-expect-error This fixture verifies the runtime rejection of an invalid style.
   assert.throws(() => tree.newLeafWithContext({ unknownField: true }, context), TypeError);
   context = undefined;
   return { tree, weak };
 }
 
 function completedMeasureCallback() {
-  const tree = new TaffyTree();
+  const tree = new TaffyTree<Context>();
   const node = tree.newLeafWithContext({}, { label: "measured" });
-  let callback = ({ context }) => {
-    assert.equal(context.label, "measured");
+  let callback: MeasureFunction<Context> | undefined = ({ context }) => {
+    assert.equal(context?.label, "measured");
     return { width: 31, height: 17 };
   };
   const weak = new WeakRef(callback);
@@ -63,7 +76,6 @@ function completedMeasureCallback() {
   return { tree, weak };
 }
 
-if (typeof globalThis.gc !== "function") throw new Error("This fixture requires --expose-gc");
 const removed = removedContext();
 const cleared = clearedContext();
 const failedConversion = failedConversionContext();

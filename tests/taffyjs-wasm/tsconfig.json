@@ -5,7 +5,10 @@
     "moduleDetection": "force",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "types": [],
+    "types": ["node"],
+    "paths": {
+      "@taffyjs/wasm": ["../../packages/taffyjs-node/src/index.ts"]
+    },
     "strict": true,
     "noUnusedLocals": true,
     "noEmit": true,

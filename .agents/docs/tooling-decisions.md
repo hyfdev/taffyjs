@@ -4,6 +4,16 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### TypeScript by default for maintained JavaScript-ecosystem code
+
+**Ruling:** Maintained source, tests, fixtures, configuration, and tools in the JavaScript ecosystem must be written in TypeScript unless a concrete execution or generated-output boundary requires JavaScript.
+
+**Limits:** Generated package files, napi-rs loader output, required final `.js` or `.cjs` package formats, and JavaScript text intentionally executed as an installed-consumer payload are not authored TypeScript source. A maintained JavaScript file needs a specific present constraint; convenience, file size, or lack of existing annotations is not sufficient. This does not change the public package output format.
+
+**Why:** Yunfei established TypeScript as the repository-wide default and required an actual special reason for any exception; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly stated that everything should use TypeScript unless there is a special reason not to.
+
 ### Vite+ owns JavaScript package builds
 
 [VOUCHED @hyfdev 2026-08-09]

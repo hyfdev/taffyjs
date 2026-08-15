@@ -152,7 +152,7 @@ test("callback-type-before-cache", () => {
 });
 
 test("same-tree-busy", () => {
-  const fixture = fileURLToPath(new URL("./fixtures/measure-reentrancy.mjs", import.meta.url));
+  const fixture = fileURLToPath(new URL("./fixtures/measure-reentrancy.ts", import.meta.url));
   const child = spawnSync(process.execPath, [fixture], { encoding: "utf8", timeout: 20_000 });
   assert.equal(child.signal, null);
   assert.equal(child.status, 0, child.stderr);

@@ -11,7 +11,7 @@ const output = execFileSync(npm, ["pack", "--dry-run", "--json"], {
   cwd: packageDirectory,
   encoding: "utf8",
 });
-const [pack] = JSON.parse(output);
+const [pack] = JSON.parse(output) as [{ files: Array<{ path: string }> }];
 const files = pack.files.map(({ path }) => path).sort();
 
 assert.deepEqual(files, [
@@ -43,18 +43,24 @@ const encodedWasmMarkers = packageJavaScript.match(/AGFzbQE/g) ?? [];
 
 assert.equal(encodedWasmMarkers.length, 1);
 assert.equal((packageJavaScript.match(/WebAssembly\.compile\(/g) ?? []).length, 1);
-assert.equal(sourceByPath.get("dist/taffyjs.wasm-base64.js").includes("AGFzbQE"), true);
+assert.equal(packageSource("dist/taffyjs.wasm-base64.js").includes("AGFzbQE"), true);
 assert.equal(packageJavaScript.includes("node:wasi"), false);
 assert.equal(packageJavaScript.includes("process.env"), false);
 assert.equal(packageJavaScript.includes("preopens"), false);
 
-const nodeEntry = sourceByPath.get("dist/index.js");
-const browserEntry = sourceByPath.get("dist/index.browser.js");
-const nodeBridge = sourceByPath.get("dist/taffyjs.node.js");
-const nodeAdapter = sourceByPath.get("dist/taffyjs.node.cjs");
-const payload = sourceByPath.get("dist/taffyjs.wasm-base64.js");
-const browserAdapter = sourceByPath.get("dist/taffyjs.browser.js");
-const deferredLoader = sourceByPath.get("dist/taffyjs.wasip1-deferred.js");
+function packageSource(path: string): string {
+  const source = sourceByPath.get(path);
+  if (source === undefined) throw new Error(`Missing package source ${path}`);
+  return source;
+}
+
+const nodeEntry = packageSource("dist/index.js");
+const browserEntry = packageSource("dist/index.browser.js");
+const nodeBridge = packageSource("dist/taffyjs.node.js");
+const nodeAdapter = packageSource("dist/taffyjs.node.cjs");
+const payload = packageSource("dist/taffyjs.wasm-base64.js");
+const browserAdapter = packageSource("dist/taffyjs.browser.js");
+const deferredLoader = packageSource("dist/taffyjs.wasip1-deferred.js");
 const nodeGraph = [nodeEntry, nodeBridge, nodeAdapter].join("\n");
 
 assert.equal(nodeEntry.includes('from "./taffyjs.node.js"'), true);

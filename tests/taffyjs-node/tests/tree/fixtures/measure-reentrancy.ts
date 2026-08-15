@@ -1,5 +1,9 @@
+type TestModule = typeof import("@taffyjs/node");
+type Operation = readonly [method: string, operation: () => unknown];
+type OperationResult = { method: string; code?: unknown; message: string };
+
 const testEntry = process.env.TAFFYJS_TEST_ENTRY ?? "@taffyjs/node";
-const { AvailableSpace, TaffyTree } = await import(testEntry);
+const { AvailableSpace, TaffyTree } = (await import(testEntry)) as TestModule;
 
 const tree = new TaffyTree();
 const measured = tree.newLeafWithContext({}, { label: "measured" });
@@ -7,7 +11,7 @@ const sibling = tree.newLeaf({});
 const spare = tree.newLeaf({});
 const root = tree.newWithChildren({}, [measured, sibling]);
 const space = { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent };
-const operations = [
+const operations: readonly Operation[] = [
   ["enableRounding", () => tree.enableRounding()],
   ["disableRounding", () => tree.disableRounding()],
   ["newLeaf", () => tree.newLeaf({})],
@@ -38,12 +42,17 @@ const operations = [
   ["computeLayout", () => tree.computeLayout({ root, availableSpace: space })],
   [
     "computeLayoutWithMeasure",
-    () => tree.computeLayoutWithMeasure({ root, availableSpace: space, measure: () => ({}) }),
+    () =>
+      tree.computeLayoutWithMeasure({
+        root,
+        availableSpace: space,
+        measure: () => ({ width: 0, height: 0 }),
+      }),
   ],
 ];
 
 let callbackRan = false;
-const results = [];
+const results: OperationResult[] = [];
 tree.computeLayoutWithMeasure({
   root,
   availableSpace: space,
@@ -55,7 +64,10 @@ tree.computeLayoutWithMeasure({
           operation();
           results.push({ method, message: "did not throw" });
         } catch (error) {
-          results.push({ method, code: error.code, message: error.message });
+          const code =
+            typeof error === "object" && error !== null && "code" in error ? error.code : undefined;
+          const message = error instanceof Error ? error.message : String(error);
+          results.push({ method, code, message });
         }
       }
     }
