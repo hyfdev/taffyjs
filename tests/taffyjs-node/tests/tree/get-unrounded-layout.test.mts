@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
@@ -49,7 +49,7 @@ test("fractional", () => {
   for (const rounding of ["enabled", "disabled"] as const) {
     const tree = new TaffyTree();
     const node = tree.newLeaf({
-      size: { width: Dimension.Length(10.5), height: Dimension.Length(6.25) },
+      size: { width: 10.5, height: 6.25 },
     });
     if (rounding === "enabled") tree.enableRounding();
     else tree.disableRounding();
@@ -62,13 +62,13 @@ test("fractional", () => {
 test("stale-stored", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
+    size: { width: 20, height: 10 },
   });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   const before = tree.getUnroundedLayout(node);
 
   tree.setStyle(node, {
-    size: { width: Dimension.Length(40), height: Dimension.Length(30) },
+    size: { width: 40, height: 30 },
   });
   assert.deepEqual(tree.getUnroundedLayout(node), before);
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
@@ -78,7 +78,7 @@ test("stale-stored", () => {
 test("detached", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
+    size: { width: 20, height: 10 },
   });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   const first = tree.getUnroundedLayout(node);

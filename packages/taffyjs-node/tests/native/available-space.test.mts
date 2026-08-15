@@ -45,6 +45,10 @@ test("AvailableSpace helpers and direct tagged records compute the same layout",
   }
 });
 
+test("number shorthand and AvailableSpace.Definite compute the same layout", () => {
+  assert.deepEqual(layoutFor(120), layoutFor(AvailableSpace.Definite(120)));
+});
+
 test("Definite available space requires a numeric value", () => {
   assert.throws(() => layoutFor({ kind: 0 }), TypeError);
   for (const value of ["1", true, 1n, {}, []]) {
@@ -59,17 +63,14 @@ test("content constraints ignore fields from inactive variants", () => {
 
 test("Definite available space follows the shared f32 conversion", () => {
   for (const value of [-1, Number.MAX_VALUE, Number.MIN_VALUE, NaN, Infinity, -Infinity]) {
-    const layout = layoutFor({ kind: 0, value });
+    const layout = layoutFor(value);
     assert.equal(typeof layout.size.width, "number");
   }
-  assert.deepEqual(
-    layoutFor({ kind: 0, value: 0.1 }),
-    layoutFor({ kind: 0, value: Math.fround(0.1) }),
-  );
+  assert.deepEqual(layoutFor(0.1), layoutFor(Math.fround(0.1)));
 });
 
 test("available space rejects unsupported shapes and kind values", () => {
-  for (const value of [0, "max-content", true, null, {}, []]) {
+  for (const value of ["max-content", true, null, {}, []]) {
     assert.throws(() => layoutFor(value), TypeError);
   }
   for (const value of [

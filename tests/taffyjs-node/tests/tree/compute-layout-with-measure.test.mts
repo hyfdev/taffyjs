@@ -17,7 +17,7 @@ import { test } from "vite-plus/test";
 
 function availableSpace() {
   return {
-    width: AvailableSpace.Definite(200),
+    width: 200,
     height: AvailableSpace.MinContent,
   };
 }
@@ -63,7 +63,10 @@ test("callback-args", () => {
     "style",
   ]);
   assert.deepEqual(saved.knownDimensions, { width: undefined, height: undefined });
-  assert.deepEqual(saved.availableSpace, availableSpace());
+  assert.deepEqual(saved.availableSpace, {
+    width: { kind: AvailableSpaceKind.Definite, value: 200 },
+    height: AvailableSpace.MinContent,
+  });
   assert.equal(saved.node, node);
   assert.equal(saved.context, context);
   assert.deepEqual(saved.style, tree.getStyle(node));

@@ -190,12 +190,14 @@ where
     number::to_integer(value)
 }
 
-fn is_tagged_length(value: Unknown<'_>) -> NativeResult<bool> {
-    if value
+fn is_length_input(value: Unknown<'_>) -> NativeResult<bool> {
+    let value_type = value
         .get_type()
-        .map_err(|_| type_error("Expected a length or geometry object"))?
-        != ValueType::Object
-    {
+        .map_err(|_| type_error("Expected a length or geometry object"))?;
+    if value_type == ValueType::Number {
+        return Ok(true);
+    }
+    if value_type != ValueType::Object {
         return Ok(false);
     }
     let input: MaybeTaggedLengthInput =
@@ -207,7 +209,7 @@ fn dimension_size(
     value: Unknown<'_>,
     default: Size<taffy::Dimension>,
 ) -> NativeResult<Size<taffy::Dimension>> {
-    if is_tagged_length(value)? {
+    if is_length_input(value)? {
         let value = length::dimension(value)?;
         Ok(Size {
             width: value,
@@ -222,7 +224,7 @@ fn auto_rect(
     value: Unknown<'_>,
     default: Rect<taffy::LengthPercentageAuto>,
 ) -> NativeResult<Rect<taffy::LengthPercentageAuto>> {
-    if is_tagged_length(value)? {
+    if is_length_input(value)? {
         let value = length::length_percentage_auto(value)?;
         Ok(Rect {
             left: value,
@@ -239,7 +241,7 @@ fn length_rect(
     value: Unknown<'_>,
     default: Rect<taffy::LengthPercentage>,
 ) -> NativeResult<Rect<taffy::LengthPercentage>> {
-    if is_tagged_length(value)? {
+    if is_length_input(value)? {
         let value = length::length_percentage(value)?;
         Ok(Rect {
             left: value,
@@ -256,7 +258,7 @@ fn length_size(
     value: Unknown<'_>,
     default: Size<taffy::LengthPercentage>,
 ) -> NativeResult<Size<taffy::LengthPercentage>> {
-    if is_tagged_length(value)? {
+    if is_length_input(value)? {
         let value = length::length_percentage(value)?;
         Ok(Size {
             width: value,

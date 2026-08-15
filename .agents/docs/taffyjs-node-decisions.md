@@ -20,11 +20,13 @@ After the binding has produced a complete representable Rust value and satisfied
 
 ## Public data model
 
-[VOUCHED @hyfdev 2026-08-14]
+[VOUCHED @hyfdev 2026-08-15]
 
-Readable ordinary JavaScript data objects are the default input and output representation. Input record properties and helper-produced objects remain mutable. Collection-valued inputs accept readonly arrays because the binding only reads them; ordinary mutable arrays remain valid inputs. Binding-produced snapshots are detached and recursively readonly in TypeScript, but runtime objects are not frozen, sealed, proxied, cached, or backed by a live Rust borrow.
+Readable ordinary JavaScript values are the public contract. Inputs are designed to be natural to write, while outputs are designed to make their complete meaning visible. Input and output do not need to use the same runtime representation. Input records remain mutable. Collection-valued inputs accept readonly arrays because the binding only reads them; ordinary mutable arrays remain valid inputs. Binding-produced snapshots are detached and recursively readonly in TypeScript, but runtime objects are not frozen, sealed, proxied, cached, or backed by a live Rust borrow.
 
-Closed fieldless families use singular PascalCase frozen objects with stable numeric literal members, such as `Display.Flex`. Payload variants use ordinary numeric-tagged records. Semantic lengths, available space, geometry, alignment, and Grid compose these rules rather than introducing strings, packed values, native owner objects, or CSS grammar.
+Closed choices without associated data use singular PascalCase frozen objects with stable numeric literal members, such as `Display.Flex`. When a numeric input has one clear common meaning, callers may use a number as an additive shorthand: a length number means an absolute length, and an available-space number means `Definite`. The complete forms remain supported, including `Dimension.Length(20)` and `AvailableSpace.Definite(640)`; the shorthand does not replace them. Other meanings remain explicit through values such as `Dimension.Percent(50)`, `Dimension.Auto`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent`. Values returned by the binding keep complete numeric-tagged records, and those returned values remain valid as later inputs. Other values that carry data, including Grid values, continue to use ordinary tagged records. Public values do not use CSS strings, packed numbers, buffers, or native owner objects.
+
+The private representation passed from JavaScript to Rust is a separate implementation choice. Small fixed values may use primitive parameters, and larger values may use a compact buffer when measurements show that it is beneficial. Changing this private representation must not change the public input or output API.
 
 `StyleInput` uses defaults for missing or `undefined` fields, explicit `null` only for publicly nullable fields, strict top-level and partial-geometry field names, and complete replacement in `setStyle`. `getStyle` and measure callbacks receive complete eager snapshots. A measured future optimization may be additive; no selector, query, lazy object, or output cache belongs to the baseline.
 
@@ -169,6 +171,20 @@ Test tasks, test files, and independent tests within a file run in parallel by d
 [VOUCHED @hyfdev 2026-08-14]
 
 New public state owners, compatibility layers, retained JavaScript values, callback models, private transports, batching, caches, or output representations require a concrete consumer need. Performance changes additionally require retained end-to-end measurements that include JavaScript conversion cost. Open work is tracked in [API alignment TODOs](api-alignment-todos.md).
+
+## Decided
+
+### Generated numeric input shorthand
+
+[VOUCHED @hyfdev 2026-08-15]
+
+**Ruling:** The direct-number mappings for absolute lengths and definite available space must be maintained once in the repository API generator rather than repeated by hand across TypeScript and Rust. The generated public TypeScript types, JSDoc, and complete-form helpers and the generated Rust input parser must agree that a number maps to the `Length(value)` or `Definite(value)` branch. Both the number and its complete tagged form must reach the same Rust boundary value without first allocating a replacement tagged object in JavaScript. After the shorthand is implemented, maintained JavaScript and TypeScript examples and ordinary behavior tests must use it by default wherever it expresses the same value.
+
+**Limits:** `Dimension.Length(value)`, `AvailableSpace.Definite(value)`, direct tagged records, and tagged outputs passed back as input remain supported. Output remains a complete tagged value. Focused examples and tests retain complete forms when explaining, exercising, narrowing, or round-tripping them, and documentation must not imply that they are deprecated. The generator owns the public boundary shape and input normalization for these two accepted shorthands, not Taffy-specific conversion such as percentage scaling, Style traversal, private transport choices, Grid values, or query generation. This decision does not create a general binding-description language or approve additional primitive shorthands.
+
+**Why:** The shorthand's target branch is one cross-language fact currently represented by TypeScript types and helpers, JSDoc, and Rust parsing, so handwritten copies can drift. Converting the shorthand to an object in JavaScript would add allocation and eventually require an extra walk over nested Style input; direct generated Rust normalization preserves the separation between the ergonomic public input and the private native path.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-15; required examples and ordinary tests to prefer available shorthand, required JSDoc to name the corresponding complete form, accepted generator ownership with direct Rust normalization instead of JavaScript object materialization, and explicitly asked for the resulting design to be vouched. See [Generated tagged inputs](api-codegen.md#generated-tagged-inputs).
 
 ## Open
 

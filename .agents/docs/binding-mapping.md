@@ -30,7 +30,9 @@ Malformed, foreign, and stale IDs use `ERR_TAFFY_INVALID_NODE_ID`, `ERR_TAFFY_FO
 
 ## Input conversion
 
-Public inputs use readable JavaScript records and tagged unions. The binding does not expose a private buffer format, packed Rust representation, raw pointer, or calc handle.
+Public inputs use readable JavaScript values. Ordinary records and tagged unions remain the complete forms, while direct numbers are additive shorthand for an absolute length or definite available space. The binding does not expose a private buffer format, packed Rust representation, raw pointer, or calc handle.
+
+The public input and output representations do not constrain the private representation passed from JavaScript to Rust. That private representation may change without changing public behavior, but any performance-driven change still requires the evidence described below.
 
 Ordinary input objects are read through normal JavaScript property access. Accessors and Proxies are caller-controlled behavior and do not receive a second defensive object model. Conversion must still finish before the corresponding tree mutation begins.
 
@@ -50,11 +52,17 @@ Indices and Rust integer payloads must be finite exact integers in the target ra
 
 Fieldless families such as `Display`, `Overflow`, and `AlignItems` use stable numeric literal members exposed through frozen PascalCase objects. Public code should use the names, while an exact valid raw code remains accepted. Rust conversion checks exact family membership and does not derive codes from Rust declaration order.
 
-### Tagged values and Grid
+### Lengths, available space, and other tagged values
 
-Payload variants use ordinary records with numeric discriminators. `AvailableSpace`, semantic lengths, Grid placement, track sizing, repetition counts, and template components share this rule. A branch requires its own payload fields; unrelated structural properties do not become part of canonical output.
+Length inputs accept a direct number as shorthand for an absolute length. The complete tagged form remains supported through values such as `Dimension.Length(20)`, `Dimension.Percent(50)`, and `Dimension.Auto`, and tagged length outputs remain valid later inputs. Percent helpers use user-facing percentages, so `50` maps to Taffy's `0.5`. CSS strings are not length values.
 
-Percent helpers use user-facing percentages, so `50` maps to Taffy's `0.5`. Bare numbers and CSS strings are not semantic-length or available-space values.
+Available-space inputs accept a direct number as shorthand for `Definite`. The complete forms remain supported through `AvailableSpace.Definite(value)`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent`, and tagged available-space outputs remain valid later inputs. Every JavaScript number, including negative values, `NaN`, and infinities, retains the existing definite-value conversion behavior; no number is reserved for a special variant.
+
+Maintained examples and ordinary behavior tests use these numeric shorthands by default. Focused tests and explanations retain the complete forms where those forms are the subject. Public JSDoc names the corresponding `Dimension.Length(value)` or `AvailableSpace.Definite(value)` form whenever it documents a numeric shorthand.
+
+The accepted implementation makes these mappings part of the repository generator contract. Generated TypeScript declarations, JSDoc, complete-form helpers, and Rust boundary parsing share one tagged-input model. Rust parses a number or tagged record directly into the same boundary value; JavaScript does not allocate a replacement tagged object or walk nested Style solely to normalize the shorthand. Taffy-specific conversion and the use of each input type inside geometry and Style remain handwritten. [API code generation](api-codegen.md#generated-tagged-inputs) records the boundary in detail.
+
+Other values that carry data, including Grid placement, track sizing, repetition counts, and template components, use ordinary records with numeric discriminators. A branch requires its own payload fields; unrelated structural properties do not become part of complete output.
 
 Grid integers use checked `i16` or `u16` conversion, strings remain ordinary identifiers rather than a CSS grammar, and nested collections are copied completely before mutation. The binding prevents the known Taffy 0.13 named-line underflow shape but otherwise leaves safely representable Grid semantics to Taffy.
 
@@ -96,4 +104,4 @@ Known JavaScript-controlled panic paths are prevented before Taffy. The Rust own
 
 When dependencies change, diff the high-level Taffy methods and all transitive value types, recheck napi-rs conversion and callback behavior, re-audit every panic and lifetime boundary, rebuild public declarations from source, and update JavaScript integration tests with the converters.
 
-Do not change the public object API or private transport for assumed speed. The only active performance work is listed in [API alignment TODOs](api-alignment-todos.md) and requires a real consumer workload plus retained end-to-end measurements.
+Do not change the public API or private JavaScript-to-Rust representation for assumed speed. The two representations are separate decisions, and the only active performance work is listed in [API alignment TODOs](api-alignment-todos.md) and requires a real consumer workload plus retained end-to-end measurements.

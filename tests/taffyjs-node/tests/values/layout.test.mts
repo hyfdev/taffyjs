@@ -37,9 +37,9 @@ test("zero", () => {
 test("f32-special", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: { unit: 0, value: Infinity }, height: { unit: 0, value: Infinity } },
-    border: { right: { unit: 0, value: NaN } },
-    padding: { bottom: { unit: 0, value: NaN } },
+    size: { width: Infinity, height: Infinity },
+    border: { right: NaN },
+    padding: { bottom: NaN },
   });
   tree.computeLayout({ root: node, availableSpace: minContentSpace() });
   const layout = tree.getUnroundedLayout(node);

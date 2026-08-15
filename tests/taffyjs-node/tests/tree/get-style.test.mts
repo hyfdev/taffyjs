@@ -117,7 +117,7 @@ test("stored-f32", () => {
 test("deep-detached", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(10) },
+    size: { width: 10 },
     gridTemplateRowNames: [["start"], ["end"]],
     gridAutoRows: [TrackSizingFunction.Fr(2)],
   });

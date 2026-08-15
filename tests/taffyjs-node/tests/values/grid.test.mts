@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import {
-  Dimension,
   GridPlacement,
   GridTemplateComponent,
   RepetitionCount,
@@ -37,7 +36,7 @@ test("families", () => {
 });
 
 test("minmax", () => {
-  const length = Dimension.Length(10);
+  const length = 10;
   const percent = TrackSizingFunction.Percent(25).min;
   const auto = { kind: 2 };
   const minContent = { kind: 3 };
@@ -47,7 +46,7 @@ test("minmax", () => {
   assert.deepEqual(TrackSizingFunction.MaxContent, { min: maxContent, max: maxContent });
   assert.deepEqual(TrackSizingFunction.FitContent(length), {
     min: auto,
-    max: { kind: 5, value: length },
+    max: { kind: 5, value: 10 },
   });
   assert.deepEqual(TrackSizingFunction.Fr(2), { min: auto, max: { kind: 6, value: 2 } });
   assert.deepEqual(TrackSizingFunction.MinMax(percent, maxContent), {

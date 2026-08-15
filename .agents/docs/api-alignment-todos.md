@@ -1,10 +1,10 @@
 # @taffyjs/node API Alignment TODOs
 
-The direct Taffy 0.13 binding is implemented. This file contains only open work that needs product evidence or a dependency change.
+The direct Taffy 0.13 binding is implemented. This file contains open work that needs product evidence or a dependency change.
 
 ## Performance
 
-- [ ] Use a real consumer workload and complete end-to-end measurements before changing data transfer. If a problem is shown, consider positional numbers for small fixed inputs, a compact private buffer for large inputs such as `StyleInput`, batch operations, selective reads, or another measured solution. Include JavaScript conversion cost and preserve the public object API.
+- [ ] Use a real consumer workload and complete end-to-end measurements before changing data transfer. If a problem is shown, consider positional numbers for small fixed inputs, a compact private buffer for large inputs such as `StyleInput`, batch operations, selective reads, or another measured solution. Include JavaScript conversion cost and preserve the public API.
 
 ## Optional APIs and dependency changes
 

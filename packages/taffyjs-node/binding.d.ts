@@ -37,11 +37,6 @@ export declare class NativeTaffyTree {
   ): void;
 }
 
-export interface AvailableSpaceInput {
-  kind: number;
-  value?: number;
-}
-
 export interface AvailableSpaceOutput {
   kind: number;
   value?: number;
@@ -50,6 +45,11 @@ export interface AvailableSpaceOutput {
 export interface AvailableSpaceSizeOutput {
   width: AvailableSpaceOutput;
   height: AvailableSpaceOutput;
+}
+
+export interface AvailableSpaceTaggedInput {
+  kind: number;
+  value?: number;
 }
 
 export interface ChildRangeInput {
@@ -86,6 +86,11 @@ export interface DetailedGridTracksOutput {
 export interface DetailedLayoutOutput {
   kind: number;
   value?: DetailedGridOutput;
+}
+
+export interface DimensionTaggedInput {
+  unit: number;
+  value?: number;
 }
 
 export interface GridPlacementInput {
@@ -341,11 +346,6 @@ export interface StyleOutput {
 export interface TaggedGridInput {
   kind: number;
   value?: unknown;
-}
-
-export interface TaggedLengthInput {
-  unit: number;
-  value?: number;
 }
 
 export interface TrackSizingInput {

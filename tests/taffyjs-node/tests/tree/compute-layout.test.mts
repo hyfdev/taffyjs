@@ -45,13 +45,13 @@ test("algorithms", () => {
   for (const [name, display, childExtra] of cases) {
     const tree = new TaffyTree();
     const child = tree.newLeaf({
-      size: { width: Dimension.Length(30), height: Dimension.Length(10) },
+      size: { width: 30, height: 10 },
       ...childExtra,
     });
     const root = tree.newWithChildren(
       {
         display,
-        size: { width: Dimension.Length(100), height: Dimension.Length(50) },
+        size: { width: 100, height: 50 },
       },
       [child],
     );
@@ -68,12 +68,12 @@ test("algorithms", () => {
 
   const noneTree = new TaffyTree();
   const noneChild = noneTree.newLeaf({
-    size: { width: Dimension.Length(30), height: Dimension.Length(10) },
+    size: { width: 30, height: 10 },
   });
   const noneRoot = noneTree.newWithChildren(
     {
       display: Display.None,
-      size: { width: Dimension.Length(100), height: Dimension.Length(50) },
+      size: { width: 100, height: 50 },
     },
     [noneChild],
   );
@@ -91,12 +91,12 @@ test("percentage-content", () => {
   // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/compute/block.rs#L548-L707
   const tree = new TaffyTree();
   const child = tree.newLeaf({
-    size: { width: Dimension.Percent(50), height: Dimension.Length(80) },
+    size: { width: Dimension.Percent(50), height: 80 },
   });
   const root = tree.newWithChildren(
     {
       display: Display.Block,
-      size: { width: Dimension.Length(200), height: Dimension.Length(50) },
+      size: { width: 200, height: 50 },
     },
     [child],
   );
@@ -109,7 +109,7 @@ test("percentage-content", () => {
 test("stored-output", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(64), height: Dimension.Length(32) },
+    size: { width: 64, height: 32 },
   });
   assert.deepEqual(tree.getLayout(node).size, { width: 0, height: 0 });
 
@@ -142,7 +142,7 @@ test("cache", () => {
 test("rounding", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(10.5), height: Dimension.Length(6.25) },
+    size: { width: 10.5, height: 6.25 },
   });
   const options = { root: node, availableSpace: maxContentSpace() };
 
@@ -183,13 +183,12 @@ test("invalid-root", () => {
 test("invalid-space", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
+    size: { width: 20, height: 10 },
   });
   const invalidSpaces = [
     null,
     [],
     { width: AvailableSpace.MinContent },
-    { width: 1, height: AvailableSpace.MinContent },
     { width: { kind: 99 }, height: AvailableSpace.MinContent },
   ];
 

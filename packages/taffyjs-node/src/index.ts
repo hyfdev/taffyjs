@@ -1,4 +1,3 @@
-export { AvailableSpace } from "./available-space.js";
 export {
   AlignContent,
   AlignItems,
@@ -28,11 +27,8 @@ export {
   RepetitionCount,
   TrackSizingFunction,
 } from "./grid.js";
-export { Dimension } from "./length.js";
 export type { NodeId } from "./node-id.js";
 export type {
-  AutoInput,
-  AvailableSpaceInput,
   ChildRangeInput,
   ComputeLayoutOptions,
   ComputeLayoutWithMeasureOptions,
@@ -40,7 +36,6 @@ export type {
   DetailedGridItemInfo,
   DetailedGridTracksInfo,
   DetailedLayoutInfo,
-  DimensionInput,
   GridPlacementInput,
   GridTemplateArea,
   GridTemplateAreaInput,
@@ -50,11 +45,6 @@ export type {
   GridTemplateRepetition,
   GridTemplateRepetitionInput,
   Layout,
-  LengthInput,
-  LengthPercentage,
-  LengthPercentageAuto,
-  LengthPercentageAutoInput,
-  LengthPercentageInput,
   Line,
   LineInput,
   MaxTrackSizingFunction,
@@ -67,7 +57,6 @@ export type {
   PartialPointInput,
   PartialRectInput,
   PartialSizeInput,
-  PercentInput,
   Point,
   PointInput,
   Rect,
@@ -79,4 +68,17 @@ export type {
   StyleInput,
   TrackSizingFunctionInput,
 } from "./public-types.js";
+export {
+  AvailableSpace,
+  Dimension,
+  type AutoInput,
+  type AvailableSpaceInput,
+  type DimensionInput,
+  type LengthInput,
+  type LengthPercentage,
+  type LengthPercentageAuto,
+  type LengthPercentageAutoInput,
+  type LengthPercentageInput,
+  type PercentInput,
+} from "./tagged-values.js";
 export { TaffyTree } from "./tree.js";

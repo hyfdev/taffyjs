@@ -3,7 +3,6 @@ import {
   AvailableSpace,
   Clear,
   DetailedLayoutInfoKind,
-  Dimension,
   Display,
   Float,
   GridPlacement,
@@ -21,7 +20,7 @@ function maxContentSpace() {
 }
 
 function definiteWidth(width: number) {
-  return { width: AvailableSpace.Definite(width), height: AvailableSpace.MaxContent };
+  return { width: width, height: AvailableSpace.MaxContent };
 }
 
 function singleTrack(value: number) {
@@ -49,57 +48,51 @@ function computeChildren(rootStyle: StyleInput, childStyles: readonly StyleInput
 // https://docs.rs/crate/taffy/0.13.0/source/src/compute/mod.rs
 
 test("block-float", () => {
-  const block = computeChildren(
-    { display: Display.Block, size: { width: Dimension.Length(100) } },
-    [
-      {
-        display: Display.Block,
-        float: Float.Left,
-        size: { width: Dimension.Length(20), height: Dimension.Length(10) },
-      },
-      {
-        display: Display.Block,
-        clear: Clear.Left,
-        size: { width: Dimension.Length(30), height: Dimension.Length(5) },
-      },
-      {
-        display: Display.Block,
-        position: Position.Relative,
-        inset: { left: Dimension.Length(5), top: Dimension.Length(7) },
-        size: { width: Dimension.Length(10), height: Dimension.Length(10) },
-      },
-    ],
-  );
+  const block = computeChildren({ display: Display.Block, size: { width: 100 } }, [
+    {
+      display: Display.Block,
+      float: Float.Left,
+      size: { width: 20, height: 10 },
+    },
+    {
+      display: Display.Block,
+      clear: Clear.Left,
+      size: { width: 30, height: 5 },
+    },
+    {
+      display: Display.Block,
+      position: Position.Relative,
+      inset: { left: 5, top: 7 },
+      size: { width: 10, height: 10 },
+    },
+  ]);
   assert.deepEqual(block.children[0].location, { x: 0, y: 0 });
   assert.deepEqual(block.children[1].location, { x: 0, y: 10 });
   assert.deepEqual(block.children[2].location, { x: 5, y: 22 });
   assert.deepEqual(block.root.contentSize, { width: 30, height: 32 });
 
-  const flowRoot = computeChildren(
-    { display: Display.FlowRoot, size: { width: Dimension.Length(100) } },
-    [
-      {
-        display: Display.Block,
-        float: Float.Right,
-        size: { width: Dimension.Length(20), height: Dimension.Length(10) },
-      },
-    ],
-  );
+  const flowRoot = computeChildren({ display: Display.FlowRoot, size: { width: 100 } }, [
+    {
+      display: Display.Block,
+      float: Float.Right,
+      size: { width: 20, height: 10 },
+    },
+  ]);
   assert.deepEqual(flowRoot.children[0].location, { x: 80, y: 0 });
   assert.deepEqual(flowRoot.root.contentSize, { width: 100, height: 10 });
 
   const positioned = computeChildren(
     {
       display: Display.Block,
-      size: { width: Dimension.Length(100), height: Dimension.Length(50) },
+      size: { width: 100, height: 50 },
     },
     [
       {
         position: Position.Absolute,
-        inset: { left: Dimension.Length(12), top: Dimension.Length(9) },
-        size: { width: Dimension.Length(10), height: Dimension.Length(10) },
+        inset: { left: 12, top: 9 },
+        size: { width: 10, height: 10 },
       },
-      { size: { width: Dimension.Length(10), height: Dimension.Length(10) } },
+      { size: { width: 10, height: 10 } },
     ],
   );
   assert.deepEqual(positioned.children[0].location, { x: 12, y: 9 });
@@ -110,16 +103,16 @@ test("flex", () => {
   const tree = new TaffyTree();
   const first = tree.newLeaf({
     flexGrow: 1,
-    size: { width: Dimension.Length(10), height: Dimension.Length(10) },
+    size: { width: 10, height: 10 },
   });
   const second = tree.newLeaf({
     flexGrow: 1,
-    size: { width: Dimension.Length(10), height: Dimension.Length(10) },
+    size: { width: 10, height: 10 },
   });
   const root = tree.newWithChildren(
     {
       display: Display.Flex,
-      size: { width: Dimension.Length(101), height: Dimension.Length(20) },
+      size: { width: 101, height: 20 },
     },
     [first, second],
   );
@@ -166,7 +159,7 @@ test("grid", () => {
   const root = tree.newWithChildren(
     {
       display: Display.Grid,
-      size: { width: Dimension.Length(100), height: Dimension.Length(50) },
+      size: { width: 100, height: 50 },
       overflow: { x: Overflow.Scroll, y: Overflow.Scroll },
       scrollbarWidth: 7,
       gridTemplateRows: [singleTrack(20), singleTrack(30)],

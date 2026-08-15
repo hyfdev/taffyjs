@@ -24,7 +24,7 @@ test("nondefault-style", () => {
   const node = tree.newLeaf({
     display: Display.Flex,
     flexGrow: 1.25,
-    size: { width: Dimension.Length(12) },
+    size: { width: 12 },
   });
   const style = tree.getStyle(node);
 

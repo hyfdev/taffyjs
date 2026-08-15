@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, type NodeId, TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
@@ -76,7 +76,7 @@ test("id-stale", () => {
 test("parent-not-dirtied", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf({
-    size: { width: Dimension.Length(30), height: Dimension.Length(10) },
+    size: { width: 30, height: 10 },
   });
   const parent = tree.newWithChildren({}, [child]);
   const root = tree.newWithChildren({}, [parent]);

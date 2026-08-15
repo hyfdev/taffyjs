@@ -83,7 +83,7 @@ test("representative Style input categories round-trip", () => {
     itemIsTable: true,
     scrollbarWidth: 3.5,
     overflow: { x: Overflow.Hidden, y: Overflow.Scroll },
-    size: Dimension.Length(20),
+    size: 20,
     aspectRatio: null,
     alignItems: AlignItems.Center,
     flexBasis: Dimension.Percent(25),
