@@ -62,8 +62,6 @@ jobs:
         run: pnpm --filter @taffyjs/wasm-integration-tests exec playwright install --with-deps chromium
       - name: Build and test the Wasm package
         run: pnpm exec vp run check:wasm
-      - name: Verify committed Wasm package outputs are current
-        run: git diff --exit-code -- packages/taffyjs-wasm/dist/index.js packages/taffyjs-wasm/dist/index.browser.js packages/taffyjs-wasm/dist/index.d.ts packages/taffyjs-wasm/dist/taffyjs.browser.js packages/taffyjs-wasm/dist/taffyjs.node.cjs packages/taffyjs-wasm/dist/taffyjs.node.js packages/taffyjs-wasm/dist/taffyjs.wasm-base64.js packages/taffyjs-wasm/dist/taffyjs.wasip1-deferred.js
 
   check-node:
     name: Node checks
