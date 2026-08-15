@@ -52,6 +52,11 @@ export interface AvailableSpaceSizeOutput {
   height: AvailableSpaceOutput;
 }
 
+export interface AvailableSpaceTaggedInput {
+  kind: number;
+  value?: number;
+}
+
 export interface ChildRangeInput {
   start: number;
   end: number;
@@ -86,6 +91,11 @@ export interface DetailedGridTracksOutput {
 export interface DetailedLayoutOutput {
   kind: number;
   value?: DetailedGridOutput;
+}
+
+export interface DimensionTaggedInput {
+  unit: number;
+  value?: number;
 }
 
 export interface GridPlacementInput {

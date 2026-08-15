@@ -1,7 +1,6 @@
 import {
   AlignContent,
   AlignItems,
-  AvailableSpaceKind,
   BoxSizing,
   Clear,
   DetailedLayoutInfoKind,
@@ -13,7 +12,6 @@ import {
   GridAutoFlow,
   GridPlacementKind,
   GridTemplateComponentKind,
-  LengthUnit,
   Overflow,
   Position,
   RepetitionCountKind,
@@ -21,6 +19,16 @@ import {
   TrackSizingKind,
 } from "./numeric-families.js";
 import type { NodeId } from "./node-id.js";
+import type {
+  AvailableSpace,
+  AvailableSpaceInput,
+  Dimension,
+  DimensionInput,
+  LengthPercentage,
+  LengthPercentageAuto,
+  LengthPercentageAutoInput,
+  LengthPercentageInput,
+} from "./tagged-values.js";
 
 /** Supplies writable point data at the public API boundary. */
 export interface PointInput<T> {
@@ -99,70 +107,6 @@ export interface Line<T> {
   /** Stores the start component of this Line value. */ readonly start: T;
   /** Stores the end component of this Line value. */ readonly end: T;
 }
-
-/** Supplies writable length data at the public API boundary. */
-export type LengthInput = {
-  /** Supplies the unit value used by LengthInput. */ unit: typeof LengthUnit.Length;
-  /** Carries the payload for this LengthInput tagged variant. */ value: number;
-};
-
-/** Supplies writable percent data at the public API boundary. */
-export type PercentInput = {
-  /** Supplies the unit value used by PercentInput. */ unit: typeof LengthUnit.Percent;
-  /** Carries the payload for this PercentInput tagged variant. */ value: number;
-};
-
-/** Supplies writable auto data at the public API boundary. */
-export type AutoInput = {
-  /** Supplies the unit value used by AutoInput. */ unit: typeof LengthUnit.Auto;
-};
-
-/** Supplies writable length percentage data at the public API boundary. */
-export type LengthPercentageInput = LengthInput | PercentInput;
-
-/** Supplies writable length percentage auto data at the public API boundary. */
-export type LengthPercentageAutoInput = LengthInput | PercentInput | AutoInput;
-
-/** Supplies writable dimension data at the public API boundary. */
-export type DimensionInput = LengthPercentageAutoInput;
-
-/** Represents the public length percentage value used by TaffyJS. */
-export type LengthPercentage = Readonly<LengthInput> | Readonly<PercentInput>;
-
-/** Represents the public length percentage auto value used by TaffyJS. */
-export type LengthPercentageAuto =
-  | Readonly<LengthInput>
-  | Readonly<PercentInput>
-  | Readonly<AutoInput>;
-
-/** Represents the public dimension value used by TaffyJS. */
-export type Dimension = LengthPercentageAuto;
-
-/** Supplies writable available space data at the public API boundary. */
-export type AvailableSpaceInput =
-  | {
-      /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.Definite;
-      /** Carries the payload for this AvailableSpaceInput tagged variant. */ value: number;
-    }
-  | {
-      /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MinContent;
-    }
-  | {
-      /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MaxContent;
-    };
-
-/** Represents the public available space value used by TaffyJS. */
-export type AvailableSpace =
-  | Readonly<{
-      /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.Definite;
-      /** Carries the payload for this AvailableSpace tagged variant. */ value: number;
-    }>
-  | Readonly<{
-      /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MinContent;
-    }>
-  | Readonly<{
-      /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MaxContent;
-    }>;
 
 /** Supplies writable grid placement data at the public API boundary. */
 export type GridPlacementInput =

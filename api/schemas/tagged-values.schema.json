@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaffyJS tagged values",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "formatVersion", "families"],
+  "properties": {
+    "$schema": {
+      "const": "./schemas/tagged-values.schema.json"
+    },
+    "formatVersion": {
+      "const": 1
+    },
+    "families": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "tagField", "numericFamily", "branches", "publicAliases"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z0-9]*$"
+          },
+          "tagField": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "numericFamily": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z0-9]*$"
+          },
+          "numberShorthand": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["targetBranch"],
+            "properties": {
+              "targetBranch": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Za-z0-9]*$"
+              }
+            }
+          },
+          "branches": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Za-z0-9]*$"
+                },
+                "publicInput": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Za-z0-9]*Input$"
+                },
+                "payload": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["name", "type"],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "type": {
+                      "const": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "publicAliases": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "branches", "acceptsNumber"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Za-z0-9]*$"
+                },
+                "branches": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Za-z0-9]*$"
+                  }
+                },
+                "acceptsNumber": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

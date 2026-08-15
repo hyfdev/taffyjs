@@ -1,0 +1,63 @@
+{
+  "$schema": "./schemas/tagged-values.schema.json",
+  "formatVersion": 1,
+  "families": [
+    {
+      "name": "Dimension",
+      "tagField": "unit",
+      "numericFamily": "LengthUnit",
+      "numberShorthand": { "targetBranch": "Length" },
+      "branches": [
+        {
+          "name": "Length",
+          "publicInput": "LengthInput",
+          "payload": { "name": "value", "type": "number" }
+        },
+        {
+          "name": "Percent",
+          "publicInput": "PercentInput",
+          "payload": { "name": "value", "type": "number" }
+        },
+        { "name": "Auto", "publicInput": "AutoInput" }
+      ],
+      "publicAliases": [
+        {
+          "name": "LengthPercentage",
+          "branches": ["Length", "Percent"],
+          "acceptsNumber": true
+        },
+        {
+          "name": "LengthPercentageAuto",
+          "branches": ["Length", "Percent", "Auto"],
+          "acceptsNumber": true
+        },
+        {
+          "name": "Dimension",
+          "branches": ["Length", "Percent", "Auto"],
+          "acceptsNumber": true
+        }
+      ]
+    },
+    {
+      "name": "AvailableSpace",
+      "tagField": "kind",
+      "numericFamily": "AvailableSpaceKind",
+      "numberShorthand": { "targetBranch": "Definite" },
+      "branches": [
+        {
+          "name": "Definite",
+          "payload": { "name": "value", "type": "number" }
+        },
+        { "name": "MinContent" },
+        { "name": "MaxContent" }
+      ],
+      "publicAliases": [
+        {
+          "name": "AvailableSpace",
+          "branches": ["Definite", "MinContent", "MaxContent"],
+          "acceptsNumber": true
+        }
+      ]
+    }
+  ]
+}

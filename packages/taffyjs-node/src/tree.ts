@@ -1,7 +1,6 @@
 import { NativeTaffyTree } from "./binding.js";
 import { NodeIdRegistry, type NodeId } from "./node-id.js";
 import type {
-  AvailableSpace,
   ChildRangeInput,
   ComputeLayoutOptions,
   ComputeLayoutWithMeasureOptions,
@@ -11,6 +10,7 @@ import type {
   Style,
   StyleInput,
 } from "./public-types.js";
+import type { AvailableSpace } from "./tagged-values.js";
 
 type RawMeasureArgs = {
   knownDimensions: Size<number | undefined>;

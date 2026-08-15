@@ -13,6 +13,7 @@ mod number;
 mod numeric;
 mod owner;
 mod style;
+mod tagged_values;
 
 use error::{
     NativeResult, child_index_out_of_bounds_error, internal_error, into_napi,
