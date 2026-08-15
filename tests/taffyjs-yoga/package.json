@@ -1,0 +1,19 @@
+{
+  "name": "@taffyjs/yoga-integration-tests",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vp test"
+  },
+  "dependencies": {
+    "yoga-layout": "workspace:@taffyjs/yoga@*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "yoga-layout-oracle": "npm:yoga-layout@3.2.1"
+  }
+}

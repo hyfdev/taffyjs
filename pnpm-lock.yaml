@@ -295,6 +295,13 @@ importers:
       '@napi-rs/cli':
         specifier: 'catalog:'
         version: 3.8.2(@emnapi/runtime@2.0.0-alpha.3)(@types/node@22.18.0)
+
+  packages/taffyjs-yoga:
+    dependencies:
+      '@taffyjs/node':
+        specifier: workspace:*
+        version: link:../taffyjs-node
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 22.18.0
@@ -354,6 +361,28 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.8(@types/node@22.18.0)(@vitest/browser-playwright@4.1.10)(@voidzero-dev/vite-plus-core@0.2.8(@types/node@22.18.0)(typescript@7.0.2))(typescript@7.0.2)
+
+  tests/taffyjs-yoga:
+    dependencies:
+      yoga-layout:
+        specifier: workspace:@taffyjs/yoga@*
+        version: link:../../packages/taffyjs-yoga
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.18.0
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@0.2.8
+        version: '@voidzero-dev/vite-plus-core@0.2.8(@types/node@22.18.0)(typescript@7.0.2)'
+      vite-plus:
+        specifier: 'catalog:'
+        version: 0.2.8(@types/node@22.18.0)(@voidzero-dev/vite-plus-core@0.2.8(@types/node@22.18.0)(typescript@7.0.2))(typescript@7.0.2)
+      yoga-layout-oracle:
+        specifier: npm:yoga-layout@3.2.1
+        version: yoga-layout@3.2.1
 
 packages:
 
@@ -2581,6 +2610,9 @@ packages:
       utf-8-validate:
         optional: true
 
+  yoga-layout@3.2.1:
+    resolution: {integrity: sha512-0LPOt3AxKqMdFBZA3HBAt/t/8vIKq7VaQYbuA8WxCgung+p9TVyKRYdpvCb80HcdTN2NkbIKbhNwKUfm3tQywQ==}
+
   yuku-codegen@0.5.48:
     resolution: {integrity: sha512-p7HxD5Xl4jzDzqMrGePAOeSHmRY4g58h4HuGq15weQFPxuPWd/W6e7nqp/+Lea6JfpOdBwJOAyXFqIZ/J9Zfnw==}
 
@@ -4552,6 +4584,8 @@ snapshots:
       stackback: 0.0.2
 
   ws@8.21.3: {}
+
+  yoga-layout@3.2.1: {}
 
   yuku-codegen@0.5.48:
     dependencies:
