@@ -4,15 +4,17 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
-### TypeScript by default for maintained JavaScript-ecosystem code
+### Repository-wide TypeScript default
 
-**Ruling:** Maintained source, tests, fixtures, configuration, and tools in the JavaScript ecosystem must be written in TypeScript unless a concrete execution or generated-output boundary requires JavaScript.
+[VOUCHED @hyfdev 2026-08-16]
 
-**Limits:** Generated package files, napi-rs loader output, required final `.js` or `.cjs` package formats, and JavaScript text intentionally executed as an installed-consumer payload are not authored TypeScript source. A maintained JavaScript file needs a specific present constraint; convenience, file size, or lack of existing annotations is not sufficient. This does not change the public package output format.
+**Ruling:** Across the entire repository, maintained code that would otherwise be authored in JavaScript—including source, tests, fixtures, configuration, scripts, and tools—must be written in TypeScript unless a concrete execution or generated-output boundary requires JavaScript.
+
+**Limits:** This chooses TypeScript over JavaScript; it does not turn Rust, JSON, Markdown, or other domain-appropriate files into TypeScript. Generated package files, napi-rs loader output, required final `.js` or `.cjs` package formats, and JavaScript text intentionally executed as an installed-consumer payload are not authored TypeScript source. Any maintained `.js`, `.mjs`, or `.cjs` file needs a specific present constraint; convenience, file size, or lack of existing annotations is not sufficient. This does not change the public package output format.
 
 **Why:** Yunfei established TypeScript as the repository-wide default and required an actual special reason for any exception; no additional rationale was given.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly stated that everything should use TypeScript unless there is a special reason not to.
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly stated that everything should use TypeScript unless there is a special reason not to, then explicitly promoted and vouched this as a repository-wide PCR rule.
 
 ### Vite+ owns JavaScript package builds
 
