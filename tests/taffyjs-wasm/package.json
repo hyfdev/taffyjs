@@ -1,0 +1,28 @@
+{
+  "name": "@taffyjs/wasm-integration-tests",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:browser": "vp build browser",
+    "check:browser-bundle": "node tests/browser-bundle.mjs",
+    "check:package": "node tests/package-contents.mjs",
+    "check:types": "tsc --project tests/types/tsconfig.json",
+    "test:api": "vp test --config vite.api.config.ts --run",
+    "test:browser": "vp test --run",
+    "test:node": "node tests/node-smoke.mjs",
+    "test:packed": "node tests/packed-consumer.mjs"
+  },
+  "dependencies": {
+    "@taffyjs/node": "workspace:*",
+    "@taffyjs/wasm": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@vitest/browser-playwright": "4.1.10",
+    "playwright": "1.62.1",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

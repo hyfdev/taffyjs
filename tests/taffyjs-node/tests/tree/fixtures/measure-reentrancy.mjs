@@ -1,4 +1,5 @@
-import { AvailableSpace, TaffyTree } from "@taffyjs/node";
+const testEntry = process.env.TAFFYJS_TEST_ENTRY ?? "@taffyjs/node";
+const { AvailableSpace, TaffyTree } = await import(testEntry);
 
 const tree = new TaffyTree();
 const measured = tree.newLeafWithContext({}, { label: "measured" });

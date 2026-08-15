@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { AvailableSpace, TaffyTree } from "@taffyjs/node";
+const testEntry = process.env.TAFFYJS_TEST_ENTRY ?? "@taffyjs/node";
+const { AvailableSpace, TaffyTree } = await import(testEntry);
 
 const immediate = () => new Promise((resolve) => setImmediate(resolve));
 

@@ -10,3 +10,15 @@ coverage/
 .env
 .env.*
 !.env.example
+
+packages/taffyjs-wasm/dist/*
+!packages/taffyjs-wasm/dist/index.js
+!packages/taffyjs-wasm/dist/index.browser.js
+!packages/taffyjs-wasm/dist/index.d.ts
+!packages/taffyjs-wasm/dist/taffyjs.browser.js
+!packages/taffyjs-wasm/dist/taffyjs.node.cjs
+!packages/taffyjs-wasm/dist/taffyjs.node.js
+!packages/taffyjs-wasm/dist/taffyjs.wasm-base64.js
+!packages/taffyjs-wasm/dist/taffyjs.wasip1-deferred.js
+
+tests/taffyjs-wasm/browser/dist/

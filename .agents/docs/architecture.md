@@ -1,21 +1,25 @@
 # Architecture
 
-This repository is a small Rust and JavaScript monorepo with one native binding and one public package.
+This repository is a small Rust and JavaScript monorepo with one shared napi-rs binding and two public packages.
 
 ## Ownership
 
 - `.agents/` holds durable project intent and decisions that cannot be expressed in code or configuration.
 - `crates/taffyjs_binding` owns the napi-rs adapter and depends directly on Taffy. A shared Rust crate is justified only when a second Rust consumer needs it.
 - `packages/taffyjs-node` owns the public ESM wrapper and declarations, the private napi-rs loader and declarations, and npm metadata. The wrapper owns JavaScript-only NodeId validity data and context; Taffy owns topology, Style, Layout, cache, and computation state.
+- `packages/taffyjs-wasm` compiles the same authored source from `packages/taffyjs-node/src` against generated private Node and browser adapters that share one inline payload. It owns package metadata, generated artifacts, build-time binding redirection, and the strict adapter generator; it has no authored public wrapper source or separate initialization API.
 - `tests/taffyjs-node` is a private consumer package that tests `@taffyjs/node` through its package boundary.
+- `tests/taffyjs-wasm` is a private consumer package that checks the Wasm package through Node and browser package resolution, reuses the existing public type tests, mechanically inspects the published file set, and installs the packed result in fresh npm and pnpm consumers.
 
-The public entry bundles the private napi-rs root loader, which selects the matching optional platform package. The generated loader and declaration remain repository build inputs rather than published package files. There is no intermediate binding package, custom loader, JavaScript shadow tree, or separate core crate.
+The `@taffyjs/node` public entry bundles the private napi-rs root loader, which selects the matching optional platform package. Its generated loader and declaration remain repository build inputs rather than published package files. The `@taffyjs/wasm` default entry reaches a no-TLA ESM bridge that imports the shared payload and immediately invokes a synchronous CommonJS factory mechanically derived from napi-rs's eager Node loader; its browser entry reaches a TLA adapter and the unmodified deferred loader. Neither package exposes an intermediate binding package, JavaScript shadow tree, separate core crate, public binding, or public initialization API.
 
 A future Yoga package should be a JavaScript or TypeScript compatibility layer over `@taffyjs/node` unless a concrete need requires a different native boundary.
 
 ## Testing
 
 JavaScript integration tests are the primary proof of observable behavior. Package-local JavaScript and Rust unit tests are limited to critical behavior that is clearer in isolation. Maintained test names follow product behavior rather than temporary milestone or acceptance labels.
+
+The Wasm package runs the complete Node public API behavior suite without copied test files: a Wasm-only Vite+ configuration replaces the exact `@taffyjs/node` import with `@taffyjs/wasm`. Subprocess fixtures select the same test entry through an inherited test-only file URL. The Wasm package additionally has a real Chromium runtime test through Vite+ and Playwright. A separate Vite consumer build proves that the `browser` export is selected, the payload occurs once in JavaScript, and no external `.wasm` asset is emitted; the browser runtime check exercises synchronous measurement and reuse after a controlled error without cross-origin isolation or `SharedArrayBuffer`.
 
 A test earns its place only when it is the clearest durable check for a distinct observable behavior or safety property. Before adding one, identify the exact failure it would catch and explain why tests beside the code that owns the behavior would not already catch it. Distinct coverage is not enough: the protection must justify the code to maintain, time to run, ways it can fail for unrelated reasons, and platform-specific behavior it introduces. Prefer the smallest direct check. When consolidating duplicate files, move any genuinely unique assertion into the owning test before deleting the duplicate.
 
