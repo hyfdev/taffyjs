@@ -2,23 +2,25 @@
 
 ## Native bindings and distribution
 
-napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, target-specific package metadata, and native release artifact flow. @taffyjs/node passes `--esm` to the napi-rs build rather than transforming the generated loader into another module format.
+napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, and target-specific package metadata. It generates an ESM loader, which Vite+ bundles into the ESM public entry without maintaining a custom loader.
 
-The generated ESM loader is publishable output inside @taffyjs/node but is not the supported public entry. It uses Node.js createRequire internally because native `.node` files and target packages are loaded through the CommonJS loader, exposes static ESM exports, and has no top-level await. The authored public wrapper imports that loader privately and does not re-export its raw operations.
+The generated ESM loader is a private build input. The authored wrapper imports it privately, and the bundled public entry does not re-export raw native operations.
 
-The maintained napi-rs distribution model uses one root loader package with exact-version optional packages for each target. In this repository the root is @taffyjs/node and the target packages are named @taffyjs/binding-<platform> through `napi.packageName`.
+The root package has exact-version optional packages for the two supported targets: `@taffyjs/binding-linux-x64-gnu` and `@taffyjs/binding-win32-x64-msvc`. Publication is not configured.
 
-The bigint NodeId, its private TypeScript phantom marker, and its JavaScript validity registry require an authored public wrapper, but they do not require a custom native loader or another npm package. Additional runtimes or custom fallback logic may still require a separate loader decision later.
+The bigint NodeId marker and its JavaScript validity registry require the authored wrapper, but not a custom loader or another package.
 
 ## JavaScript package builds
 
-Vite+ is the repository's JavaScript toolchain. Authored JavaScript or TypeScript libraries use `vp pack`, which provides the tsdown-based library build through Vite+; the repository does not add a direct tsdown dependency or a separate tsdown configuration.
+Vite+ is the JavaScript toolchain. `vp pack` compiles the public source in `packages/taffyjs-node/src`, bundles the private napi-rs loader, and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private native declaration remains a generated build input rather than a published file.
 
-The authored @taffyjs/node public layer uses `vp pack`. The napi-rs-generated loader is not transformed by `vp pack`; it remains an explicit private module whose native artifact paths belong to napi-rs and is packaged alongside the authored output.
+`tools/api-codegen` owns source generation that must keep Rust and TypeScript API facts aligned. Its first maintained input is `api/numeric-families.json`; `vp run codegen` updates both language outputs. CI runs `vp run check:codegen`, which regenerates and rejects any resulting Git diff.
+
+CI has four jobs. Ubuntu x64 and Windows x64 each build the native addon and run all Rust, JavaScript, and type tests with Node.js 22.18.0. Ubuntu also rejects stale committed package JavaScript and declarations after the build. A Node-only job checks formatting, JavaScript and TypeScript, and generated-source drift. A Rust-only job checks formatting and Clippy. macOS and publication workflows are not configured.
 
 ## Task orchestration
 
-The root vite.config.ts defines the repository verification graph with explicit build and test dependencies. Native build completion precedes package-local and consumer integration tests, while formatting, linting, and Rust checks can run in parallel.
+The root `vite.config.ts` defines build and verification dependencies. Native build completion precedes package-local and consumer tests. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Node formatting and linting do not depend on a native build. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
 
 Task caching is disabled at the root. This keeps native artifacts and runtime tests from being skipped or restored from stale task outputs until the project makes a new explicit caching decision.
 

@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-ubuntu-x64-gnu:
+    name: Build and test Ubuntu x64
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - run: pnpm install --frozen-lockfile
+      - name: Build and run all tests
+        run: pnpm exec vp run check:test
+      - name: Verify committed package outputs are current
+        run: git diff --exit-code -- packages/taffyjs-node/index.js packages/taffyjs-node/index.d.ts packages/taffyjs-node/binding.js packages/taffyjs-node/binding.d.ts
+
+  test-windows-x64-msvc:
+    name: Build and test Windows x64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - run: pnpm install --frozen-lockfile
+      - name: Build and run all tests
+        run: pnpm exec vp run check:test
+
+  check-node:
+    name: Node checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - run: pnpm install --frozen-lockfile
+      - name: Check formatting
+        run: pnpm exec vp run check:format
+      - name: Check JavaScript and TypeScript
+        run: pnpm exec vp run check:lint
+      - name: Verify generated sources are committed
+        run: pnpm exec vp run check:codegen
+
+  check-rust:
+    name: Rust checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings

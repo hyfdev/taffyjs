@@ -1,18 +1,27 @@
 import { defineConfig } from "vite-plus";
 
 const testTasks = {
-  "check:test:unit": {
-    command: "vp run @taffyjs/node#test",
+  "check:test:rust": {
+    command: "cargo test --workspace --all-features --locked",
+  },
+  "check:test:native": {
+    command:
+      "vp test --config packages/taffyjs-node/vite.config.ts packages/taffyjs-node/tests/native",
     dependsOn: ["build"],
   },
   "check:test:integration": {
     command: "vp run @taffyjs/node-integration-tests#test",
     dependsOn: ["build"],
   },
+  "check:test:types": {
+    command: "vp exec tsc --project tests/taffyjs-node/tests/types/tsconfig.json",
+    dependsOn: ["build"],
+  },
 };
 
 export default defineConfig({
   fmt: {
+    ignorePatterns: ["packages/taffyjs-node/index.js", "packages/taffyjs-node/index.d.ts"],
     overrides: [
       {
         files: ["**/*.md"],
@@ -21,6 +30,12 @@ export default defineConfig({
     ],
   },
   lint: {
+    ignorePatterns: [
+      "packages/taffyjs-node/index.js",
+      "packages/taffyjs-node/index.d.ts",
+      "packages/taffyjs-node/binding.js",
+      "packages/taffyjs-node/binding.d.ts",
+    ],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },
     options: { typeAware: true, typeCheck: true },
@@ -28,8 +43,15 @@ export default defineConfig({
   run: {
     cache: false,
     tasks: {
+      codegen: {
+        command: "node tools/api-codegen/src/generate.ts",
+      },
+      "check:codegen": {
+        command:
+          "node tools/api-codegen/src/generate.ts && git add --intent-to-add --all && git diff --exit-code",
+      },
       "build:binding": {
-        command: "vp run @taffyjs/node#build:debug",
+        command: "vp run @taffyjs/node#build",
       },
       build: {
         command: "echo build ok",
@@ -43,7 +65,7 @@ export default defineConfig({
       },
       "check:rust": {
         command:
-          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features -- -D warnings",
+          "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
       },
       ...testTasks,
       "check:test": {
@@ -55,7 +77,7 @@ export default defineConfig({
         dependsOn: ["check:format", "check:lint", "check:rust", "check:test"],
       },
       ready: {
-        command: "echo ready",
+        command: "echo ready checks passed",
         dependsOn: ["check"],
       },
     },

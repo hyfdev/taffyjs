@@ -4,7 +4,7 @@ TaffyJS provides JavaScript bindings and compatibility layers for the Taffy layo
 
 The first package is `@taffyjs/node`, the ESM-only native Node-API entry point built with napi-rs. A future `@taffyjs/node-yoga` package may provide a Yoga-compatible API on top of `@taffyjs/node` without adding another native binding.
 
-The binding API and release target matrix are intentionally left open during repository bootstrap.
+The current package implements Taffy 0.13 for Linux x64 GNU and Windows x64 MSVC with Node.js 22.18.0 or newer. Publication is not configured.
 
 ## Repository layout
 
@@ -12,8 +12,8 @@ The binding API and release target matrix are intentionally left open during rep
 - `packages/` contains independent JavaScript package boundaries. `packages/taffyjs-node` owns the authored public ESM wrapper and types, the private generated native loader, rare package-local unit tests, and npm metadata for `@taffyjs/node`.
 - `tests/` contains private consumer packages for integration and end-to-end coverage. `tests/taffyjs-node` exercises `@taffyjs/node` through the same package boundary used by downstream JavaScript consumers.
 
-Platform-specific native packages use the `@taffyjs/binding-<platform>` naming scheme as unsupported implementation dependencies. `@taffyjs/node` is the public entry point and loads the selected platform package through its private napi-rs loader.
+The two native packages are `@taffyjs/binding-linux-x64-gnu` and `@taffyjs/binding-win32-x64-msvc`. They are private implementation dependencies; application code imports only `@taffyjs/node`.
 
 ## Development
 
-Install dependencies with `vp install`, then run `vp run ready` to execute the uncached Vite+ task graph for formatting, linting, Rust checks, native build, and JavaScript tests. The authored @taffyjs/node public layer and other authored JavaScript or TypeScript libraries use `vp pack`; the napi-rs-generated native loader remains a separate packaged module and is not repacked.
+Install dependencies with `vp install`, then run `vp run ready` for formatting, linting, Rust checks, the native build, Rust and JavaScript tests, and type checks. After changing an input under `api/`, run `vp run codegen`; the default local checks never run generation. CI separately regenerates source and rejects any resulting Git diff. The public `@taffyjs/node` TypeScript source is built with `vp pack`; napi-rs generates the private native loader separately.

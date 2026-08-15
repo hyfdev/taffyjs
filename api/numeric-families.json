@@ -1,0 +1,198 @@
+{
+  "$schema": "./schemas/numeric-families.schema.json",
+  "formatVersion": 1,
+  "families": [
+    {
+      "name": "Display",
+      "members": [
+        { "name": "Block", "value": 0 },
+        { "name": "FlowRoot", "value": 1 },
+        { "name": "Flex", "value": 2 },
+        { "name": "Grid", "value": 3 },
+        { "name": "None", "value": 4 }
+      ]
+    },
+    {
+      "name": "BoxSizing",
+      "members": [
+        { "name": "BorderBox", "value": 0 },
+        { "name": "ContentBox", "value": 1 }
+      ]
+    },
+    {
+      "name": "Direction",
+      "members": [
+        { "name": "Ltr", "value": 0 },
+        { "name": "Rtl", "value": 1 }
+      ]
+    },
+    {
+      "name": "Overflow",
+      "members": [
+        { "name": "Visible", "value": 0 },
+        { "name": "Clip", "value": 1 },
+        { "name": "Hidden", "value": 2 },
+        { "name": "Scroll", "value": 3 }
+      ]
+    },
+    {
+      "name": "Float",
+      "members": [
+        { "name": "Left", "value": 0 },
+        { "name": "Right", "value": 1 },
+        { "name": "None", "value": 2 }
+      ]
+    },
+    {
+      "name": "Clear",
+      "members": [
+        { "name": "Left", "value": 0 },
+        { "name": "Right", "value": 1 },
+        { "name": "Both", "value": 2 },
+        { "name": "None", "value": 3 }
+      ]
+    },
+    {
+      "name": "Position",
+      "members": [
+        { "name": "Relative", "value": 0 },
+        { "name": "Absolute", "value": 1 }
+      ]
+    },
+    {
+      "name": "TextAlign",
+      "members": [
+        { "name": "Auto", "value": 0 },
+        { "name": "LegacyLeft", "value": 1 },
+        { "name": "LegacyRight", "value": 2 },
+        { "name": "LegacyCenter", "value": 3 }
+      ]
+    },
+    {
+      "name": "FlexDirection",
+      "members": [
+        { "name": "Row", "value": 0 },
+        { "name": "Column", "value": 1 },
+        { "name": "RowReverse", "value": 2 },
+        { "name": "ColumnReverse", "value": 3 }
+      ]
+    },
+    {
+      "name": "FlexWrap",
+      "members": [
+        { "name": "NoWrap", "value": 0 },
+        { "name": "Wrap", "value": 1 },
+        { "name": "WrapReverse", "value": 2 }
+      ]
+    },
+    {
+      "name": "GridAutoFlow",
+      "members": [
+        { "name": "Row", "value": 0 },
+        { "name": "Column", "value": 1 },
+        { "name": "RowDense", "value": 2 },
+        { "name": "ColumnDense", "value": 3 }
+      ]
+    },
+    {
+      "name": "AlignItems",
+      "members": [
+        { "name": "Start", "value": 0 },
+        { "name": "End", "value": 1 },
+        { "name": "FlexStart", "value": 2 },
+        { "name": "FlexEnd", "value": 3 },
+        { "name": "SelfStart", "value": 4 },
+        { "name": "SelfEnd", "value": 5 },
+        { "name": "Center", "value": 6 },
+        { "name": "Baseline", "value": 7 },
+        { "name": "Stretch", "value": 8 },
+        { "name": "SafeStart", "value": 9 },
+        { "name": "SafeEnd", "value": 10 },
+        { "name": "SafeFlexStart", "value": 11 },
+        { "name": "SafeFlexEnd", "value": 12 },
+        { "name": "SafeSelfStart", "value": 13 },
+        { "name": "SafeSelfEnd", "value": 14 },
+        { "name": "SafeCenter", "value": 15 }
+      ]
+    },
+    {
+      "name": "AlignContent",
+      "members": [
+        { "name": "Start", "value": 0 },
+        { "name": "End", "value": 1 },
+        { "name": "FlexStart", "value": 2 },
+        { "name": "FlexEnd", "value": 3 },
+        { "name": "Center", "value": 4 },
+        { "name": "Stretch", "value": 5 },
+        { "name": "SpaceBetween", "value": 6 },
+        { "name": "SpaceEvenly", "value": 7 },
+        { "name": "SpaceAround", "value": 8 },
+        { "name": "SafeStart", "value": 9 },
+        { "name": "SafeEnd", "value": 10 },
+        { "name": "SafeFlexStart", "value": 11 },
+        { "name": "SafeFlexEnd", "value": 12 },
+        { "name": "SafeCenter", "value": 13 }
+      ]
+    },
+    {
+      "name": "LengthUnit",
+      "members": [
+        { "name": "Length", "value": 0 },
+        { "name": "Percent", "value": 1 },
+        { "name": "Auto", "value": 2 }
+      ]
+    },
+    {
+      "name": "AvailableSpaceKind",
+      "members": [
+        { "name": "Definite", "value": 0 },
+        { "name": "MinContent", "value": 1 },
+        { "name": "MaxContent", "value": 2 }
+      ]
+    },
+    {
+      "name": "GridPlacementKind",
+      "members": [
+        { "name": "Auto", "value": 0 },
+        { "name": "Line", "value": 1 },
+        { "name": "NamedLine", "value": 2 },
+        { "name": "Span", "value": 3 },
+        { "name": "NamedSpan", "value": 4 }
+      ]
+    },
+    {
+      "name": "TrackSizingKind",
+      "members": [
+        { "name": "Length", "value": 0 },
+        { "name": "Percent", "value": 1 },
+        { "name": "Auto", "value": 2 },
+        { "name": "MinContent", "value": 3 },
+        { "name": "MaxContent", "value": 4 },
+        { "name": "FitContent", "value": 5 },
+        { "name": "Fr", "value": 6 }
+      ]
+    },
+    {
+      "name": "RepetitionCountKind",
+      "members": [
+        { "name": "Count", "value": 0 },
+        { "name": "AutoFill", "value": 1 },
+        { "name": "AutoFit", "value": 2 }
+      ]
+    },
+    {
+      "name": "GridTemplateComponentKind",
+      "members": [
+        { "name": "Single", "value": 0 },
+        { "name": "Repeat", "value": 1 }
+      ]
+    },
+    {
+      "name": "DetailedLayoutInfoKind",
+      "members": [
+        { "name": "None", "value": 0 },
+        { "name": "Grid", "value": 1 }
+      ]
+    }
+  ]
+}

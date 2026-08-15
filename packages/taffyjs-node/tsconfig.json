@@ -15,5 +15,5 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["tests/**/*.mts"]
+  "include": ["src/**/*.ts", "tests/**/*.mts"]
 }

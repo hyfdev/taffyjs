@@ -10,6 +10,7 @@
     "directory": "packages/taffyjs-node"
   },
   "files": [
+    "README.md",
     "index.js",
     "index.d.ts"
   ],
@@ -24,10 +25,10 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js index.js --esm --release",
-    "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js index.js --esm",
+    "build": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js binding.js --dts binding.d.ts --esm --release -- --locked && vp fmt binding.js binding.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack",
+    "build:debug": "napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js binding.js --dts binding.d.ts --esm -- --locked && vp fmt binding.js binding.d.ts package.json && node ../../tools/sync-platform-artifact.mjs && vp pack",
     "check": "vp check",
-    "test": "vp test --passWithNoTests"
+    "test": "vp test"
   },
   "devDependencies": {
     "@napi-rs/cli": "catalog:",
@@ -36,14 +37,19 @@
     "vite": "catalog:",
     "vite-plus": "catalog:"
   },
+  "optionalDependencies": {
+    "@taffyjs/binding-linux-x64-gnu": "0.0.0",
+    "@taffyjs/binding-win32-x64-msvc": "0.0.0"
+  },
   "napi": {
     "binaryName": "taffyjs",
     "packageName": "@taffyjs/binding",
     "targets": [
-      "x86_64-apple-darwin",
-      "aarch64-apple-darwin",
       "x86_64-pc-windows-msvc",
       "x86_64-unknown-linux-gnu"
     ]
+  },
+  "engines": {
+    "node": ">=22.18.0"
   }
 }
