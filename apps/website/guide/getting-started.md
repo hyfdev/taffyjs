@@ -1,6 +1,6 @@
 # Getting Started
 
-Install `@taffyjs/node`, create a small Flexbox tree, compute its layout, and read the result.
+Install `@taffyjs/node` and use a small Flexbox tree to see the complete layout process: create nodes, connect them, describe how they should be laid out, run the engine, and read the resulting rectangles.
 
 ## Install
 
@@ -8,14 +8,14 @@ Install `@taffyjs/node`, create a small Flexbox tree, compute its layout, and re
 npm install @taffyjs/node
 ```
 
-`@taffyjs/node` requires Node.js 22.18 or newer. See the [package overview](../node/index.md) for supported native platforms and import rules.
+`@taffyjs/node` requires Node.js 22.18 or newer.
 
 ## Compute a layout
 
 Create `layout.mjs`:
 
 ```ts
-import { Display, TaffyTree } from "@taffyjs/node";
+import { Dimension, Display, TaffyTree } from "@taffyjs/node";
 
 const tree = new TaffyTree();
 
@@ -25,7 +25,7 @@ const second = tree.newLeaf({ flexGrow: 1 });
 const root = tree.newWithChildren(
   {
     display: Display.Flex,
-    size: { width: 100, height: 20 },
+    size: { width: Dimension.Percent(100), height: 20 },
   },
   [first, second],
 );
@@ -35,8 +35,8 @@ tree.computeLayout({
   availableSpace: { width: 100, height: 20 },
 });
 
-console.log(tree.getUnroundedLayout(first).size);
-console.log(tree.getUnroundedLayout(second).location);
+console.log(tree.getLayout(first).size);
+console.log(tree.getLayout(second).location);
 ```
 
 Run it with Node.js:
@@ -52,13 +52,16 @@ The output is:
 { x: 50, y: 0 }
 ```
 
-The root is 100 units wide. Both children have `flexGrow: 1`, so Taffy divides the available width evenly between them and places the second child after the first.
+The root asks to use 100 percent of the available width. The compute call provides 100 units, so the root becomes 100 units wide. Its two children both have `flexGrow: 1`, so Flexbox divides that width evenly and places the second child after the first. If the available width were 300, the same styles would produce two 150-unit children.
 
-The program does four things:
+## Think in terms of a layout engine
 
-1. `new TaffyTree()` creates an independent owner for nodes, styles, and stored layouts.
-2. `newLeaf` and `newWithChildren` create the nodes and their parent-child relationship.
-3. `computeLayout` asks Taffy to calculate layout for one root and a definite amount of available space.
-4. `getUnroundedLayout` reads detached result objects stored by that computation.
+The program has five parts:
 
-Changing the tree does not compute layout automatically, and reading a result does not recompute it. Continue with [Tree, Compute, and Read](./tree-compute-read.md) for that lifecycle, or go directly to the worked [Block](./block.md), [Flexbox](./flexbox.md), or [Grid](./grid.md) examples.
+1. **A tree:** `TaffyTree` owns the nodes and their parent-child relationships. A leaf has no children; the root is the node where this computation begins.
+2. **Styles:** each node has rules that describe its preferred size and layout behavior. A style describes constraints and choices, such as the root's percentage width, rather than a final position.
+3. **Available space:** the compute call tells the root how much room it may use. Width and height are independent inputs.
+4. **A computation:** `computeLayout` runs the layout algorithm for the chosen root. Creating or changing a node does not run it automatically.
+5. **Layout results:** `getLayout` reads the position and size stored for a node. TaffyJS returns these numbers; your program decides how to render or otherwise use them.
+
+Keep that sequence in mind: build a tree, describe it with styles, provide available space, compute, then read rectangles. [Essentials](./tree-compute-read.md) starts with this same sequence and examines each part in more detail.

@@ -63,10 +63,6 @@ tree.computeLayoutWithMeasure({ root: image, availableSpace, measure: measureIma
 
 Passing a different callback does not invalidate cached measurement results by itself.
 
-## The callback is inside a computation
+## Keep measurement focused
 
-While the callback is running, native-backed methods on the same tree fail with `ERR_TAFFY_TREE_BUSY`. This prevents a second tree operation from entering the native tree while it is already borrowed for layout. Public value helpers, the supplied callback values, JavaScript-only context lookup, and a different `TaffyTree` remain usable.
-
-If the callback throws, TaffyJS rethrows the same JavaScript value. If its return value has the wrong shape, TaffyJS throws `TypeError`. Either failure stops later callbacks, marks the requested subtree dirty, and leaves the tree usable for a later compute. Layout or cache work already completed before the failure is not rolled back.
-
-The tree remains usable after either kind of callback failure, so a caller can correct its data, mark affected nodes dirty when needed, and compute again.
+The callback runs synchronously as part of the layout computation. Treat it as a size calculation: read the supplied values and return dimensions without trying to operate on the same tree. The [`@taffyjs/node` computation reference](../node/computing-layout.md) documents the exact callback restrictions and cache behavior, while [Errors](../node/errors.md) documents failure and recovery behavior.

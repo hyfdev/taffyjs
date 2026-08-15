@@ -22,17 +22,22 @@ No planned package receives empty reference pages or documentation navigation th
 
 ## Documentation structure
 
-Guide and each documented package have separate sidebars. Guide teaches in learning order, while a package section groups exact public behavior by the API a reader needs to find. The top navigation links directly to Guide and `@taffyjs/node` while it is the only documented package; it can become a package menu when another package has useful documentation. Empty package sections are not reserved in advance.
+The documentation is arranged in three layers: Guide, Essentials, and package sections. Guide contains the Introduction and Getting Started. Essentials teaches the shared layout-engine model in learning order. Package sections hold complete runtime and platform support, initialization, binding-specific behavior, compatibility, migration, and exact public API details. The top navigation links directly to Guide and `@taffyjs/node` while it is the only documented package; it can become a package menu when another package has useful documentation. Empty package sections are not reserved in advance.
 
-Guide uses `@taffyjs/node` by default while it is the first usable package. At points where runtime choice matters, a short callout sends browser or WebAssembly users to `@taffyjs/wasm` and users seeking Yoga compatibility to `@taffyjs/yoga`. The Guide does not repeat itself once per package.
+Getting Started and Essentials use `@taffyjs/node` code by default while it is the first usable package. At points where runtime choice matters, a short callout sends browser or WebAssembly users to `@taffyjs/wasm` and users seeking Yoga compatibility to `@taffyjs/yoga`. Shared teaching is not repeated once per package.
 
 The Introduction first explains what a layout engine does, then why TaffyJS exists, then the package family's feature scope, and finally credits the upstream work it builds on. Its feature-scope section introduces each package by purpose and distinguishing characteristic without adding installation instructions or empty documentation for unfinished packages.
 
-Getting Started owns the shortest installation path, first complete computation, and observable result. The `@taffyjs/node` overview owns supported Node.js and platform combinations, native import rules, and package scope. The rest of that section is the canonical human-written reference for the direct `TaffyTree`, `Style`, layout result, value helper, and error APIs. The `@taffyjs/wasm` section documents only availability, setup and observable runtime differences, then links to the same direct API reference. The `@taffyjs/yoga` section documents its separate Yoga-compatible surface and differences from the direct API.
+Getting Started owns the shortest installation command, the minimum Node.js version needed to run it, and one smallest complete `@taffyjs/node` example. Its job is to establish the basic layout-engine model: a tree of nodes, styles, available space, an explicit computation, and stored layout results. It does not branch into layout-mode tutorials, caching, error cases, or API reference details.
+
+Essentials continues directly from that model. It explains what each shared concept is, the role it plays, how it affects a computation, and how to use it through focused `@taffyjs/node` examples. The sequence moves from the tree-compute-read lifecycle and styles and values into Block, Flexbox, Grid, and measured content. These pages teach the model rather than enumerate every method or field.
+
+The `@taffyjs/node` overview owns supported Node.js and platform combinations, native import rules, and package scope. The rest of that section is the canonical human-written reference for the direct `TaffyTree`, `Style`, layout result, value helper, and error APIs while Node is the only implemented direct package. The `@taffyjs/wasm` section will own availability, setup and observable runtime differences without duplicating the shared direct API. The `@taffyjs/yoga` section will own its Yoga-compatible surface, migration guidance, compatibility scope, and behavioral differences from the direct API.
 
 The target page groups are:
 
-- Guide: introduction and getting started; the tree-compute-read workflow and styles and values as core concepts; Block, Flexbox, and Grid layout; and measuring content.
+- Guide: Introduction and Getting Started only.
+- Essentials: the tree-compute-read workflow, styles and values, Block, Flexbox, Grid, and measuring content.
 - `@taffyjs/node`: package overview and supported targets; `TaffyTree` node and topology operations, styles and context, computation and dirty state, and layout results; the grouped `Style` data model; value helpers; and errors.
 - `@taffyjs/wasm`: package overview and setup, supported environments, initialization and deployment, observable differences from Node, and a link to the shared direct API reference.
 - `@taffyjs/yoga`: package overview and installation, compatibility scope, migration from Yoga, Yoga-facing API reference, and documented differences from the direct Taffy API.
@@ -42,8 +47,9 @@ The global site navigation and the documentation sidebar serve different purpose
 ## Content ownership
 
 - The landing page states the product value, intended package family, supported layout modes and the next useful destination.
-- Guide explains how to complete layout tasks and how the shared model behaves.
-- Package sections explain runtime support, package-specific differences and each package's public API.
+- Guide introduces the product and establishes the minimum layout-engine mental model.
+- Essentials teaches shared concepts and layout tasks in a deliberate learning sequence through `@taffyjs/node` code.
+- Package sections explain package-specific runtime requirements or initialization, observable binding behavior, compatibility or migration needs, and exact public APIs.
 - Getting Started and each relevant layout or measurement page own one complete example. There is no separate example collection that repeats those programs, and package pages and README files link to the Guide rather than copying them.
 - Package README files remain short installation and orientation pages that link to the website.
 - Source declarations and JSDoc remain the exhaustive editor-facing type and field reference. The website explains high-level APIs in human-written prose; its `Style` page groups related fields without reproducing a generated declaration dump or creating one page per field.

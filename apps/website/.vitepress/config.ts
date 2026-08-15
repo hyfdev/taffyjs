@@ -19,21 +19,16 @@ export default defineConfig({
           ],
         },
         {
-          text: "Core Concepts",
+          text: "Essentials",
           items: [
             { text: "Tree, Compute, and Read", link: "/guide/tree-compute-read" },
             { text: "Styles and Values", link: "/guide/styles-and-values" },
-          ],
-        },
-        {
-          text: "Layout",
-          items: [
             { text: "Block", link: "/guide/block" },
             { text: "Flexbox", link: "/guide/flexbox" },
             { text: "Grid", link: "/guide/grid" },
+            { text: "Measuring Content", link: "/guide/measuring-content" },
           ],
         },
-        { text: "Measuring Content", link: "/guide/measuring-content" },
       ],
       "/node/": [
         {

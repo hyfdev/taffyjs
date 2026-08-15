@@ -1,24 +1,41 @@
 # Tree, Compute, and Read
 
-A `TaffyTree` owns a set of nodes and the relationships between them. A `NodeId` identifies one live node in that one tree. It is not a portable ID: moving it to another tree, retaining it after removal, or constructing your own bigint does not name a usable node.
+The Getting Started example followed the basic layout cycle: build a tree, attach styles, provide available space, compute, and read rectangles. Those steps stay separate because each one represents a different part of the layout problem.
 
-## Build the topology
+## The tree describes structure
 
-Leaf and parent creation are separate because nodes often exist before their final parent is known:
+Layout depends on relationships. A parent chooses how its children participate in layout, and the order of those children can affect where they end up. TaffyJS therefore works with an explicit tree rather than a flat list of boxes.
 
 ```ts
-const first = tree.newLeaf(firstStyle);
-const second = tree.newLeaf(secondStyle);
-const root = tree.newWithChildren(rootStyle, [first, second]);
+import { AvailableSpace, Dimension, Display, TaffyTree } from "@taffyjs/node";
+
+const tree = new TaffyTree();
+const icon = tree.newLeaf({ size: { width: 16, height: 16 } });
+const label = tree.newLeaf({ flexGrow: 1 });
+const root = tree.newWithChildren(
+  {
+    display: Display.Flex,
+    size: { width: Dimension.Percent(100) },
+  },
+  [icon, label],
+);
 ```
 
-Topology methods operate on existing nodes. `addChild` appends a child, `insertChildAtIndex` inserts one at a position, and `setChildren` replaces the complete ordered child list. Removing a child from a parent detaches it; it does not delete the child. `remove(node)` deletes the node itself and makes its `NodeId` stale.
+`newLeaf` creates a node without children. `newWithChildren` creates a parent and records the children in order. Either kind of node can become the root of a computation.
 
-The package reference lists every topology operation and its exact failure cases. The important Guide-level rule is ownership: keep related IDs with their `TaffyTree`, and treat them as opaque values.
+A `TaffyTree` owns its nodes, styles, and stored layouts. The value returned when a node is created is a `NodeId`: a handle used to refer to that node in the same tree. Keep the handle with its tree rather than treating it as application data or a portable identifier. The [`@taffyjs/node` reference](../node/nodes-and-topology.md) covers the complete set of topology operations and their exact errors.
 
-## Compute explicitly
+## Styles describe layout behavior
 
-Creating or changing nodes updates the tree's state but does not run layout. A compute call names both the root and the constraint for that run:
+The tree tells Taffy which nodes are related. Styles tell it how those nodes should participate in layout. A parent's `display` selects Block, Flexbox, or Grid; sizing, spacing, alignment, and placement fields add constraints for the parent and its children.
+
+A style is input to the algorithm, not a final rectangle. For example, `flexGrow: 1` says that a child may receive a share of free space. Its final width still depends on its siblings, its parent, and the space available to the computation.
+
+[Styles and Values](./styles-and-values.md) explains defaults, concrete lengths, percentages, automatic sizing, and the helper values used to express those choices.
+
+## Available space describes the outside constraint
+
+The root does not exist in isolation. A compute call supplies the width and height available to it:
 
 ```ts
 tree.computeLayout({
@@ -30,34 +47,27 @@ tree.computeLayout({
 });
 ```
 
-The number `640` gives Taffy a definite 640-unit constraint. `AvailableSpace.Definite(640)` is the equivalent complete form. `MinContent` and `MaxContent` request intrinsic sizing behavior instead. Width and height are chosen independently.
+Here the root has a definite 640-unit width constraint. `MaxContent` lets the content determine the height without a definite outer limit. Width and height are independent, and each can be definite, `MinContent`, or `MaxContent`.
 
-## A dirty node can still have a stored layout
+Available space and style have different roles. Style belongs to a node and describes how it wants to participate in layout. Available space belongs to one computation and describes the environment in which its root is being laid out.
 
-After a successful compute, Taffy can reuse cached work. Style and topology changes mark affected cache state dirty. `isDirty(node)` exposes that state; it does not compare a returned layout with every JavaScript value your program may have changed.
+## Computation is explicit
 
-Consider a child whose layout has already been computed:
+Creating a node, changing a style, or changing the topology updates the inputs but does not run layout. `computeLayout` runs the algorithm for one root when your program chooses to do so. This makes it possible to group several changes and place layout work at a deliberate point in an update or rendering loop.
+
+After an input changes, affected nodes become dirty. `isDirty(node)` tells you that stored layout work may need to be recomputed; it does not itself run the algorithm.
+
+## Reads return the stored result
+
+After a successful computation, each participating node has a stored layout. `getLayout(node)` reads its position and size using the tree's current rounding mode:
 
 ```ts
-const previous = tree.getUnroundedLayout(child);
+const layout = tree.getLayout(label);
 
-tree.setStyle(child, {
-  size: { width: 80, height: 12 },
-});
-
-tree.isDirty(child); // true
-tree.getUnroundedLayout(child).size; // still previous.size
-
-tree.computeLayout({ root, availableSpace });
-tree.getUnroundedLayout(child).size; // { width: 80, height: 12 }
+console.log(layout.location);
+console.log(layout.size);
 ```
 
-The getter between the mutation and the compute returns the last stored result. It does not silently recompute a dirty node. This lets a program decide when layout work belongs in its own update cycle.
+Reading never triggers layout. If an input changes, a getter can still return the previous stored result until the next successful computation. The normal cycle is therefore explicit: change inputs, compute, then read the new rectangles.
 
-Call `markDirty(node)` when an input outside the tree changes, such as an object captured by a measurement callback. Dirtying retains the old stored layout until the next successful compute.
-
-## Reads are snapshots
-
-`getLayout`, `getUnroundedLayout`, `getStyle`, `getChildren`, and detailed Grid reads return detached snapshots. TypeScript marks output fields and arrays readonly to prevent accidental assumptions, but the JavaScript objects are not frozen. Mutating a snapshot only mutates that snapshot.
-
-Use `getLayout` when you want the result selected by the tree's current rounding mode. Use `getUnroundedLayout` when fractional values matter. [Styles and Values](./styles-and-values.md) explains the input and output objects, and [Measuring Content](./measuring-content.md) explains the extra cache rules around callbacks.
+Use `getUnroundedLayout(node)` when fractional values must be preserved. The [`@taffyjs/node` layout reference](../node/layout-results.md) covers rounding, detailed Grid data, snapshot behavior, and exact result shapes.
