@@ -153,7 +153,7 @@ test("output snapshots are detached", () => {
   const owner = createOwner();
   const node = owner.rawNewLeaf({
     flexGrow: 2,
-    size: { width: { unit: 0, value: 10 } },
+    size: { width: 10 },
     gridTemplateRowNames: [["row"]],
   });
   const first = owner.rawGetStyle(node);

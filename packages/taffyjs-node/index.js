@@ -245,21 +245,6 @@ const DetailedLayoutInfoKind = Object.freeze({
 	Grid: 1
 });
 //#endregion
-//#region src/available-space.ts
-const minContent = Object.freeze({ kind: AvailableSpaceKind.MinContent });
-const maxContent = Object.freeze({ kind: AvailableSpaceKind.MaxContent });
-/** Provides constructors and shared values for readable available-space inputs. */
-const AvailableSpace = Object.freeze({
-	Definite(value) {
-		return {
-			kind: AvailableSpaceKind.Definite,
-			value
-		};
-	},
-	MinContent: minContent,
-	MaxContent: maxContent
-});
-//#endregion
 //#region src/grid.ts
 const gridPlacementAuto = Object.freeze({ kind: GridPlacementKind.Auto });
 /** Provides constructors and a shared Auto value for Grid placement inputs. */
@@ -389,9 +374,9 @@ const GridTemplateComponent = Object.freeze({
 	}
 });
 //#endregion
-//#region src/length.ts
-const auto = Object.freeze({ unit: LengthUnit.Auto });
-/** Provides constructors and a shared Auto value for readable dimension inputs. */
+//#region src/tagged-values.ts
+const dimensionAuto = Object.freeze({ unit: LengthUnit.Auto });
+/** Provides complete tagged forms for dimension inputs, including `Dimension.Length(value)`, the form represented by numeric shorthand. */
 const Dimension = Object.freeze({
 	Length(value) {
 		return {
@@ -405,7 +390,20 @@ const Dimension = Object.freeze({
 			value
 		};
 	},
-	Auto: auto
+	Auto: dimensionAuto
+});
+const availableSpaceMinContent = Object.freeze({ kind: AvailableSpaceKind.MinContent });
+const availableSpaceMaxContent = Object.freeze({ kind: AvailableSpaceKind.MaxContent });
+/** Provides complete tagged forms for available space inputs, including `AvailableSpace.Definite(value)`, the form represented by numeric shorthand. */
+const AvailableSpace = Object.freeze({
+	Definite(value) {
+		return {
+			kind: AvailableSpaceKind.Definite,
+			value
+		};
+	},
+	MinContent: availableSpaceMinContent,
+	MaxContent: availableSpaceMaxContent
 });
 //#endregion
 //#region binding.js

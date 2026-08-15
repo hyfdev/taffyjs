@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, Display, type NodeId, TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, Display, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
@@ -67,7 +67,7 @@ test("idempotent", () => {
 test("layout-retained", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(25.5), height: Dimension.Length(12.25) },
+    size: { width: 25.5, height: 12.25 },
   });
   tree.computeLayout({ root: node, availableSpace: availableSpace() });
   const rounded = tree.getLayout(node);

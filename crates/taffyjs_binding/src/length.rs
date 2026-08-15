@@ -2,16 +2,13 @@ use napi::bindgen_prelude::Unknown;
 use napi_derive::napi;
 use taffy::style::{CompactLength, Dimension, LengthPercentage, LengthPercentageAuto};
 
-use crate::error::{NativeResult, type_error};
-use crate::js_object;
-use crate::number::{to_f32, to_integer};
+use crate::error::NativeResult;
+use crate::number::to_f32;
 use crate::numeric::LengthUnitCode;
-
-#[napi(object, object_to_js = false)]
-pub struct TaggedLengthInput {
-    pub unit: f64,
-    pub value: Option<f64>,
-}
+use crate::tagged_values::{
+    DimensionInputValue, LengthPercentageAutoInputValue, LengthPercentageInputValue,
+    parse_dimension, parse_length_percentage, parse_length_percentage_auto,
+};
 
 #[napi(object, object_from_js = false)]
 pub struct LengthOutput {
@@ -19,42 +16,32 @@ pub struct LengthOutput {
     pub value: Option<f64>,
 }
 
-fn read_parts(value: Unknown<'_>) -> NativeResult<(LengthUnitCode, f64)> {
-    let input: TaggedLengthInput = js_object::input(value, "a tagged length object", None)?;
-    let unit = to_integer::<LengthUnitCode>(input.unit)?;
-    let value = match unit {
-        LengthUnitCode::Length | LengthUnitCode::Percent => {
-            js_object::required(input.value, "Length value")?
-        }
-        LengthUnitCode::Auto => 0.0,
-    };
-    Ok((unit, value))
-}
-
 pub(crate) fn dimension(value: Unknown<'_>) -> NativeResult<Dimension> {
-    let (unit, value) = read_parts(value)?;
-    Ok(match unit {
-        LengthUnitCode::Length => Dimension::length(to_f32(value)),
-        LengthUnitCode::Percent => Dimension::percent(to_f32(value / 100.0)),
-        LengthUnitCode::Auto => Dimension::auto(),
+    Ok(match parse_dimension(value)? {
+        DimensionInputValue::Length(value) => Dimension::length(to_f32(value)),
+        DimensionInputValue::Percent(value) => Dimension::percent(to_f32(value / 100.0)),
+        DimensionInputValue::Auto => Dimension::auto(),
     })
 }
 
 pub(crate) fn length_percentage(value: Unknown<'_>) -> NativeResult<LengthPercentage> {
-    let (unit, value) = read_parts(value)?;
-    match unit {
-        LengthUnitCode::Length => Ok(LengthPercentage::length(to_f32(value))),
-        LengthUnitCode::Percent => Ok(LengthPercentage::percent(to_f32(value / 100.0))),
-        LengthUnitCode::Auto => Err(type_error("Auto is not valid here")),
-    }
+    Ok(match parse_length_percentage(value)? {
+        LengthPercentageInputValue::Length(value) => LengthPercentage::length(to_f32(value)),
+        LengthPercentageInputValue::Percent(value) => {
+            LengthPercentage::percent(to_f32(value / 100.0))
+        }
+    })
 }
 
 pub(crate) fn length_percentage_auto(value: Unknown<'_>) -> NativeResult<LengthPercentageAuto> {
-    let (unit, value) = read_parts(value)?;
-    Ok(match unit {
-        LengthUnitCode::Length => LengthPercentageAuto::length(to_f32(value)),
-        LengthUnitCode::Percent => LengthPercentageAuto::percent(to_f32(value / 100.0)),
-        LengthUnitCode::Auto => LengthPercentageAuto::auto(),
+    Ok(match parse_length_percentage_auto(value)? {
+        LengthPercentageAutoInputValue::Length(value) => {
+            LengthPercentageAuto::length(to_f32(value))
+        }
+        LengthPercentageAutoInputValue::Percent(value) => {
+            LengthPercentageAuto::percent(to_f32(value / 100.0))
+        }
+        LengthPercentageAutoInputValue::Auto => LengthPercentageAuto::auto(),
     })
 }
 

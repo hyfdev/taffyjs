@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
@@ -60,7 +60,7 @@ test("exact-zero", () => {
 test("rounding-selection", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(10.5), height: Dimension.Length(6.25) },
+    size: { width: 10.5, height: 6.25 },
   });
   const options = { root: node, availableSpace: maxContentSpace() };
 
@@ -76,13 +76,13 @@ test("rounding-selection", () => {
 test("stale-stored", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
+    size: { width: 20, height: 10 },
   });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   const before = tree.getLayout(node);
 
   tree.setStyle(node, {
-    size: { width: Dimension.Length(40), height: Dimension.Length(30) },
+    size: { width: 40, height: 30 },
   });
   assert.deepEqual(tree.getLayout(node), before, "getter does not compute a dirty node");
 
@@ -93,8 +93,8 @@ test("stale-stored", () => {
 test("detached", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    margin: { left: Dimension.Length(3) },
-    size: { width: Dimension.Length(20), height: Dimension.Length(10) },
+    margin: { left: 3 },
+    size: { width: 20, height: 10 },
   });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   const first = tree.getLayout(node);
@@ -118,7 +118,7 @@ test("detached", () => {
 test("numeric-widening", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({
-    size: { width: Dimension.Length(12.2500001), height: Dimension.Length(8.5000001) },
+    size: { width: 12.2500001, height: 8.5000001 },
   });
   tree.disableRounding();
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });

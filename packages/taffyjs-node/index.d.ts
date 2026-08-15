@@ -273,6 +273,69 @@ type NodeId = bigint & {
   readonly [phantomMarker]: never;
 };
 //#endregion
+//#region src/tagged-values.d.ts
+/** Supplies the complete `Dimension.Length(value)` input form. */
+type LengthInput = {
+  /** Selects the Length branch. */ unit: typeof LengthUnit.Length;
+  /** Supplies the numeric payload for `Dimension.Length(value)`. */ value: number;
+};
+/** Supplies the complete `Dimension.Percent(value)` input form. */
+type PercentInput = {
+  /** Selects the Percent branch. */ unit: typeof LengthUnit.Percent;
+  /** Supplies the numeric payload for `Dimension.Percent(value)`. */ value: number;
+};
+/** Supplies the complete `Dimension.Auto` input form. */
+type AutoInput = {
+  /** Selects the Auto branch. */ unit: typeof LengthUnit.Auto;
+};
+/** Accepts a number as shorthand for `Dimension.Length(value)`, or a complete tagged `LengthPercentageInput` value. */
+type LengthPercentageInput = number | LengthInput | PercentInput;
+/** Represents a complete tagged `LengthPercentage` value returned by the binding. */
+type LengthPercentage = Readonly<LengthInput> | Readonly<PercentInput>;
+/** Accepts a number as shorthand for `Dimension.Length(value)`, or a complete tagged `LengthPercentageAutoInput` value. */
+type LengthPercentageAutoInput = number | LengthInput | PercentInput | AutoInput;
+/** Represents a complete tagged `LengthPercentageAuto` value returned by the binding. */
+type LengthPercentageAuto = Readonly<LengthInput> | Readonly<PercentInput> | Readonly<AutoInput>;
+/** Accepts a number as shorthand for `Dimension.Length(value)`, or a complete tagged `DimensionInput` value. */
+type DimensionInput = number | LengthInput | PercentInput | AutoInput;
+/** Represents a complete tagged `Dimension` value returned by the binding. */
+type Dimension = Readonly<LengthInput> | Readonly<PercentInput> | Readonly<AutoInput>;
+/** Provides complete tagged forms for dimension inputs, including `Dimension.Length(value)`, the form represented by numeric shorthand. */
+declare const Dimension: Readonly<{
+  Length(value: number): LengthInput;
+  Percent(value: number): PercentInput;
+  Auto: Readonly<{
+    readonly unit: 2;
+  }>;
+}>;
+/** Supplies the complete `AvailableSpace.Definite(value)` input form. */
+type AvailableSpaceDefiniteInput = {
+  /** Selects the Definite branch. */ kind: typeof AvailableSpaceKind.Definite;
+  /** Supplies the numeric payload for `AvailableSpace.Definite(value)`. */ value: number;
+};
+/** Supplies the complete `AvailableSpace.MinContent` input form. */
+type AvailableSpaceMinContentInput = {
+  /** Selects the MinContent branch. */ kind: typeof AvailableSpaceKind.MinContent;
+};
+/** Supplies the complete `AvailableSpace.MaxContent` input form. */
+type AvailableSpaceMaxContentInput = {
+  /** Selects the MaxContent branch. */ kind: typeof AvailableSpaceKind.MaxContent;
+};
+/** Accepts a number as shorthand for `AvailableSpace.Definite(value)`, or a complete tagged `AvailableSpaceInput` value. */
+type AvailableSpaceInput = number | AvailableSpaceDefiniteInput | AvailableSpaceMinContentInput | AvailableSpaceMaxContentInput;
+/** Represents a complete tagged `AvailableSpace` value returned by the binding. */
+type AvailableSpace = Readonly<AvailableSpaceDefiniteInput> | Readonly<AvailableSpaceMinContentInput> | Readonly<AvailableSpaceMaxContentInput>;
+/** Provides complete tagged forms for available space inputs, including `AvailableSpace.Definite(value)`, the form represented by numeric shorthand. */
+declare const AvailableSpace: Readonly<{
+  Definite(value: number): AvailableSpaceDefiniteInput;
+  MinContent: Readonly<{
+    readonly kind: 1;
+  }>;
+  MaxContent: Readonly<{
+    readonly kind: 2;
+  }>;
+}>;
+//#endregion
 //#region src/public-types.d.ts
 /** Supplies writable point data at the public API boundary. */
 interface PointInput<T> {
@@ -340,50 +403,6 @@ interface Line<T> {
   /** Stores the start component of this Line value. */ readonly start: T;
   /** Stores the end component of this Line value. */ readonly end: T;
 }
-/** Supplies writable length data at the public API boundary. */
-type LengthInput = {
-  /** Supplies the unit value used by LengthInput. */ unit: typeof LengthUnit.Length;
-  /** Carries the payload for this LengthInput tagged variant. */ value: number;
-};
-/** Supplies writable percent data at the public API boundary. */
-type PercentInput = {
-  /** Supplies the unit value used by PercentInput. */ unit: typeof LengthUnit.Percent;
-  /** Carries the payload for this PercentInput tagged variant. */ value: number;
-};
-/** Supplies writable auto data at the public API boundary. */
-type AutoInput = {
-  /** Supplies the unit value used by AutoInput. */ unit: typeof LengthUnit.Auto;
-};
-/** Supplies writable length percentage data at the public API boundary. */
-type LengthPercentageInput = LengthInput | PercentInput;
-/** Supplies writable length percentage auto data at the public API boundary. */
-type LengthPercentageAutoInput = LengthInput | PercentInput | AutoInput;
-/** Supplies writable dimension data at the public API boundary. */
-type DimensionInput = LengthPercentageAutoInput;
-/** Represents the public length percentage value used by TaffyJS. */
-type LengthPercentage = Readonly<LengthInput> | Readonly<PercentInput>;
-/** Represents the public length percentage auto value used by TaffyJS. */
-type LengthPercentageAuto = Readonly<LengthInput> | Readonly<PercentInput> | Readonly<AutoInput>;
-/** Represents the public dimension value used by TaffyJS. */
-type Dimension$1 = LengthPercentageAuto;
-/** Supplies writable available space data at the public API boundary. */
-type AvailableSpaceInput = {
-  /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.Definite;
-  /** Carries the payload for this AvailableSpaceInput tagged variant. */ value: number;
-} | {
-  /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MinContent;
-} | {
-  /** Identifies which AvailableSpaceInput tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MaxContent;
-};
-/** Represents the public available space value used by TaffyJS. */
-type AvailableSpace$1 = Readonly<{
-  /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.Definite;
-  /** Carries the payload for this AvailableSpace tagged variant. */ value: number;
-}> | Readonly<{
-  /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MinContent;
-}> | Readonly<{
-  /** Identifies which AvailableSpace tagged variant this value contains. */ kind: typeof AvailableSpaceKind.MaxContent;
-}>;
 /** Supplies writable grid placement data at the public API boundary. */
 type GridPlacementInput = {
   /** Identifies which GridPlacementInput tagged variant this value contains. */ kind: typeof GridPlacementKind.Auto;
@@ -605,9 +624,9 @@ interface Style {
   /** Reports which preceding floats this node must clear. */ readonly clear: Clear;
   /** Reports the node's stored position style value. */ readonly position: Position;
   /** Reports the node's stored inset style value. */ readonly inset: Rect<LengthPercentageAuto>;
-  /** Reports the node's stored size style value. */ readonly size: Size<Dimension$1>;
-  /** Reports the node's stored min size style value. */ readonly minSize: Size<Dimension$1>;
-  /** Reports the node's stored max size style value. */ readonly maxSize: Size<Dimension$1>;
+  /** Reports the node's stored size style value. */ readonly size: Size<Dimension>;
+  /** Reports the node's stored min size style value. */ readonly minSize: Size<Dimension>;
+  /** Reports the node's stored max size style value. */ readonly maxSize: Size<Dimension>;
   /** Reports the node's stored aspect ratio style value. */ readonly aspectRatio: number | null;
   /** Reports the node's stored margin style value. */ readonly margin: Rect<LengthPercentageAuto>;
   /** Reports the node's stored padding style value. */ readonly padding: Rect<LengthPercentage>;
@@ -622,7 +641,7 @@ interface Style {
   /** Reports the node's stored text align style value. */ readonly textAlign: TextAlign;
   /** Reports the node's stored flex direction style value. */ readonly flexDirection: FlexDirection;
   /** Reports the node's stored flex wrap style value. */ readonly flexWrap: FlexWrap;
-  /** Reports the node's stored flex basis style value. */ readonly flexBasis: Dimension$1;
+  /** Reports the node's stored flex basis style value. */ readonly flexBasis: Dimension;
   /** Reports the node's stored flex grow style value. */ readonly flexGrow: number;
   /** Reports the node's stored flex shrink style value. */ readonly flexShrink: number;
   /** Reports the node's stored grid template rows style value. */ readonly gridTemplateRows: readonly GridTemplateComponent$1[];
@@ -678,7 +697,7 @@ interface DetailedGridItemInfo {
 /** Supplies dimensions, available space, identity, context, and style to measurement. */
 type MeasureArgs<TContext> = Readonly<{
   /** Supplies the known dimensions value used by MeasureArgs. */ knownDimensions: Size<number | undefined>;
-  /** Supplies the available space value used by MeasureArgs. */ availableSpace: Size<AvailableSpace$1>;
+  /** Supplies the available space value used by MeasureArgs. */ availableSpace: Size<AvailableSpace>;
   /** Supplies the node value used by MeasureArgs. */ node: NodeId;
   /** Supplies the context value used by MeasureArgs. */ context: TContext | undefined;
   /** Supplies the style value used by MeasureArgs. */ style: Style;
@@ -701,21 +720,6 @@ interface ComputeLayoutOptions {
   /** Supplies the root value used by ComputeLayoutOptions. */ root: NodeId;
   /** Supplies the available space value used by ComputeLayoutOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
 }
-//#endregion
-//#region src/available-space.d.ts
-type AvailableSpace = AvailableSpace$1;
-/** Provides constructors and shared values for readable available-space inputs. */
-declare const AvailableSpace: Readonly<{
-  Definite(value: number): Extract<AvailableSpaceInput, {
-    kind: typeof AvailableSpaceKind.Definite;
-  }>;
-  MinContent: Readonly<{
-    readonly kind: 1;
-  }>;
-  MaxContent: Readonly<{
-    readonly kind: 2;
-  }>;
-}>;
 //#endregion
 //#region src/grid.d.ts
 type GridPlacement = GridPlacement$1;
@@ -791,17 +795,6 @@ declare const GridTemplateComponent: Readonly<{
   }>;
   Repeat(count: RepetitionCountInput, tracks: readonly TrackSizingFunctionInput[], lineNames?: readonly (readonly string[])[]): Extract<GridTemplateComponentInput, {
     kind: typeof GridTemplateComponentKind.Repeat;
-  }>;
-}>;
-//#endregion
-//#region src/length.d.ts
-type Dimension = Dimension$1;
-/** Provides constructors and a shared Auto value for readable dimension inputs. */
-declare const Dimension: Readonly<{
-  Length(value: number): LengthInput;
-  Percent(value: number): PercentInput;
-  Auto: Readonly<{
-    readonly unit: 2;
   }>;
 }>;
 //#endregion

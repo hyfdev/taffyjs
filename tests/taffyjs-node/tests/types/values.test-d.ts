@@ -5,14 +5,23 @@ import {
   Dimension,
   Display,
   LengthUnit,
+  TrackSizingFunction,
   TrackSizingKind,
+  type AvailableSpace as AvailableSpaceValue,
   type AvailableSpaceInput,
   type DetailedLayoutInfo,
+  type Dimension as DimensionValue,
   type DimensionInput,
   type EnumValue,
+  type GridPlacementInput,
   type Layout,
+  type LengthPercentage,
+  type LengthPercentageAuto,
+  type LengthPercentageAutoInput,
+  type LengthPercentageInput,
   type Point,
   type PointInput,
+  type TrackSizingFunctionInput,
 } from "@taffyjs/node";
 
 type Equal<Left, Right> =
@@ -28,23 +37,45 @@ const mutableSpace = AvailableSpace.Definite(10);
 const mutableLength = Dimension.Length(10);
 mutableSpace.value = 20;
 mutableLength.value = 20;
+const shorthandLengthPercentage: LengthPercentageInput = 10;
+const shorthandLengthPercentageAuto: LengthPercentageAutoInput = 10;
+const shorthandDimension: DimensionInput = 10;
+const shorthandAvailableSpace: AvailableSpaceInput = 10;
+const shorthandFitContent = TrackSizingFunction.FitContent(10);
+
+// @ts-expect-error LengthPercentage output is always a complete tagged value.
+const numericLengthPercentageOutput: LengthPercentage = 10;
+// @ts-expect-error LengthPercentageAuto output is always a complete tagged value.
+const numericLengthPercentageAutoOutput: LengthPercentageAuto = 10;
+// @ts-expect-error Dimension output is always a complete tagged value.
+const numericDimensionOutput: DimensionValue = 10;
+// @ts-expect-error AvailableSpace output is always a complete tagged value.
+const numericAvailableSpaceOutput: AvailableSpaceValue = 10;
+// @ts-expect-error The outer track sizing value remains a tagged object.
+const numericTrackSizing: TrackSizingFunctionInput = 10;
+// @ts-expect-error Grid placement does not gain a numeric shorthand.
+const numericGridPlacement: GridPlacementInput = 10;
 
 declare const available: AvailableSpaceInput;
-if (available.kind === AvailableSpaceKind.Definite) {
-  const value: number = available.value;
-  void value;
-} else {
-  // @ts-expect-error Content-sized variants have no value payload.
-  void available.value;
+if (typeof available !== "number") {
+  if (available.kind === AvailableSpaceKind.Definite) {
+    const value: number = available.value;
+    void value;
+  } else {
+    // @ts-expect-error Content-sized variants have no value payload.
+    void available.value;
+  }
 }
 
 declare const dimension: DimensionInput;
-if (dimension.unit !== LengthUnit.Auto) {
-  const value: number = dimension.value;
-  void value;
-} else {
-  // @ts-expect-error Auto has no value payload.
-  void dimension.value;
+if (typeof dimension !== "number") {
+  if (dimension.unit !== LengthUnit.Auto) {
+    const value: number = dimension.value;
+    void value;
+  } else {
+    // @ts-expect-error Auto has no value payload.
+    void dimension.value;
+  }
 }
 
 declare const detail: DetailedLayoutInfo;
@@ -71,5 +102,20 @@ point.x = 1;
 // @ts-expect-error Complete Point input requires y.
 const incompletePoint: PointInput<number> = { x: 1 };
 
-void [block, fractionalTrack, incompletePoint];
+void [
+  block,
+  fractionalTrack,
+  incompletePoint,
+  shorthandLengthPercentage,
+  shorthandLengthPercentageAuto,
+  shorthandDimension,
+  shorthandAvailableSpace,
+  shorthandFitContent,
+  numericLengthPercentageOutput,
+  numericLengthPercentageAutoOutput,
+  numericDimensionOutput,
+  numericAvailableSpaceOutput,
+  numericTrackSizing,
+  numericGridPlacement,
+];
 void (0 as unknown as DisplayMembers);

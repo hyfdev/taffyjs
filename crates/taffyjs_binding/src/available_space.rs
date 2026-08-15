@@ -3,15 +3,9 @@ use napi_derive::napi;
 use taffy::style::AvailableSpace;
 
 use crate::error::NativeResult;
-use crate::js_object;
-use crate::number::{to_f32, to_integer};
+use crate::number::to_f32;
 use crate::numeric::AvailableSpaceKindCode;
-
-#[napi(object, object_to_js = false)]
-pub struct AvailableSpaceInput {
-    pub kind: f64,
-    pub value: Option<f64>,
-}
+use crate::tagged_values::{AvailableSpaceInputValue, parse_available_space};
 
 #[napi(object, object_from_js = false)]
 pub struct AvailableSpaceOutput {
@@ -20,14 +14,10 @@ pub struct AvailableSpaceOutput {
 }
 
 pub(crate) fn available_space(value: Unknown<'_>) -> NativeResult<AvailableSpace> {
-    let input: AvailableSpaceInput = js_object::input(value, "an available-space object", None)?;
-    Ok(match to_integer::<AvailableSpaceKindCode>(input.kind)? {
-        AvailableSpaceKindCode::Definite => AvailableSpace::Definite(to_f32(js_object::required(
-            input.value,
-            "Definite available space value",
-        )?)),
-        AvailableSpaceKindCode::MinContent => AvailableSpace::MinContent,
-        AvailableSpaceKindCode::MaxContent => AvailableSpace::MaxContent,
+    Ok(match parse_available_space(value)? {
+        AvailableSpaceInputValue::Definite(value) => AvailableSpace::Definite(to_f32(value)),
+        AvailableSpaceInputValue::MinContent => AvailableSpace::MinContent,
+        AvailableSpaceInputValue::MaxContent => AvailableSpace::MaxContent,
     })
 }
 

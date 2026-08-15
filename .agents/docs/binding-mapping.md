@@ -34,8 +34,6 @@ Public inputs use readable JavaScript values. Ordinary records and tagged unions
 
 The public input and output representations do not constrain the private representation passed from JavaScript to Rust. That private representation may change without changing public behavior, but any performance-driven change still requires the evidence described below.
 
-The direct-number shorthand described here is accepted direction but is not implemented yet; [API alignment TODOs](api-alignment-todos.md#public-input-alignment) tracks that code change. The complete tagged forms describe both current behavior and the form that remains supported afterward.
-
 Ordinary input objects are read through normal JavaScript property access. Accessors and Proxies are caller-controlled behavior and do not receive a second defensive object model. Conversion must still finish before the corresponding tree mutation begins.
 
 ### Style and geometry
@@ -60,7 +58,9 @@ Length inputs accept a direct number as shorthand for an absolute length. The co
 
 Available-space inputs accept a direct number as shorthand for `Definite`. The complete forms remain supported through `AvailableSpace.Definite(value)`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent`, and tagged available-space outputs remain valid later inputs. Every JavaScript number, including negative values, `NaN`, and infinities, retains the existing definite-value conversion behavior; no number is reserved for a special variant.
 
-Once implemented, maintained examples and ordinary behavior tests use these numeric shorthands by default. Focused tests and explanations retain the complete forms where those forms are the subject. Public JSDoc names the corresponding `Dimension.Length(value)` or `AvailableSpace.Definite(value)` form whenever it documents a numeric shorthand.
+Maintained examples and ordinary behavior tests use these numeric shorthands by default. Focused tests and explanations retain the complete forms where those forms are the subject. Public JSDoc names the corresponding `Dimension.Length(value)` or `AvailableSpace.Definite(value)` form whenever it documents a numeric shorthand.
+
+The accepted implementation makes these mappings part of the repository generator contract. Generated TypeScript declarations, JSDoc, complete-form helpers, and Rust boundary parsing share one tagged-input model. Rust parses a number or tagged record directly into the same boundary value; JavaScript does not allocate a replacement tagged object or walk nested Style solely to normalize the shorthand. Taffy-specific conversion and the use of each input type inside geometry and Style remain handwritten. [API code generation](api-codegen.md#generated-tagged-inputs) records the boundary in detail.
 
 Other values that carry data, including Grid placement, track sizing, repetition counts, and template components, use ordinary records with numeric discriminators. A branch requires its own payload fields; unrelated structural properties do not become part of complete output.
 

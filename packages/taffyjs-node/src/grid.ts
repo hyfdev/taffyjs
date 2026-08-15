@@ -9,7 +9,6 @@ import type {
   GridPlacementInput,
   GridTemplateComponent as GridTemplateComponentValue,
   GridTemplateComponentInput,
-  LengthPercentageInput,
   RepetitionCount as RepetitionCountValue,
   MaxTrackSizingFunctionInput,
   MinTrackSizingFunctionInput,
@@ -17,6 +16,7 @@ import type {
   TrackSizingFunction as TrackSizingFunctionValue,
   TrackSizingFunctionInput,
 } from "./public-types.js";
+import type { LengthPercentageInput } from "./tagged-values.js";
 
 export type GridPlacement = GridPlacementValue;
 export type GridTemplateComponent = GridTemplateComponentValue;

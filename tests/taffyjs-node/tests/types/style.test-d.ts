@@ -16,7 +16,7 @@ const track = TrackSizingFunction.Fr(2);
 const mutableRows = [GridTemplateComponent.Single(track)];
 const input: StyleInput = {
   display: Display.Grid,
-  size: { width: Dimension.Length(100), height: Dimension.Percent(50) },
+  size: { width: 100, height: Dimension.Percent(50) },
   margin: Dimension.Auto,
   alignItems: AlignItems.Center,
   gridTemplateRows: mutableRows,
