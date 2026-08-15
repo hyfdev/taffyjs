@@ -10,7 +10,7 @@ Layout computation is synchronous and explicit. Getters never trigger it, and mu
 tree.computeLayout({
   root,
   availableSpace: {
-    width: AvailableSpace.Definite(800),
+    width: 800,
     height: AvailableSpace.MaxContent,
   },
 });
@@ -18,7 +18,7 @@ tree.computeLayout({
 
 Each axis has one of three meanings:
 
-- `AvailableSpace.Definite(value)` supplies a concrete constraint.
+- A number supplies a concrete constraint; `AvailableSpace.Definite(value)` is its complete form.
 - `AvailableSpace.MinContent` requests minimum-content sizing.
 - `AvailableSpace.MaxContent` requests maximum-content sizing.
 

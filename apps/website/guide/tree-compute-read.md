@@ -24,13 +24,13 @@ Creating or changing nodes updates the tree's state but does not run layout. A c
 tree.computeLayout({
   root,
   availableSpace: {
-    width: AvailableSpace.Definite(640),
+    width: 640,
     height: AvailableSpace.MaxContent,
   },
 });
 ```
 
-`AvailableSpace.Definite(640)` gives Taffy a 640-unit constraint. `MinContent` and `MaxContent` request intrinsic sizing behavior instead. Width and height are chosen independently.
+The number `640` gives Taffy a definite 640-unit constraint. `AvailableSpace.Definite(640)` is the equivalent complete form. `MinContent` and `MaxContent` request intrinsic sizing behavior instead. Width and height are chosen independently.
 
 ## A dirty node can still have a stored layout
 
@@ -42,7 +42,7 @@ Consider a child whose layout has already been computed:
 const previous = tree.getUnroundedLayout(child);
 
 tree.setStyle(child, {
-  size: { width: Dimension.Length(80), height: Dimension.Length(12) },
+  size: { width: 80, height: 12 },
 });
 
 tree.isDirty(child); // true

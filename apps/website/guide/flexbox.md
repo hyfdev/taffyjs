@@ -7,16 +7,16 @@ Start with two stable children and one stable parent style:
 ```ts
 const first = tree.newLeaf({
   flexGrow: 1,
-  size: { width: Dimension.Length(20), height: Dimension.Length(10) },
+  size: { width: 20, height: 10 },
 });
 const second = tree.newLeaf({
   flexGrow: 1,
-  size: { width: Dimension.Length(20), height: Dimension.Length(10) },
+  size: { width: 20, height: 10 },
 });
 
 const baseStyle = {
   display: Display.Flex,
-  size: { width: Dimension.Length(100), height: Dimension.Length(60) },
+  size: { width: 100, height: 60 },
 };
 const root = tree.newWithChildren({ ...baseStyle, flexDirection: FlexDirection.Row }, [
   first,

@@ -9,9 +9,9 @@ You only need to write the fields that differ from the default:
 ```ts
 const card = tree.newLeaf({
   display: Display.Flex,
-  size: { width: Dimension.Length(240) },
-  padding: Dimension.Length(12),
-  gap: Dimension.Length(8),
+  size: { width: 240 },
+  padding: 12,
+  gap: 8,
 });
 ```
 
@@ -24,8 +24,8 @@ const panel = tree.newLeaf({
     height: Dimension.Auto,
   },
   margin: {
-    left: Dimension.Length(16),
-    right: Dimension.Length(16),
+    left: 16,
+    right: 16,
   },
 });
 ```
@@ -63,7 +63,7 @@ const style = {
 
 The values are numbers at runtime. Exact valid raw numeric codes are accepted as a low-level form, but named constants are the intended way to write them: they show the meaning and retain useful TypeScript types.
 
-Values that carry data use ordinary tagged objects. `Dimension.Length(20)`, `Dimension.Percent(50)`, and `Dimension.Auto` are the common sizing forms. Computation uses `AvailableSpace.Definite(value)`, `AvailableSpace.MinContent`, or `AvailableSpace.MaxContent`. Grid has its own placement and track helpers, introduced in [Grid](./grid.md).
+Values that carry data use ordinary tagged objects. A number is the concise input form for a concrete length, so `20` is equivalent to `Dimension.Length(20)`. Percent and automatic sizing remain explicit as `Dimension.Percent(50)` and `Dimension.Auto`. A numeric available-space component is likewise equivalent to `AvailableSpace.Definite(value)`, while `AvailableSpace.MinContent` and `AvailableSpace.MaxContent` stay explicit. The complete helpers remain valid, and outputs always use complete tagged objects. Grid has its own placement and track helpers, introduced in [Grid](./grid.md).
 
 ## Outputs describe stored values
 

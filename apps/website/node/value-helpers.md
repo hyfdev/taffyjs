@@ -47,6 +47,8 @@ Invalid codes throw `RangeError`. Values are not coerced from strings, booleans,
 
 These are different concepts even when both eventually affect a size. A `Dimension` belongs in style; an `AvailableSpace` belongs in compute options or callback arguments.
 
+For input, a direct number is the concise form of the common concrete case. A style length of `20` is equivalent to `Dimension.Length(20)`, and an available-space value of `800` is equivalent to `AvailableSpace.Definite(800)`. The helpers remain useful when the complete form matters. Binding outputs always use complete tagged objects, which can be passed back as input.
+
 ## Grid values
 
 `GridPlacement` provides `Auto`, `Line(index)`, `NamedLine(name, index)`, `Span(span)`, and `NamedSpan(name, span)`.

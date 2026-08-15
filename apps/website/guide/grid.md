@@ -33,7 +33,7 @@ const flexible = TrackSizingFunction.MinMax(
 );
 ```
 
-`FitContent(Dimension.Length(240))` is another maximum-track form. Percentage track helpers use percentage magnitudes, so `TrackSizingFunction.Percent(25)` means 25 percent.
+`TrackSizingFunction.FitContent(240)` is another maximum-track form. Its numeric argument is a concrete length; `Dimension.Length(240)` is the equivalent complete form. Percentage track helpers use percentage magnitudes, so `TrackSizingFunction.Percent(25)` means 25 percent.
 
 ## Place items by lines
 

@@ -6,16 +6,13 @@ Each example on this page is a complete TypeScript ESM module. It uses only the 
 
 ```ts
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, Display, TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, Display, TaffyTree } from "@taffyjs/node";
 
 const tree = new TaffyTree();
 const child = tree.newLeaf({
-  size: { width: Dimension.Length(40), height: Dimension.Length(12) },
+  size: { width: 40, height: 12 },
 });
-const root = tree.newWithChildren(
-  { display: Display.Block, size: { width: Dimension.Length(100) } },
-  [child],
-);
+const root = tree.newWithChildren({ display: Display.Block, size: { width: 100 } }, [child]);
 
 tree.computeLayout({
   root,
@@ -32,7 +29,7 @@ assert.deepEqual(tree.getUnroundedLayout(child).size, { width: 40, height: 12 })
 
 ```ts
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, Display, TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, Display, TaffyTree } from "@taffyjs/node";
 
 const tree = new TaffyTree();
 const first = tree.newLeaf({ flexGrow: 1 });
@@ -40,7 +37,7 @@ const second = tree.newLeaf({ flexGrow: 1 });
 const root = tree.newWithChildren(
   {
     display: Display.Flex,
-    size: { width: Dimension.Length(100), height: Dimension.Length(20) },
+    size: { width: 100, height: 20 },
   },
   [first, second],
 );
@@ -63,7 +60,6 @@ assert.deepEqual(tree.getUnroundedLayout(second).location, { x: 50, y: 0 });
 import assert from "node:assert/strict";
 import {
   AvailableSpace,
-  Dimension,
   Display,
   GridPlacement,
   GridTemplateComponent,
@@ -79,7 +75,7 @@ const item = tree.newLeaf({
 const root = tree.newWithChildren(
   {
     display: Display.Grid,
-    size: { width: Dimension.Length(100), height: Dimension.Length(30) },
+    size: { width: 100, height: 30 },
     gridTemplateRows: [GridTemplateComponent.Single(TrackSizingFunction.Length(30))],
     gridTemplateColumns: [
       GridTemplateComponent.Single(TrackSizingFunction.Length(40)),

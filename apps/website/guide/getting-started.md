@@ -6,18 +6,18 @@ Create a file such as `layout.ts`:
 
 ```ts
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, Display, TaffyTree } from "@taffyjs/node";
+import { AvailableSpace, Display, TaffyTree } from "@taffyjs/node";
 
 const tree = new TaffyTree();
 
 const child = tree.newLeaf({
-  size: { width: Dimension.Length(40), height: Dimension.Length(12) },
+  size: { width: 40, height: 12 },
 });
 
 const root = tree.newWithChildren(
   {
     display: Display.Flex,
-    size: { width: Dimension.Length(100), height: Dimension.Length(20) },
+    size: { width: 100, height: 20 },
   },
   [child],
 );
@@ -41,4 +41,4 @@ There are four separate operations in this module.
 
 `getUnroundedLayout` reads the result Taffy stored for the child. It does not compute anything itself. The result is a detached object, so changing that object would not change the tree.
 
-The example uses explicit lengths to keep the first result unsurprising. From here, [Tree, Compute, and Read](./tree-compute-read.md) explains what happens when the tree changes, while [Complete Examples](./examples.md) contains standalone Block, Flexbox, Grid, and measurement programs.
+The example uses concrete numeric lengths to keep the first result unsurprising. From here, [Tree, Compute, and Read](./tree-compute-read.md) explains what happens when the tree changes, while [Complete Examples](./examples.md) contains standalone Block, Flexbox, Grid, and measurement programs.

@@ -8,26 +8,27 @@ Block layout places normal-flow children along the block axis. Floats, clearing,
 const floated = tree.newLeaf({
   display: Display.Block,
   float: Float.Left,
-  size: { width: Dimension.Length(20), height: Dimension.Length(10) },
+  size: { width: 20, height: 10 },
 });
 
 const cleared = tree.newLeaf({
   display: Display.Block,
   clear: Clear.Left,
-  size: { width: Dimension.Length(30), height: Dimension.Length(5) },
+  size: { width: 30, height: 5 },
 });
 
 const shifted = tree.newLeaf({
   display: Display.Block,
   position: Position.Relative,
-  inset: { left: Dimension.Length(5), top: Dimension.Length(7) },
-  size: { width: Dimension.Length(10), height: Dimension.Length(10) },
+  inset: { left: 5, top: 7 },
+  size: { width: 10, height: 10 },
 });
 
-const root = tree.newWithChildren(
-  { display: Display.Block, size: { width: Dimension.Length(100) } },
-  [floated, cleared, shifted],
-);
+const root = tree.newWithChildren({ display: Display.Block, size: { width: 100 } }, [
+  floated,
+  cleared,
+  shifted,
+]);
 ```
 
 After computing this root, the three unrounded locations are `{ x: 0, y: 0 }`, `{ x: 0, y: 10 }`, and `{ x: 5, y: 22 }`. The second child clears the 10-unit float. The third keeps its normal-flow place and is then shifted by its relative inset.

@@ -17,6 +17,6 @@ A TaffyJS program follows one visible sequence:
 
 Changing a style, context, or part of the topology does not run layout automatically. You decide when to recompute, which makes the work easy to place in a renderer or update loop.
 
-Styles use JavaScript objects and named helpers such as `Display.Flex` and `Dimension.Length(100)`. Results use ordinary objects containing numbers. The public API stays close to Taffy's tree model rather than pretending to be a browser or a CSS parser.
+Styles use JavaScript objects, plain numbers for concrete lengths, and named values such as `Display.Flex` for other choices. Results use ordinary objects containing numbers. The public API stays close to Taffy's tree model rather than pretending to be a browser or a CSS parser.
 
 Start with [Getting Started](./getting-started.md) to run the shortest complete example. The later Guide pages explain the state changes behind that example and introduce Block, Flexbox, Grid, and measured content without turning into a general CSS tutorial.
