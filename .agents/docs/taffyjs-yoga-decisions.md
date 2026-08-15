@@ -182,6 +182,30 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-14; required differences to be documented, accepted explicit unsupported behavior, vouched the original consolidated verification rules, and later clarified that the base design must not preselect Ink or another external consumer.
 
+### Upstream work and current compatibility
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Published compatibility classifications must describe only the behavior available through the Taffy version actually pinned by `@taffyjs/yoga`; relevant upstream implementation work must be shown separately as work in progress without changing the current Compatible, Different, or Unsupported classification.
+
+**Limits:** An upstream issue or pull request is evidence of active work, not shipped support, a delivery promise, or an ETA. Reclassification requires the upstream capability to land in a released Taffy version, the required native API to be adopted and exposed by `@taffyjs/node`, and the affected Yoga behavior to pass differential verification with updated documentation and regression fixtures. Tracked upstream work must be updated when it merges, closes, or is replaced. Under the current Taffy 0.13 pin, `PositionType.Static` remains Unsupported while [DioxusLabs/taffy#1009](https://github.com/DioxusLabs/taffy/pull/1009) is open upstream.
+
+**Why:** Users should be able to distinguish a capability with a credible upstream implementation path from one with no known path, without mistaking unshipped work for something they can use today.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required active upstream support work such as DioxusLabs/taffy#1009 to appear in the compatibility documentation and vouched this separation from current compatibility status.
+
+### Pre-1.0 versioning
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** `@taffyjs/yoga` will remain on the `0.x` version line for the foreseeable future; before 1.0, every public breaking change, including a Yoga-alignment fix that changes supported observable behavior, must bump the minor version, while a fix that preserves the public behavior contract bumps the patch version.
+
+**Limits:** This policy governs only pre-1.0 releases and does not promise that 1.0 will retain the same versioning convention or set a timetable for 1.0. The required bump follows the observable effect of `@taffyjs/yoga`, not whether Taffy or Yoga labels an upstream change as a fix. Internal implementation, performance, cache, recomputation, exact error wording, and callback-trace changes may remain patch-level when they stay outside the compatibility contract and preserve supported results. The versioning of additive features is not decided by this ruling. A release containing both patch-level fixes and any breaking behavior change requires a minor bump.
+
+**Why:** Correcting a Yoga mismatch is necessary, but consumers may depend on the package's previous layout or API behavior even when that behavior was a bug; a minor release makes that change explicit while keeping contract-preserving fixes available through patch upgrades.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly chose a long-lived `0.x` line, minor bumps for behavior-changing compatibility fixes and other breaking changes, patch bumps for other fixes, and deferred any guarantee about post-1.0 policy.
+
 ### Integration-test placement
 
 [VOUCHED @hyfdev 2026-08-15]

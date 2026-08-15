@@ -59,6 +59,16 @@ When an upstream enum type also contains values that are Unsupported for one pro
 | Positive or negative infinity as a `calculateLayout` owner dimension                                                                                            | Throws before calculation or public-state mutation. Finite numbers, `"auto"`, `undefined`, omitted values, and NaN remain supported.                                                                                                             | Yoga's resulting NaN or zero geometry is not a credible available-space contract.                                               |
 | Undeclared generic-setter coercions                                                                                                                             | Malformed strings, arbitrary objects, and Value-like getter results supplied to setters throw atomically.                                                                                                                                        | Yoga's broad wrapper coercion is outside its published types and its own getter-to-setter path is broken in 3.2.1.              |
 
+## Upstream work in progress
+
+The compatibility tables describe what the current package can do with its pinned Taffy 0.13 dependency. Upstream work is tracked separately so that a possible path to support is visible without presenting unshipped code as available behavior.
+
+| Capability            | Current classification | Upstream status                                                                                                                                                                                                                   | What must happen before support                                                                                                                                                                                                                                |
+| --------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PositionType.Static` | Unsupported            | [DioxusLabs/taffy#1009](https://github.com/DioxusLabs/taffy/pull/1009) is open as of 2026-08-16. It proposes native `Position::Static` support and the containing-block machinery needed by absolute descendants of static nodes. | The change must ship in a released Taffy version, `@taffyjs/node` must update and expose the needed native capability, and Yoga 3.2.1 differential tests must verify the complete observable behavior. Until then, the Unsupported row above is authoritative. |
+
+An upstream pull request is not a support promise or an ETA. Merging it does not reclassify the capability automatically; adoption and compatibility verification are separate work.
+
 ## Known Differences
 
 These rows are deliberate, version-specific differences with regression fixtures:
