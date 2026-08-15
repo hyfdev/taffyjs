@@ -1,4 +1,4 @@
-import { AlignContent, AlignItems, AvailableSpace, BoxSizing, Dimension, Direction, Display, FlexDirection, FlexWrap, Overflow, Position, TaffyTree } from "@taffyjs/node";
+import { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Dimension, Direction, Display, FlexDirection, FlexWrap, Overflow, Position, TaffyTree } from "@taffyjs/node";
 //#region src/enums.ts
 let Align = /* @__PURE__ */ function(Align) {
 	Align[Align["Auto"] = 0] = "Auto";
@@ -675,6 +675,41 @@ function projectOutputs(entries, options) {
 	return states;
 }
 //#endregion
+//#region src/measurement.ts
+function mapConstraint(knownDimension, availableSpace, forceExactly) {
+	if (knownDimension !== void 0 || forceExactly) return {
+		mode: 1,
+		value: availableSpace.kind === AvailableSpaceKind.Definite ? Math.max(0, availableSpace.value) : Math.max(0, knownDimension ?? 0)
+	};
+	switch (availableSpace.kind) {
+		case AvailableSpaceKind.Definite: return {
+			mode: 2,
+			value: Math.max(0, availableSpace.value)
+		};
+		case AvailableSpaceKind.MinContent: return {
+			mode: 2,
+			value: 0
+		};
+		case AvailableSpaceKind.MaxContent: return {
+			mode: 0,
+			value: NaN
+		};
+	}
+}
+function normalizeDimension(value) {
+	const number = Number(value);
+	return Number.isNaN(number) || number < 0 ? 0 : number;
+}
+function invokeYogaMeasure(args, measure, forceExactly) {
+	const width = mapConstraint(args.knownDimensions.width, args.availableSpace.width, forceExactly.width);
+	const height = mapConstraint(args.knownDimensions.height, args.availableSpace.height, forceExactly.height);
+	const { width: measuredWidth = NaN, height: measuredHeight = NaN } = measure(width.value, width.mode, height.value, height.mode);
+	return {
+		width: normalizeDimension(measuredWidth),
+		height: normalizeDimension(measuredHeight)
+	};
+}
+//#endregion
 //#region src/translate.ts
 function alignItems(value) {
 	switch (value) {
@@ -835,15 +870,23 @@ function translateCalculationStyle(declarations, config, resolvedDirection, owne
 	const width = exactRootDimension(declarations, "width", ownerWidth, ownerWidth, resolvedDirection);
 	const height = exactRootDimension(declarations, "height", ownerHeight, ownerWidth, resolvedDirection);
 	const forceFlexDisplay = declarations.display === 1;
-	if (width === void 0 && height === void 0 && !forceFlexDisplay) return null;
+	if (width === void 0 && height === void 0 && !forceFlexDisplay) return {
+		style: null,
+		exactWidth: false,
+		exactHeight: false
+	};
 	const ordinary = translateStyle(declarations, config, resolvedDirection, ownerDirection);
 	return {
-		...ordinary,
-		display: forceFlexDisplay ? Display.Flex : ordinary.display,
-		size: {
-			width: width === void 0 ? toDimension(declarations.width) : Dimension.Length(width),
-			height: height === void 0 ? toDimension(declarations.height) : Dimension.Length(height)
-		}
+		style: {
+			...ordinary,
+			display: forceFlexDisplay ? Display.Flex : ordinary.display,
+			size: {
+				width: width === void 0 ? toDimension(declarations.width) : Dimension.Length(width),
+				height: height === void 0 ? toDimension(declarations.height) : Dimension.Length(height)
+			}
+		},
+		exactWidth: width !== void 0,
+		exactHeight: height !== void 0
 	};
 }
 function declarationDirection(declarations, ownerDirection) {
@@ -870,6 +913,21 @@ var FacadeRuntime = class {
 	tree = new TaffyTree();
 	nodes = /* @__PURE__ */ new Map();
 	defaultConfig = new ConfigState();
+	measure = (args) => {
+		const callback = recordForId(this, args.node).measureFunction;
+		if (callback === null) return {
+			width: 0,
+			height: 0
+		};
+		const context = this.activeMeasureContext;
+		const isSelectedRoot = context?.root === args.node;
+		return invokeYogaMeasure(args, callback, {
+			width: isSelectedRoot === true && context.exactWidth,
+			height: isSelectedRoot === true && context.exactHeight
+		});
+	};
+	activeMeasureContext = null;
+	measurementRevision = 0;
 	poisoned = null;
 	constructor() {
 		this.tree.disableRounding();
@@ -1111,7 +1169,7 @@ function assertAcyclicInsertion(parent, child) {
 	}
 }
 function sameCalculation(left, right) {
-	return left !== void 0 && Object.is(left.width, right.width) && Object.is(left.height, right.height) && left.direction === right.direction;
+	return left !== void 0 && Object.is(left.width, right.width) && Object.is(left.height, right.height) && left.direction === right.direction && left.measurementRevision === right.measurementRevision;
 }
 var YogaNode = class {
 	constructor(runtime, config) {
@@ -1138,6 +1196,8 @@ var YogaNode = class {
 			hasNewLayout: true,
 			dirtiedFunction: null,
 			measureFunction: null,
+			measurementRevision: 0,
+			outputStale: false,
 			referenceBaseline: false,
 			alwaysFormsContainingBlock: false,
 			lastCalculation: void 0
@@ -1232,7 +1292,12 @@ var YogaNode = class {
 		record.dirty = true;
 		record.hasNewLayout = true;
 		record.dirtiedFunction = null;
+		if (record.measureFunction !== null) {
+			record.runtime.measurementRevision += 1;
+			record.measurementRevision = record.runtime.measurementRevision;
+		}
 		record.measureFunction = null;
+		record.outputStale = false;
 		record.referenceBaseline = false;
 		record.alwaysFormsContainingBlock = false;
 		record.lastCalculation = void 0;
@@ -1253,10 +1318,14 @@ var YogaNode = class {
 		const record = requireNode(void 0, this);
 		if (measureFunc !== null && typeof measureFunc !== "function") throw new TypeError("measureFunc must be a function or null");
 		if (measureFunc !== null && record.runtime.tree.getChildCount(record.nodeId) !== 0) throw new Error("Measured Yoga nodes cannot have children");
+		if (record.measureFunction === measureFunc) return;
+		record.runtime.tree.markDirty(record.nodeId);
 		record.measureFunction = measureFunc;
+		record.runtime.measurementRevision += 1;
+		record.measurementRevision = record.runtime.measurementRevision;
 	}
 	unsetMeasureFunc() {
-		requireNode(void 0, this).measureFunction = null;
+		this.setMeasureFunc(null);
 	}
 	setDirtiedFunc(dirtiedFunc) {
 		const record = requireNode(void 0, this);
@@ -1663,29 +1732,46 @@ var YogaNode = class {
 		const ownerDirection = requireEnum(direction, "calculateLayout direction", [1, 2]);
 		const availableWidth = requireCalculationDimension(width, "width");
 		const availableHeight = requireCalculationDimension(height, "height");
+		const subtree = collectSubtree(record);
 		const signature = {
 			width: typeof availableWidth === "number" ? Math.fround(availableWidth) : void 0,
 			height: typeof availableHeight === "number" ? Math.fround(availableHeight) : void 0,
-			direction: ownerDirection
+			direction: ownerDirection,
+			measurementRevision: subtree.reduce((revision, current) => Math.max(revision, current.measurementRevision), 0)
 		};
-		const subtree = collectSubtree(record);
 		const translationIsStale = syncSubtreeStyles(record, ownerDirection, subtree);
-		const recomputeSubtree = record.dirty || translationIsStale || !sameCalculation(record.lastCalculation, signature);
+		const recomputeSubtree = record.dirty || translationIsStale || subtree.some((current) => current.outputStale) || !sameCalculation(record.lastCalculation, signature);
 		const rootHasOwner = record.runtime.tree.getParent(record.nodeId) !== null;
-		const temporaryStyle = translateCalculationStyle(record.declarations, record.config, record.appliedDirection, record.ownerDirection, signature.width, signature.height);
+		const calculationStyle = translateCalculationStyle(record.declarations, record.config, record.appliedDirection, record.ownerDirection, signature.width, signature.height);
+		const temporaryStyle = calculationStyle.style;
 		const ordinaryStyle = temporaryStyle === null ? null : translateStyle(record.declarations, record.config, record.appliedDirection, record.ownerDirection);
+		for (const current of subtree) current.outputStale = true;
 		if (temporaryStyle !== null) record.runtime.tree.setStyle(record.nodeId, temporaryStyle);
-		record.lastCalculation = void 0;
 		let calculationFailed = false;
 		let calculationError;
 		try {
-			record.runtime.tree.computeLayout({
+			const options = {
 				root: record.nodeId,
 				availableSpace: {
 					width: availableWidth,
 					height: availableHeight
 				}
-			});
+			};
+			if (subtree.some((current) => current.measureFunction !== null)) {
+				record.runtime.activeMeasureContext = {
+					root: record.nodeId,
+					exactWidth: calculationStyle.exactWidth,
+					exactHeight: calculationStyle.exactHeight
+				};
+				try {
+					record.runtime.tree.computeLayoutWithMeasure({
+						...options,
+						measure: record.runtime.measure
+					});
+				} finally {
+					record.runtime.activeMeasureContext = null;
+				}
+			} else record.runtime.tree.computeLayout(options);
 		} catch (error) {
 			calculationFailed = true;
 			calculationError = error;
@@ -1730,6 +1816,7 @@ var YogaNode = class {
 		for (const current of subtree) {
 			current.dirty = false;
 			if (recomputeSubtree) current.hasNewLayout = true;
+			current.outputStale = false;
 		}
 		record.hasNewLayout = true;
 		record.lastCalculation = signature;

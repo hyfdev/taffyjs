@@ -1,4 +1,9 @@
-import { AvailableSpace, TaffyTree, type NodeId } from "@taffyjs/node";
+import {
+  AvailableSpace,
+  TaffyTree,
+  type MeasureArgs as NativeMeasureArgs,
+  type NodeId,
+} from "@taffyjs/node";
 import {
   cloneDeclarations,
   createDeclarations,
@@ -27,6 +32,7 @@ import {
   type ComputedEdges,
   type ProjectionEntry,
 } from "./projection.js";
+import { invokeYogaMeasure } from "./measurement.js";
 import { declarationDirection, translateCalculationStyle, translateStyle } from "./translate.js";
 import type {
   AlignContentValue,
@@ -74,11 +80,29 @@ class FacadeRuntime {
   readonly tree = new TaffyTree();
   readonly nodes = new Map<NodeId, YogaNode>();
   readonly defaultConfig = new ConfigState();
+  readonly measure = (args: NativeMeasureArgs<unknown>) => {
+    const callback = recordForId(this, args.node).measureFunction;
+    if (callback === null) return { width: 0, height: 0 };
+    const context = this.activeMeasureContext;
+    const isSelectedRoot = context?.root === args.node;
+    return invokeYogaMeasure(args, callback, {
+      width: isSelectedRoot === true && context.exactWidth,
+      height: isSelectedRoot === true && context.exactHeight,
+    });
+  };
+  activeMeasureContext: ActiveMeasureContext | null = null;
+  measurementRevision = 0;
   poisoned: Error | null = null;
 
   constructor() {
     this.tree.disableRounding();
   }
+}
+
+interface ActiveMeasureContext {
+  readonly root: NodeId;
+  readonly exactWidth: boolean;
+  readonly exactHeight: boolean;
 }
 
 function assertRuntimeUsable(runtime: FacadeRuntime): void {
@@ -216,6 +240,8 @@ interface NodeRecord {
   hasNewLayout: boolean;
   dirtiedFunction: DirtiedFunction | null;
   measureFunction: MeasureFunction | null;
+  measurementRevision: number;
+  outputStale: boolean;
   referenceBaseline: boolean;
   alwaysFormsContainingBlock: boolean;
   lastCalculation: CalculationSignature | undefined;
@@ -225,6 +251,7 @@ interface CalculationSignature {
   readonly width: number | undefined;
   readonly height: number | undefined;
   readonly direction: Direction.LTR | Direction.RTL;
+  readonly measurementRevision: number;
 }
 
 const nodeRecords = new WeakMap<object, NodeRecord>();
@@ -435,7 +462,8 @@ function sameCalculation(
     left !== undefined &&
     Object.is(left.width, right.width) &&
     Object.is(left.height, right.height) &&
-    left.direction === right.direction
+    left.direction === right.direction &&
+    left.measurementRevision === right.measurementRevision
   );
 }
 
@@ -466,6 +494,8 @@ class YogaNode implements Node {
       hasNewLayout: true,
       dirtiedFunction: null,
       measureFunction: null,
+      measurementRevision: 0,
+      outputStale: false,
       referenceBaseline: false,
       alwaysFormsContainingBlock: false,
       lastCalculation: undefined,
@@ -599,7 +629,12 @@ class YogaNode implements Node {
     record.dirty = true;
     record.hasNewLayout = true;
     record.dirtiedFunction = null;
+    if (record.measureFunction !== null) {
+      record.runtime.measurementRevision += 1;
+      record.measurementRevision = record.runtime.measurementRevision;
+    }
     record.measureFunction = null;
+    record.outputStale = false;
     record.referenceBaseline = false;
     record.alwaysFormsContainingBlock = false;
     record.lastCalculation = undefined;
@@ -632,11 +667,15 @@ class YogaNode implements Node {
     if (measureFunc !== null && record.runtime.tree.getChildCount(record.nodeId) !== 0) {
       throw new Error("Measured Yoga nodes cannot have children");
     }
+    if (record.measureFunction === measureFunc) return;
+    record.runtime.tree.markDirty(record.nodeId);
     record.measureFunction = measureFunc;
+    record.runtime.measurementRevision += 1;
+    record.measurementRevision = record.runtime.measurementRevision;
   }
 
   unsetMeasureFunc(): void {
-    requireNode(undefined, this).measureFunction = null;
+    this.setMeasureFunc(null);
   }
 
   setDirtiedFunc(dirtiedFunc: DirtiedFunction | null): void {
@@ -1128,17 +1167,24 @@ class YogaNode implements Node {
     ]) as Direction.LTR | Direction.RTL;
     const availableWidth = requireCalculationDimension(width, "width");
     const availableHeight = requireCalculationDimension(height, "height");
+    const subtree = collectSubtree(record);
     const signature: CalculationSignature = {
       width: typeof availableWidth === "number" ? Math.fround(availableWidth) : undefined,
       height: typeof availableHeight === "number" ? Math.fround(availableHeight) : undefined,
       direction: ownerDirection,
+      measurementRevision: subtree.reduce(
+        (revision, current) => Math.max(revision, current.measurementRevision),
+        0,
+      ),
     };
-    const subtree = collectSubtree(record);
     const translationIsStale = syncSubtreeStyles(record, ownerDirection, subtree);
     const recomputeSubtree =
-      record.dirty || translationIsStale || !sameCalculation(record.lastCalculation, signature);
+      record.dirty ||
+      translationIsStale ||
+      subtree.some((current) => current.outputStale) ||
+      !sameCalculation(record.lastCalculation, signature);
     const rootHasOwner = record.runtime.tree.getParent(record.nodeId) !== null;
-    const temporaryStyle = translateCalculationStyle(
+    const calculationStyle = translateCalculationStyle(
       record.declarations,
       record.config,
       record.appliedDirection,
@@ -1146,6 +1192,7 @@ class YogaNode implements Node {
       signature.width,
       signature.height,
     );
+    const temporaryStyle = calculationStyle.style;
     const ordinaryStyle =
       temporaryStyle === null
         ? null
@@ -1155,18 +1202,35 @@ class YogaNode implements Node {
             record.appliedDirection,
             record.ownerDirection,
           );
+    for (const current of subtree) current.outputStale = true;
     if (temporaryStyle !== null) record.runtime.tree.setStyle(record.nodeId, temporaryStyle);
-    record.lastCalculation = undefined;
     let calculationFailed = false;
     let calculationError: unknown;
     try {
-      record.runtime.tree.computeLayout({
+      const options = {
         root: record.nodeId,
         availableSpace: {
           width: availableWidth,
           height: availableHeight,
         },
-      });
+      };
+      if (subtree.some((current) => current.measureFunction !== null)) {
+        record.runtime.activeMeasureContext = {
+          root: record.nodeId,
+          exactWidth: calculationStyle.exactWidth,
+          exactHeight: calculationStyle.exactHeight,
+        };
+        try {
+          record.runtime.tree.computeLayoutWithMeasure({
+            ...options,
+            measure: record.runtime.measure,
+          });
+        } finally {
+          record.runtime.activeMeasureContext = null;
+        }
+      } else {
+        record.runtime.tree.computeLayout(options);
+      }
     } catch (error) {
       calculationFailed = true;
       calculationError = error;
@@ -1219,6 +1283,7 @@ class YogaNode implements Node {
     for (const current of subtree) {
       current.dirty = false;
       if (recomputeSubtree) current.hasNewLayout = true;
+      current.outputStale = false;
     }
     record.hasNewLayout = true;
     record.lastCalculation = signature;

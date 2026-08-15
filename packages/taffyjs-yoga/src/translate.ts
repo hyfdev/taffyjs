@@ -349,6 +349,12 @@ function exactRootDimension(
   return Math.max(0, outerSize);
 }
 
+export interface CalculationStylePlan {
+  readonly style: StyleInput | null;
+  readonly exactWidth: boolean;
+  readonly exactHeight: boolean;
+}
+
 export function translateCalculationStyle(
   declarations: YogaDeclarations,
   config: TranslationConfig,
@@ -356,7 +362,7 @@ export function translateCalculationStyle(
   ownerDirection: Direction.LTR | Direction.RTL,
   ownerWidth: number | undefined,
   ownerHeight: number | undefined,
-): StyleInput | null {
+): CalculationStylePlan {
   const width = exactRootDimension(
     declarations,
     "width",
@@ -372,17 +378,23 @@ export function translateCalculationStyle(
     resolvedDirection,
   );
   const forceFlexDisplay = declarations.display === Display.None;
-  if (width === undefined && height === undefined && !forceFlexDisplay) return null;
+  if (width === undefined && height === undefined && !forceFlexDisplay) {
+    return { style: null, exactWidth: false, exactHeight: false };
+  }
 
   const ordinary = translateStyle(declarations, config, resolvedDirection, ownerDirection);
   return {
-    ...ordinary,
-    display: forceFlexDisplay ? TaffyDisplay.Flex : ordinary.display,
-    size: {
-      width: width === undefined ? toDimension(declarations.width) : TaffyDimension.Length(width),
-      height:
-        height === undefined ? toDimension(declarations.height) : TaffyDimension.Length(height),
+    style: {
+      ...ordinary,
+      display: forceFlexDisplay ? TaffyDisplay.Flex : ordinary.display,
+      size: {
+        width: width === undefined ? toDimension(declarations.width) : TaffyDimension.Length(width),
+        height:
+          height === undefined ? toDimension(declarations.height) : TaffyDimension.Length(height),
+      },
     },
+    exactWidth: width !== undefined,
+    exactHeight: height !== undefined,
   };
 }
 

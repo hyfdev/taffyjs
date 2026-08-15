@@ -4,7 +4,7 @@ Updated: 2026-08-15
 
 ## State
 
-Milestone 4 is complete, reviewed, and ready in its milestone commit. Milestone 5 is next.
+Milestone 5 is complete, reviewed, and ready in its milestone commit. Milestone 6 is next.
 
 ## Done
 
@@ -32,6 +32,10 @@ Milestone 4 is complete, reviewed, and ready in its milestone commit. Milestone 
 - Added bounded Yoga-compatible float32 percentage resolution, explicit Taffy-offset removal for relative projection, the documented 0.0001 compatibility boundary for equivalent unrounded percentage arithmetic, and durable exact and tolerance-bound oracle fixtures.
 - Added differential fixtures and public compatibility entries for every researched non-measurement Difference, including live Config cache behavior, callback artifacts, max/shrink, aspect ratio, WebFlexBasis cache behavior, attached-subtree cache behavior, overlapping physical and logical margins, oversized and ordinary WrapReverse placement, reversed overflow distribution, zero cross-size lines, and auto margins under justification or reversed axes.
 - Added Yoga 3.2.1 PixelGrid source attribution, a complete packaged MIT third-party notice, and package-file coverage for the notice.
+- Added one facade-level synchronous Measure bridge that dispatches retained callbacks by NodeId, keeps measured Nodes as leaves, maps known, finite, min-content, and max-content constraints to Yoga modes, preserves content-box values, normalizes callback results, and rethrows callback failures with identity preserved.
+- Added selected-root exact-axis context for measured calculations, zero clamping for exhausted content-box constraints, Yoga measured-text point-grid rounding, native-only cache invalidation when callbacks are replaced or removed, and hidden measurement/output revisions that preserve public dirty state while making failure retry and arbitrary-subtree output commits correct.
+- Added the ordinary-compute fast path for selected subtrees without measured Nodes, controlled same-facade native tree-busy behavior during callbacks, and durable callback registration, external-data dirtying, result coercion, failure atomicity, temporary root-Style restoration, retry, Config-refresh retry, and path-selection fixtures.
+- Added exact dual-oracle Difference fixtures and public documentation for callback count/order/mode traces, MeasureMode-sensitive results, measured flex-basis interaction, and Yoga's stale cache after callback replacement or removal.
 
 ## Evidence and review
 
@@ -48,6 +52,9 @@ Milestone 4 is complete, reviewed, and ready in its milestone commit. Milestone 
 - The fresh Milestone 4 adversarial reviewer found three material issues: absolute mixed-direction logical insets were translated too late to recover auto-sized width, two known Taffy/Yoga Difference triggers were documented too narrowly, and the ported PixelGrid code lacked its required MIT attribution. Native Style translation now tracks containing direction before calculation, both Difference classes have exact dual-oracle fixtures and expanded documentation, and the source plus packaged notice carry the attribution.
 - The same reviewer’s single targeted follow-up confirmed those three repairs and found two residuals: Taffy's percentage conversion needed to divide before its float32 cast, and the authoritative implementation reference had not been synchronized with the expanded Difference evidence. The exact width-3/left-0.3% reproduction now matches Yoga bit-for-bit, the remaining equivalent absolute-margin arithmetic is pinned under Yoga's 0.0001 float tolerance, and the reference now contains all three added Difference triggers. Per the review protocol, the review loop stopped after that one follow-up and the residual fixes were verified locally and by the complete gate.
 - A `pnpm pack --dry-run --json` preview includes both entries, both entry declarations, both shared chunks, `COMPATIBILITY.md`, and `THIRD_PARTY_NOTICES.md`; a 64-case percentage direction, axis, and position matrix has zero exact mismatches for the tested inset corpus.
+- The Milestone 5 full `vp run check` passes after the final Measure fixes: 9 Rust tests, 45 native tests, 194 `@taffyjs/node` integration tests, 74 Yoga tests, both declaration checks, formatting, linting, and Clippy pass. The committed path-selection profile records one ordinary call and zero measured calls for an unmeasured calculation, then one measured call only after a callback is present.
+- The fresh Milestone 5 adversarial reviewer found two material issues: a negative Taffy finite content-box remainder was exposed as `AtMost(-5)` instead of Yoga's `AtMost(0)`, and a failed Config refresh consumed native Style staleness before retry, allowing changed descendant geometry to remain `hasNewLayout() === false`. Finite content constraints now clamp to zero, and each selected subtree retains a private output-stale marker until a complete successful projection and state commit.
+- The same reviewer's single targeted follow-up returned PASS after verifying both axes, positive and exact constraints, the original Config/point-scale retry, partial child-then-ancestor recovery, and clean cache-hit flags. The focused Measure suite passes 10 tests, including the exact 20-by-30 negative-space and 10.5-by-5.5 retry reproductions.
 
 ## In flight
 
@@ -55,7 +62,7 @@ Milestone 4 is complete, reviewed, and ready in its milestone commit. Milestone 
 
 ## Next
 
-- Implement Milestone 5: Measure callback registration, native bridge, mode mapping, failure and retry behavior, measured rounding, reentrancy, and documented measurement Differences.
+- Complete Milestone 6: audit the exact Yoga 3.2.1 public surface and classifications, finish package and alias evidence, remove obsolete research TODOs, complete public documentation, and run the release-readiness gates while keeping the PR draft and unmerged.
 
 ## Blocked
 
