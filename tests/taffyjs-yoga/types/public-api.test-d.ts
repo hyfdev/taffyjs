@@ -87,6 +87,9 @@ const margin: { unit: Unit; value: number } = node.getMargin(Edge.Start);
 node.copyStyle(node);
 node.calculateLayout(undefined, undefined, Direction.LTR);
 const width: number = node.getComputedWidth();
+const computedMargin: number = node.getComputedMargin(Edge.Start);
+const computedPadding: number = node.getComputedPadding(Edge.End);
+const computedBorder: number = node.getComputedBorder(Edge.Left);
 const dirtied: DirtiedFunction = (dirtyNode) => dirtyNode.getComputedWidth();
 const measure: MeasureFunction = () => ({ width: 1, height: 2 });
 const child: Node = Yoga.Node.create();
@@ -137,6 +140,9 @@ type RootYoga = import("yoga-layout").Yoga;
 
 void [
   width,
+  computedMargin,
+  computedPadding,
+  computedBorder,
   webDefaults,
   webFlexBasis,
   errata,

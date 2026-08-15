@@ -21,7 +21,13 @@ import {
   Wrap,
   legacyConstants,
 } from "./enums.js";
-import { declarationDirection, translateStyle } from "./translate.js";
+import {
+  initialComputedEdges,
+  projectOutputs,
+  type ComputedEdges,
+  type ProjectionEntry,
+} from "./projection.js";
+import { declarationDirection, translateCalculationStyle, translateStyle } from "./translate.js";
 import type {
   AlignContentValue,
   AlignItemsValue,
@@ -202,6 +208,10 @@ interface NodeRecord {
   appliedDirection: Direction.LTR | Direction.RTL;
   appliedConfigRevision: number;
   layout: Layout;
+  computedMargin: ComputedEdges;
+  computedPadding: ComputedEdges;
+  computedBorder: ComputedEdges;
+  layoutDirection: Direction.LTR | Direction.RTL;
   dirty: boolean;
   hasNewLayout: boolean;
   dirtiedFunction: DirtiedFunction | null;
@@ -295,7 +305,7 @@ function applyDeclarations(record: NodeRecord, declarations: YogaDeclarations): 
   if (sameDeclarations(record.declarations, declarations)) return;
   const dirtyRecords = collectAncestors(record, true);
   const direction = effectiveDirection(record, declarations);
-  const style = translateStyle(declarations, record.config, direction);
+  const style = translateStyle(declarations, record.config, direction, record.ownerDirection);
   record.runtime.tree.setStyle(record.nodeId, style);
   record.declarations = declarations;
   record.appliedDirection = direction;
@@ -344,13 +354,14 @@ function syncSubtreeStyles(
     const appliedDirection = declarationDirection(record.declarations, ownerDirection);
     const stale =
       record.appliedConfigRevision !== record.config.revision ||
-      record.appliedDirection !== appliedDirection;
+      record.appliedDirection !== appliedDirection ||
+      record.ownerDirection !== ownerDirection;
     plan.push({
       record,
       ownerDirection,
       appliedDirection,
       style: stale
-        ? translateStyle(record.declarations, record.config, appliedDirection)
+        ? translateStyle(record.declarations, record.config, appliedDirection, ownerDirection)
         : undefined,
     });
     directions.set(record.nodeId, appliedDirection);
@@ -434,7 +445,9 @@ class YogaNode implements Node {
     const declarations = createDeclarations(config.useWebDefaults);
     const ownerDirection = Direction.LTR;
     const appliedDirection = declarationDirection(declarations, ownerDirection);
-    const nodeId = runtime.tree.newLeaf(translateStyle(declarations, config, appliedDirection));
+    const nodeId = runtime.tree.newLeaf(
+      translateStyle(declarations, config, appliedDirection, ownerDirection),
+    );
     nodeRecords.set(this, {
       runtime,
       config,
@@ -445,6 +458,10 @@ class YogaNode implements Node {
       appliedDirection,
       appliedConfigRevision: config.revision,
       layout: initialLayout(),
+      computedMargin: initialComputedEdges(),
+      computedPadding: initialComputedEdges(),
+      computedBorder: initialComputedEdges(),
+      layoutDirection: appliedDirection,
       dirty: true,
       hasNewLayout: true,
       dirtiedFunction: null,
@@ -524,6 +541,10 @@ class YogaNode implements Node {
       throw poisonRuntime(parentRecord.runtime, error);
     }
     childRecord.layout = initialLayout();
+    childRecord.computedMargin = initialComputedEdges();
+    childRecord.computedPadding = initialComputedEdges();
+    childRecord.computedBorder = initialComputedEdges();
+    childRecord.layoutDirection = childRecord.appliedDirection;
     childRecord.lastCalculation = undefined;
     markDirtyRecords(dirtyRecords);
   }
@@ -563,7 +584,7 @@ class YogaNode implements Node {
     const appliedDirection = declarationDirection(declarations, ownerDirection);
     record.runtime.tree.setStyle(
       record.nodeId,
-      translateStyle(declarations, record.config, appliedDirection),
+      translateStyle(declarations, record.config, appliedDirection, ownerDirection),
     );
 
     record.declarations = declarations;
@@ -571,6 +592,10 @@ class YogaNode implements Node {
     record.appliedDirection = appliedDirection;
     record.appliedConfigRevision = record.config.revision;
     record.layout = initialLayout();
+    record.computedMargin = initialComputedEdges();
+    record.computedPadding = initialComputedEdges();
+    record.computedBorder = initialComputedEdges();
+    record.layoutDirection = appliedDirection;
     record.dirty = true;
     record.hasNewLayout = true;
     record.dirtiedFunction = null;
@@ -1112,22 +1137,85 @@ class YogaNode implements Node {
     const translationIsStale = syncSubtreeStyles(record, ownerDirection, subtree);
     const recomputeSubtree =
       record.dirty || translationIsStale || !sameCalculation(record.lastCalculation, signature);
-    record.runtime.tree.computeLayout({
-      root: record.nodeId,
-      availableSpace: {
-        width: availableWidth,
-        height: availableHeight,
-      },
+    const rootHasOwner = record.runtime.tree.getParent(record.nodeId) !== null;
+    const temporaryStyle = translateCalculationStyle(
+      record.declarations,
+      record.config,
+      record.appliedDirection,
+      record.ownerDirection,
+      signature.width,
+      signature.height,
+    );
+    const ordinaryStyle =
+      temporaryStyle === null
+        ? null
+        : translateStyle(
+            record.declarations,
+            record.config,
+            record.appliedDirection,
+            record.ownerDirection,
+          );
+    if (temporaryStyle !== null) record.runtime.tree.setStyle(record.nodeId, temporaryStyle);
+    record.lastCalculation = undefined;
+    let calculationFailed = false;
+    let calculationError: unknown;
+    try {
+      record.runtime.tree.computeLayout({
+        root: record.nodeId,
+        availableSpace: {
+          width: availableWidth,
+          height: availableHeight,
+        },
+      });
+    } catch (error) {
+      calculationFailed = true;
+      calculationError = error;
+    }
+    if (ordinaryStyle !== null) {
+      try {
+        record.runtime.tree.setStyle(record.nodeId, ordinaryStyle);
+      } catch (error) {
+        throw poisonRuntime(record.runtime, error);
+      }
+    }
+    if (calculationFailed) throw calculationError;
+
+    const subtreeIndices = new Map<NodeId, number>();
+    for (const [index, current] of subtree.entries()) {
+      subtreeIndices.set(current.nodeId, index);
+    }
+    const projectionEntries: ProjectionEntry[] = subtree.map((current, index) => {
+      let parentIndex: number | null = null;
+      if (index !== 0) {
+        const parentId = record.runtime.tree.getParent(current.nodeId);
+        const resolvedParentIndex = parentId === null ? undefined : subtreeIndices.get(parentId);
+        if (resolvedParentIndex === undefined) {
+          throw poisonRuntime(record.runtime, new Error("Yoga subtree projection mismatch"));
+        }
+        parentIndex = resolvedParentIndex;
+      }
+      return {
+        declarations: current.declarations,
+        direction: current.appliedDirection,
+        pointScaleFactor: current.config.pointScaleFactor,
+        measured: current.measureFunction !== null,
+        nativeLayout: record.runtime.tree.getUnroundedLayout(current.nodeId),
+        parentIndex,
+      };
     });
-    const layout = record.runtime.tree.getUnroundedLayout(record.nodeId);
-    record.layout = {
-      left: layout.location.x,
-      right: 0,
-      top: layout.location.y,
-      bottom: 0,
-      width: layout.size.width,
-      height: layout.size.height,
-    };
+    const outputs = projectOutputs(projectionEntries, {
+      ownerWidth: signature.width,
+      ownerHeight: signature.height,
+      rootHasOwner,
+    });
+    for (const [index, current] of subtree.entries()) {
+      const output = outputs[index];
+      current.layout = output.layout;
+      current.computedMargin = output.margin;
+      current.computedPadding = output.padding;
+      current.computedBorder = output.border;
+      current.layoutDirection = output.direction;
+    }
     for (const current of subtree) {
       current.dirty = false;
       if (recomputeSubtree) current.hasNewLayout = true;
@@ -1160,9 +1248,45 @@ class YogaNode implements Node {
     return requireNode(undefined, this).layout.height;
   }
 
+  getComputedMargin(edge: Edge): number {
+    const record = requireNode(undefined, this);
+    return computedEdge(record, record.computedMargin, edge);
+  }
+
+  getComputedPadding(edge: Edge): number {
+    const record = requireNode(undefined, this);
+    return computedEdge(record, record.computedPadding, edge);
+  }
+
+  getComputedBorder(edge: Edge): number {
+    const record = requireNode(undefined, this);
+    return computedEdge(record, record.computedBorder, edge);
+  }
+
   getComputedLayout(): Layout {
     return { ...requireNode(undefined, this).layout };
   }
+}
+
+function computedEdge(record: NodeRecord, edges: ComputedEdges, edge: Edge): number {
+  const resolved = requireEnum(edge, "computed edge", [
+    Edge.Left,
+    Edge.Top,
+    Edge.Right,
+    Edge.Bottom,
+    Edge.Start,
+    Edge.End,
+  ]);
+  if (resolved === Edge.Start) {
+    return record.layoutDirection === Direction.RTL ? edges.right : edges.left;
+  }
+  if (resolved === Edge.End) {
+    return record.layoutDirection === Direction.RTL ? edges.left : edges.right;
+  }
+  if (resolved === Edge.Left) return edges.left;
+  if (resolved === Edge.Top) return edges.top;
+  if (resolved === Edge.Right) return edges.right;
+  return edges.bottom;
 }
 
 function freeNode(record: NodeRecord): void {

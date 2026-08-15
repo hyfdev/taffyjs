@@ -53,6 +53,10 @@ export function publicValue(value: YogaValue): Value {
   return { value: value.value, unit: value.unit };
 }
 
+export function resolvePercentage(basis: number, percentage: number): number {
+  return Math.fround(Math.fround(basis * percentage) * Math.fround(0.01));
+}
+
 export function normalizeLength(
   value: number | string | undefined,
   name: string,

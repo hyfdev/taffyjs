@@ -1,4 +1,4 @@
-import { C as PositionType, S as Overflow, T as Wrap, _ as Gutter, a as Node, b as MeasureMode, c as Align, d as Direction, f as Display, g as FlexDirection, h as ExperimentalFeature, i as MeasureFunction, l as BoxSizing, m as Errata, n as ConfigFactory, o as NodeFactory, p as Edge, r as DirtiedFunction, t as Config, u as Dimension, v as Justify, w as Unit, x as NodeType, y as LogLevel } from "./types-B1oAtvXl.js";
+import { C as PositionType, S as Overflow, T as Wrap, _ as Gutter, a as Node, b as MeasureMode, c as Align, d as Direction, f as Display, g as FlexDirection, h as ExperimentalFeature, i as MeasureFunction, l as BoxSizing, m as Errata, n as ConfigFactory, o as NodeFactory, p as Edge, r as DirtiedFunction, t as Config, u as Dimension, v as Justify, w as Unit, x as NodeType, y as LogLevel } from "./types-BNBR-NNr.js";
 //#region src/index.d.ts
 declare const Yoga: Readonly<{
   Config: ConfigFactory;

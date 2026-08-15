@@ -173,6 +173,9 @@ export interface Node {
   getComputedBottom(): number;
   getComputedWidth(): number;
   getComputedHeight(): number;
+  getComputedMargin(edge: Edge): number;
+  getComputedPadding(edge: Edge): number;
+  getComputedBorder(edge: Edge): number;
   getComputedLayout(): Layout;
 }
 

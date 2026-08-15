@@ -34,6 +34,7 @@ import {
   toLengthPercentage,
   toLengthPercentageAuto,
   undefinedValue,
+  resolvePercentage,
   type YogaValue,
 } from "./values.js";
 
@@ -195,15 +196,18 @@ export function translateStyle(
   declarations: YogaDeclarations,
   config: TranslationConfig,
   resolvedDirection: Direction.LTR | Direction.RTL,
+  ownerDirection: Direction.LTR | Direction.RTL,
 ): StyleInput {
+  const absoluteDirection =
+    declarations.positionType === PositionType.Absolute ? ownerDirection : resolvedDirection;
   const margin = rect((edge) =>
-    toLengthPercentageAuto(physicalValue(declarations.margin, edge, resolvedDirection)),
+    toLengthPercentageAuto(physicalValue(declarations.margin, edge, absoluteDirection)),
   );
   const padding = rect((edge) =>
     toLengthPercentage(physicalValue(declarations.padding, edge, resolvedDirection)),
   );
   const position = rect((edge) =>
-    toDimension(physicalValue(declarations.position, edge, resolvedDirection)),
+    toDimension(physicalValue(declarations.position, edge, absoluteDirection)),
   );
   const border = rect((edge) => physicalNumber(declarations.border, edge, resolvedDirection));
   const columnGap = resolveGutter(
@@ -274,6 +278,111 @@ export function translateStyle(
     flexBasis: effectiveFlexBasis(declarations, config),
     flexGrow: effectiveFlexGrow(declarations),
     flexShrink: effectiveFlexShrink(declarations, config),
+  };
+}
+
+function resolveLength(value: YogaValue, basis: number | undefined): number | undefined {
+  switch (value.unit) {
+    case Unit.Point:
+      return value.value;
+    case Unit.Percent:
+      return basis === undefined ? undefined : resolvePercentage(basis, value.value);
+    case Unit.Auto:
+    case Unit.Undefined:
+      return undefined;
+  }
+}
+
+function exactRootDimension(
+  declarations: YogaDeclarations,
+  axis: "width" | "height",
+  ownerSize: number | undefined,
+  ownerWidth: number | undefined,
+  resolvedDirection: Direction.LTR | Direction.RTL,
+): number | undefined {
+  if (
+    ownerSize === undefined ||
+    Number.isNaN(ownerSize) ||
+    ownerSize === Number.NEGATIVE_INFINITY
+  ) {
+    return undefined;
+  }
+  const declared = axis === "width" ? declarations.width : declarations.height;
+  const maximum = axis === "width" ? declarations.maxWidth : declarations.maxHeight;
+  const declaredLength = resolveLength(declared, ownerSize);
+  if (declaredLength !== undefined && declaredLength >= 0) return undefined;
+  if (resolveLength(maximum, ownerSize) !== undefined) return undefined;
+
+  const startEdge = axis === "width" ? Edge.Left : Edge.Top;
+  const endEdge = axis === "width" ? Edge.Right : Edge.Bottom;
+  const marginStart =
+    resolveLength(physicalValue(declarations.margin, startEdge, resolvedDirection), ownerWidth) ??
+    0;
+  const marginEnd =
+    resolveLength(physicalValue(declarations.margin, endEdge, resolvedDirection), ownerWidth) ?? 0;
+  let outerSize = Math.fround(Math.fround(ownerSize - marginStart) - marginEnd);
+
+  if (declarations.boxSizing === BoxSizing.ContentBox) {
+    const paddingStart = Math.max(
+      0,
+      resolveLength(
+        physicalValue(declarations.padding, startEdge, resolvedDirection),
+        ownerWidth,
+      ) ?? 0,
+    );
+    const paddingEnd = Math.max(
+      0,
+      resolveLength(physicalValue(declarations.padding, endEdge, resolvedDirection), ownerWidth) ??
+        0,
+    );
+    const borderStart = Math.max(
+      0,
+      physicalNumber(declarations.border, startEdge, resolvedDirection),
+    );
+    const borderEnd = Math.max(0, physicalNumber(declarations.border, endEdge, resolvedDirection));
+    outerSize = Math.fround(
+      Math.fround(Math.fround(Math.fround(outerSize - paddingStart) - paddingEnd) - borderStart) -
+        borderEnd,
+    );
+  }
+
+  return Math.max(0, outerSize);
+}
+
+export function translateCalculationStyle(
+  declarations: YogaDeclarations,
+  config: TranslationConfig,
+  resolvedDirection: Direction.LTR | Direction.RTL,
+  ownerDirection: Direction.LTR | Direction.RTL,
+  ownerWidth: number | undefined,
+  ownerHeight: number | undefined,
+): StyleInput | null {
+  const width = exactRootDimension(
+    declarations,
+    "width",
+    ownerWidth,
+    ownerWidth,
+    resolvedDirection,
+  );
+  const height = exactRootDimension(
+    declarations,
+    "height",
+    ownerHeight,
+    ownerWidth,
+    resolvedDirection,
+  );
+  const forceFlexDisplay = declarations.display === Display.None;
+  if (width === undefined && height === undefined && !forceFlexDisplay) return null;
+
+  const ordinary = translateStyle(declarations, config, resolvedDirection, ownerDirection);
+  return {
+    ...ordinary,
+    display: forceFlexDisplay ? TaffyDisplay.Flex : ordinary.display,
+    size: {
+      width: width === undefined ? toDimension(declarations.width) : TaffyDimension.Length(width),
+      height:
+        height === undefined ? toDimension(declarations.height) : TaffyDimension.Length(height),
+    },
   };
 }
 

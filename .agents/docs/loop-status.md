@@ -4,7 +4,7 @@ Updated: 2026-08-15
 
 ## State
 
-Milestone 3 is complete, reviewed, and ready in its milestone commit. Milestone 4 is next.
+Milestone 4 is complete, reviewed, and ready in its milestone commit. Milestone 5 is next.
 
 ## Done
 
@@ -27,6 +27,11 @@ Milestone 3 is complete, reviewed, and ready in its milestone commit. Milestone 
 - Added Yoga-visible dirty and new-layout state, layout-seen transitions, canonical dirtied-callback arguments, post-commit callback errors, measurement markers, manual dirty restrictions, supported containing-block state, and type/runtime rejection for unsupported reference-baseline selection.
 - Added one pre-calculation subtree pass that resolves inherited direction and each Node's Config revision, prepares all translated Styles before native mutation, synchronizes every stale Style, and reuses the same selected-subtree snapshot for Yoga-visible state commits.
 - Added durable topology, lifecycle, state, callback, fault-injection, independent-Config, and public-type fixtures while keeping Taffy as the sole topology and layout authority.
+- Added arbitrary-node calculation with exact finite root constraints, selected-root Display.None handling, guaranteed ordinary-Style restoration, facade poisoning on an unexpected restoration failure, and atomic selected-subtree output commits.
+- Added Yoga-shaped output projection for root and descendant positions, right and bottom semantics, effective direction, relative and absolute insets, absolute containing-direction translation, display-none suppression, computed physical and logical edges, auto-margin masking, and per-Node point-grid rounding across mixed Configs.
+- Added bounded Yoga-compatible float32 percentage resolution, explicit Taffy-offset removal for relative projection, the documented 0.0001 compatibility boundary for equivalent unrounded percentage arithmetic, and durable exact and tolerance-bound oracle fixtures.
+- Added differential fixtures and public compatibility entries for every researched non-measurement Difference, including live Config cache behavior, callback artifacts, max/shrink, aspect ratio, WebFlexBasis cache behavior, attached-subtree cache behavior, overlapping physical and logical margins, oversized and ordinary WrapReverse placement, reversed overflow distribution, zero cross-size lines, and auto margins under justification or reversed axes.
+- Added Yoga 3.2.1 PixelGrid source attribution, a complete packaged MIT third-party notice, and package-file coverage for the notice.
 
 ## Evidence and review
 
@@ -39,6 +44,10 @@ Milestone 3 is complete, reviewed, and ready in its milestone commit. Milestone 
 - A bounded calculation probe found that Yoga and Taffy differ when `Display.None` is applied to the selected calculation root with declared dimensions. Style storage and direct display translation remain complete in Milestone 2; the calculated-output trigger is retained for Milestone 4 classification and regression coverage rather than being hidden in the declaration layer.
 - The Milestone 3 full `vp run check` passes: 9 Rust tests, 45 native tests, 194 `@taffyjs/node` integration tests, 36 Yoga tests, both declaration checks, formatting, linting, and Clippy pass.
 - The Milestone 3 adversarial reviewer found two native-cache/state gaps. Single-node and recursive release marked only Yoga-visible surviving ancestors, so Taffy could reuse an obsolete parent layout; Config freshness was checked only on the selected Node, so an independently configured descendant could miss both Style synchronization and `hasNewLayout`. Release now invalidates the surviving native parent and direct detached child roots with post-commit poisoning on failure, while calculation uses one full selected-subtree Style plan. The exact 30-by-10 release and independent child-Config reproductions now pass, and the same reviewer returned PASS on the targeted follow-up.
+- The Milestone 4 full `vp run check` passes after the final projection fixes: 9 Rust tests, 45 native tests, 194 `@taffyjs/node` integration tests, 64 Yoga tests, both declaration checks, formatting, linting, and Clippy pass.
+- The fresh Milestone 4 adversarial reviewer found three material issues: absolute mixed-direction logical insets were translated too late to recover auto-sized width, two known Taffy/Yoga Difference triggers were documented too narrowly, and the ported PixelGrid code lacked its required MIT attribution. Native Style translation now tracks containing direction before calculation, both Difference classes have exact dual-oracle fixtures and expanded documentation, and the source plus packaged notice carry the attribution.
+- The same reviewer’s single targeted follow-up confirmed those three repairs and found two residuals: Taffy's percentage conversion needed to divide before its float32 cast, and the authoritative implementation reference had not been synchronized with the expanded Difference evidence. The exact width-3/left-0.3% reproduction now matches Yoga bit-for-bit, the remaining equivalent absolute-margin arithmetic is pinned under Yoga's 0.0001 float tolerance, and the reference now contains all three added Difference triggers. Per the review protocol, the review loop stopped after that one follow-up and the residual fixes were verified locally and by the complete gate.
+- A `pnpm pack --dry-run --json` preview includes both entries, both entry declarations, both shared chunks, `COMPATIBILITY.md`, and `THIRD_PARTY_NOTICES.md`; a 64-case percentage direction, axis, and position matrix has zero exact mismatches for the tested inset corpus.
 
 ## In flight
 
@@ -46,7 +55,7 @@ Milestone 3 is complete, reviewed, and ready in its milestone commit. Milestone 
 
 ## Next
 
-- Implement Milestone 4: calculated-output synchronization, Yoga-shaped geometry, direction and edge behavior, rounding, and the classified Yoga/Taffy output differences.
+- Implement Milestone 5: Measure callback registration, native bridge, mode mapping, failure and retry behavior, measured rounding, reentrancy, and documented measurement Differences.
 
 ## Blocked
 

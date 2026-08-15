@@ -12,6 +12,7 @@
   "files": [
     "README.md",
     "COMPATIBILITY.md",
+    "THIRD_PARTY_NOTICES.md",
     "dist"
   ],
   "type": "module",

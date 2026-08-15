@@ -237,6 +237,9 @@ function publicValue(value) {
 		unit: value.unit
 	};
 }
+function resolvePercentage(basis, percentage) {
+	return Math.fround(Math.fround(basis * percentage) * Math.fround(.01));
+}
 function normalizeLength(value, name, allowAuto) {
 	if (value === void 0) return undefinedValue();
 	if (typeof value === "number") {
@@ -417,6 +420,261 @@ function resolveGutter(values, gutter, isDefined, fallback) {
 	return isDefined(all) ? all : fallback();
 }
 //#endregion
+//#region src/projection.ts
+function initialComputedEdges() {
+	return {
+		left: 0,
+		top: 0,
+		right: 0,
+		bottom: 0
+	};
+}
+function floatAdd(left, right) {
+	return Math.fround(left + right);
+}
+function floatSubtract(left, right) {
+	return Math.fround(left - right);
+}
+function inexactEquals(left, right) {
+	if (!Number.isNaN(left) && !Number.isNaN(right)) return Math.abs(left - right) < 1e-4;
+	return Number.isNaN(left) && Number.isNaN(right);
+}
+function roundValueToPixelGrid(value, pointScaleFactor, forceCeil, forceFloor) {
+	let scaledValue = value * pointScaleFactor;
+	let fractional = scaledValue % 1;
+	if (fractional < 0) fractional += 1;
+	if (inexactEquals(fractional, 0)) scaledValue -= fractional;
+	else if (inexactEquals(fractional, 1)) scaledValue = scaledValue - fractional + 1;
+	else if (forceCeil) scaledValue = scaledValue - fractional + 1;
+	else if (forceFloor) scaledValue -= fractional;
+	else scaledValue = scaledValue - fractional + (!Number.isNaN(fractional) && (fractional > .5 || inexactEquals(fractional, .5)) ? 1 : 0);
+	return Math.fround(Number.isNaN(scaledValue) || Number.isNaN(pointScaleFactor) ? NaN : scaledValue / pointScaleFactor);
+}
+function roundLayout(layout, absoluteLeft, absoluteTop, pointScaleFactor, textRounding) {
+	if (pointScaleFactor === 0) return layout;
+	const absoluteRight = absoluteLeft + layout.width;
+	const absoluteBottom = absoluteTop + layout.height;
+	const fractionalWidth = layout.width * pointScaleFactor % 1;
+	const fractionalHeight = layout.height * pointScaleFactor % 1;
+	const hasFractionalWidth = !inexactEquals(fractionalWidth, 0) && !inexactEquals(fractionalWidth, 1);
+	const hasFractionalHeight = !inexactEquals(fractionalHeight, 0) && !inexactEquals(fractionalHeight, 1);
+	return {
+		left: roundValueToPixelGrid(layout.left, pointScaleFactor, false, textRounding),
+		right: layout.right,
+		top: roundValueToPixelGrid(layout.top, pointScaleFactor, false, textRounding),
+		bottom: layout.bottom,
+		width: Math.fround(roundValueToPixelGrid(absoluteRight, pointScaleFactor, textRounding && hasFractionalWidth, textRounding && !hasFractionalWidth) - roundValueToPixelGrid(absoluteLeft, pointScaleFactor, false, textRounding)),
+		height: Math.fround(roundValueToPixelGrid(absoluteBottom, pointScaleFactor, textRounding && hasFractionalHeight, textRounding && !hasFractionalHeight) - roundValueToPixelGrid(absoluteTop, pointScaleFactor, false, textRounding))
+	};
+}
+function physicalValue$1(values, edge, direction) {
+	return resolveEdge(values, edge, direction, (value) => value.unit !== 0, () => ({
+		unit: 0,
+		value: NaN
+	}));
+}
+function resolvePosition(value, basis) {
+	switch (value.unit) {
+		case 1: return value.value;
+		case 2: return basis === void 0 ? void 0 : resolvePercentage(basis, value.value);
+		case 3:
+		case 0: return;
+	}
+}
+function resolveTaffyPosition(value, basis) {
+	return value.unit === 2 && basis !== void 0 ? Math.fround(basis * Math.fround(value.value / 100)) : resolvePosition(value, basis);
+}
+function axisRelativePosition(declarations, start, end, direction, basis, resolve = resolvePosition) {
+	const resolvedStart = resolve(physicalValue$1(declarations.position, start, direction), basis);
+	if (resolvedStart !== void 0) return resolvedStart;
+	const resolvedEnd = resolve(physicalValue$1(declarations.position, end, direction), basis);
+	return resolvedEnd === void 0 ? 0 : Math.fround(-resolvedEnd);
+}
+function nativeMarginEdges(entry, suppressed) {
+	if (suppressed) return initialComputedEdges();
+	const { declarations, direction, nativeLayout } = entry;
+	const read = (edge) => physicalValue$1(declarations.margin, edge, direction).unit === 3 ? 0 : nativeLayout.margin[edge === 0 ? "left" : edge === 1 ? "top" : edge === 2 ? "right" : "bottom"];
+	return {
+		left: read(0),
+		top: read(1),
+		right: read(2),
+		bottom: read(3)
+	};
+}
+function declaredMarginEdges(entry, basis, suppressed) {
+	if (suppressed) return initialComputedEdges();
+	const read = (edge) => {
+		const value = physicalValue$1(entry.declarations.margin, edge, entry.direction);
+		return value.unit === 3 ? 0 : resolvePosition(value, basis) ?? 0;
+	};
+	return {
+		left: read(0),
+		top: read(1),
+		right: read(2),
+		bottom: read(3)
+	};
+}
+function nativeEdges(edges, suppressed) {
+	return suppressed ? initialComputedEdges() : {
+		left: edges.left,
+		top: edges.top,
+		right: edges.right,
+		bottom: edges.bottom
+	};
+}
+function resolveMainAxis(flexDirection, direction) {
+	if (direction === 2) {
+		if (flexDirection === 2) return 3;
+		if (flexDirection === 3) return 2;
+	}
+	return flexDirection;
+}
+function resolveCrossAxis(mainAxis, direction) {
+	return mainAxis === 0 || mainAxis === 1 ? resolveMainAxis(2, direction) : 0;
+}
+function isHorizontal(axis) {
+	return axis === 2 || axis === 3;
+}
+function startsAtEnd(axis) {
+	return axis === 3 || axis === 1;
+}
+function innerWidth(layout) {
+	return Math.max(0, Math.fround(layout.size.width - layout.padding.left - layout.padding.right - layout.border.left - layout.border.right));
+}
+function innerHeight(layout) {
+	return Math.max(0, Math.fround(layout.size.height - layout.padding.top - layout.padding.bottom - layout.border.top - layout.border.bottom));
+}
+function absoluteAxisLocation(entry, parentEntry, horizontal) {
+	const parentLayout = parentEntry.nativeLayout;
+	const containingWidth = Math.max(0, Math.fround(parentLayout.size.width - parentLayout.border.left - parentLayout.border.right));
+	const containingHeight = Math.max(0, Math.fround(parentLayout.size.height - parentLayout.border.top - parentLayout.border.bottom));
+	const start = horizontal ? parentEntry.direction === 2 ? 2 : 0 : 1;
+	const end = horizontal ? parentEntry.direction === 2 ? 0 : 2 : 3;
+	const positionBasis = horizontal ? containingWidth : containingHeight;
+	const startPosition = resolvePosition(physicalValue$1(entry.declarations.position, start, parentEntry.direction), positionBasis);
+	const endPosition = resolvePosition(physicalValue$1(entry.declarations.position, end, parentEntry.direction), positionBasis);
+	const selectedEdge = startPosition === void 0 ? end : start;
+	const selectedPosition = startPosition ?? endPosition;
+	if (selectedPosition === void 0) return void 0;
+	const selectedMargin = resolvePosition(physicalValue$1(entry.declarations.margin, selectedEdge, parentEntry.direction), containingWidth) ?? 0;
+	const selectedBorder = selectedEdge === 0 ? parentLayout.border.left : selectedEdge === 1 ? parentLayout.border.top : selectedEdge === 2 ? parentLayout.border.right : parentLayout.border.bottom;
+	const offset = floatAdd(floatAdd(selectedPosition, selectedMargin), selectedBorder);
+	if (!(selectedEdge === 2 || selectedEdge === 3)) return {
+		location: offset,
+		trailing: void 0
+	};
+	return {
+		location: floatSubtract(floatSubtract(horizontal ? parentLayout.size.width : parentLayout.size.height, horizontal ? entry.nativeLayout.size.width : entry.nativeLayout.size.height), offset),
+		trailing: startPosition === void 0 ? void 0 : offset
+	};
+}
+function projectOutputs(entries, options) {
+	const states = [];
+	for (const [index, entry] of entries.entries()) {
+		const parent = entry.parentIndex === null ? void 0 : states[entry.parentIndex];
+		if (entry.parentIndex !== null && parent === void 0) throw new Error("Yoga projection requires parents before children");
+		const suppressed = parent?.suppressed === true || index !== 0 && entry.declarations.display === 1;
+		const parentEntry = entry.parentIndex === null ? void 0 : entries[entry.parentIndex];
+		const containingWidth = parentEntry === void 0 ? options.ownerWidth : Math.max(0, Math.fround(parentEntry.nativeLayout.size.width - parentEntry.nativeLayout.border.left - parentEntry.nativeLayout.border.right));
+		const margin = entry.declarations.positionType === 2 ? declaredMarginEdges(entry, containingWidth, suppressed) : nativeMarginEdges(entry, suppressed);
+		const positionMargin = entry.declarations.positionType === 2 && parentEntry !== void 0 ? declaredMarginEdges(entry, innerWidth(parentEntry.nativeLayout), suppressed) : margin;
+		const padding = nativeEdges(entry.nativeLayout.padding, suppressed);
+		const border = nativeEdges(entry.nativeLayout.border, suppressed);
+		let rawLayout;
+		let absoluteLeft;
+		let absoluteTop;
+		if (suppressed) {
+			rawLayout = {
+				left: 0,
+				right: 0,
+				top: 0,
+				bottom: 0,
+				width: 0,
+				height: 0
+			};
+			absoluteLeft = parent?.absoluteLeft ?? 0;
+			absoluteTop = parent?.absoluteTop ?? 0;
+		} else if (parent === void 0) {
+			const positionDirection = options.rootHasOwner ? entry.direction : 1;
+			const relativeX = axisRelativePosition(entry.declarations, positionDirection === 2 ? 2 : 0, positionDirection === 2 ? 0 : 2, positionDirection, options.ownerWidth);
+			const relativeY = axisRelativePosition(entry.declarations, 1, 3, positionDirection, options.ownerHeight);
+			rawLayout = {
+				left: floatAdd(margin.left, relativeX),
+				right: floatAdd(margin.right, relativeX),
+				top: floatAdd(margin.top, relativeY),
+				bottom: floatAdd(margin.bottom, relativeY),
+				width: entry.nativeLayout.size.width,
+				height: entry.nativeLayout.size.height
+			};
+			absoluteLeft = rawLayout.left;
+			absoluteTop = rawLayout.top;
+		} else {
+			const parentEntry = entries[entry.parentIndex];
+			const parentLayout = parentEntry.nativeLayout;
+			const ownerWidth = innerWidth(parentLayout);
+			const ownerHeight = innerHeight(parentLayout);
+			const relativeX = axisRelativePosition(entry.declarations, entry.direction === 2 ? 2 : 0, entry.direction === 2 ? 0 : 2, entry.direction, ownerWidth);
+			const relativeY = axisRelativePosition(entry.declarations, 1, 3, entry.direction, ownerHeight);
+			const mainAxis = resolveMainAxis(parentEntry.declarations.flexDirection, parentEntry.direction);
+			const crossAxis = resolveCrossAxis(mainAxis, parentEntry.direction);
+			const horizontalAxis = isHorizontal(mainAxis) ? mainAxis : crossAxis;
+			const verticalAxis = isHorizontal(mainAxis) ? crossAxis : mainAxis;
+			const horizontalStartsAtEnd = startsAtEnd(horizontalAxis);
+			const verticalStartsAtEnd = startsAtEnd(verticalAxis);
+			let left = entry.nativeLayout.location.x;
+			let top = entry.nativeLayout.location.y;
+			let reverseRight;
+			let reverseBottom;
+			if (entry.declarations.positionType === 1) {
+				const physicalLeftFirst = axisRelativePosition(entry.declarations, 0, 2, entry.direction, ownerWidth, resolveTaffyPosition);
+				const physicalRightFirst = axisRelativePosition(entry.declarations, 2, 0, entry.direction, ownerWidth, resolveTaffyPosition);
+				const taffyX = parentEntry.direction === 2 ? Math.fround(-physicalRightFirst) : physicalLeftFirst;
+				const taffyY = axisRelativePosition(entry.declarations, 1, 3, entry.direction, ownerHeight, resolveTaffyPosition);
+				const desiredX = horizontalStartsAtEnd ? Math.fround(-relativeX) : relativeX;
+				const desiredY = verticalStartsAtEnd ? Math.fround(-relativeY) : relativeY;
+				const flowLeft = floatSubtract(left, taffyX);
+				const flowTop = floatSubtract(top, taffyY);
+				left = floatAdd(flowLeft, desiredX);
+				top = floatAdd(flowTop, desiredY);
+				if (horizontalStartsAtEnd) reverseRight = floatAdd(floatSubtract(floatSubtract(parentLayout.size.width, entry.nativeLayout.size.width), flowLeft), relativeX);
+				if (verticalStartsAtEnd) reverseBottom = floatAdd(floatSubtract(floatSubtract(parentLayout.size.height, entry.nativeLayout.size.height), flowTop), relativeY);
+			} else {
+				const horizontalLocation = absoluteAxisLocation(entry, parentEntry, true);
+				const verticalLocation = absoluteAxisLocation(entry, parentEntry, false);
+				if (horizontalLocation !== void 0) {
+					left = horizontalLocation.location;
+					if (horizontalStartsAtEnd) reverseRight = horizontalLocation.trailing;
+				}
+				if (verticalLocation !== void 0) {
+					top = verticalLocation.location;
+					if (verticalStartsAtEnd) reverseBottom = verticalLocation.trailing;
+				}
+			}
+			rawLayout = {
+				left,
+				right: horizontalStartsAtEnd ? reverseRight ?? floatSubtract(floatSubtract(parentLayout.size.width, entry.nativeLayout.size.width), left) : floatAdd(positionMargin.right, relativeX),
+				top,
+				bottom: verticalStartsAtEnd ? reverseBottom ?? floatSubtract(floatSubtract(parentLayout.size.height, entry.nativeLayout.size.height), top) : floatAdd(positionMargin.bottom, relativeY),
+				width: entry.nativeLayout.size.width,
+				height: entry.nativeLayout.size.height
+			};
+			absoluteLeft = parent.absoluteLeft + left;
+			absoluteTop = parent.absoluteTop + top;
+		}
+		states.push({
+			layout: roundLayout(rawLayout, absoluteLeft, absoluteTop, entry.pointScaleFactor, entry.measured),
+			margin,
+			padding,
+			border,
+			direction: entry.direction,
+			absoluteLeft,
+			absoluteTop,
+			suppressed
+		});
+	}
+	return states;
+}
+//#endregion
 //#region src/translate.ts
 function alignItems(value) {
 	switch (value) {
@@ -495,10 +753,11 @@ function effectiveFlexShrink(declarations, config) {
 	if (!config.useWebDefaults && declarations.flex !== void 0 && declarations.flex < 0) return -declarations.flex;
 	return config.useWebDefaults ? 1 : 0;
 }
-function translateStyle(declarations, config, resolvedDirection) {
-	const margin = rect((edge) => toLengthPercentageAuto(physicalValue(declarations.margin, edge, resolvedDirection)));
+function translateStyle(declarations, config, resolvedDirection, ownerDirection) {
+	const absoluteDirection = declarations.positionType === 2 ? ownerDirection : resolvedDirection;
+	const margin = rect((edge) => toLengthPercentageAuto(physicalValue(declarations.margin, edge, absoluteDirection)));
 	const padding = rect((edge) => toLengthPercentage(physicalValue(declarations.padding, edge, resolvedDirection)));
-	const position = rect((edge) => toDimension(physicalValue(declarations.position, edge, resolvedDirection)));
+	const position = rect((edge) => toDimension(physicalValue(declarations.position, edge, absoluteDirection)));
 	const border = rect((edge) => physicalNumber(declarations.border, edge, resolvedDirection));
 	const columnGap = resolveGutter(declarations.gap, 0, (value) => value.unit !== 0, undefinedValue);
 	const rowGap = resolveGutter(declarations.gap, 1, (value) => value.unit !== 0, undefinedValue);
@@ -541,6 +800,50 @@ function translateStyle(declarations, config, resolvedDirection) {
 		flexBasis: effectiveFlexBasis(declarations, config),
 		flexGrow: effectiveFlexGrow(declarations),
 		flexShrink: effectiveFlexShrink(declarations, config)
+	};
+}
+function resolveLength(value, basis) {
+	switch (value.unit) {
+		case 1: return value.value;
+		case 2: return basis === void 0 ? void 0 : resolvePercentage(basis, value.value);
+		case 3:
+		case 0: return;
+	}
+}
+function exactRootDimension(declarations, axis, ownerSize, ownerWidth, resolvedDirection) {
+	if (ownerSize === void 0 || Number.isNaN(ownerSize) || ownerSize === Number.NEGATIVE_INFINITY) return;
+	const declared = axis === "width" ? declarations.width : declarations.height;
+	const maximum = axis === "width" ? declarations.maxWidth : declarations.maxHeight;
+	const declaredLength = resolveLength(declared, ownerSize);
+	if (declaredLength !== void 0 && declaredLength >= 0) return void 0;
+	if (resolveLength(maximum, ownerSize) !== void 0) return void 0;
+	const startEdge = axis === "width" ? 0 : 1;
+	const endEdge = axis === "width" ? 2 : 3;
+	const marginStart = resolveLength(physicalValue(declarations.margin, startEdge, resolvedDirection), ownerWidth) ?? 0;
+	const marginEnd = resolveLength(physicalValue(declarations.margin, endEdge, resolvedDirection), ownerWidth) ?? 0;
+	let outerSize = Math.fround(Math.fround(ownerSize - marginStart) - marginEnd);
+	if (declarations.boxSizing === 1) {
+		const paddingStart = Math.max(0, resolveLength(physicalValue(declarations.padding, startEdge, resolvedDirection), ownerWidth) ?? 0);
+		const paddingEnd = Math.max(0, resolveLength(physicalValue(declarations.padding, endEdge, resolvedDirection), ownerWidth) ?? 0);
+		const borderStart = Math.max(0, physicalNumber(declarations.border, startEdge, resolvedDirection));
+		const borderEnd = Math.max(0, physicalNumber(declarations.border, endEdge, resolvedDirection));
+		outerSize = Math.fround(Math.fround(Math.fround(Math.fround(outerSize - paddingStart) - paddingEnd) - borderStart) - borderEnd);
+	}
+	return Math.max(0, outerSize);
+}
+function translateCalculationStyle(declarations, config, resolvedDirection, ownerDirection, ownerWidth, ownerHeight) {
+	const width = exactRootDimension(declarations, "width", ownerWidth, ownerWidth, resolvedDirection);
+	const height = exactRootDimension(declarations, "height", ownerHeight, ownerWidth, resolvedDirection);
+	const forceFlexDisplay = declarations.display === 1;
+	if (width === void 0 && height === void 0 && !forceFlexDisplay) return null;
+	const ordinary = translateStyle(declarations, config, resolvedDirection, ownerDirection);
+	return {
+		...ordinary,
+		display: forceFlexDisplay ? Display.Flex : ordinary.display,
+		size: {
+			width: width === void 0 ? toDimension(declarations.width) : Dimension.Length(width),
+			height: height === void 0 ? toDimension(declarations.height) : Dimension.Length(height)
+		}
 	};
 }
 function declarationDirection(declarations, ownerDirection) {
@@ -718,7 +1021,7 @@ function applyDeclarations(record, declarations) {
 	if (sameDeclarations(record.declarations, declarations)) return;
 	const dirtyRecords = collectAncestors(record, true);
 	const direction = effectiveDirection(record, declarations);
-	const style = translateStyle(declarations, record.config, direction);
+	const style = translateStyle(declarations, record.config, direction, record.ownerDirection);
 	record.runtime.tree.setStyle(record.nodeId, style);
 	record.declarations = declarations;
 	record.appliedDirection = direction;
@@ -744,12 +1047,12 @@ function syncSubtreeStyles(root, rootOwnerDirection, subtree) {
 			ownerDirection = parentDirection;
 		}
 		const appliedDirection = declarationDirection(record.declarations, ownerDirection);
-		const stale = record.appliedConfigRevision !== record.config.revision || record.appliedDirection !== appliedDirection;
+		const stale = record.appliedConfigRevision !== record.config.revision || record.appliedDirection !== appliedDirection || record.ownerDirection !== ownerDirection;
 		plan.push({
 			record,
 			ownerDirection,
 			appliedDirection,
-			style: stale ? translateStyle(record.declarations, record.config, appliedDirection) : void 0
+			style: stale ? translateStyle(record.declarations, record.config, appliedDirection, ownerDirection) : void 0
 		});
 		directions.set(record.nodeId, appliedDirection);
 	}
@@ -816,7 +1119,7 @@ var YogaNode = class {
 		const declarations = createDeclarations(config.useWebDefaults);
 		const ownerDirection = 1;
 		const appliedDirection = declarationDirection(declarations, ownerDirection);
-		const nodeId = runtime.tree.newLeaf(translateStyle(declarations, config, appliedDirection));
+		const nodeId = runtime.tree.newLeaf(translateStyle(declarations, config, appliedDirection, ownerDirection));
 		nodeRecords.set(this, {
 			runtime,
 			config,
@@ -827,6 +1130,10 @@ var YogaNode = class {
 			appliedDirection,
 			appliedConfigRevision: config.revision,
 			layout: initialLayout(),
+			computedMargin: initialComputedEdges(),
+			computedPadding: initialComputedEdges(),
+			computedBorder: initialComputedEdges(),
+			layoutDirection: appliedDirection,
 			dirty: true,
 			hasNewLayout: true,
 			dirtiedFunction: null,
@@ -883,6 +1190,10 @@ var YogaNode = class {
 			throw poisonRuntime(parentRecord.runtime, error);
 		}
 		childRecord.layout = initialLayout();
+		childRecord.computedMargin = initialComputedEdges();
+		childRecord.computedPadding = initialComputedEdges();
+		childRecord.computedBorder = initialComputedEdges();
+		childRecord.layoutDirection = childRecord.appliedDirection;
 		childRecord.lastCalculation = void 0;
 		markDirtyRecords(dirtyRecords);
 	}
@@ -908,12 +1219,16 @@ var YogaNode = class {
 		const declarations = createDeclarations(record.config.useWebDefaults);
 		const ownerDirection = 1;
 		const appliedDirection = declarationDirection(declarations, ownerDirection);
-		record.runtime.tree.setStyle(record.nodeId, translateStyle(declarations, record.config, appliedDirection));
+		record.runtime.tree.setStyle(record.nodeId, translateStyle(declarations, record.config, appliedDirection, ownerDirection));
 		record.declarations = declarations;
 		record.ownerDirection = ownerDirection;
 		record.appliedDirection = appliedDirection;
 		record.appliedConfigRevision = record.config.revision;
 		record.layout = initialLayout();
+		record.computedMargin = initialComputedEdges();
+		record.computedPadding = initialComputedEdges();
+		record.computedBorder = initialComputedEdges();
+		record.layoutDirection = appliedDirection;
 		record.dirty = true;
 		record.hasNewLayout = true;
 		record.dirtiedFunction = null;
@@ -1356,22 +1671,62 @@ var YogaNode = class {
 		const subtree = collectSubtree(record);
 		const translationIsStale = syncSubtreeStyles(record, ownerDirection, subtree);
 		const recomputeSubtree = record.dirty || translationIsStale || !sameCalculation(record.lastCalculation, signature);
-		record.runtime.tree.computeLayout({
-			root: record.nodeId,
-			availableSpace: {
-				width: availableWidth,
-				height: availableHeight
+		const rootHasOwner = record.runtime.tree.getParent(record.nodeId) !== null;
+		const temporaryStyle = translateCalculationStyle(record.declarations, record.config, record.appliedDirection, record.ownerDirection, signature.width, signature.height);
+		const ordinaryStyle = temporaryStyle === null ? null : translateStyle(record.declarations, record.config, record.appliedDirection, record.ownerDirection);
+		if (temporaryStyle !== null) record.runtime.tree.setStyle(record.nodeId, temporaryStyle);
+		record.lastCalculation = void 0;
+		let calculationFailed = false;
+		let calculationError;
+		try {
+			record.runtime.tree.computeLayout({
+				root: record.nodeId,
+				availableSpace: {
+					width: availableWidth,
+					height: availableHeight
+				}
+			});
+		} catch (error) {
+			calculationFailed = true;
+			calculationError = error;
+		}
+		if (ordinaryStyle !== null) try {
+			record.runtime.tree.setStyle(record.nodeId, ordinaryStyle);
+		} catch (error) {
+			throw poisonRuntime(record.runtime, error);
+		}
+		if (calculationFailed) throw calculationError;
+		const subtreeIndices = /* @__PURE__ */ new Map();
+		for (const [index, current] of subtree.entries()) subtreeIndices.set(current.nodeId, index);
+		const outputs = projectOutputs(subtree.map((current, index) => {
+			let parentIndex = null;
+			if (index !== 0) {
+				const parentId = record.runtime.tree.getParent(current.nodeId);
+				const resolvedParentIndex = parentId === null ? void 0 : subtreeIndices.get(parentId);
+				if (resolvedParentIndex === void 0) throw poisonRuntime(record.runtime, /* @__PURE__ */ new Error("Yoga subtree projection mismatch"));
+				parentIndex = resolvedParentIndex;
 			}
+			return {
+				declarations: current.declarations,
+				direction: current.appliedDirection,
+				pointScaleFactor: current.config.pointScaleFactor,
+				measured: current.measureFunction !== null,
+				nativeLayout: record.runtime.tree.getUnroundedLayout(current.nodeId),
+				parentIndex
+			};
+		}), {
+			ownerWidth: signature.width,
+			ownerHeight: signature.height,
+			rootHasOwner
 		});
-		const layout = record.runtime.tree.getUnroundedLayout(record.nodeId);
-		record.layout = {
-			left: layout.location.x,
-			right: 0,
-			top: layout.location.y,
-			bottom: 0,
-			width: layout.size.width,
-			height: layout.size.height
-		};
+		for (const [index, current] of subtree.entries()) {
+			const output = outputs[index];
+			current.layout = output.layout;
+			current.computedMargin = output.margin;
+			current.computedPadding = output.padding;
+			current.computedBorder = output.border;
+			current.layoutDirection = output.direction;
+		}
 		for (const current of subtree) {
 			current.dirty = false;
 			if (recomputeSubtree) current.hasNewLayout = true;
@@ -1397,10 +1752,38 @@ var YogaNode = class {
 	getComputedHeight() {
 		return requireNode(void 0, this).layout.height;
 	}
+	getComputedMargin(edge) {
+		const record = requireNode(void 0, this);
+		return computedEdge(record, record.computedMargin, edge);
+	}
+	getComputedPadding(edge) {
+		const record = requireNode(void 0, this);
+		return computedEdge(record, record.computedPadding, edge);
+	}
+	getComputedBorder(edge) {
+		const record = requireNode(void 0, this);
+		return computedEdge(record, record.computedBorder, edge);
+	}
 	getComputedLayout() {
 		return { ...requireNode(void 0, this).layout };
 	}
 };
+function computedEdge(record, edges, edge) {
+	const resolved = requireEnum(edge, "computed edge", [
+		0,
+		1,
+		2,
+		3,
+		4,
+		5
+	]);
+	if (resolved === 4) return record.layoutDirection === 2 ? edges.right : edges.left;
+	if (resolved === 5) return record.layoutDirection === 2 ? edges.left : edges.right;
+	if (resolved === 0) return edges.left;
+	if (resolved === 1) return edges.top;
+	if (resolved === 2) return edges.right;
+	return edges.bottom;
+}
 function freeNode(record) {
 	const survivingAncestors = collectAncestors(record, false);
 	const directChildren = record.runtime.tree.getChildren(record.nodeId).map((nodeId) => recordForId(record.runtime, nodeId));
