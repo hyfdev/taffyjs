@@ -1,1 +1,1 @@
-export { NativeTaffyTree } from "../binding.js";
+export { BindingTaffyTree } from "../binding.js";

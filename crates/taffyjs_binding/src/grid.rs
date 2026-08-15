@@ -6,7 +6,7 @@ use taffy::style::{
     TrackSizingFunction,
 };
 
-use crate::error::{NativeResult, range_error, type_error};
+use crate::error::{BindingResult, range_error, type_error};
 use crate::js_object;
 use crate::length::{self, LengthOutput};
 use crate::number::{from_unknown, to_f32, to_integer};
@@ -113,22 +113,22 @@ pub struct GridTemplateAreasOutput {
     pub column_count: u16,
 }
 
-fn tagged_input<'env>(value: Unknown<'env>, name: &str) -> NativeResult<TaggedGridInput<'env>> {
+fn tagged_input<'env>(value: Unknown<'env>, name: &str) -> BindingResult<TaggedGridInput<'env>> {
     js_object::input(value, name, None)
 }
 
-fn tagged_kind<T>(input: &TaggedGridInput<'_>) -> NativeResult<T>
+fn tagged_kind<T>(input: &TaggedGridInput<'_>) -> BindingResult<T>
 where
     T: TryFrom<i64>,
 {
     to_integer(input.kind)
 }
 
-fn tagged_value<'env>(input: &TaggedGridInput<'env>, name: &str) -> NativeResult<Unknown<'env>> {
+fn tagged_value<'env>(input: &TaggedGridInput<'env>, name: &str) -> BindingResult<Unknown<'env>> {
     js_object::required(input.value, name)
 }
 
-pub(crate) fn grid_placement(value: Unknown<'_>) -> NativeResult<GridPlacement<String>> {
+pub(crate) fn grid_placement(value: Unknown<'_>) -> BindingResult<GridPlacement<String>> {
     let input: GridPlacementInput = js_object::input(value, "a GridPlacement object", None)?;
     Ok(match to_integer::<GridPlacementKindCode>(input.kind)? {
         GridPlacementKindCode::Auto => GridPlacement::Auto,
@@ -149,7 +149,7 @@ pub(crate) fn grid_placement(value: Unknown<'_>) -> NativeResult<GridPlacement<S
     })
 }
 
-fn min_track(value: Unknown<'_>) -> NativeResult<MinTrackSizingFunction> {
+fn min_track(value: Unknown<'_>) -> BindingResult<MinTrackSizingFunction> {
     let input = tagged_input(value, "a minimum track object")?;
     match tagged_kind::<TrackSizingKindCode>(&input)? {
         TrackSizingKindCode::Length => Ok(MinTrackSizingFunction::length(to_f32(from_unknown(
@@ -168,7 +168,7 @@ fn min_track(value: Unknown<'_>) -> NativeResult<MinTrackSizingFunction> {
     }
 }
 
-fn max_track(value: Unknown<'_>) -> NativeResult<MaxTrackSizingFunction> {
+fn max_track(value: Unknown<'_>) -> BindingResult<MaxTrackSizingFunction> {
     let input = tagged_input(value, "a maximum track object")?;
     match tagged_kind::<TrackSizingKindCode>(&input)? {
         TrackSizingKindCode::Length => Ok(MaxTrackSizingFunction::length(to_f32(from_unknown(
@@ -199,7 +199,7 @@ fn max_track(value: Unknown<'_>) -> NativeResult<MaxTrackSizingFunction> {
     }
 }
 
-pub(crate) fn track_sizing(value: Unknown<'_>) -> NativeResult<TrackSizingFunction> {
+pub(crate) fn track_sizing(value: Unknown<'_>) -> BindingResult<TrackSizingFunction> {
     let input: TrackSizingInput<'_> =
         js_object::input(value, "a TrackSizingFunction object", None)?;
     Ok(TrackSizingFunction {
@@ -208,7 +208,7 @@ pub(crate) fn track_sizing(value: Unknown<'_>) -> NativeResult<TrackSizingFuncti
     })
 }
 
-fn repetition_count(value: Unknown<'_>) -> NativeResult<RepetitionCount> {
+fn repetition_count(value: Unknown<'_>) -> BindingResult<RepetitionCount> {
     let input = tagged_input(value, "a RepetitionCount object")?;
     Ok(match tagged_kind::<RepetitionCountKindCode>(&input)? {
         RepetitionCountKindCode::Count => RepetitionCount::Count(to_integer::<u16>(from_unknown(
@@ -220,7 +220,7 @@ fn repetition_count(value: Unknown<'_>) -> NativeResult<RepetitionCount> {
     })
 }
 
-fn template_repetition(value: Unknown<'_>) -> NativeResult<GridTemplateRepetition<String>> {
+fn template_repetition(value: Unknown<'_>) -> BindingResult<GridTemplateRepetition<String>> {
     let input: GridTemplateRepetitionInput<'_> =
         js_object::input(value, "a GridTemplateRepetition object", None)?;
     Ok(GridTemplateRepetition {
@@ -229,14 +229,14 @@ fn template_repetition(value: Unknown<'_>) -> NativeResult<GridTemplateRepetitio
             .tracks
             .into_iter()
             .map(track_sizing)
-            .collect::<NativeResult<Vec<_>>>()?,
+            .collect::<BindingResult<Vec<_>>>()?,
         line_names: input.line_names,
     })
 }
 
 pub(crate) fn template_component(
     value: Unknown<'_>,
-) -> NativeResult<GridTemplateComponent<String>> {
+) -> BindingResult<GridTemplateComponent<String>> {
     let input = tagged_input(value, "a GridTemplateComponent object")?;
     Ok(
         match tagged_kind::<GridTemplateComponentKindCode>(&input)? {
@@ -252,17 +252,17 @@ pub(crate) fn template_component(
 
 pub(crate) fn template_components(
     values: Vec<Unknown<'_>>,
-) -> NativeResult<Vec<GridTemplateComponent<String>>> {
+) -> BindingResult<Vec<GridTemplateComponent<String>>> {
     values
         .into_iter()
         .map(template_component)
-        .collect::<NativeResult<Vec<_>>>()
+        .collect::<BindingResult<Vec<_>>>()
 }
 
 pub(crate) fn validate_template_line_names(
     values: &[GridTemplateComponent<String>],
     top_level_line_names: &[Vec<String>],
-) -> NativeResult<()> {
+) -> BindingResult<()> {
     for value in values.iter().take(top_level_line_names.len()) {
         if let GridTemplateComponent::Repeat(repetition) = value
             && repetition.line_names.is_empty()
@@ -276,7 +276,7 @@ pub(crate) fn validate_template_line_names(
     Ok(())
 }
 
-fn template_area(input: GridTemplateAreaInput) -> NativeResult<GridTemplateArea<String>> {
+fn template_area(input: GridTemplateAreaInput) -> BindingResult<GridTemplateArea<String>> {
     Ok(GridTemplateArea {
         name: input.name,
         row_start: to_integer::<u16>(input.row_start)?,
@@ -288,13 +288,13 @@ fn template_area(input: GridTemplateAreaInput) -> NativeResult<GridTemplateArea<
 
 pub(crate) fn template_areas(
     input: GridTemplateAreasInput,
-) -> NativeResult<GridTemplateAreas<String>> {
+) -> BindingResult<GridTemplateAreas<String>> {
     Ok(GridTemplateAreas {
         areas: input
             .areas
             .into_iter()
             .map(template_area)
-            .collect::<NativeResult<Vec<_>>>()?,
+            .collect::<BindingResult<Vec<_>>>()?,
         row_count: to_integer::<u16>(input.row_count)?,
         column_count: to_integer::<u16>(input.column_count)?,
     })

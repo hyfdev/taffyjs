@@ -1,13 +1,13 @@
 use napi::bindgen_prelude::{FromNapiValue, Object, Unknown};
 use napi::{JsValue, ValueType};
 
-use crate::error::{NativeResult, type_error};
+use crate::error::{BindingResult, type_error};
 
 pub(crate) fn input<'env, T>(
     value: Unknown<'env>,
     name: &str,
     allowed_fields: Option<&[&str]>,
-) -> NativeResult<T>
+) -> BindingResult<T>
 where
     T: FromNapiValue,
 {
@@ -49,6 +49,6 @@ where
     }
 }
 
-pub(crate) fn required<T>(value: Option<T>, name: &str) -> NativeResult<T> {
+pub(crate) fn required<T>(value: Option<T>, name: &str) -> BindingResult<T> {
     value.ok_or_else(|| type_error(format!("{name} is required")))
 }

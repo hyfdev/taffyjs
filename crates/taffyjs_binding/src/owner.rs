@@ -3,7 +3,7 @@ use std::panic::{AssertUnwindSafe, catch_unwind};
 
 use taffy::TaffyTree;
 
-use crate::error::{NativeResult, busy_error, internal_error, poisoned_error};
+use crate::error::{BindingResult, busy_error, internal_error, poisoned_error};
 
 pub(crate) struct TreeOwner {
     tree: RefCell<TaffyTree<()>>,
@@ -21,8 +21,8 @@ impl TreeOwner {
     pub(crate) fn access<T>(
         &self,
         public_method: &str,
-        operation: impl FnOnce(&mut TaffyTree<()>) -> NativeResult<T>,
-    ) -> NativeResult<T> {
+        operation: impl FnOnce(&mut TaffyTree<()>) -> BindingResult<T>,
+    ) -> BindingResult<T> {
         if self.poisoned.get() {
             return Err(poisoned_error());
         }

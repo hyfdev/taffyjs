@@ -16,7 +16,7 @@ mod style;
 mod tagged_values;
 
 use error::{
-    NativeResult, child_index_out_of_bounds_error, internal_error, into_napi,
+    BindingResult, child_index_out_of_bounds_error, internal_error, into_napi,
     invalid_topology_error, type_error,
 };
 use napi::bindgen_prelude::{BigInt, Function, Unknown};
@@ -27,7 +27,7 @@ use std::collections::HashSet;
 use taffy::{NodeId, TraversePartialTree};
 
 #[napi]
-pub struct NativeTaffyTree {
+pub struct BindingTaffyTree {
     owner: TreeOwner,
 }
 
@@ -38,7 +38,7 @@ pub struct ChildRangeInput {
 }
 
 #[napi]
-impl NativeTaffyTree {
+impl BindingTaffyTree {
     #[napi(constructor)]
     pub fn new() -> Self {
         Self {
@@ -68,7 +68,7 @@ impl NativeTaffyTree {
         )
     }
 
-    #[napi(js_name = "rawNodeCount")]
+    #[napi(js_name = "rawGetNodeCount")]
     pub fn node_count(&self, env: Env) -> napi::Result<u32> {
         into_napi(
             env,
@@ -77,7 +77,7 @@ impl NativeTaffyTree {
         )
     }
 
-    #[napi(js_name = "rawChildCount")]
+    #[napi(js_name = "rawGetChildCount")]
     pub fn child_count(&self, env: Env, parent: BigInt) -> napi::Result<f64> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         into_napi(
@@ -92,7 +92,7 @@ impl NativeTaffyTree {
         )
     }
 
-    #[napi(js_name = "rawParent")]
+    #[napi(js_name = "rawGetParent")]
     pub fn parent(&self, env: Env, node: BigInt) -> napi::Result<Option<BigInt>> {
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
@@ -105,7 +105,7 @@ impl NativeTaffyTree {
         )
     }
 
-    #[napi(js_name = "rawChildren")]
+    #[napi(js_name = "rawGetChildren")]
     pub fn children(&self, env: Env, parent: BigInt) -> napi::Result<Vec<BigInt>> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         into_napi(
@@ -123,7 +123,7 @@ impl NativeTaffyTree {
         )
     }
 
-    #[napi(js_name = "rawChildAtIndex")]
+    #[napi(js_name = "rawGetChildAtIndex")]
     pub fn child_at_index(&self, env: Env, parent: BigInt, index: f64) -> napi::Result<BigInt> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let index = into_napi(env, number::to_safe_usize(index))?;
@@ -196,7 +196,7 @@ impl NativeTaffyTree {
             children
                 .iter()
                 .map(raw_node_id)
-                .collect::<NativeResult<Vec<_>>>(),
+                .collect::<BindingResult<Vec<_>>>(),
         )?;
         into_napi(
             env,
@@ -394,7 +394,7 @@ impl NativeTaffyTree {
             children
                 .iter()
                 .map(raw_node_id)
-                .collect::<NativeResult<Vec<_>>>(),
+                .collect::<BindingResult<Vec<_>>>(),
         )?;
         let style = into_napi(env, style::input(style))?;
         into_napi(
@@ -579,12 +579,12 @@ impl NativeTaffyTree {
                     "Measure callback threw",
                 ))
             }
-            Some(measure::MeasureFailure::Native(error)) => into_napi(env, Err(error)),
+            Some(measure::MeasureFailure::Binding(error)) => into_napi(env, Err(error)),
         }
     }
 }
 
-fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
+fn raw_node_id(value: &BigInt) -> BindingResult<NodeId> {
     let (negative, value, lossless) = value.get_u64();
     if negative || !lossless {
         return Err(type_error("Raw node ID must be a non-negative u64 bigint"));
@@ -592,7 +592,7 @@ fn raw_node_id(value: &BigInt) -> NativeResult<NodeId> {
     Ok(NodeId::from(value))
 }
 
-fn child_range(input: ChildRangeInput) -> NativeResult<(usize, usize)> {
+fn child_range(input: ChildRangeInput) -> BindingResult<(usize, usize)> {
     Ok((
         number::to_safe_usize(input.start)?,
         number::to_safe_usize(input.end)?,
@@ -603,7 +603,7 @@ fn validate_unattached_child(
     tree: &taffy::TaffyTree<()>,
     parent: NodeId,
     child: NodeId,
-) -> NativeResult<()> {
+) -> BindingResult<()> {
     if parent == child {
         return Err(invalid_topology_error("A node cannot be its own child"));
     }
@@ -632,7 +632,7 @@ fn would_create_cycle(tree: &taffy::TaffyTree<()>, parent: NodeId, child: NodeId
     false
 }
 
-impl Default for NativeTaffyTree {
+impl Default for BindingTaffyTree {
     fn default() -> Self {
         Self::new()
     }

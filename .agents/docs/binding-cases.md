@@ -66,7 +66,7 @@ The private `unique symbol` is a phantom marker: it keeps an ordinary bigint fro
 The bigint logically contains a tree identity, a binding-issued serial for that node creation, and the raw Taffy NodeId. The exact field widths and encoding are not public. Each public tree wrapper keeps a private registry such as:
 
 ```ts
-#inner: NativeTaffyTree;
+#inner: BindingTaffyTree;
 #nodes: PrivateNodeRegistry;
 ```
 

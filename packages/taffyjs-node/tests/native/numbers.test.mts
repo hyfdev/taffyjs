@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { NativeTaffyTree } from "../../src/binding.ts";
+import { BindingTaffyTree } from "../../src/binding.ts";
 import { test } from "vite-plus/test";
 
 function createOwner() {
-  return new NativeTaffyTree();
+  return new BindingTaffyTree();
 }
 
 function storedStyle(style: unknown) {
@@ -15,7 +15,7 @@ function storedStyle(style: unknown) {
 function rejectsWithoutNode(style: unknown, error: typeof TypeError | typeof RangeError): void {
   const owner = createOwner();
   assert.throws(() => owner.rawNewLeaf(style), error);
-  assert.equal(owner.rawNodeCount(), 0);
+  assert.equal(owner.rawGetNodeCount(), 0);
 }
 
 test("numeric fields accept only primitive numbers", () => {

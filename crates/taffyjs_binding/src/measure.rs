@@ -9,7 +9,7 @@ use taffy::geometry::Size;
 use taffy::style::{AvailableSpace, Style};
 use taffy::{NodeId, TaffyTree};
 
-use crate::error::{NativeError, NativeResult, internal_error};
+use crate::error::{BindingError, BindingResult, internal_error};
 use crate::{available_space, js_object, number, style};
 
 #[napi(object, object_from_js = false)]
@@ -40,7 +40,7 @@ pub struct MeasureResultInput {
 
 pub(crate) enum MeasureFailure<'env> {
     Callback(Unknown<'env>),
-    Native(NativeError),
+    Binding(BindingError),
 }
 
 pub(crate) struct MeasureSession<'env> {
@@ -73,7 +73,7 @@ impl<'env> MeasureSession<'env> {
             &self.callback,
             self.arguments(known_dimensions, available_space, node, style),
         )
-        .and_then(|value| result_size(value).map_err(MeasureFailure::Native));
+        .and_then(|value| result_size(value).map_err(MeasureFailure::Binding));
         match result {
             Ok(size) => size,
             Err(failure) => {
@@ -115,11 +115,11 @@ fn call<'env>(
     let mut receiver = ptr::null_mut();
     let receiver_status = unsafe { sys::napi_get_undefined(env, &mut receiver) };
     if receiver_status != sys::Status::napi_ok {
-        return Err(MeasureFailure::Native(internal_error()));
+        return Err(MeasureFailure::Binding(internal_error()));
     }
 
     let argument = unsafe { MeasureArguments::to_napi_value(env, arguments) }
-        .map_err(|_| MeasureFailure::Native(internal_error()))?;
+        .map_err(|_| MeasureFailure::Binding(internal_error()))?;
     let args = [argument];
     let mut returned = ptr::null_mut();
     let status = unsafe {
@@ -138,12 +138,12 @@ fn call<'env>(
             let mut thrown = ptr::null_mut();
             let clear_status = unsafe { sys::napi_get_and_clear_last_exception(env, &mut thrown) };
             if clear_status != sys::Status::napi_ok || thrown.is_null() {
-                return Err(MeasureFailure::Native(internal_error()));
+                return Err(MeasureFailure::Binding(internal_error()));
             }
             let value = unsafe { Unknown::from_raw_unchecked(env, thrown) };
             Err(MeasureFailure::Callback(value))
         }
-        _ => Err(MeasureFailure::Native(internal_error())),
+        _ => Err(MeasureFailure::Binding(internal_error())),
     }
 }
 
@@ -168,7 +168,7 @@ fn available_space_size_output(value: Size<AvailableSpace>) -> AvailableSpaceSiz
     }
 }
 
-fn result_size(value: Unknown<'_>) -> NativeResult<Size<f32>> {
+fn result_size(value: Unknown<'_>) -> BindingResult<Size<f32>> {
     let input: MeasureResultInput =
         js_object::input(value, "a measured Size object", Some(&["width", "height"]))?;
     Ok(Size {
@@ -177,7 +177,7 @@ fn result_size(value: Unknown<'_>) -> NativeResult<Size<f32>> {
     })
 }
 
-pub(crate) fn invalidate_subtree(tree: &mut TaffyTree<()>, root: NodeId) -> NativeResult<()> {
+pub(crate) fn invalidate_subtree(tree: &mut TaffyTree<()>, root: NodeId) -> BindingResult<()> {
     let mut pending = vec![root];
     while let Some(node) = pending.pop() {
         tree.mark_dirty(node).map_err(|_| internal_error())?;

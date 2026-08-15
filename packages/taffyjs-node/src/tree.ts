@@ -1,4 +1,4 @@
-import { NativeTaffyTree } from "./binding.js";
+import { BindingTaffyTree } from "./binding.js";
 import { NodeIdRegistry, type NodeId } from "./node-id.js";
 import type {
   ChildRangeInput,
@@ -26,13 +26,13 @@ function checkedChildIndex(index: number): number {
 
 /** Owns one independent node tree, its contexts, styles, and stored layouts. */
 export class TaffyTree<TContext = unknown> {
-  readonly #inner: NativeTaffyTree;
+  readonly #inner: BindingTaffyTree;
   readonly #nodes = new NodeIdRegistry();
   readonly #contexts = new Map<NodeId, TContext>();
 
   /** Creates an independent Taffy tree with its own NodeId namespace. */
   constructor() {
-    this.#inner = new NativeTaffyTree();
+    this.#inner = new BindingTaffyTree();
   }
 
   /** Enables pixel rounding for subsequently computed public layouts. */
@@ -47,30 +47,30 @@ export class TaffyTree<TContext = unknown> {
 
   /** Returns the number of live nodes owned by this tree. */
   getNodeCount(): number {
-    return this.#inner.rawNodeCount();
+    return this.#inner.rawGetNodeCount();
   }
 
   /** Returns the current number of children for one parent. */
   getChildCount(parent: NodeId): number {
-    return this.#inner.rawChildCount(this.#nodes.resolve(parent));
+    return this.#inner.rawGetChildCount(this.#nodes.resolve(parent));
   }
 
   /** Returns the current parent or null for a root node. */
   getParent(node: NodeId): NodeId | null {
-    const rawParent = this.#inner.rawParent(this.#nodes.resolve(node));
+    const rawParent = this.#inner.rawGetParent(this.#nodes.resolve(node));
     return rawParent === null ? null : this.#nodes.fromRaw(rawParent);
   }
 
   /** Returns a detached readonly snapshot of the ordered children. */
   getChildren(parent: NodeId): readonly NodeId[] {
     return this.#inner
-      .rawChildren(this.#nodes.resolve(parent))
+      .rawGetChildren(this.#nodes.resolve(parent))
       .map((child) => this.#nodes.fromRaw(child));
   }
 
   /** Returns the child at the requested parent index. */
   getChildAtIndex(parent: NodeId, index: number): NodeId {
-    const rawChild = this.#inner.rawChildAtIndex(
+    const rawChild = this.#inner.rawGetChildAtIndex(
       this.#nodes.resolve(parent),
       checkedChildIndex(index),
     );

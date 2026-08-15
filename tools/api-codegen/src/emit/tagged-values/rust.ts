@@ -19,7 +19,7 @@ function emitFunctionStart(
 ): void {
   const parameters =
     extraParameter === undefined ? "value: Unknown<'_>" : `value: Unknown<'_>, ${extraParameter}`;
-  const signature = `${visibility}fn ${name}(${parameters}) -> NativeResult<${returnName}> {`;
+  const signature = `${visibility}fn ${name}(${parameters}) -> BindingResult<${returnName}> {`;
   if (signature.length <= 100) {
     lines.push(signature);
     return;
@@ -28,7 +28,7 @@ function emitFunctionStart(
     `${visibility}fn ${name}(`,
     "    value: Unknown<'_>,",
     ...(extraParameter === undefined ? [] : [`    ${extraParameter},`]),
-    `) -> NativeResult<${returnName}> {`,
+    `) -> BindingResult<${returnName}> {`,
   );
 }
 
@@ -145,7 +145,7 @@ export function emitTaggedValuesRust(model: TaggedValuesModel): OutputFile {
     "use napi::bindgen_prelude::Unknown;",
     "use napi_derive::napi;",
     "",
-    "use crate::error::{NativeResult, type_error};",
+    "use crate::error::{BindingResult, type_error};",
     "use crate::js_object;",
     "use crate::number;",
     `use crate::numeric::{${numericCodes.join(", ")}};`,
