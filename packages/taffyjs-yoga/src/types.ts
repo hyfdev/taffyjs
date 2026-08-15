@@ -191,9 +191,7 @@ export interface NodeFactory {
   destroy(node: Node): void;
 }
 
-export type Yoga = Readonly<
-  {
-    Config: ConfigFactory;
-    Node: NodeFactory;
-  } & typeof legacyConstants
->;
+export type Yoga = {
+  Config: ConfigFactory;
+  Node: NodeFactory;
+} & typeof legacyConstants;

@@ -14,7 +14,7 @@
 - [@taffyjs/node decisions](taffyjs-node-decisions.md) — vouched choices for the Node binding's role, API priorities, module format, distribution, and testing strategy.
 - [@taffyjs/wasm package design](taffyjs-wasm-package.md) — public contract, artifact layout, initialization model, ownership boundary, and verification requirements for the explicit Wasm package.
 - [@taffyjs/yoga decisions](taffyjs-yoga-decisions.md) — compatibility decisions for replacing yoga-layout through the TaffyJS Yoga layer.
-- [@taffyjs/yoga implementation reference](taffyjs-yoga-reference.md) — unstamped research progress, the Yoga public API inventory, and the remaining reference work required before implementation.
+- [@taffyjs/yoga implementation reference](taffyjs-yoga-reference.md) — the audited Yoga 3.2.1 public API inventory, implemented compatibility boundary, evidence, and ongoing maintenance constraints.
 - [@taffyjs/yoga implementation plan](taffyjs-yoga-implementation-plan.md) — the package architecture, repository changes, milestone gates, verification strategy, and draft-PR workflow for implementing the compatibility layer.
 - [@taffyjs/yoga implementation loop goal](loop-goal.md) — the unattended implementation contract that must receive a whole-file human vouch before the run starts.
 - [@taffyjs/yoga implementation loop status](loop-status.md) — the unattended run's overwrite-in-place progress and final handover record.

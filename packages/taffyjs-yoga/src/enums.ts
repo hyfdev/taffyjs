@@ -117,7 +117,7 @@ export enum Wrap {
   WrapReverse = 2,
 }
 
-export const legacyConstants = Object.freeze({
+export const legacyConstants = {
   ALIGN_AUTO: Align.Auto,
   ALIGN_FLEX_START: Align.FlexStart,
   ALIGN_CENTER: Align.Center,
@@ -183,4 +183,4 @@ export const legacyConstants = Object.freeze({
   WRAP_NO_WRAP: Wrap.NoWrap,
   WRAP_WRAP: Wrap.Wrap,
   WRAP_WRAP_REVERSE: Wrap.WrapReverse,
-} as const);
+};

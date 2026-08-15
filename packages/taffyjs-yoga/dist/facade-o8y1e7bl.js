@@ -119,7 +119,7 @@ let Wrap = /* @__PURE__ */ function(Wrap) {
 	Wrap[Wrap["WrapReverse"] = 2] = "WrapReverse";
 	return Wrap;
 }({});
-const legacyConstants = Object.freeze({
+const legacyConstants = {
 	ALIGN_AUTO: 0,
 	ALIGN_FLEX_START: 1,
 	ALIGN_CENTER: 2,
@@ -185,7 +185,7 @@ const legacyConstants = Object.freeze({
 	WRAP_NO_WRAP: 0,
 	WRAP_WRAP: 1,
 	WRAP_WRAP_REVERSE: 2
-});
+};
 //#endregion
 //#region src/values.ts
 const percentPattern = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?%$/i;
@@ -1729,7 +1729,12 @@ var YogaNode = class {
 	}
 	calculateLayout(width, height, direction = 1) {
 		const record = requireNode(void 0, this);
-		const ownerDirection = requireEnum(direction, "calculateLayout direction", [1, 2]);
+		const requestedDirection = requireEnum(direction, "calculateLayout direction", [
+			0,
+			1,
+			2
+		]);
+		const ownerDirection = requestedDirection === 0 ? 1 : requestedDirection;
 		const availableWidth = requireCalculationDimension(width, "width");
 		const availableHeight = requireCalculationDimension(height, "height");
 		const subtree = collectSubtree(record);
@@ -1912,24 +1917,23 @@ function freeRecursiveNode(record) {
 }
 function createFactories(runtime) {
 	return {
-		Config: Object.freeze({
+		Config: {
 			create: () => new YogaConfig(runtime, new ConfigState()),
 			destroy: (config) => freeConfig(requireConfig(runtime, config))
-		}),
-		Node: Object.freeze({
+		},
+		Node: {
 			create: (config) => new YogaNode(runtime, config === void 0 ? runtime.defaultConfig : requireConfig(runtime, config).state),
 			createDefault: () => new YogaNode(runtime, runtime.defaultConfig),
 			createWithConfig: (config) => new YogaNode(runtime, requireConfig(runtime, config).state),
 			destroy: (node) => freeNode(requireNode(runtime, node))
-		})
+		}
 	};
 }
 function createYoga() {
-	const runtime = new FacadeRuntime();
-	return Object.freeze({
-		...createFactories(runtime),
+	return {
+		...createFactories(new FacadeRuntime()),
 		...legacyConstants
-	});
+	};
 }
 //#endregion
 export { PositionType as _, Direction$1 as a, Errata as c, Gutter as d, Justify as f, Overflow$1 as g, NodeType as h, Dimension$1 as i, ExperimentalFeature as l, MeasureMode as m, Align as n, Display$1 as o, LogLevel as p, BoxSizing$1 as r, Edge as s, createYoga as t, FlexDirection$1 as u, Unit as v, Wrap as y };

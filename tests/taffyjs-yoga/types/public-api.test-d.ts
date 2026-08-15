@@ -24,6 +24,27 @@ import {
   type Config as LoadedConfig,
   type Node as LoadedNode,
 } from "yoga-layout/load";
+import type { Config as OracleConfig, Node as OracleNode } from "yoga-layout-oracle";
+
+type Equal<Left, Right> =
+  (<Value>() => Value extends Left ? 1 : 2) extends <Value>() => Value extends Right ? 1 : 2
+    ? true
+    : false;
+type Assert<Value extends true> = Value;
+type ConfigMethodNamesMatch = Assert<Equal<keyof Config, keyof OracleConfig>>;
+type NodeMethodNamesMatch = Assert<Equal<keyof Node, keyof OracleNode>>;
+type LegacyAlignConstantIsBroad = Assert<Equal<typeof Yoga.ALIGN_AUTO, Align>>;
+
+declare const replacementConfigFactory: typeof Yoga.Config;
+declare const replacementConfigCreate: () => Config;
+declare const replacementNodeFactory: typeof Yoga.Node;
+declare const replacementNodeCreate: (config?: Config) => Node;
+
+Yoga.ALIGN_AUTO = Align.Center;
+Yoga.Config = replacementConfigFactory;
+Yoga.Config.create = replacementConfigCreate;
+Yoga.Node = replacementNodeFactory;
+Yoga.Node.create = replacementNodeCreate;
 
 const config: Config = Yoga.Config.create();
 const node: Node = Yoga.Node.create(config);
@@ -166,4 +187,7 @@ void [
   PositionType.Relative,
   Errata.None,
   0 as unknown as RootYoga,
+  0 as unknown as ConfigMethodNamesMatch,
+  0 as unknown as NodeMethodNamesMatch,
+  0 as unknown as LegacyAlignConstantIsBroad,
 ];

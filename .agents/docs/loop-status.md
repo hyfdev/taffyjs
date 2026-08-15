@@ -4,7 +4,7 @@ Updated: 2026-08-15
 
 ## State
 
-Milestone 5 is complete, reviewed, and ready in its milestone commit. Milestone 6 is next.
+Milestones 1 through 6 are complete and reviewed. The implementation is ready for Yunfei's decision in the existing draft, unmerged pull request.
 
 ## Done
 
@@ -36,6 +36,11 @@ Milestone 5 is complete, reviewed, and ready in its milestone commit. Milestone 
 - Added selected-root exact-axis context for measured calculations, zero clamping for exhausted content-box constraints, Yoga measured-text point-grid rounding, native-only cache invalidation when callbacks are replaced or removed, and hidden measurement/output revisions that preserve public dirty state while making failure retry and arbitrary-subtree output commits correct.
 - Added the ordinary-compute fast path for selected subtrees without measured Nodes, controlled same-facade native tree-busy behavior during callbacks, and durable callback registration, external-data dirtying, result coercion, failure atomicity, temporary root-Style restoration, retry, Config-refresh retry, and path-selection fixtures.
 - Added exact dual-oracle Difference fixtures and public documentation for callback count/order/mode traces, MeasureMode-sensitive results, measured flex-basis interaction, and Yoga's stale cache after callback replacement or removal.
+- Completed the exact Yoga 3.2.1 closure audit: both package entries and all supported exports match the oracle; Config and Node retain the exact eight and 100 method-name sets at runtime and in TypeScript; supported legacy constants retain Yoga's broad writable enum types; and the facade plus both factory objects retain Yoga's writable runtime property descriptors.
+- Added Yoga-compatible `Direction.Inherit` owner-direction fallback for `calculateLayout`, explicitly classified positive and negative infinite owner dimensions as Unsupported with atomic rejection, and added direct oracle and failure-state fixtures.
+- Completed the public package guide and exhaustive compatibility boundary, including every known Different group and every Unsupported trigger, the Node-only ESM and Yoga 3.2.1 baseline, unchanged-import registry-alias form, both entry examples, and third-party notice linkage.
+- Replaced obsolete pre-implementation research status, ownership, package-build, and repository-index language with the implemented architecture and ongoing maintenance boundary.
+- Verified the cleaned six-file `dist/`, unchanged root and `/load` workspace-alias imports, exact package preview, declaration entry placement, absence of a runtime Yoga dependency, and the current generated output.
 
 ## Evidence and review
 
@@ -55,6 +60,10 @@ Milestone 5 is complete, reviewed, and ready in its milestone commit. Milestone 
 - The Milestone 5 full `vp run check` passes after the final Measure fixes: 9 Rust tests, 45 native tests, 194 `@taffyjs/node` integration tests, 74 Yoga tests, both declaration checks, formatting, linting, and Clippy pass. The committed path-selection profile records one ordinary call and zero measured calls for an unmeasured calculation, then one measured call only after a callback is present.
 - The fresh Milestone 5 adversarial reviewer found two material issues: a negative Taffy finite content-box remainder was exposed as `AtMost(-5)` instead of Yoga's `AtMost(0)`, and a failed Config refresh consumed native Style staleness before retry, allowing changed descendant geometry to remain `hasNewLayout() === false`. Finite content constraints now clamp to zero, and each selected subtree retains a private output-stale marker until a complete successful projection and state commit.
 - The same reviewer's single targeted follow-up returned PASS after verifying both axes, positive and exact constraints, the original Config/point-scale retry, partial child-then-ancestor recovery, and clean cache-hit flags. The focused Measure suite passes 10 tests, including the exact 20-by-30 negative-space and 10.5-by-5.5 retry reproductions.
+- The Milestone 6 full `vp run ready` passes on Node.js 24.19.0, Linux x64 GNU with glibc 2.41: 9 Rust tests, 45 native tests, 194 `@taffyjs/node` integration tests, 77 Yoga tests, both declaration checks, formatting, linting, and Clippy pass. Node.js 24 satisfies the package's Node.js >=22.18 runtime boundary; CI remains pinned to the minimum Node.js 22.18.0 baseline.
+- A final `pnpm pack --dry-run --json` preview contains exactly `package.json`, the three package documents, root and `/load` JavaScript, root and `/load` declarations, one shared JavaScript chunk, and one shared declaration chunk. The cleaned output contains no `yoga-layout` or `yoga-layout-oracle` runtime import.
+- The fresh Milestone 6 adversarial reviewer found two material public-surface issues: the facade and factories were frozen and their declarations narrowed writable enum constants into readonly literals, and the public min/max Flex Difference row was narrower than the vouched result group. Runtime and declaration mutability now match the oracle with direct tests, and the public row now covers min or max constraints combined with Flex growth or shrinkage while retaining the exact max-plus-shrink fixture.
+- The same reviewer's single targeted follow-up returned PASS for both repairs and confirmed the neighboring `Direction.Inherit` and infinite-owner-dimension behavior. The bounded follow-up passed 23 focused tests and the Yoga declaration check.
 
 ## In flight
 
@@ -62,8 +71,18 @@ Milestone 5 is complete, reviewed, and ready in its milestone commit. Milestone 
 
 ## Next
 
-- Complete Milestone 6: audit the exact Yoga 3.2.1 public surface and classifications, finish package and alias evidence, remove obsolete research TODOs, complete public documentation, and run the release-readiness gates while keeping the PR draft and unmerged.
+- Yunfei reviews draft PR [#9](https://github.com/hyfdev/taffyjs/pull/9) and decides whether or when to merge. This run does not mark it ready, merge it, publish packages, or add release automation.
+- After a future @taffyjs/yoga publication, run one real registry installation using the `yoga-layout` npm alias. That smoke test cannot be completed against the current private, unpublished package and is outside this implementation run.
 
 ## Blocked
 
 - None.
+
+## Human handover
+
+- Pull request: [hyfdev/taffyjs#9](https://github.com/hyfdev/taffyjs/pull/9), still draft and unmerged.
+- Baseline and scope: exactly `yoga-layout@3.2.1`; ESM-only; Node.js >=22.18; TypeScript over the existing public `@taffyjs/node` API; no Rust, Taffy core, `@taffyjs/node` API, Flex, browser, WASM, generator, query, batch, compact-transport, publication, or release-automation expansion.
+- Milestone commits: `2c04ce7` package foundation; `fab9a8b` Config and Style; `49d7a87` topology and state; `8e21f38` computed output; `3a8d860` Measure API; the PR-head `Close @taffyjs/yoga compatibility surface` commit contains Milestone 6 and this handover. The vouched run baseline is `3313f0b`.
+- Remaining Different groups: named Yoga cache artifacts; corrected dirtied-callback argument and null behavior; min or max constraints combined with Flex growth or shrinkage; overlapping physical/logical main-axis margins; calculated aspect ratio; oversized or ordinary WrapReverse placement; overflowing reversed-axis distribution; zero-cross-size wrapped-line distribution; main-axis auto margins with reversal or justification; Measure callback trace, mode-sensitive result, measured flex-basis, and callback replacement/removal cache behavior. Exact triggers and pinned results are in the package compatibility guide.
+- Remaining Unsupported triggers: Display.Contents; PositionType.Static; every non-None Errata; property-invalid Align values; `setIsReferenceBaseline(true)`; positive or negative infinite calculation owner dimensions; and undeclared malformed or Value-like generic-setter coercions. Types omit or narrow these where possible, and dynamic inputs throw before mutation.
+- Only post-publication evidence remains: install the published package under the `yoga-layout` registry alias and smoke-test both entries. It does not block this private draft implementation.

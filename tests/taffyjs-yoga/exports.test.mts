@@ -60,6 +60,12 @@ function supportedEnum(name: (typeof enumNames)[number], value: unknown): Record
   return result;
 }
 
+function prototypeMethods(value: object): string[] {
+  return Object.getOwnPropertyNames(Object.getPrototypeOf(value))
+    .filter((name) => name !== "constructor")
+    .sort();
+}
+
 test("root and load entries expose every supported Yoga 3.2.1 enum", () => {
   assert.deepEqual(Object.keys(implementation).sort(), Object.keys(oracle).sort());
   assert.deepEqual(Object.keys(implementationLoad).sort(), Object.keys(oracleLoad).sort());
@@ -92,6 +98,64 @@ test("facade factories preserve Yoga's documented factory methods", () => {
     "createWithConfig",
     "destroy",
   ]);
+});
+
+test("facade and factory properties retain Yoga's runtime mutability", async () => {
+  const facade = await implementationLoad.loadYoga();
+  const pairs: Array<readonly [Record<string, unknown>, Record<string, unknown>]> = [
+    [
+      facade as unknown as Record<string, unknown>,
+      OracleYoga as unknown as Record<string, unknown>,
+    ],
+    [
+      facade.Config as unknown as Record<string, unknown>,
+      OracleYoga.Config as unknown as Record<string, unknown>,
+    ],
+    [
+      facade.Node as unknown as Record<string, unknown>,
+      OracleYoga.Node as unknown as Record<string, unknown>,
+    ],
+  ];
+
+  for (const [actual, expected] of pairs) {
+    assert.equal(Object.isFrozen(actual), false);
+    for (const key of Object.keys(actual)) {
+      const actualDescriptor = Object.getOwnPropertyDescriptor(actual, key);
+      const expectedDescriptor = Object.getOwnPropertyDescriptor(expected, key);
+      assert.notEqual(actualDescriptor, undefined, key);
+      assert.notEqual(expectedDescriptor, undefined, key);
+      assert.equal(actualDescriptor?.writable, expectedDescriptor?.writable, `${key} writable`);
+      assert.equal(
+        actualDescriptor?.configurable,
+        expectedDescriptor?.configurable,
+        `${key} configurable`,
+      );
+      assert.equal(
+        actualDescriptor?.enumerable,
+        expectedDescriptor?.enumerable,
+        `${key} enumerable`,
+      );
+    }
+  }
+});
+
+test("Node and Config expose every Yoga 3.2.1 method name", () => {
+  const config = Yoga.Config.create();
+  const node = Yoga.Node.createWithConfig(config);
+  const oracleConfig = OracleYoga.Config.create();
+  const oracleNode = OracleYoga.Node.createWithConfig(oracleConfig);
+
+  try {
+    assert.deepEqual(prototypeMethods(config), prototypeMethods(oracleConfig));
+    assert.deepEqual(prototypeMethods(node), prototypeMethods(oracleNode));
+    assert.equal(prototypeMethods(config).length, 8);
+    assert.equal(prototypeMethods(node).length, 100);
+  } finally {
+    node.free();
+    config.free();
+    oracleNode.free();
+    oracleConfig.free();
+  }
 });
 
 test("handles do not expose or replace facade-native state", async () => {

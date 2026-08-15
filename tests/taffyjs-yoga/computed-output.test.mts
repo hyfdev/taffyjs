@@ -136,6 +136,51 @@ test("finite owner dimensions become exact selected-root constraints", () => {
   }
 });
 
+test("calculation input preserves Yoga's owner-direction fallback and finite boundary", () => {
+  for (const direction of [Direction.Inherit, Direction.LTR, Direction.RTL] as const) {
+    const actualRoot = Yoga.Node.create();
+    const actualChild = Yoga.Node.create();
+    const expectedRoot = OracleYoga.Node.create();
+    const expectedChild = OracleYoga.Node.create();
+    try {
+      actualRoot.setWidth(100);
+      actualRoot.setHeight(20);
+      actualRoot.setFlexDirection(FlexDirection.Row);
+      actualChild.setWidth(10);
+      actualChild.setMargin(Edge.Start, 5);
+      actualRoot.insertChild(actualChild, 0);
+
+      expectedRoot.setWidth(100);
+      expectedRoot.setHeight(20);
+      expectedRoot.setFlexDirection(OracleFlexDirection.Row);
+      expectedChild.setWidth(10);
+      expectedChild.setMargin(OracleEdge.Start, 5);
+      expectedRoot.insertChild(expectedChild, 0);
+
+      actualRoot.calculateLayout(undefined, undefined, direction);
+      expectedRoot.calculateLayout(undefined, undefined, direction as unknown as OracleDirection);
+      assertLayoutEqual(actualRoot, expectedRoot, Direction[direction]);
+      assertLayoutEqual(actualChild, expectedChild, Direction[direction]);
+    } finally {
+      actualRoot.freeRecursive();
+      expectedRoot.freeRecursive();
+    }
+  }
+
+  const node = Yoga.Node.create();
+  try {
+    node.setWidth(12);
+    node.setHeight(7);
+    node.calculateLayout(undefined, undefined);
+    const previous = node.getComputedLayout();
+    assert.throws(() => node.calculateLayout(Infinity, undefined), /finite number/);
+    assert.throws(() => node.calculateLayout(undefined, -Infinity), /finite number/);
+    assert.deepEqual(node.getComputedLayout(), previous);
+  } finally {
+    node.free();
+  }
+});
+
 test("subtree projection matches Yoga positions across directions and reversed axes", () => {
   const positionCases = ["left", "right", "both"] as const;
   for (const direction of [Direction.LTR, Direction.RTL] as const) {

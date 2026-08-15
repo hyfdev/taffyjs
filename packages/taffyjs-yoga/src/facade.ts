@@ -1161,10 +1161,13 @@ class YogaNode implements Node {
     direction: Direction = Direction.LTR,
   ): void {
     const record = requireNode(undefined, this);
-    const ownerDirection = requireEnum(direction, "calculateLayout direction", [
+    const requestedDirection = requireEnum(direction, "calculateLayout direction", [
+      Direction.Inherit,
       Direction.LTR,
       Direction.RTL,
-    ]) as Direction.LTR | Direction.RTL;
+    ]);
+    const ownerDirection =
+      requestedDirection === Direction.Inherit ? Direction.LTR : requestedDirection;
     const availableWidth = requireCalculationDimension(width, "width");
     const availableHeight = requireCalculationDimension(height, "height");
     const subtree = collectSubtree(record);
@@ -1403,11 +1406,11 @@ function createFactories(runtime: FacadeRuntime): {
   Config: ConfigFactory;
   Node: NodeFactory;
 } {
-  const Config: ConfigFactory = Object.freeze({
+  const Config: ConfigFactory = {
     create: () => new YogaConfig(runtime, new ConfigState()),
     destroy: (config: Config) => freeConfig(requireConfig(runtime, config)),
-  });
-  const Node: NodeFactory = Object.freeze({
+  };
+  const Node: NodeFactory = {
     create: (config?: Config) =>
       new YogaNode(
         runtime,
@@ -1417,11 +1420,11 @@ function createFactories(runtime: FacadeRuntime): {
     createWithConfig: (config: Config) =>
       new YogaNode(runtime, requireConfig(runtime, config).state),
     destroy: (node: Node) => freeNode(requireNode(runtime, node)),
-  });
+  };
   return { Config, Node };
 }
 
 export function createYoga(): Yoga {
   const runtime = new FacadeRuntime();
-  return Object.freeze({ ...createFactories(runtime), ...legacyConstants });
+  return { ...createFactories(runtime), ...legacyConstants };
 }
