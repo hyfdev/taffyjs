@@ -1,6 +1,6 @@
 # Architecture
 
-This repository is a small Rust and JavaScript monorepo with one shared napi-rs binding and two public packages.
+This repository is a small Rust and JavaScript monorepo with one shared napi-rs binding and three public packages.
 
 ## Ownership
 
@@ -8,12 +8,14 @@ This repository is a small Rust and JavaScript monorepo with one shared napi-rs 
 - `crates/taffyjs_binding` owns the napi-rs adapter and depends directly on Taffy. A shared Rust crate is justified only when a second Rust consumer needs it.
 - `packages/taffyjs-node` owns the public ESM wrapper and declarations, the private napi-rs loader and declarations, and npm metadata. The wrapper owns JavaScript-only NodeId validity data and context; Taffy owns topology, Style, Layout, cache, and computation state.
 - `packages/taffyjs-wasm` compiles the same authored source from `packages/taffyjs-node/src` against generated private Node and browser adapters that share one inline payload. It owns package metadata, generated artifacts, and build-time binding redirection; its package-specific typed generator lives under `tools/taffy-wasm`. It has no authored public wrapper source or separate initialization API.
+- `packages/taffyjs-yoga` owns the Node-only ESM Yoga 3.2.1 compatibility facade, Yoga declarations and visible state, input translation, and Yoga-shaped output projection. It depends only on the public `@taffyjs/node` package boundary and does not modify Taffy or the native binding.
 - `tests/taffyjs-node` is a private consumer package that tests `@taffyjs/node` through its package boundary.
 - `tests/taffyjs-wasm` is a private consumer package that checks the Wasm package through Node and browser package resolution, reuses the existing public type tests, mechanically inspects the published file set, and installs the packed result in fresh npm and pnpm consumers.
+- `tests/taffyjs-yoga` is the corresponding private consumer package for compatibility, differential, and end-to-end tests through the `@taffyjs/yoga` package boundary; it does not contain a redundant nested `tests/` directory.
 
-The `@taffyjs/node` public entry bundles the private napi-rs root loader, which selects the matching optional platform package. Its generated loader and declaration remain repository build inputs rather than published package files. The `@taffyjs/wasm` default entry reaches a no-TLA ESM bridge that imports the shared payload and immediately invokes a synchronous CommonJS factory mechanically derived from napi-rs's eager Node loader; its browser entry reaches a TLA adapter and the unmodified deferred loader. Neither package exposes an intermediate binding package, JavaScript shadow tree, separate core crate, public binding, or public initialization API.
+The `@taffyjs/node` public entry bundles the private napi-rs root loader, which selects the matching optional platform package. Its generated loader and declaration remain repository build inputs rather than published package files. The `@taffyjs/wasm` default entry reaches a no-TLA ESM bridge that imports the shared payload and immediately invokes a synchronous CommonJS factory mechanically derived from napi-rs's eager Node loader; its browser entry reaches a TLA adapter and the unmodified deferred loader. Neither direct runtime package exposes an intermediate binding package, JavaScript shadow tree, separate core crate, public binding, or public initialization API.
 
-A future `@taffyjs/yoga` package should be a JavaScript or TypeScript compatibility layer over `@taffyjs/node` unless a concrete need requires a different native boundary. A future `@taffyjs/wasm` package should preserve the direct package's high-level JavaScript API while replacing the runtime binding layer; its concrete Rust and packaging boundaries remain open until implementation.
+`@taffyjs/yoga` is a Node-only TypeScript compatibility layer over `@taffyjs/node`; browser and WASM backends never live in that package. It performs bounded input normalization and output processing, but it does not modify or fork Taffy core, add a Yoga-specific native algorithm, or reimplement Flex layout in JavaScript; behavior that cannot cross that boundary is documented as Different or Unsupported as recorded in [@taffyjs/yoga decisions](taffyjs-yoga-decisions.md).
 
 ## Testing
 
