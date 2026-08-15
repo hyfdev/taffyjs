@@ -1,40 +1,38 @@
 # `@taffyjs/node`
 
-`@taffyjs/node` is the native Node-API binding for Taffy 0.13. It provides an explicit in-memory layout tree for Block, Flexbox, and Grid and exposes the same JavaScript objects described throughout the Guide.
+`@taffyjs/node` is the native Node-API binding for Taffy 0.13. It provides an explicit in-memory layout tree for Block, Flexbox, and Grid through readable JavaScript inputs and outputs.
 
-## Availability
+Follow [Getting Started](../guide/getting-started.md) to install the package and compute a first layout.
 
-The package is currently version `0.0.0`, marked private, and not published to a registry. There is no supported installation command yet. These docs describe the API implemented in the repository rather than an installable release.
+## Runtime support
 
-The current runtime matrix is deliberately small:
+The package requires Node.js 22.18.0 or newer and currently provides native binaries for these targets:
 
-| Runtime | Supported target |
-| ------- | ---------------- |
-| Node.js | 22.18.0 or newer |
-| Linux   | x64 GNU          |
-| Windows | x64 MSVC         |
+| Operating system | Architecture | Native target              |
+| ---------------- | ------------ | -------------------------- |
+| Linux            | x64          | `x86_64-unknown-linux-gnu` |
+| Windows          | x64          | `x86_64-pc-windows-msvc`   |
 
-The package is ESM-only. Import the public package entry:
+The package is ESM-only. Application code imports the public package entry:
 
 ```ts
-import { AvailableSpace, Dimension, Display, TaffyTree } from "@taffyjs/node";
+import { Display, TaffyTree } from "@taffyjs/node";
 ```
 
 Do not import `native.js`, a `.node` file, or one of the platform packages directly. They are private implementation details and are not stable subpath exports.
 
-## What the package owns
+## What the package provides
 
-Each `TaffyTree<TContext>` owns its native tree, public node IDs, JavaScript context values, styles, cached computation state, and stored layout results. Work is synchronous and explicit: create or update nodes, call a compute method, and then read snapshots.
+Each `TaffyTree<TContext>` owns its native tree, public node IDs, JavaScript context values, styles, cached computation state, and stored layout results. Work is synchronous and explicit: create or update nodes, call a compute method, and then read detached snapshots.
 
-The API does not include a CSS parser, DOM integration, Yoga compatibility, selectors, query builders, batch commands, asynchronous or off-thread computation, or live native views. Those concerns can be implemented by a higher layer that produces `StyleInput` values and explicit compute calls.
+The package does not parse CSS, create DOM elements, or render output. It also does not provide Yoga compatibility or asynchronous computation. Higher layers can build those behaviors on the layout tree without changing the direct API.
 
-## Reference map
+## API
 
-- [Nodes and Topology](./nodes-and-topology.md) covers creation, inspection, parent-child changes, removal, `clear`, and `NodeId` lifetime.
-- [Styles and Context](./styles-and-context.md) covers complete style replacement, style snapshots, `TContext`, and measurement invalidation.
-- [Computing Layout](./computing-layout.md) covers available space, dirty state, rounding, measurement, caching, and re-entry rules.
+- [Nodes and Topology](./nodes-and-topology.md) covers node creation, inspection, parent-child changes, removal, `clear`, and `NodeId` lifetime.
+- [Styles and Context](./styles-and-context.md) covers style replacement, style snapshots, JavaScript context, and measurement invalidation.
+- [Computing Layout](./computing-layout.md) covers available space, dirty state, rounding, measurement, caching, and callback restrictions.
 - [Layout Results](./layout-results.md) covers ordinary, unrounded, and detailed Grid output.
-- [Value Helpers](./value-helpers.md) covers every public runtime constant family and helper object.
-- [Errors](./errors.md) covers stable error codes, JavaScript error classes, and state guarantees after failure.
-
-For a task-oriented path, begin with the [Guide](../guide/index.md).
+- [Style](./style.md) groups the fields accepted by `StyleInput` and returned by `Style`.
+- [Value Helpers](./value-helpers.md) covers numeric constants and tagged values used throughout style and computation inputs.
+- [Errors](./errors.md) covers stable error codes, JavaScript error classes, and state after failure.

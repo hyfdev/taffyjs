@@ -2,9 +2,13 @@
 
 Set `display: Display.Block` when children should participate in Taffy's Block layout. This matters because Taffy's default display value is Flex, not Block.
 
-Block layout places normal-flow children along the block axis. Floats, clearing, and positioned nodes alter that flow. The following fragment keeps one parent and makes each effect visible:
+Block layout places normal-flow children along the block axis. Floats, clearing, and positioned nodes alter that flow. The example below keeps one parent and makes each effect visible:
 
 ```ts
+import { AvailableSpace, Clear, Display, Float, Position, TaffyTree } from "@taffyjs/node";
+
+const tree = new TaffyTree();
+
 const floated = tree.newLeaf({
   display: Display.Block,
   float: Float.Left,
@@ -29,6 +33,18 @@ const root = tree.newWithChildren({ display: Display.Block, size: { width: 100 }
   cleared,
   shifted,
 ]);
+
+tree.computeLayout({
+  root,
+  availableSpace: {
+    width: 100,
+    height: AvailableSpace.MaxContent,
+  },
+});
+
+console.log(tree.getUnroundedLayout(floated).location); // { x: 0, y: 0 }
+console.log(tree.getUnroundedLayout(cleared).location); // { x: 0, y: 10 }
+console.log(tree.getUnroundedLayout(shifted).location); // { x: 5, y: 22 }
 ```
 
 After computing this root, the three unrounded locations are `{ x: 0, y: 0 }`, `{ x: 0, y: 10 }`, and `{ x: 5, y: 22 }`. The second child clears the 10-unit float. The third keeps its normal-flow place and is then shifted by its relative inset.
@@ -47,4 +63,4 @@ The fields used most often around Block layout are:
 
 Each geometry field accepts either one supported semantic length for every side or axis, or a partial named record. TaffyJS does not parse CSS shorthand strings.
 
-Block layout still only produces numbers. Your renderer decides what a border looks like, how overflow is clipped, and what content is drawn. See the standalone [Block example](./examples.md#block) for a complete module.
+Block layout still only produces numbers. Your renderer decides what a border looks like, how overflow is clipped, and what content is drawn.

@@ -2,6 +2,8 @@
 
 Styles are native layout data. Context is arbitrary JavaScript data associated with a node. They have separate owners and update rules even though both can affect measurement.
 
+The [Style reference](./style.md) groups the fields accepted by `StyleInput` and returned by `Style`. This page covers the `TaffyTree` methods that replace and read those values, then the separate JavaScript context methods.
+
 ## Replace and read styles
 
 `setStyle(node, style)` replaces the node's complete stored style. It does not merge with the previous value. Missing properties and explicit `undefined` are expanded from Taffy's defaults on every call:
@@ -15,15 +17,7 @@ current.display === Display.Flex; // true
 current.flexGrow === 0; // true
 ```
 
-`null` is accepted only for the fields that represent an optional Taffy value:
-
-- `aspectRatio`
-- `alignItems` and `alignSelf`
-- `justifyItems` and `justifySelf`
-- `alignContent` and `justifyContent`
-- `gridTemplateAreas`
-
-Other fields reject `null`. Unknown top-level style fields and unknown components in partial geometry records are also rejected. A failed conversion leaves both the previous style and its dirty state unchanged.
+`null` is accepted only for the optional fields listed in the [Style reference](./style.md#shared-fields). Other fields reject it. Unknown top-level style fields and unknown components in partial geometry records are also rejected. A failed conversion leaves both the previous style and its dirty state unchanged.
 
 Floating-point style values accept JavaScript numbers and are stored with Taffy's 32-bit precision. They are not coerced from strings or objects, clamped, or replaced with binding-specific defaults; negative and non-finite numbers reach Taffy as numeric values. Integer codes, indices, spans, and counts instead must be finite integers in the range of the corresponding public value.
 

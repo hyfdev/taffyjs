@@ -1,44 +1,64 @@
 # Getting Started
 
-This page takes one small tree from creation to an observable layout result. It assumes `@taffyjs/node` is already available in your project; see the [`@taffyjs/node` overview](../node/index.md) for current availability.
+Install `@taffyjs/node`, create a small Flexbox tree, compute its layout, and read the result.
 
-Create a file such as `layout.ts`:
+## Install
+
+```sh
+npm install @taffyjs/node
+```
+
+`@taffyjs/node` requires Node.js 22.18 or newer. See the [package overview](../node/index.md) for supported native platforms and import rules.
+
+## Compute a layout
+
+Create `layout.mjs`:
 
 ```ts
-import assert from "node:assert/strict";
-import { AvailableSpace, Display, TaffyTree } from "@taffyjs/node";
+import { Display, TaffyTree } from "@taffyjs/node";
 
 const tree = new TaffyTree();
 
-const child = tree.newLeaf({
-  size: { width: 40, height: 12 },
-});
+const first = tree.newLeaf({ flexGrow: 1 });
+const second = tree.newLeaf({ flexGrow: 1 });
 
 const root = tree.newWithChildren(
   {
     display: Display.Flex,
     size: { width: 100, height: 20 },
   },
-  [child],
+  [first, second],
 );
 
 tree.computeLayout({
   root,
-  availableSpace: {
-    width: AvailableSpace.MaxContent,
-    height: AvailableSpace.MaxContent,
-  },
+  availableSpace: { width: 100, height: 20 },
 });
 
-assert.deepEqual(tree.getUnroundedLayout(child).size, { width: 40, height: 12 });
+console.log(tree.getUnroundedLayout(first).size);
+console.log(tree.getUnroundedLayout(second).location);
 ```
 
-There are four separate operations in this module.
+Run it with Node.js:
 
-`new TaffyTree()` creates an independent owner for nodes, styles, and stored layouts. `newLeaf` creates a node without children. `newWithChildren` creates another node and attaches the supplied children in order.
+```sh
+node layout.mjs
+```
 
-`computeLayout` is the point where Taffy performs layout. `root` selects the subtree to compute. `availableSpace` describes the constraint supplied by the caller; `MaxContent` asks the tree for its maximum-content size in that axis rather than imposing a definite number.
+The output is:
 
-`getUnroundedLayout` reads the result Taffy stored for the child. It does not compute anything itself. The result is a detached object, so changing that object would not change the tree.
+```text
+{ width: 50, height: 20 }
+{ x: 50, y: 0 }
+```
 
-The example uses concrete numeric lengths to keep the first result unsurprising. From here, [Tree, Compute, and Read](./tree-compute-read.md) explains what happens when the tree changes, while [Complete Examples](./examples.md) contains standalone Block, Flexbox, Grid, and measurement programs.
+The root is 100 units wide. Both children have `flexGrow: 1`, so Taffy divides the available width evenly between them and places the second child after the first.
+
+The program does four things:
+
+1. `new TaffyTree()` creates an independent owner for nodes, styles, and stored layouts.
+2. `newLeaf` and `newWithChildren` create the nodes and their parent-child relationship.
+3. `computeLayout` asks Taffy to calculate layout for one root and a definite amount of available space.
+4. `getUnroundedLayout` reads detached result objects stored by that computation.
+
+Changing the tree does not compute layout automatically, and reading a result does not recompute it. Continue with [Tree, Compute, and Read](./tree-compute-read.md) for that lifecycle, or go directly to the worked [Block](./block.md), [Flexbox](./flexbox.md), or [Grid](./grid.md) examples.

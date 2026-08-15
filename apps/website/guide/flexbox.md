@@ -2,9 +2,13 @@
 
 Flexbox turns one axis into the main axis and distributes space among children on that axis. `FlexDirection` chooses the axis and its direction; the same child styles can therefore produce a different layout when only the parent direction changes.
 
-Start with two stable children and one stable parent style:
+The example below uses two stable children and one stable parent style. It first lays them out in a row, then changes only the parent direction and computes again:
 
 ```ts
+import { Display, FlexDirection, TaffyTree } from "@taffyjs/node";
+
+const tree = new TaffyTree();
+
 const first = tree.newLeaf({
   flexGrow: 1,
   size: { width: 20, height: 10 },
@@ -22,14 +26,20 @@ const root = tree.newWithChildren({ ...baseStyle, flexDirection: FlexDirection.R
   first,
   second,
 ]);
+
+tree.computeLayout({ root, availableSpace: { width: 100, height: 60 } });
+
+console.log(tree.getUnroundedLayout(first).size); // { width: 50, height: 10 }
+console.log(tree.getUnroundedLayout(second).location); // { x: 50, y: 0 }
+
+tree.setStyle(root, { ...baseStyle, flexDirection: FlexDirection.Column });
+tree.computeLayout({ root, availableSpace: { width: 100, height: 60 } });
+
+console.log(tree.getUnroundedLayout(first).size); // { width: 20, height: 30 }
+console.log(tree.getUnroundedLayout(second).location); // { x: 0, y: 30 }
 ```
 
 With `Row`, the 60 units left after the two 20-unit base widths are shared through `flexGrow`. Each child becomes 50 units wide. Replacing only the root style with `flexDirection: FlexDirection.Column` moves the main axis to height; each child becomes 30 units tall instead.
-
-```ts
-tree.setStyle(root, { ...baseStyle, flexDirection: FlexDirection.Column });
-tree.computeLayout({ root, availableSpace });
-```
 
 The children are the same nodes, in the same order, with the same styles. The changed direction is what changes which dimension receives the free space.
 
@@ -48,4 +58,4 @@ Alignment names describe where remaining space goes:
 
 Use `AlignItems` for item alignment and `AlignContent` for content distribution. For example, `AlignItems.Center` centers items across the line, while `AlignContent.SpaceBetween` distributes multiple lines. These are Taffy style values; TaffyJS does not reinterpret them as a separate layout system.
 
-The complete [Flexbox example](./examples.md#flexbox) shows free-space distribution and verifies the resulting size and location.
+The example above uses unrounded results so the same code also works when the division produces fractional values.

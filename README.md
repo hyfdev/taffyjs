@@ -28,8 +28,8 @@ npm install @taffyjs/node
 
 ## Documentation
 
-- [Guide](apps/website/guide/index.md) explains the shared layout model and includes complete examples.
-- [`@taffyjs/node`](apps/website/node/index.md) documents package availability and the current public API.
+- [Guide](apps/website/guide/index.md) explains the shared layout model, layout modes, and measured content.
+- [`@taffyjs/node`](apps/website/node/index.md) documents runtime support and the current public API.
 
 ## Credits
 

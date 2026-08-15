@@ -2,9 +2,11 @@
 
 Styles are enough when a node's size follows from layout constraints. Use a measure callback when Taffy needs an intrinsic size that only your program can provide, such as decoded image dimensions or shaped text.
 
-Create a measurable leaf with JavaScript context, then compute with a synchronous callback:
+Create a measurable leaf with JavaScript context, then compute with a synchronous callback. The example below supplies intrinsic image dimensions that do not come from style:
 
 ```ts
+import { AvailableSpace, TaffyTree, type MeasureFunction } from "@taffyjs/node";
+
 type ImageContext = { intrinsicWidth: number; intrinsicHeight: number };
 
 const tree = new TaffyTree<ImageContext>();
@@ -14,18 +16,27 @@ const imageData = {
 };
 const image = tree.newLeafWithContext({}, imageData);
 
+const availableSpace = {
+  width: AvailableSpace.MaxContent,
+  height: AvailableSpace.MaxContent,
+};
+
+const measureImage: MeasureFunction<ImageContext> = ({ knownDimensions, context }) => {
+  if (!context) return { width: 0, height: 0 };
+
+  return {
+    width: knownDimensions.width ?? context.intrinsicWidth,
+    height: knownDimensions.height ?? context.intrinsicHeight,
+  };
+};
+
 tree.computeLayoutWithMeasure({
   root: image,
   availableSpace,
-  measure({ knownDimensions, availableSpace, context }) {
-    if (!context) return { width: 0, height: 0 };
-
-    return {
-      width: knownDimensions.width ?? context.intrinsicWidth,
-      height: knownDimensions.height ?? context.intrinsicHeight,
-    };
-  },
+  measure: measureImage,
 });
+
+console.log(tree.getUnroundedLayout(image).size); // { width: 80, height: 45 }
 ```
 
 The callback receives five values:
@@ -47,7 +58,7 @@ Replacing context with `setNodeContext` marks the node dirty. Mutating a stored 
 ```ts
 imageData.intrinsicWidth = 120;
 tree.markDirty(image);
-tree.computeLayoutWithMeasure(options);
+tree.computeLayoutWithMeasure({ root: image, availableSpace, measure: measureImage });
 ```
 
 Passing a different callback does not invalidate cached measurement results by itself.
@@ -58,4 +69,4 @@ While the callback is running, native-backed methods on the same tree fail with 
 
 If the callback throws, TaffyJS rethrows the same JavaScript value. If its return value has the wrong shape, TaffyJS throws `TypeError`. Either failure stops later callbacks, marks the requested subtree dirty, and leaves the tree usable for a later compute. Layout or cache work already completed before the failure is not rolled back.
 
-See [Complete Examples](./examples.md#measure-callback-and-context) for a standalone measured layout module.
+The tree remains usable after either kind of callback failure, so a caller can correct its data, mark affected nodes dirty when needed, and compute again.
