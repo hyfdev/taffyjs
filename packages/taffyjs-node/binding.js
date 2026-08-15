@@ -889,5 +889,5 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`);
 }
 
-const { NativeTaffyTree } = nativeBinding;
-export { NativeTaffyTree };
+const { BindingTaffyTree } = nativeBinding;
+export { BindingTaffyTree };

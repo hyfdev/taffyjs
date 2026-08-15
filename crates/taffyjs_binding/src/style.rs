@@ -7,7 +7,7 @@ use taffy::style::{
     GridAutoFlow, Overflow, Position, Style, TextAlign,
 };
 
-use crate::error::{NativeResult, type_error};
+use crate::error::{BindingResult, type_error};
 use crate::numeric::{
     AlignContentCode, AlignItemsCode, BoxSizingCode, ClearCode, DirectionCode, DisplayCode,
     FlexDirectionCode, FlexWrapCode, FloatCode, GridAutoFlowCode, OverflowCode, PositionCode,
@@ -183,14 +183,14 @@ pub struct StyleOutput {
     pub grid_column: GridPlacementLineOutput,
 }
 
-fn integer<T>(value: f64) -> NativeResult<T>
+fn integer<T>(value: f64) -> BindingResult<T>
 where
     T: TryFrom<i64>,
 {
     number::to_integer(value)
 }
 
-fn is_length_input(value: Unknown<'_>) -> NativeResult<bool> {
+fn is_length_input(value: Unknown<'_>) -> BindingResult<bool> {
     let value_type = value
         .get_type()
         .map_err(|_| type_error("Expected a length or geometry object"))?;
@@ -208,7 +208,7 @@ fn is_length_input(value: Unknown<'_>) -> NativeResult<bool> {
 fn dimension_size(
     value: Unknown<'_>,
     default: Size<taffy::Dimension>,
-) -> NativeResult<Size<taffy::Dimension>> {
+) -> BindingResult<Size<taffy::Dimension>> {
     if is_length_input(value)? {
         let value = length::dimension(value)?;
         Ok(Size {
@@ -223,7 +223,7 @@ fn dimension_size(
 fn auto_rect(
     value: Unknown<'_>,
     default: Rect<taffy::LengthPercentageAuto>,
-) -> NativeResult<Rect<taffy::LengthPercentageAuto>> {
+) -> BindingResult<Rect<taffy::LengthPercentageAuto>> {
     if is_length_input(value)? {
         let value = length::length_percentage_auto(value)?;
         Ok(Rect {
@@ -240,7 +240,7 @@ fn auto_rect(
 fn length_rect(
     value: Unknown<'_>,
     default: Rect<taffy::LengthPercentage>,
-) -> NativeResult<Rect<taffy::LengthPercentage>> {
+) -> BindingResult<Rect<taffy::LengthPercentage>> {
     if is_length_input(value)? {
         let value = length::length_percentage(value)?;
         Ok(Rect {
@@ -257,7 +257,7 @@ fn length_rect(
 fn length_size(
     value: Unknown<'_>,
     default: Size<taffy::LengthPercentage>,
-) -> NativeResult<Size<taffy::LengthPercentage>> {
+) -> BindingResult<Size<taffy::LengthPercentage>> {
     if is_length_input(value)? {
         let value = length::length_percentage(value)?;
         Ok(Size {
@@ -269,7 +269,7 @@ fn length_size(
     }
 }
 
-fn display(value: f64) -> NativeResult<Display> {
+fn display(value: f64) -> BindingResult<Display> {
     Ok(match integer::<DisplayCode>(value)? {
         DisplayCode::Block => Display::Block,
         DisplayCode::FlowRoot => Display::FlowRoot,
@@ -279,21 +279,21 @@ fn display(value: f64) -> NativeResult<Display> {
     })
 }
 
-fn box_sizing(value: f64) -> NativeResult<BoxSizing> {
+fn box_sizing(value: f64) -> BindingResult<BoxSizing> {
     Ok(match integer::<BoxSizingCode>(value)? {
         BoxSizingCode::BorderBox => BoxSizing::BorderBox,
         BoxSizingCode::ContentBox => BoxSizing::ContentBox,
     })
 }
 
-fn direction(value: f64) -> NativeResult<Direction> {
+fn direction(value: f64) -> BindingResult<Direction> {
     Ok(match integer::<DirectionCode>(value)? {
         DirectionCode::Ltr => Direction::Ltr,
         DirectionCode::Rtl => Direction::Rtl,
     })
 }
 
-fn overflow(value: f64) -> NativeResult<Overflow> {
+fn overflow(value: f64) -> BindingResult<Overflow> {
     Ok(match integer::<OverflowCode>(value)? {
         OverflowCode::Visible => Overflow::Visible,
         OverflowCode::Clip => Overflow::Clip,
@@ -302,7 +302,7 @@ fn overflow(value: f64) -> NativeResult<Overflow> {
     })
 }
 
-fn float(value: f64) -> NativeResult<Float> {
+fn float(value: f64) -> BindingResult<Float> {
     Ok(match integer::<FloatCode>(value)? {
         FloatCode::Left => Float::Left,
         FloatCode::Right => Float::Right,
@@ -310,7 +310,7 @@ fn float(value: f64) -> NativeResult<Float> {
     })
 }
 
-fn clear(value: f64) -> NativeResult<Clear> {
+fn clear(value: f64) -> BindingResult<Clear> {
     Ok(match integer::<ClearCode>(value)? {
         ClearCode::Left => Clear::Left,
         ClearCode::Right => Clear::Right,
@@ -319,14 +319,14 @@ fn clear(value: f64) -> NativeResult<Clear> {
     })
 }
 
-fn position(value: f64) -> NativeResult<Position> {
+fn position(value: f64) -> BindingResult<Position> {
     Ok(match integer::<PositionCode>(value)? {
         PositionCode::Relative => Position::Relative,
         PositionCode::Absolute => Position::Absolute,
     })
 }
 
-fn align_items(value: f64) -> NativeResult<AlignItems> {
+fn align_items(value: f64) -> BindingResult<AlignItems> {
     Ok(match integer::<AlignItemsCode>(value)? {
         AlignItemsCode::Start => AlignItems::START,
         AlignItemsCode::End => AlignItems::END,
@@ -347,7 +347,7 @@ fn align_items(value: f64) -> NativeResult<AlignItems> {
     })
 }
 
-fn align_content(value: f64) -> NativeResult<AlignContent> {
+fn align_content(value: f64) -> BindingResult<AlignContent> {
     Ok(match integer::<AlignContentCode>(value)? {
         AlignContentCode::Start => AlignContent::START,
         AlignContentCode::End => AlignContent::END,
@@ -366,7 +366,7 @@ fn align_content(value: f64) -> NativeResult<AlignContent> {
     })
 }
 
-fn text_align(value: f64) -> NativeResult<TextAlign> {
+fn text_align(value: f64) -> BindingResult<TextAlign> {
     Ok(match integer::<TextAlignCode>(value)? {
         TextAlignCode::Auto => TextAlign::Auto,
         TextAlignCode::LegacyLeft => TextAlign::LegacyLeft,
@@ -375,7 +375,7 @@ fn text_align(value: f64) -> NativeResult<TextAlign> {
     })
 }
 
-fn flex_direction(value: f64) -> NativeResult<FlexDirection> {
+fn flex_direction(value: f64) -> BindingResult<FlexDirection> {
     Ok(match integer::<FlexDirectionCode>(value)? {
         FlexDirectionCode::Row => FlexDirection::Row,
         FlexDirectionCode::Column => FlexDirection::Column,
@@ -384,7 +384,7 @@ fn flex_direction(value: f64) -> NativeResult<FlexDirection> {
     })
 }
 
-fn flex_wrap(value: f64) -> NativeResult<FlexWrap> {
+fn flex_wrap(value: f64) -> BindingResult<FlexWrap> {
     Ok(match integer::<FlexWrapCode>(value)? {
         FlexWrapCode::NoWrap => FlexWrap::NoWrap,
         FlexWrapCode::Wrap => FlexWrap::Wrap,
@@ -392,7 +392,7 @@ fn flex_wrap(value: f64) -> NativeResult<FlexWrap> {
     })
 }
 
-fn grid_auto_flow(value: f64) -> NativeResult<GridAutoFlow> {
+fn grid_auto_flow(value: f64) -> BindingResult<GridAutoFlow> {
     Ok(match integer::<GridAutoFlowCode>(value)? {
         GridAutoFlowCode::Row => GridAutoFlow::Row,
         GridAutoFlowCode::Column => GridAutoFlow::Column,
@@ -401,7 +401,7 @@ fn grid_auto_flow(value: f64) -> NativeResult<GridAutoFlow> {
     })
 }
 
-pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
+pub(crate) fn input(value: Unknown<'_>) -> BindingResult<Style> {
     let input: StyleInput<'_> = js_object::input(value, "a Style object", Some(STYLE_FIELDS))?;
     let mut style = Style::default();
 
@@ -529,13 +529,13 @@ pub(crate) fn input(value: Unknown<'_>) -> NativeResult<Style> {
         style.grid_auto_rows = value
             .into_iter()
             .map(grid::track_sizing)
-            .collect::<NativeResult<Vec<_>>>()?;
+            .collect::<BindingResult<Vec<_>>>()?;
     }
     if let Some(value) = input.grid_auto_columns {
         style.grid_auto_columns = value
             .into_iter()
             .map(grid::track_sizing)
-            .collect::<NativeResult<Vec<_>>>()?;
+            .collect::<BindingResult<Vec<_>>>()?;
     }
     if let Some(value) = input.grid_auto_flow {
         style.grid_auto_flow = grid_auto_flow(value)?;

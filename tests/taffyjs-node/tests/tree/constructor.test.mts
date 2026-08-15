@@ -15,7 +15,7 @@ test("construct", () => {
 test("export-boundary", () => {
   const tree = new TaffyTree();
 
-  assert.equal(Reflect.get(api, "NativeTaffyTree"), undefined);
+  assert.equal(Reflect.get(api, "BindingTaffyTree"), undefined);
   assert.equal(Reflect.get(api, "__bootstrap"), undefined);
   assert.equal(Reflect.get(api, "default"), undefined);
   assert.equal(Reflect.get(tree, "rawNewLeaf"), undefined);

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { NativeTaffyTree } from "../../src/binding.ts";
+import { BindingTaffyTree } from "../../src/binding.ts";
 import { AlignItems, DetailedLayoutInfoKind, Display, TrackSizingKind } from "../../src/index.ts";
 import { test } from "vite-plus/test";
 
@@ -16,14 +16,14 @@ test("numeric families are frozen", () => {
 });
 
 test("native input accepts a numeric literal", () => {
-  const owner = new NativeTaffyTree();
+  const owner = new BindingTaffyTree();
   const node = owner.rawNewLeaf({ display: 0 });
   assert.equal(owner.rawGetStyle(node).display, 0);
 });
 
 test("native input rejects an invalid numeric value atomically", () => {
-  const owner = new NativeTaffyTree();
-  const before = owner.rawNodeCount();
+  const owner = new BindingTaffyTree();
+  const before = owner.rawGetNodeCount();
   assert.throws(() => owner.rawNewLeaf({ display: 255 }), RangeError);
-  assert.equal(owner.rawNodeCount(), before);
+  assert.equal(owner.rawGetNodeCount(), before);
 });

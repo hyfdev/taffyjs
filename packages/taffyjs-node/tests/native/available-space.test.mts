@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { NativeTaffyTree } from "../../src/binding.ts";
+import { BindingTaffyTree } from "../../src/binding.ts";
 import { AvailableSpace } from "../../src/index.ts";
 import { test } from "vite-plus/test";
 
 function createOwner() {
-  return new NativeTaffyTree();
+  return new BindingTaffyTree();
 }
 
 function layoutFor(width: unknown, height: unknown = width) {
