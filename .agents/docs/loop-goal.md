@@ -1,5 +1,7 @@
 # @taffyjs/yoga Implementation Loop Goal
 
+[VOUCHED @hyfdev 2026-08-15]
+
 ## Goal
 
 Implement the initial Node-only, ESM-only `@taffyjs/yoga` package over `@taffyjs/node`, targeting exactly `yoga-layout@3.2.1`, and deliver the complete reviewed implementation through one observable draft pull request.
