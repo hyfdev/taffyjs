@@ -203,7 +203,25 @@ interface Config {
 }
 interface Node {
   free(): void;
+  freeRecursive(): void;
   copyStyle(node: Node): void;
+  getChild(index: number): Node;
+  getChildCount(): number;
+  getParent(): Node | null;
+  insertChild(child: Node, index: number): void;
+  removeChild(child: Node): void;
+  isDirty(): boolean;
+  markDirty(): void;
+  hasNewLayout(): boolean;
+  markLayoutSeen(): void;
+  reset(): void;
+  isReferenceBaseline(): boolean;
+  setIsReferenceBaseline(isReferenceBaseline: false): void;
+  setAlwaysFormsContainingBlock(alwaysFormsContainingBlock: boolean): void;
+  setMeasureFunc(measureFunc: MeasureFunction | null): void;
+  unsetMeasureFunc(): void;
+  setDirtiedFunc(dirtiedFunc: DirtiedFunction | null): void;
+  unsetDirtiedFunc(): void;
   getAlignContent(): Align;
   getAlignItems(): Align;
   getAlignSelf(): Align;

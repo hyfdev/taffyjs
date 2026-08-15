@@ -89,6 +89,27 @@ node.calculateLayout(undefined, undefined, Direction.LTR);
 const width: number = node.getComputedWidth();
 const dirtied: DirtiedFunction = (dirtyNode) => dirtyNode.getComputedWidth();
 const measure: MeasureFunction = () => ({ width: 1, height: 2 });
+const child: Node = Yoga.Node.create();
+node.insertChild(child, 0);
+const childCount: number = node.getChildCount();
+const typedChild: Node = node.getChild(0);
+const typedParent: Node | null = child.getParent();
+node.removeChild(child);
+const dirty: boolean = node.isDirty();
+const newLayout: boolean = node.hasNewLayout();
+node.markLayoutSeen();
+node.setMeasureFunc(measure);
+node.markDirty();
+node.unsetMeasureFunc();
+node.setMeasureFunc(null);
+node.setDirtiedFunc(dirtied);
+node.unsetDirtiedFunc();
+node.setDirtiedFunc(null);
+node.setIsReferenceBaseline(false);
+const referenceBaseline: boolean = node.isReferenceBaseline();
+node.setAlwaysFormsContainingBlock(true);
+node.reset();
+child.freeRecursive();
 const loadedPromise: Promise<LoadedYoga> = loadYoga();
 const loadedConfig: LoadedConfig = config;
 const loadedNode: LoadedNode = node;
@@ -109,6 +130,8 @@ node.setAlignSelf(Align.SpaceEvenly);
 node.setPositionType(0);
 // @ts-expect-error Value-like objects are not accepted by generic setters.
 node.setWidth(node.getWidth());
+// @ts-expect-error Reference-baseline selection is unsupported.
+node.setIsReferenceBaseline(true);
 // @ts-expect-error The eager root does not export Yoga as a named type.
 type RootYoga = import("yoga-layout").Yoga;
 
@@ -122,6 +145,12 @@ void [
   styleWidth,
   gap,
   margin,
+  childCount,
+  typedChild,
+  typedParent,
+  dirty,
+  newLayout,
+  referenceBaseline,
   dirtied,
   measure,
   loadedPromise,

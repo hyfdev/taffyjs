@@ -368,6 +368,9 @@ importers:
         specifier: workspace:@taffyjs/yoga@*
         version: link:../../packages/taffyjs-yoga
     devDependencies:
+      '@taffyjs/node':
+        specifier: workspace:*
+        version: link:../../packages/taffyjs-node
       '@types/node':
         specifier: 'catalog:'
         version: 22.18.0

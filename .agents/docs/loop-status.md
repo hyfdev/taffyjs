@@ -4,7 +4,7 @@ Updated: 2026-08-15
 
 ## State
 
-Milestone 2 is complete, reviewed, and ready in its milestone commit. Milestone 3 is next.
+Milestone 3 is complete, reviewed, and ready in its milestone commit. Milestone 4 is next.
 
 ## Done
 
@@ -22,6 +22,11 @@ Milestone 2 is complete, reviewed, and ready in its milestone commit. Milestone 
 - Added the complete normalized Yoga Style declaration model, all 26 classified Style getters and 43 setters, strict declared-input normalization, fresh Yoga-shaped Value records, Yoga's deliberate gap declaration/runtime mismatch, `copyStyle`, and type-level narrowing for invalid Align contexts.
 - Added deterministic full-Style translation for dimensions, min/max constraints, box sizing, display, overflow, aspect ratio, direction, logical and shorthand edges, position, margin, padding, border, gaps, alignment, flex direction and wrapping, and Config-sensitive flex shorthand and longhands. Setters validate and build a candidate first, apply native Style second, and only then commit the public declaration state.
 - Added differential Config and Style fixtures, invalid-input atomicity checks, retained-Config and facade-isolation checks, fixed-leaf translation cases, and a table-driven 345-case numeric boundary corpus against the pinned Yoga 3.2.1 oracle.
+- Added canonical Node identity backed by the facade's single native `TaffyTree`, native-authoritative child and parent reads, strict insertion and removal validation, arbitrary selected-subtree calculation, cross-facade rejection, one-parent and acyclic constraints, and measured-leaf topology restrictions without a JavaScript child tree.
+- Added deterministic `free`, iterative `freeRecursive`, factory destruction, detached-leaf `reset`, retained Config ownership, single-node free with preserved detached child subtrees, and facade poisoning after an unexpected partial multi-step native failure.
+- Added Yoga-visible dirty and new-layout state, layout-seen transitions, canonical dirtied-callback arguments, post-commit callback errors, measurement markers, manual dirty restrictions, supported containing-block state, and type/runtime rejection for unsupported reference-baseline selection.
+- Added one pre-calculation subtree pass that resolves inherited direction and each Node's Config revision, prepares all translated Styles before native mutation, synchronizes every stale Style, and reuses the same selected-subtree snapshot for Yoga-visible state commits.
+- Added durable topology, lifecycle, state, callback, fault-injection, independent-Config, and public-type fixtures while keeping Taffy as the sole topology and layout authority.
 
 ## Evidence and review
 
@@ -32,6 +37,8 @@ Milestone 2 is complete, reviewed, and ready in its milestone commit. Milestone 
 - The Milestone 2 full `vp run check` passes: 9 Rust tests, 45 native tests, 194 `@taffyjs/node` integration tests, 17 Yoga tests, both declaration checks, formatting, linting, and Clippy pass.
 - The Milestone 2 adversarial reviewer found one numeric boundary error: finite JavaScript numbers such as `1e39` can overflow only after f32 conversion, and length-like or aspect-ratio declarations must then clear to Undefined while flex numbers retain Infinity. The normalization was corrected after independent reproduction, `±1e39`, `1e-50`, and `±1e39%` were added to the oracle fixture, and the same reviewer returned PASS on the targeted follow-up.
 - A bounded calculation probe found that Yoga and Taffy differ when `Display.None` is applied to the selected calculation root with declared dimensions. Style storage and direct display translation remain complete in Milestone 2; the calculated-output trigger is retained for Milestone 4 classification and regression coverage rather than being hidden in the declaration layer.
+- The Milestone 3 full `vp run check` passes: 9 Rust tests, 45 native tests, 194 `@taffyjs/node` integration tests, 36 Yoga tests, both declaration checks, formatting, linting, and Clippy pass.
+- The Milestone 3 adversarial reviewer found two native-cache/state gaps. Single-node and recursive release marked only Yoga-visible surviving ancestors, so Taffy could reuse an obsolete parent layout; Config freshness was checked only on the selected Node, so an independently configured descendant could miss both Style synchronization and `hasNewLayout`. Release now invalidates the surviving native parent and direct detached child roots with post-commit poisoning on failure, while calculation uses one full selected-subtree Style plan. The exact 30-by-10 release and independent child-Config reproductions now pass, and the same reviewer returned PASS on the targeted follow-up.
 
 ## In flight
 
@@ -39,7 +46,7 @@ Milestone 2 is complete, reviewed, and ready in its milestone commit. Milestone 
 
 ## Next
 
-- Implement Milestone 3: topology and lifecycle operations, canonical identity, reset, callbacks, measurement markers, and Yoga-visible dirty and new-layout state.
+- Implement Milestone 4: calculated-output synchronization, Yoga-shaped geometry, direction and edge behavior, rounding, and the classified Yoga/Taffy output differences.
 
 ## Blocked
 

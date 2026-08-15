@@ -28,8 +28,10 @@ import type {
   AlignSelfValue,
   Config,
   ConfigFactory,
+  DirtiedFunction,
   Layout,
   LayoutDimension,
+  MeasureFunction,
   Node,
   NodeFactory,
   Value,
@@ -66,10 +68,23 @@ class FacadeRuntime {
   readonly tree = new TaffyTree();
   readonly nodes = new Map<NodeId, YogaNode>();
   readonly defaultConfig = new ConfigState();
+  poisoned: Error | null = null;
 
   constructor() {
     this.tree.disableRounding();
   }
+}
+
+function assertRuntimeUsable(runtime: FacadeRuntime): void {
+  if (runtime.poisoned !== null) throw runtime.poisoned;
+}
+
+function poisonRuntime(runtime: FacadeRuntime, cause: unknown): Error {
+  const error = new Error("Yoga facade is unusable after an unexpected partial native failure", {
+    cause,
+  });
+  runtime.poisoned = error;
+  return error;
 }
 
 interface ConfigRecord {
@@ -94,6 +109,7 @@ function requireEnum<T extends number>(value: T, name: string, allowed: readonly
 
 class YogaConfig implements Config {
   constructor(runtime: FacadeRuntime, state: ConfigState) {
+    assertRuntimeUsable(runtime);
     configRecords.set(this, { runtime, state, alive: true });
   }
 
@@ -157,6 +173,7 @@ function requireConfig(runtime: FacadeRuntime | undefined, value: Config): Confi
   if (runtime !== undefined && record.runtime !== runtime) {
     throw new TypeError("Config belongs to another Yoga facade");
   }
+  assertRuntimeUsable(record.runtime);
   if (!record.alive) throw new Error("Config has been freed");
   return record;
 }
@@ -185,6 +202,19 @@ interface NodeRecord {
   appliedDirection: Direction.LTR | Direction.RTL;
   appliedConfigRevision: number;
   layout: Layout;
+  dirty: boolean;
+  hasNewLayout: boolean;
+  dirtiedFunction: DirtiedFunction | null;
+  measureFunction: MeasureFunction | null;
+  referenceBaseline: boolean;
+  alwaysFormsContainingBlock: boolean;
+  lastCalculation: CalculationSignature | undefined;
+}
+
+interface CalculationSignature {
+  readonly width: number | undefined;
+  readonly height: number | undefined;
+  readonly direction: Direction.LTR | Direction.RTL;
 }
 
 const nodeRecords = new WeakMap<object, NodeRecord>();
@@ -196,8 +226,65 @@ function requireNode(runtime: FacadeRuntime | undefined, value: Node): NodeRecor
   if (runtime !== undefined && record.runtime !== runtime) {
     throw new TypeError("Node belongs to another Yoga facade");
   }
+  assertRuntimeUsable(record.runtime);
   if (!record.alive) throw new Error("Node has been freed");
   return record;
+}
+
+function nodeForRecord(record: NodeRecord): YogaNode {
+  const node = record.runtime.nodes.get(record.nodeId);
+  if (node === undefined) throw poisonRuntime(record.runtime, new Error("Node registry mismatch"));
+  return node;
+}
+
+function recordForId(runtime: FacadeRuntime, nodeId: NodeId): NodeRecord {
+  const node = runtime.nodes.get(nodeId);
+  if (node === undefined) throw poisonRuntime(runtime, new Error("Node registry mismatch"));
+  const record = nodeRecords.get(node);
+  if (record === undefined || !record.alive) {
+    throw poisonRuntime(runtime, new Error("Node record mismatch"));
+  }
+  return record;
+}
+
+function collectAncestors(record: NodeRecord, includeSelf: boolean): NodeRecord[] {
+  const records: NodeRecord[] = [];
+  let nodeId: NodeId | null = includeSelf
+    ? record.nodeId
+    : record.runtime.tree.getParent(record.nodeId);
+  while (nodeId !== null) {
+    const current = recordForId(record.runtime, nodeId);
+    records.push(current);
+    nodeId = record.runtime.tree.getParent(nodeId);
+  }
+  return records;
+}
+
+function collectSubtree(record: NodeRecord): NodeRecord[] {
+  const records: NodeRecord[] = [];
+  const pending = [record.nodeId];
+  while (pending.length > 0) {
+    const nodeId = pending.pop();
+    if (nodeId === undefined) break;
+    records.push(recordForId(record.runtime, nodeId));
+    const children = record.runtime.tree.getChildren(nodeId);
+    for (let index = children.length - 1; index >= 0; index -= 1) {
+      pending.push(children[index]);
+    }
+  }
+  return records;
+}
+
+function markDirtyRecords(records: readonly NodeRecord[]): void {
+  const notifications: Array<readonly [DirtiedFunction, YogaNode]> = [];
+  for (const record of records) {
+    if (record.dirty) continue;
+    record.dirty = true;
+    if (record.dirtiedFunction !== null) {
+      notifications.push([record.dirtiedFunction, nodeForRecord(record)]);
+    }
+  }
+  for (const [callback, node] of notifications) callback(node);
 }
 
 function effectiveDirection(record: NodeRecord, declarations = record.declarations) {
@@ -206,12 +293,14 @@ function effectiveDirection(record: NodeRecord, declarations = record.declaratio
 
 function applyDeclarations(record: NodeRecord, declarations: YogaDeclarations): void {
   if (sameDeclarations(record.declarations, declarations)) return;
+  const dirtyRecords = collectAncestors(record, true);
   const direction = effectiveDirection(record, declarations);
   const style = translateStyle(declarations, record.config, direction);
   record.runtime.tree.setStyle(record.nodeId, style);
   record.declarations = declarations;
   record.appliedDirection = direction;
   record.appliedConfigRevision = record.config.revision;
+  markDirtyRecords(dirtyRecords);
 }
 
 function mutateDeclarations(
@@ -224,20 +313,67 @@ function mutateDeclarations(
   applyDeclarations(record, next);
 }
 
-function syncStyle(record: NodeRecord): void {
-  const direction = effectiveDirection(record);
-  if (
-    record.appliedConfigRevision === record.config.revision &&
-    record.appliedDirection === direction
-  ) {
-    return;
+interface StyleSyncPlanEntry {
+  readonly record: NodeRecord;
+  readonly ownerDirection: Direction.LTR | Direction.RTL;
+  readonly appliedDirection: Direction.LTR | Direction.RTL;
+  readonly style: ReturnType<typeof translateStyle> | undefined;
+}
+
+function syncSubtreeStyles(
+  root: NodeRecord,
+  rootOwnerDirection: Direction.LTR | Direction.RTL,
+  subtree: readonly NodeRecord[],
+): boolean {
+  const directions = new Map<NodeId, Direction.LTR | Direction.RTL>();
+  const plan: StyleSyncPlanEntry[] = [];
+
+  for (const record of subtree) {
+    let ownerDirection: Direction.LTR | Direction.RTL;
+    if (record === root) {
+      ownerDirection = rootOwnerDirection;
+    } else {
+      const parentId = root.runtime.tree.getParent(record.nodeId);
+      const parentDirection = parentId === null ? undefined : directions.get(parentId);
+      if (parentDirection === undefined) {
+        throw poisonRuntime(root.runtime, new Error("Yoga subtree traversal order mismatch"));
+      }
+      ownerDirection = parentDirection;
+    }
+
+    const appliedDirection = declarationDirection(record.declarations, ownerDirection);
+    const stale =
+      record.appliedConfigRevision !== record.config.revision ||
+      record.appliedDirection !== appliedDirection;
+    plan.push({
+      record,
+      ownerDirection,
+      appliedDirection,
+      style: stale
+        ? translateStyle(record.declarations, record.config, appliedDirection)
+        : undefined,
+    });
+    directions.set(record.nodeId, appliedDirection);
   }
-  record.runtime.tree.setStyle(
-    record.nodeId,
-    translateStyle(record.declarations, record.config, direction),
-  );
-  record.appliedDirection = direction;
-  record.appliedConfigRevision = record.config.revision;
+
+  let nativeWrites = 0;
+  for (const entry of plan) {
+    if (entry.style === undefined) continue;
+    try {
+      root.runtime.tree.setStyle(entry.record.nodeId, entry.style);
+    } catch (error) {
+      if (nativeWrites > 0) throw poisonRuntime(root.runtime, error);
+      throw error;
+    }
+    nativeWrites += 1;
+  }
+
+  for (const entry of plan) {
+    entry.record.ownerDirection = entry.ownerDirection;
+    entry.record.appliedDirection = entry.appliedDirection;
+    entry.record.appliedConfigRevision = entry.record.config.revision;
+  }
+  return nativeWrites > 0;
 }
 
 const physicalEdges = [
@@ -260,8 +396,41 @@ function requireGutter(gutter: Gutter): Gutter {
   return requireEnum(gutter, "gutter", [Gutter.Column, Gutter.Row, Gutter.All]);
 }
 
+function requireInsertIndex(index: number, childCount: number): number {
+  if (typeof index !== "number" || !Number.isInteger(index) || index < 0 || index > childCount) {
+    throw new RangeError("Child index is out of range");
+  }
+  return index;
+}
+
+function lookupChildIndex(index: number): number | null {
+  if (typeof index !== "number") throw new TypeError("Child index must be a number");
+  return Number.isInteger(index) && index >= 0 ? index : null;
+}
+
+function assertAcyclicInsertion(parent: NodeRecord, child: NodeRecord): void {
+  let current: NodeId | null = parent.nodeId;
+  while (current !== null) {
+    if (current === child.nodeId) throw new Error("Cannot create a cycle in a Yoga tree");
+    current = parent.runtime.tree.getParent(current);
+  }
+}
+
+function sameCalculation(
+  left: CalculationSignature | undefined,
+  right: CalculationSignature,
+): boolean {
+  return (
+    left !== undefined &&
+    Object.is(left.width, right.width) &&
+    Object.is(left.height, right.height) &&
+    left.direction === right.direction
+  );
+}
+
 class YogaNode implements Node {
   constructor(runtime: FacadeRuntime, config: ConfigState) {
+    assertRuntimeUsable(runtime);
     const declarations = createDeclarations(config.useWebDefaults);
     const ownerDirection = Direction.LTR;
     const appliedDirection = declarationDirection(declarations, ownerDirection);
@@ -276,12 +445,185 @@ class YogaNode implements Node {
       appliedDirection,
       appliedConfigRevision: config.revision,
       layout: initialLayout(),
+      dirty: true,
+      hasNewLayout: true,
+      dirtiedFunction: null,
+      measureFunction: null,
+      referenceBaseline: false,
+      alwaysFormsContainingBlock: false,
+      lastCalculation: undefined,
     });
     runtime.nodes.set(nodeId, this);
   }
 
   free(): void {
     freeNode(requireNode(undefined, this));
+  }
+
+  freeRecursive(): void {
+    freeRecursiveNode(requireNode(undefined, this));
+  }
+
+  getChild(index: number): Node {
+    const record = requireNode(undefined, this);
+    const resolvedIndex = lookupChildIndex(index);
+    if (
+      resolvedIndex === null ||
+      resolvedIndex >= record.runtime.tree.getChildCount(record.nodeId)
+    ) {
+      return null as unknown as Node;
+    }
+    const childId = record.runtime.tree.getChildAtIndex(record.nodeId, resolvedIndex);
+    return nodeForRecord(recordForId(record.runtime, childId));
+  }
+
+  getChildCount(): number {
+    const record = requireNode(undefined, this);
+    return record.runtime.tree.getChildCount(record.nodeId);
+  }
+
+  getParent(): Node | null {
+    const record = requireNode(undefined, this);
+    const parentId = record.runtime.tree.getParent(record.nodeId);
+    return parentId === null ? null : nodeForRecord(recordForId(record.runtime, parentId));
+  }
+
+  insertChild(child: Node, index: number): void {
+    const parentRecord = requireNode(undefined, this);
+    const childRecord = requireNode(parentRecord.runtime, child);
+    const childCount = parentRecord.runtime.tree.getChildCount(parentRecord.nodeId);
+    const resolvedIndex = requireInsertIndex(index, childCount);
+    if (parentRecord.measureFunction !== null) {
+      throw new Error("Measured Yoga nodes cannot have children");
+    }
+    if (parentRecord.runtime.tree.getParent(childRecord.nodeId) !== null) {
+      throw new Error("Yoga child already has a parent");
+    }
+    assertAcyclicInsertion(parentRecord, childRecord);
+    const dirtyRecords = collectAncestors(parentRecord, true);
+
+    parentRecord.runtime.tree.insertChildAtIndex(
+      parentRecord.nodeId,
+      resolvedIndex,
+      childRecord.nodeId,
+    );
+    childRecord.lastCalculation = undefined;
+    markDirtyRecords(dirtyRecords);
+  }
+
+  removeChild(child: Node): void {
+    const parentRecord = requireNode(undefined, this);
+    const childRecord = requireNode(parentRecord.runtime, child);
+    if (parentRecord.runtime.tree.getParent(childRecord.nodeId) !== parentRecord.nodeId) return;
+    const dirtyRecords = collectAncestors(parentRecord, true);
+
+    parentRecord.runtime.tree.removeChild(parentRecord.nodeId, childRecord.nodeId);
+    try {
+      parentRecord.runtime.tree.markDirty(childRecord.nodeId);
+    } catch (error) {
+      throw poisonRuntime(parentRecord.runtime, error);
+    }
+    childRecord.layout = initialLayout();
+    childRecord.lastCalculation = undefined;
+    markDirtyRecords(dirtyRecords);
+  }
+
+  isDirty(): boolean {
+    return requireNode(undefined, this).dirty;
+  }
+
+  markDirty(): void {
+    const record = requireNode(undefined, this);
+    if (record.measureFunction === null || record.runtime.tree.getChildCount(record.nodeId) !== 0) {
+      throw new Error("Only measured Yoga leaves can be manually marked dirty");
+    }
+    const dirtyRecords = collectAncestors(record, true);
+    record.runtime.tree.markDirty(record.nodeId);
+    markDirtyRecords(dirtyRecords);
+  }
+
+  hasNewLayout(): boolean {
+    return requireNode(undefined, this).hasNewLayout;
+  }
+
+  markLayoutSeen(): void {
+    requireNode(undefined, this).hasNewLayout = false;
+  }
+
+  reset(): void {
+    const record = requireNode(undefined, this);
+    if (
+      record.runtime.tree.getParent(record.nodeId) !== null ||
+      record.runtime.tree.getChildCount(record.nodeId) !== 0
+    ) {
+      throw new Error("Only a detached Yoga leaf can be reset");
+    }
+    const declarations = createDeclarations(record.config.useWebDefaults);
+    const ownerDirection = Direction.LTR;
+    const appliedDirection = declarationDirection(declarations, ownerDirection);
+    record.runtime.tree.setStyle(
+      record.nodeId,
+      translateStyle(declarations, record.config, appliedDirection),
+    );
+
+    record.declarations = declarations;
+    record.ownerDirection = ownerDirection;
+    record.appliedDirection = appliedDirection;
+    record.appliedConfigRevision = record.config.revision;
+    record.layout = initialLayout();
+    record.dirty = true;
+    record.hasNewLayout = true;
+    record.dirtiedFunction = null;
+    record.measureFunction = null;
+    record.referenceBaseline = false;
+    record.alwaysFormsContainingBlock = false;
+    record.lastCalculation = undefined;
+  }
+
+  isReferenceBaseline(): boolean {
+    return requireNode(undefined, this).referenceBaseline;
+  }
+
+  setIsReferenceBaseline(isReferenceBaseline: boolean): void {
+    const record = requireNode(undefined, this);
+    const value = requireBoolean(isReferenceBaseline, "isReferenceBaseline");
+    if (value) throw new TypeError("Reference baselines are unsupported");
+    record.referenceBaseline = false;
+  }
+
+  setAlwaysFormsContainingBlock(alwaysFormsContainingBlock: boolean): void {
+    const record = requireNode(undefined, this);
+    record.alwaysFormsContainingBlock = requireBoolean(
+      alwaysFormsContainingBlock,
+      "alwaysFormsContainingBlock",
+    );
+  }
+
+  setMeasureFunc(measureFunc: MeasureFunction | null): void {
+    const record = requireNode(undefined, this);
+    if (measureFunc !== null && typeof measureFunc !== "function") {
+      throw new TypeError("measureFunc must be a function or null");
+    }
+    if (measureFunc !== null && record.runtime.tree.getChildCount(record.nodeId) !== 0) {
+      throw new Error("Measured Yoga nodes cannot have children");
+    }
+    record.measureFunction = measureFunc;
+  }
+
+  unsetMeasureFunc(): void {
+    requireNode(undefined, this).measureFunction = null;
+  }
+
+  setDirtiedFunc(dirtiedFunc: DirtiedFunction | null): void {
+    const record = requireNode(undefined, this);
+    if (dirtiedFunc !== null && typeof dirtiedFunc !== "function") {
+      throw new TypeError("dirtiedFunc must be a function or null");
+    }
+    record.dirtiedFunction = dirtiedFunc;
+  }
+
+  unsetDirtiedFunc(): void {
+    requireNode(undefined, this).dirtiedFunction = null;
   }
 
   copyStyle(node: Node): void {
@@ -758,14 +1100,23 @@ class YogaNode implements Node {
     const ownerDirection = requireEnum(direction, "calculateLayout direction", [
       Direction.LTR,
       Direction.RTL,
-    ]);
-    record.ownerDirection = ownerDirection as Direction.LTR | Direction.RTL;
-    syncStyle(record);
+    ]) as Direction.LTR | Direction.RTL;
+    const availableWidth = requireCalculationDimension(width, "width");
+    const availableHeight = requireCalculationDimension(height, "height");
+    const signature: CalculationSignature = {
+      width: typeof availableWidth === "number" ? Math.fround(availableWidth) : undefined,
+      height: typeof availableHeight === "number" ? Math.fround(availableHeight) : undefined,
+      direction: ownerDirection,
+    };
+    const subtree = collectSubtree(record);
+    const translationIsStale = syncSubtreeStyles(record, ownerDirection, subtree);
+    const recomputeSubtree =
+      record.dirty || translationIsStale || !sameCalculation(record.lastCalculation, signature);
     record.runtime.tree.computeLayout({
       root: record.nodeId,
       availableSpace: {
-        width: requireCalculationDimension(width, "width"),
-        height: requireCalculationDimension(height, "height"),
+        width: availableWidth,
+        height: availableHeight,
       },
     });
     const layout = record.runtime.tree.getUnroundedLayout(record.nodeId);
@@ -777,6 +1128,12 @@ class YogaNode implements Node {
       width: layout.size.width,
       height: layout.size.height,
     };
+    for (const current of subtree) {
+      current.dirty = false;
+      if (recomputeSubtree) current.hasNewLayout = true;
+    }
+    record.hasNewLayout = true;
+    record.lastCalculation = signature;
   }
 
   getComputedLeft(): number {
@@ -809,9 +1166,48 @@ class YogaNode implements Node {
 }
 
 function freeNode(record: NodeRecord): void {
+  const survivingAncestors = collectAncestors(record, false);
+  const directChildren = record.runtime.tree
+    .getChildren(record.nodeId)
+    .map((nodeId) => recordForId(record.runtime, nodeId));
   record.runtime.tree.remove(record.nodeId);
   record.runtime.nodes.delete(record.nodeId);
   record.alive = false;
+  for (const child of directChildren) child.lastCalculation = undefined;
+  try {
+    const survivingParent = survivingAncestors[0];
+    if (survivingParent !== undefined) record.runtime.tree.markDirty(survivingParent.nodeId);
+    for (const child of directChildren) record.runtime.tree.markDirty(child.nodeId);
+  } catch (error) {
+    throw poisonRuntime(record.runtime, error);
+  }
+  markDirtyRecords(survivingAncestors);
+}
+
+function freeRecursiveNode(record: NodeRecord): void {
+  const survivingAncestors = collectAncestors(record, false);
+  const postorder = collectSubtree(record).reverse();
+  let removed = 0;
+  for (const current of postorder) {
+    try {
+      record.runtime.tree.remove(current.nodeId);
+    } catch (error) {
+      if (removed > 0) throw poisonRuntime(record.runtime, error);
+      throw error;
+    }
+    record.runtime.nodes.delete(current.nodeId);
+    current.alive = false;
+    removed += 1;
+  }
+  const survivingParent = survivingAncestors[0];
+  if (survivingParent !== undefined) {
+    try {
+      record.runtime.tree.markDirty(survivingParent.nodeId);
+    } catch (error) {
+      throw poisonRuntime(record.runtime, error);
+    }
+  }
+  markDirtyRecords(survivingAncestors);
 }
 
 function createFactories(runtime: FacadeRuntime): {

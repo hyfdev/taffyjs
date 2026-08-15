@@ -10,6 +10,7 @@
     "yoga-layout": "workspace:@taffyjs/yoga@*"
   },
   "devDependencies": {
+    "@taffyjs/node": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
