@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { NativeTaffyTree } from "../../src/binding.ts";
+import { BindingTaffyTree } from "../../src/binding.ts";
 import { test } from "vite-plus/test";
 
 const styleFields = [
@@ -57,7 +57,7 @@ const nullableFields = [
 ] as const;
 
 function createOwner() {
-  return new NativeTaffyTree();
+  return new BindingTaffyTree();
 }
 
 function storedStyle(style: unknown) {
@@ -91,7 +91,7 @@ test("only optional Taffy values accept null", () => {
   for (const field of styleFields.filter((field) => !nullable.has(field))) {
     const owner = createOwner();
     assert.throws(() => owner.rawNewLeaf({ [field]: null }), TypeError, field);
-    assert.equal(owner.rawNodeCount(), 0, field);
+    assert.equal(owner.rawGetNodeCount(), 0, field);
   }
 });
 
@@ -118,7 +118,7 @@ test("style input accepts objects and rejects other values", () => {
   for (const value of [undefined, null, 0, "", true, 1n, Symbol("style"), () => {}, []]) {
     const owner = createOwner();
     assert.throws(() => owner.rawNewLeaf(value), TypeError);
-    assert.equal(owner.rawNodeCount(), 0);
+    assert.equal(owner.rawGetNodeCount(), 0);
   }
 });
 
@@ -130,7 +130,7 @@ test("unknown style fields and calc values are rejected", () => {
   ]) {
     const owner = createOwner();
     assert.throws(() => owner.rawNewLeaf(style), TypeError);
-    assert.equal(owner.rawNodeCount(), 0);
+    assert.equal(owner.rawGetNodeCount(), 0);
   }
 });
 
@@ -146,7 +146,7 @@ test("style conversion finishes before native state changes", () => {
   assert.deepEqual(owner.rawGetStyle(node), before);
 
   assert.throws(() => owner.rawNewLeaf({ flexGrow: 3, display: 255 }), RangeError);
-  assert.equal(owner.rawNodeCount(), 1);
+  assert.equal(owner.rawGetNodeCount(), 1);
 });
 
 test("output snapshots are detached", () => {

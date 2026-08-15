@@ -6,7 +6,7 @@ use napi::ValueType;
 use napi::bindgen_prelude::Unknown;
 use napi_derive::napi;
 
-use crate::error::{NativeResult, type_error};
+use crate::error::{BindingResult, type_error};
 use crate::js_object;
 use crate::number;
 use crate::numeric::{AvailableSpaceKindCode, LengthUnitCode};
@@ -27,7 +27,7 @@ enum DimensionTaggedValue {
 fn parse_dimension_tagged_value(
     value: Unknown<'_>,
     accepts_number: bool,
-) -> NativeResult<DimensionTaggedValue> {
+) -> BindingResult<DimensionTaggedValue> {
     if value
         .get_type()
         .map_err(|_| type_error("Could not inspect dimension input"))?
@@ -66,7 +66,7 @@ pub(crate) enum LengthPercentageInputValue {
 
 pub(crate) fn parse_length_percentage(
     value: Unknown<'_>,
-) -> NativeResult<LengthPercentageInputValue> {
+) -> BindingResult<LengthPercentageInputValue> {
     let parsed = parse_dimension_tagged_value(value, true)?;
     Ok(match parsed {
         DimensionTaggedValue::Length(payload) => LengthPercentageInputValue::Length(payload),
@@ -86,7 +86,7 @@ pub(crate) enum LengthPercentageAutoInputValue {
 
 pub(crate) fn parse_length_percentage_auto(
     value: Unknown<'_>,
-) -> NativeResult<LengthPercentageAutoInputValue> {
+) -> BindingResult<LengthPercentageAutoInputValue> {
     let parsed = parse_dimension_tagged_value(value, true)?;
     Ok(match parsed {
         DimensionTaggedValue::Length(payload) => LengthPercentageAutoInputValue::Length(payload),
@@ -102,7 +102,7 @@ pub(crate) enum DimensionInputValue {
     Auto,
 }
 
-pub(crate) fn parse_dimension(value: Unknown<'_>) -> NativeResult<DimensionInputValue> {
+pub(crate) fn parse_dimension(value: Unknown<'_>) -> BindingResult<DimensionInputValue> {
     let parsed = parse_dimension_tagged_value(value, true)?;
     Ok(match parsed {
         DimensionTaggedValue::Length(payload) => DimensionInputValue::Length(payload),
@@ -127,7 +127,7 @@ enum AvailableSpaceTaggedValue {
 fn parse_available_space_tagged_value(
     value: Unknown<'_>,
     accepts_number: bool,
-) -> NativeResult<AvailableSpaceTaggedValue> {
+) -> BindingResult<AvailableSpaceTaggedValue> {
     if value
         .get_type()
         .map_err(|_| type_error("Could not inspect available space input"))?
@@ -163,7 +163,7 @@ pub(crate) enum AvailableSpaceInputValue {
     MaxContent,
 }
 
-pub(crate) fn parse_available_space(value: Unknown<'_>) -> NativeResult<AvailableSpaceInputValue> {
+pub(crate) fn parse_available_space(value: Unknown<'_>) -> BindingResult<AvailableSpaceInputValue> {
     let parsed = parse_available_space_tagged_value(value, true)?;
     Ok(match parsed {
         AvailableSpaceTaggedValue::Definite(payload) => AvailableSpaceInputValue::Definite(payload),

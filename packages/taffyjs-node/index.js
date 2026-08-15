@@ -945,7 +945,7 @@ if (!nativeBinding) {
 	}
 	throw new Error(`Failed to load native binding`);
 }
-const { NativeTaffyTree } = nativeBinding;
+const { BindingTaffyTree } = nativeBinding;
 //#endregion
 //#region src/node-id.ts
 const U64_BITS = 64n;
@@ -1021,7 +1021,7 @@ var TaffyTree = class {
 	#contexts = /* @__PURE__ */ new Map();
 	/** Creates an independent Taffy tree with its own NodeId namespace. */
 	constructor() {
-		this.#inner = new NativeTaffyTree();
+		this.#inner = new BindingTaffyTree();
 	}
 	/** Enables pixel rounding for subsequently computed public layouts. */
 	enableRounding() {
@@ -1033,24 +1033,24 @@ var TaffyTree = class {
 	}
 	/** Returns the number of live nodes owned by this tree. */
 	getNodeCount() {
-		return this.#inner.rawNodeCount();
+		return this.#inner.rawGetNodeCount();
 	}
 	/** Returns the current number of children for one parent. */
 	getChildCount(parent) {
-		return this.#inner.rawChildCount(this.#nodes.resolve(parent));
+		return this.#inner.rawGetChildCount(this.#nodes.resolve(parent));
 	}
 	/** Returns the current parent or null for a root node. */
 	getParent(node) {
-		const rawParent = this.#inner.rawParent(this.#nodes.resolve(node));
+		const rawParent = this.#inner.rawGetParent(this.#nodes.resolve(node));
 		return rawParent === null ? null : this.#nodes.fromRaw(rawParent);
 	}
 	/** Returns a detached readonly snapshot of the ordered children. */
 	getChildren(parent) {
-		return this.#inner.rawChildren(this.#nodes.resolve(parent)).map((child) => this.#nodes.fromRaw(child));
+		return this.#inner.rawGetChildren(this.#nodes.resolve(parent)).map((child) => this.#nodes.fromRaw(child));
 	}
 	/** Returns the child at the requested parent index. */
 	getChildAtIndex(parent, index) {
-		const rawChild = this.#inner.rawChildAtIndex(this.#nodes.resolve(parent), checkedChildIndex(index));
+		const rawChild = this.#inner.rawGetChildAtIndex(this.#nodes.resolve(parent), checkedChildIndex(index));
 		return this.#nodes.fromRaw(rawChild);
 	}
 	/** Appends an existing node to the parent child list. */

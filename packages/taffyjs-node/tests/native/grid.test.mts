@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { NativeTaffyTree } from "../../src/binding.ts";
+import { BindingTaffyTree } from "../../src/binding.ts";
 import {
   GridPlacement,
   GridTemplateComponent,
@@ -15,7 +15,7 @@ type Track = { min: TrackPart; max: TrackPart };
 type Count = { kind: 0; value: number } | { kind: 1 } | { kind: 2 };
 type Component = { kind: number; value: unknown };
 function createOwner() {
-  return new NativeTaffyTree();
+  return new BindingTaffyTree();
 }
 
 function storedStyle(style: RawStyle): RawStyle {
@@ -27,7 +27,7 @@ function storedStyle(style: RawStyle): RawStyle {
 function rejectsWithoutNode(style: RawStyle, error: typeof TypeError | typeof RangeError): void {
   const owner = createOwner();
   assert.throws(() => owner.rawNewLeaf(style), error);
-  assert.equal(owner.rawNodeCount(), 0);
+  assert.equal(owner.rawGetNodeCount(), 0);
 }
 
 function repeat(count: Count, tracks: Track[], lineNames = [["start"], ["end"]]): Component {

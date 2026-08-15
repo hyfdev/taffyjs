@@ -1,5 +1,5 @@
-// @ts-expect-error The native class is not a public export.
-import { NativeTaffyTree } from "@taffyjs/node";
+// @ts-expect-error The binding class is not a public export.
+import { BindingTaffyTree } from "@taffyjs/node";
 import * as api from "@taffyjs/node";
 import {
   AvailableSpace,
@@ -113,13 +113,13 @@ api.parseNodeId(node);
 
 type PrivateRuntimeName = Extract<
   keyof typeof api,
-  "NativeTaffyTree" | "parseNodeId" | "serializeNodeId" | "rawComputeLayout"
+  "BindingTaffyTree" | "parseNodeId" | "serializeNodeId" | "rawComputeLayout"
 >;
 type AssertNever<Value extends never> = Value;
 type NoPrivateRuntimeName = AssertNever<PrivateRuntimeName>;
 
 void [
-  NativeTaffyTree,
+  BindingTaffyTree,
   expectedFromActual,
   constructor,
   prototype,
