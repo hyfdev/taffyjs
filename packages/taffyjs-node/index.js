@@ -1,4 +1,4 @@
-import { createRequire } from "module";
+import { createRequire } from "node:module";
 //#region src/numeric-families.ts
 /** Lists the supported display choices as stable numeric constants. */
 const Display = Object.freeze({
@@ -409,7 +409,7 @@ const AvailableSpace = Object.freeze({
 //#region binding.js
 const require = createRequire(import.meta.url);
 new URL(".", import.meta.url).pathname;
-const { readFileSync } = require("fs");
+const { readFileSync } = require("node:fs");
 let nativeBinding = null;
 const loadErrors = [];
 const isMusl = () => {
@@ -444,7 +444,7 @@ const isMuslFromReport = () => {
 };
 const isMuslFromChildProcess = () => {
 	try {
-		return require("child_process").execSync("ldd --version", { encoding: "utf8" }).includes("musl");
+		return require("node:child_process").execSync("ldd --version", { encoding: "utf8" }).includes("musl");
 	} catch (e) {
 		return false;
 	}
