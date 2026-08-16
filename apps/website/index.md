@@ -19,3 +19,13 @@ features:
   - title: Available everywhere
     details: Use @taffyjs/wasm in browsers and other runtimes, with the same API as @taffyjs/node.
 ---
+
+<script setup>
+import HomeLayoutShowcase from "./.vitepress/components/HomeLayoutShowcase.vue";
+</script>
+
+<HomeLayoutShowcase>
+
+<<< ./examples/home-layout.js
+
+</HomeLayoutShowcase>
