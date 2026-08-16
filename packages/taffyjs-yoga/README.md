@@ -80,4 +80,4 @@ This is core behavioral compatibility, not a claim that Taffy and Yoga produce i
 
 ## Versioning before 1.0
 
-`@taffyjs/yoga` will remain on the `0.x` version line for the foreseeable future. During that period, any public breaking change uses a minor release, including a Yoga-alignment fix that changes a supported layout result or other observable behavior. Fixes that preserve the public behavior contract use patch releases. This is the pre-1.0 contract only; the policy will be reconsidered before a 1.0 release.
+`@taffyjs/yoga` will remain on the `0.x` version line for the foreseeable future. During that period, any public breaking change uses a minor release, including a Yoga-alignment fix that changes a supported layout result or other observable behavior. Fixes that preserve the public behavior contract use patch releases. This contract applies only to `0.x` releases and makes no promise about 1.0.

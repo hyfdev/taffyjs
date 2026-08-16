@@ -184,15 +184,13 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 
 ### Upstream work and current compatibility
 
-[VOUCHED @hyfdev 2026-08-16]
-
 **Ruling:** Published compatibility classifications must describe only the behavior available through the Taffy version actually pinned by `@taffyjs/yoga`; relevant upstream implementation work must be shown separately as work in progress without changing the current Compatible, Different, or Unsupported classification.
 
-**Limits:** An upstream issue or pull request is evidence of active work, not shipped support, a delivery promise, or an ETA. Reclassification requires the upstream capability to land in a released Taffy version, the required native API to be adopted and exposed by `@taffyjs/node`, and the affected Yoga behavior to pass differential verification with updated documentation and regression fixtures. Tracked upstream work must be updated when it merges, closes, or is replaced. Under the current Taffy 0.13 pin, `PositionType.Static` remains Unsupported while [DioxusLabs/taffy#1009](https://github.com/DioxusLabs/taffy/pull/1009) is open upstream.
+**Limits:** An upstream issue or pull request is evidence of active work, not shipped support, a delivery promise, or an ETA. Reclassification requires the upstream capability to land in a released Taffy version, the required native API to be adopted and exposed by `@taffyjs/node`, and the affected Yoga behavior to pass differential verification with updated documentation and regression fixtures. Current upstream-work entries and statuses live only in the [public compatibility document](../../packages/taffyjs-yoga/COMPATIBILITY.md#upstream-work-in-progress) and must be refreshed when work merges, closes, or is replaced.
 
-**Why:** Users should be able to distinguish a capability with a credible upstream implementation path from one with no known path, without mistaking unshipped work for something they can use today.
+**Why:** Yunfei required active support work to appear in the compatibility documentation; no additional rationale was stated.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required active upstream support work such as DioxusLabs/taffy#1009 to appear in the compatibility documentation and vouched this separation from current compatibility status.
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required relevant work in progress to appear in the compatibility documentation, used [DioxusLabs/taffy#1009](https://github.com/DioxusLabs/taffy/pull/1009) as the concrete example, and instructed that direction to be recorded as vouched.
 
 ### Pre-1.0 versioning
 
