@@ -178,6 +178,8 @@ jobs:
             source "$HOME/.cargo/env"
             pnpm install --frozen-lockfile
             pnpm --filter @taffyjs/node exec napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js binding.js --dts binding.d.ts --esm --release --target x86_64-unknown-freebsd -- --locked
+            rm -rf node_modules
+            rm -rf target
       - uses: actions/upload-artifact@v7
         with:
           name: bindings-x86_64-unknown-freebsd
