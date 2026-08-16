@@ -174,6 +174,16 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 ## Decided
 
+### Native distribution targets
+
+**Ruling:** `@taffyjs/node` must provide native packages for macOS arm64, Linux x64 GNU, and Windows x64 MSVC.
+
+**Limits:** This adds `aarch64-apple-darwin` to the existing distribution model. It does not add macOS x64, Linux arm64, Linux musl, or another target. Each additional target still requires its own package metadata, artifact synchronization, public support documentation, and CI coverage.
+
+**Why:** Yunfei required the Apple M3 Pro benchmark host to be supported as a real native target rather than bypassing the platform-package build step.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly asked to support the current `darwin/arm64` host before continuing the benchmark website work.
+
 ### Generated numeric input shorthand
 
 [VOUCHED @hyfdev 2026-08-15]

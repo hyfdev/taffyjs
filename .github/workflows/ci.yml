@@ -59,6 +59,22 @@ jobs:
       - name: Smoke test @taffyjs/yoga with Deno 2.2
         run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi tests/taffyjs-yoga/runtime-smoke.mjs
 
+  test-macos-arm64:
+    name: Build and test macOS arm64
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - run: pnpm install --frozen-lockfile
+      - name: Build and run all tests
+        run: pnpm exec vp run check:test
+
   test-wasm:
     name: Build and test WASIP
     runs-on: ubuntu-24.04
