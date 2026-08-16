@@ -83,6 +83,8 @@ const __wasi = new __nodeWASI({
 })`,
   "Node WASI capability block and factory boundary",
 );
+// This is the exact file-loading fallback emitted by napi-rs. The replacement removes the
+// whole block, so neither require.resolve nor a binding package dependency reaches dist.
 nodeLoaderSource = replaceExactly(
   nodeLoaderSource,
   `let __wasmFilePath = __nodePath.join(__dirname, 'taffyjs.wasm32-wasip1.wasm')
@@ -91,14 +93,14 @@ const __wasmDebugFilePath = __nodePath.join(__dirname, 'taffyjs.wasm32-wasip1.de
 if (__nodeFs.existsSync(__wasmDebugFilePath)) {
   __wasmFilePath = __wasmDebugFilePath
 } else if (!__nodeFs.existsSync(__wasmFilePath)) {
-  const __wasiPackageEntry = require.resolve('taffyjs-binding-wasm32-wasip1')
+  const __wasiPackageEntry = require.resolve('@taffyjs/binding-wasm32-wasip1')
   const __packagedWasmFilePath = __nodePath.join(
     __nodePath.dirname(__wasiPackageEntry),
     'taffyjs.wasm32-wasip1.wasm',
   )
   if (!__nodeFs.existsSync(__packagedWasmFilePath)) {
     throw new Error(
-      'taffyjs-binding-wasm32-wasip1 is installed but is missing taffyjs.wasm32-wasip1.wasm.',
+      '@taffyjs/binding-wasm32-wasip1 is installed but is missing taffyjs.wasm32-wasip1.wasm.',
     )
   }
   __wasmFilePath = __packagedWasmFilePath
@@ -124,7 +126,6 @@ for (const forbidden of [
   "preopens",
   "__wasmFilePath",
   "@taffyjs/binding-wasm",
-  "taffyjs-binding-wasm",
   "require('./taffyjs.wasm-base64",
 ]) {
   if (nodeLoaderSource.includes(forbidden)) {
