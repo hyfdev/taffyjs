@@ -1137,6 +1137,10 @@ var TaffyTree = class {
 	setStyle(node, style) {
 		this.#inner.rawSetStyle(this.#nodes.resolve(node), style);
 	}
+	/** Updates supplied style fields and geometry components, preserving omitted values. */
+	updateStyle(node, update) {
+		this.#inner.rawUpdateStyle(this.#nodes.resolve(node), update);
+	}
 	/** Returns a detached readable snapshot of the node style. */
 	getStyle(node) {
 		return this.#inner.rawGetStyle(this.#nodes.resolve(node));

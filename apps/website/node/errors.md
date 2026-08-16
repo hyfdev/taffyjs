@@ -29,7 +29,7 @@ try {
 
 ## JavaScript error classes
 
-`TypeError` reports the wrong JavaScript type or object shape, such as a non-bigint node ID, an incomplete available-space record, an unknown `StyleInput` field, or a non-function measure callback.
+`TypeError` reports the wrong JavaScript type or object shape, such as a non-bigint node ID, an incomplete available-space record, an unknown style input or update field, or a non-function measure callback.
 
 `RangeError` reports a numeric value that cannot represent the requested public value, such as an unknown numeric-family code, a fractional child index, an out-of-range Grid line, or an invalid child range. The out-of-bounds child-index case also carries the code shown above.
 
@@ -37,7 +37,7 @@ Other Taffy operation failures use `Error`. Check a documented code when the pro
 
 ## Failed mutations
 
-Inputs are converted and validated before a mutation reaches the tree. A rejected node creation does not consume a public node ID or add a node. A rejected style replacement leaves the old style and dirty state unchanged. A rejected topology operation leaves the previous parents, child order, contexts, and node count unchanged.
+Inputs are converted and validated before a mutation reaches the tree. A rejected node creation does not consume a public node ID or add a node. A rejected style replacement or partial update leaves the old style and dirty state unchanged. A rejected topology operation leaves the previous parents, child order, contexts, and node count unchanged.
 
 Invalid node IDs also fail before the requested operation changes either the JavaScript wrapper or native tree.
 
