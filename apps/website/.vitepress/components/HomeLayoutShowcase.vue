@@ -2,6 +2,10 @@
 import { computed, onMounted, ref, shallowRef } from "vue";
 
 const availableWidth = ref(380);
+const sidebarWidth = ref(88);
+const headerHeight = ref(40);
+const horizontalGap = ref(12);
+const verticalGap = ref(12);
 const layout = shallowRef(null);
 const loadError = ref("");
 
@@ -46,7 +50,13 @@ const visual = computed(() => {
 
 function updateLayout() {
   if (!computeHomeLayout) return;
-  layout.value = computeHomeLayout(availableWidth.value);
+  layout.value = computeHomeLayout({
+    availableWidth: availableWidth.value,
+    sidebarWidth: sidebarWidth.value,
+    headerHeight: headerHeight.value,
+    horizontalGap: horizontalGap.value,
+    verticalGap: verticalGap.value,
+  });
 }
 
 onMounted(async () => {
@@ -76,20 +86,92 @@ onMounted(async () => {
       </div>
 
       <div class="home-layout-result">
-        <label for="home-layout-width">
-          <code>availableWidth</code>
-          <output>{{ availableWidth }}</output>
-        </label>
-        <input
-          id="home-layout-width"
-          v-model.number="availableWidth"
-          type="range"
-          min="300"
-          max="520"
-          step="20"
-          :disabled="!visual"
-          @input="updateLayout"
-        />
+        <div class="home-layout-controls">
+          <div class="home-layout-control">
+            <label for="home-layout-width">
+              <code>availableWidth</code>
+              <output>{{ availableWidth }}</output>
+            </label>
+            <input
+              id="home-layout-width"
+              v-model.number="availableWidth"
+              type="range"
+              min="300"
+              max="520"
+              step="20"
+              :disabled="!visual"
+              @input="updateLayout"
+            />
+          </div>
+
+          <div class="home-layout-control">
+            <label for="home-layout-sidebar-width">
+              <code>sidebarWidth</code>
+              <output>{{ sidebarWidth }}</output>
+            </label>
+            <input
+              id="home-layout-sidebar-width"
+              v-model.number="sidebarWidth"
+              type="range"
+              min="72"
+              max="136"
+              step="8"
+              :disabled="!visual"
+              @input="updateLayout"
+            />
+          </div>
+
+          <div class="home-layout-control">
+            <label for="home-layout-header-height">
+              <code>headerHeight</code>
+              <output>{{ headerHeight }}</output>
+            </label>
+            <input
+              id="home-layout-header-height"
+              v-model.number="headerHeight"
+              type="range"
+              min="32"
+              max="72"
+              step="4"
+              :disabled="!visual"
+              @input="updateLayout"
+            />
+          </div>
+
+          <div class="home-layout-control">
+            <label for="home-layout-horizontal-gap">
+              <code>horizontalGap</code>
+              <output>{{ horizontalGap }}</output>
+            </label>
+            <input
+              id="home-layout-horizontal-gap"
+              v-model.number="horizontalGap"
+              type="range"
+              min="0"
+              max="32"
+              step="4"
+              :disabled="!visual"
+              @input="updateLayout"
+            />
+          </div>
+
+          <div class="home-layout-control">
+            <label for="home-layout-vertical-gap">
+              <code>verticalGap</code>
+              <output>{{ verticalGap }}</output>
+            </label>
+            <input
+              id="home-layout-vertical-gap"
+              v-model.number="verticalGap"
+              type="range"
+              min="0"
+              max="32"
+              step="4"
+              :disabled="!visual"
+              @input="updateLayout"
+            />
+          </div>
+        </div>
 
         <div v-if="visual" class="home-layout-canvas">
           <div class="home-layout-root-label">
@@ -235,21 +317,31 @@ onMounted(async () => {
   background: var(--vp-c-bg-soft);
 }
 
-.home-layout-result label {
+.home-layout-controls {
+  display: grid;
+  gap: 14px;
+}
+
+.home-layout-control {
+  display: grid;
+  gap: 6px;
+}
+
+.home-layout-control label {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 16px;
 }
 
-.home-layout-result output {
+.home-layout-control output {
   color: var(--vp-c-text-2);
   font-variant-numeric: tabular-nums;
 }
 
-.home-layout-result input {
+.home-layout-control input {
   width: 100%;
-  margin: 12px 0 24px;
+  margin: 0;
 }
 
 .home-layout-canvas {

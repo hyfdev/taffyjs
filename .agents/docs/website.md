@@ -12,7 +12,7 @@ The landing page speaks for TaffyJS as a family and presents the intended comple
 
 The home page is only a landing page and uses VitePress's default theme. It contains a concise performance-led introduction, short summaries of the Rust/Taffy foundation, native Node.js performance and portable WebAssembly support, and direct routes to real package documentation and source. Tutorials, complete examples, runtime details and API reference belong to Guide or package documentation rather than the home page. The home page does not use invented testimonials, unsupported benchmark numbers or generic feature text to fill space.
 
-The landing page includes one code-to-layout example below the default Home content. It shows ordinary direct TaffyJS JavaScript rather than JSX or a second wrapper API, and the adjacent rectangles come from that exact source through `@taffyjs/wasm` and `getLayout`. Variable names label the corresponding boxes. One `availableWidth` control demonstrates recomputation; the home page does not grow into an arbitrary code editor or a multi-control playground.
+The landing page includes one code-to-layout example below the default Home content. It shows ordinary direct TaffyJS JavaScript rather than JSX or a second wrapper API, and the adjacent rectangles come from that exact source through `@taffyjs/wasm` and `getLayout`. Variable names label the corresponding boxes. Controls expose only inputs whose effects are immediately visible in those rectangles: available width, sidebar width, header height, and the horizontal and vertical gaps. The home page does not grow into an arbitrary code editor or a general-purpose playground.
 
 ## Package family
 
@@ -24,7 +24,7 @@ No planned package receives empty reference pages or documentation navigation th
 
 ## Documentation structure
 
-The documentation is arranged in three layers: Guide, Essentials, and package sections. Guide contains the Introduction and Getting Started. Essentials teaches the shared layout-engine model in learning order. Package sections hold complete runtime and platform support, initialization, binding-specific behavior, compatibility, migration, and exact public API details. The top navigation links to Guide and a package menu containing the implemented Node and Wasm packages. Empty package sections are not reserved in advance.
+The documentation is arranged in three layers: Guide, Essentials, and package sections. Guide contains the Introduction and Getting Started. Essentials teaches the shared layout-engine model in learning order. Package sections hold complete runtime and platform support, initialization, binding-specific behavior, compatibility, migration, and exact public API details. One documentation sidebar lists Guide, Essentials, and every implemented package with its articles, so readers can see the complete documentation structure from any documentation page. The top navigation links to that documentation once as Guide rather than repeating packages in a separate menu. Empty package sections are not reserved in advance.
 
 Getting Started and Essentials use `@taffyjs/node` code by default. At points where runtime choice matters, a short callout sends browser or WebAssembly users to `@taffyjs/wasm` and users seeking Yoga compatibility to `@taffyjs/yoga`. Shared teaching is not repeated once per package.
 
@@ -32,7 +32,7 @@ The Introduction first explains what a layout engine does, then why TaffyJS exis
 
 Getting Started owns the shortest installation command, the minimum Node.js version needed to run it, and one smallest complete `@taffyjs/node` example. It begins with the equivalent familiar HTML and CSS, keeps one Flexbox relationship stable while translating it into TaffyJS, and explicitly names where the browser analogy stops. Its job is to establish the basic layout-engine model: a tree of nodes, styles, available space, an explicit computation, and stored layout results. Changing only the available width must produce an observable second result so the reader can distinguish a node's relative style from the outside constraint. It does not branch into layout-mode tutorials, caching, error cases, or API reference details.
 
-Getting Started keeps the runnable Node example as the canonical code path and uses `@taffyjs/wasm` for one in-page control that runs the same tree in the browser. The control varies available space while keeping the tree and styles fixed, revealing the same relationship without replacing or forking the Node example.
+Getting Started keeps the runnable Node example as the canonical code path and uses `@taffyjs/wasm` for one in-page example that runs the same tree in the browser. The example shows its fixed, read-only source on the left and its available-space control and computed result on the right; the displayed source is the code being executed. The control varies available space while keeping the tree and styles fixed, revealing the same relationship without replacing or forking the Node example.
 
 Essentials continues directly from that model. It explains what each shared concept is, the role it plays, how it affects a computation, and how to use it through focused `@taffyjs/node` examples. The sequence moves from the tree-compute-read lifecycle and styles and values into Block, Flexbox, Grid, and measuring text and images. The measurement page first establishes that Taffy only lays out boxes and relies on application-owned text and image systems for intrinsic sizes, then teaches the callback boundary. These pages teach the model rather than enumerate every method or field.
 
@@ -46,7 +46,7 @@ The target page groups are:
 - `@taffyjs/wasm`: package overview and setup, supported environments, initialization and deployment, observable differences from Node, and a link to the shared direct API reference.
 - `@taffyjs/yoga`: package overview and installation, compatibility scope, migration from Yoga, Yoga-facing API reference, and documented differences from the direct Taffy API.
 
-The global site navigation and the documentation sidebar serve different purposes. The landing page and later real Blog or Showcase sections are site-level content; Guide and package sections are documentation. Do not create empty Blog, Showcase, version switcher or package pages merely to make the site appear complete.
+The global site navigation and the documentation sidebar serve different purposes. The landing page and later real Blog or Showcase sections are site-level content; Guide, Essentials, and package sections all belong to the same documentation sidebar. Do not create empty Blog, Showcase, version switcher or package pages merely to make the site appear complete.
 
 ## Content ownership
 

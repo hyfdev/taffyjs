@@ -89,10 +89,14 @@ The two programs express the same relationships. `newWithChildren` records the p
 
 ## Try the same relationship
 
-This control runs the same tree through `@taffyjs/wasm` in your browser. Change only the available width and watch Taffy recompute the two child rectangles.
+This example runs the same tree through `@taffyjs/wasm` in your browser. Change only the available width and watch Taffy recompute the two child rectangles.
 
 <ClientOnly>
-  <LayoutWidthDemo />
+  <LayoutWidthDemo>
+
+<<< ../examples/getting-started-width.js
+
+  </LayoutWidthDemo>
 </ClientOnly>
 
 ## Change one input

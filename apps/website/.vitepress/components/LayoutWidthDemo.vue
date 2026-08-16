@@ -8,40 +8,20 @@ const secondX = ref(null);
 const loadError = ref("");
 const ready = ref(false);
 
-let tree;
-let first;
-let second;
-let root;
+let computeWidthLayout;
 
 function compute() {
-  if (!tree) return;
+  if (!computeWidthLayout) return;
 
-  tree.computeLayout({
-    root,
-    availableSpace: { width: availableWidth.value, height: 20 },
-  });
-
-  firstWidth.value = tree.getLayout(first).size.width;
-  const secondLayout = tree.getLayout(second);
-  secondWidth.value = secondLayout.size.width;
-  secondX.value = secondLayout.location.x;
+  const { first, second } = computeWidthLayout(availableWidth.value);
+  firstWidth.value = first.size.width;
+  secondWidth.value = second.size.width;
+  secondX.value = second.location.x;
 }
 
 onMounted(async () => {
   try {
-    const { Dimension, Display, TaffyTree } = await import("@taffyjs/wasm");
-
-    tree = new TaffyTree();
-    first = tree.newLeaf({ flexGrow: 1 });
-    second = tree.newLeaf({ flexGrow: 1 });
-    root = tree.newWithChildren(
-      {
-        display: Display.Flex,
-        size: { width: Dimension.Percent(100), height: 20 },
-      },
-      [first, second],
-    );
-
+    ({ computeWidthLayout } = await import("../../examples/getting-started-width.js"));
     compute();
     ready.value = true;
   } catch (error) {
@@ -52,48 +32,81 @@ onMounted(async () => {
 
 <template>
   <div class="layout-demo">
-    <label for="layout-demo-width">
-      Available width: <strong>{{ availableWidth }}</strong>
-    </label>
-    <input
-      id="layout-demo-width"
-      v-model.number="availableWidth"
-      type="range"
-      min="100"
-      max="300"
-      step="10"
-      :disabled="!ready"
-      @input="compute"
-    />
-
-    <div v-if="ready" class="layout-demo-stage">
-      <div class="layout-demo-row" :style="{ width: `${availableWidth}px` }">
-        <div class="layout-demo-item" :style="{ width: `${firstWidth}px` }">{{ firstWidth }}</div>
-        <div
-          class="layout-demo-item second"
-          :style="{ left: `${secondX}px`, width: `${secondWidth}px` }"
-        >
-          {{ secondWidth }}
-        </div>
-      </div>
+    <div class="layout-demo-code" aria-label="Read-only TaffyJS example code">
+      <slot />
     </div>
 
-    <p v-if="!ready && !loadError" class="layout-demo-status" aria-live="polite">
-      Loading <code>@taffyjs/wasm</code>…
-    </p>
-    <output v-else-if="ready" aria-live="polite">
-      First item width: {{ firstWidth }}; second item x: {{ secondX }}
-    </output>
-    <p v-else class="layout-demo-error" role="alert">
-      The WebAssembly example could not start: {{ loadError }}
-    </p>
+    <div class="layout-demo-result">
+      <label for="layout-demo-width">
+        Available width: <strong>{{ availableWidth }}</strong>
+      </label>
+      <input
+        id="layout-demo-width"
+        v-model.number="availableWidth"
+        type="range"
+        min="100"
+        max="300"
+        step="10"
+        :disabled="!ready"
+        @input="compute"
+      />
+
+      <div v-if="ready" class="layout-demo-stage">
+        <div class="layout-demo-row" :style="{ width: `${availableWidth}px` }">
+          <div class="layout-demo-item" :style="{ width: `${firstWidth}px` }">
+            {{ firstWidth }}
+          </div>
+          <div
+            class="layout-demo-item second"
+            :style="{ left: `${secondX}px`, width: `${secondWidth}px` }"
+          >
+            {{ secondWidth }}
+          </div>
+        </div>
+      </div>
+
+      <p v-if="!ready && !loadError" class="layout-demo-status" aria-live="polite">
+        Loading <code>@taffyjs/wasm</code>…
+      </p>
+      <output v-else-if="ready" aria-live="polite">
+        First item width: {{ firstWidth }}; second item x: {{ secondX }}
+      </output>
+      <p v-else class="layout-demo-error" role="alert">
+        The WebAssembly example could not start: {{ loadError }}
+      </p>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .layout-demo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
   margin: 24px 0;
-  padding: 20px;
+}
+
+.layout-demo-code,
+.layout-demo-result {
+  min-width: 0;
+}
+
+.layout-demo-code :deep(div[class*="language-"]) {
+  height: 100%;
+  margin: 0;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.layout-demo-code :deep(pre) {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.layout-demo-result {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;
   background: var(--vp-c-bg-soft);
@@ -151,5 +164,11 @@ onMounted(async () => {
 .layout-demo-error {
   margin: 12px 0 0;
   color: var(--vp-c-danger-1);
+}
+
+@media (max-width: 767px) {
+  .layout-demo {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>
