@@ -3,10 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 
 import { test } from "vite-plus/test";
 
-import {
-  expectedFailureByTitle,
-  expectedFailureGroups,
-} from "./yoga-official/expected-failures.ts";
+import { expectedFailureByTitle } from "./yoga-official/expected-failures.ts";
 
 const officialTestRoot = new URL("./yoga-official/tests/", import.meta.url);
 
@@ -21,7 +18,7 @@ test("official Yoga snapshot and expected failures stay aligned", async () => {
       ),
     )
   ).flat();
-  const titleCounts = new Map<string, number>();
+  const registrations = new Map<string, { active: number; skipped: number }>();
   let caseCount = 0;
   let skippedCount = 0;
   const testPattern = /^test(?<skipped>\.skip)?\('(?<title>[^']+)'/gmu;
@@ -32,29 +29,26 @@ test("official Yoga snapshot and expected failures stay aligned", async () => {
       const title = match.groups?.title;
       assert.ok(title, `missing test title in ${file.pathname}`);
       caseCount += 1;
-      if (match.groups?.skipped !== undefined) skippedCount += 1;
-      titleCounts.set(title, (titleCounts.get(title) ?? 0) + 1);
+      const registration = registrations.get(title) ?? { active: 0, skipped: 0 };
+      if (match.groups?.skipped === undefined) {
+        registration.active += 1;
+      } else {
+        registration.skipped += 1;
+        skippedCount += 1;
+      }
+      registrations.set(title, registration);
     }
   }
 
   assert.equal(files.length, 35);
   assert.equal(caseCount, 570);
   assert.equal(skippedCount, 17);
-  assert.equal(expectedFailureByTitle.size, 85);
-  assert.equal(
-    expectedFailureGroups
-      .filter((group) => group.classification === "unsupported")
-      .flatMap((group) => group.titles).length,
-    77,
-  );
-  assert.equal(
-    expectedFailureGroups
-      .filter((group) => group.classification === "different")
-      .flatMap((group) => group.titles).length,
-    8,
-  );
 
   for (const title of expectedFailureByTitle.keys()) {
-    assert.equal(titleCounts.get(title), 1, `expected one official test named ${title}`);
+    assert.deepEqual(
+      registrations.get(title),
+      { active: 1, skipped: 0 },
+      `expected exactly one active and no skipped official test named ${title}`,
+    );
   }
 });

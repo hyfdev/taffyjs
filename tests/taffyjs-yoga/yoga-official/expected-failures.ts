@@ -115,8 +115,12 @@ export const expectedFailureGroups = [
   {
     classification: "different",
     capability: "main-axis auto-margin distribution",
+    titles: ["margin_auto_bottom_and_top_justify_center"],
+  },
+  {
+    classification: "different",
+    capability: "oversized cross-axis auto-margin alignment",
     titles: [
-      "margin_auto_bottom_and_top_justify_center",
       "margin_auto_left_right_child_bigger_than_parent",
       "margin_auto_left_child_bigger_than_parent",
       "margin_fix_left_auto_right_child_bigger_than_parent",

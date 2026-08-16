@@ -14,27 +14,46 @@ export default defineConfig({
       typeCheck: true,
     },
   },
-  resolve: {
-    alias: [
-      {
-        find: /^yoga-layout$/,
-        replacement: yogaEntry,
-      },
-      {
-        find: /^yoga-layout\/load$/,
-        replacement: yogaLoadEntry,
-      },
-    ],
-  },
   test: {
-    globals: true,
-    include: [
-      "*.test.mts",
-      "yoga-official/tests/*.test.ts",
-      "yoga-official/tests/generated/*.test.ts",
+    projects: [
+      {
+        resolve: {
+          alias: [
+            {
+              find: /^yoga-layout$/,
+              replacement: yogaEntry,
+            },
+            {
+              find: /^yoga-layout\/load$/,
+              replacement: yogaLoadEntry,
+            },
+          ],
+        },
+        test: {
+          name: "maintained",
+          include: ["*.test.mts"],
+          retry: 0,
+          sequence: { concurrent: true },
+        },
+      },
+      {
+        resolve: {
+          alias: [
+            {
+              find: /^yoga-layout$/,
+              replacement: yogaEntry,
+            },
+          ],
+        },
+        test: {
+          name: "official",
+          globals: true,
+          include: ["yoga-official/tests/*.test.ts", "yoga-official/tests/generated/*.test.ts"],
+          retry: 0,
+          sequence: { concurrent: true },
+          setupFiles: [resolve(import.meta.dirname, "yoga-official/setup.ts")],
+        },
+      },
     ],
-    retry: 0,
-    sequence: { concurrent: true },
-    setupFiles: [resolve(import.meta.dirname, "yoga-official/setup.ts")],
   },
 });
