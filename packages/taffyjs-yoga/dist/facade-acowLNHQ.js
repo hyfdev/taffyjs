@@ -289,6 +289,9 @@ function toDimension(value) {
 		case 0: return Dimension.Auto;
 	}
 }
+function toMinDimension(value) {
+	return value.unit === 0 ? Dimension.Length(0) : toDimension(value);
+}
 function toLengthPercentage(value) {
 	switch (value.unit) {
 		case 1: return Dimension.Length(value.value);
@@ -811,8 +814,8 @@ function translateStyle(declarations, config, resolvedDirection, ownerDirection)
 			height: toDimension(declarations.height)
 		},
 		minSize: {
-			width: toDimension(declarations.minWidth),
-			height: toDimension(declarations.minHeight)
+			width: toMinDimension(declarations.minWidth),
+			height: toMinDimension(declarations.minHeight)
 		},
 		maxSize: {
 			width: toDimension(declarations.maxWidth),

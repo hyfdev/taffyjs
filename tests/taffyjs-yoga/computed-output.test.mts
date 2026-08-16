@@ -747,6 +747,49 @@ test("ordinary nested Flex, percentage, grow, and shrink geometry matches Yoga",
   }
 });
 
+test("undefined minimums do not impose Taffy's automatic content floor", () => {
+  for (const axis of ["row", "column"] as const) {
+    const actual = Array.from({ length: 4 }, () => Yoga.Node.create());
+    const expected = Array.from({ length: 4 }, () => OracleYoga.Node.create());
+    const [root, zeroBasis, child, sibling] = actual;
+    const [oracleRoot, oracleZeroBasis, oracleChild, oracleSibling] = expected;
+    try {
+      root.setFlexDirection(axis === "row" ? FlexDirection.Row : FlexDirection.Column);
+      oracleRoot.setFlexDirection(
+        axis === "row" ? OracleFlexDirection.Row : OracleFlexDirection.Column,
+      );
+      if (axis === "row") {
+        root.setWidth(6);
+        oracleRoot.setWidth(6);
+      } else {
+        root.setHeight(6);
+        oracleRoot.setHeight(6);
+      }
+      zeroBasis.setFlexBasis(0);
+      oracleZeroBasis.setFlexBasis(0);
+      child.setMeasureFunc(() => ({ width: 1, height: 1 }));
+      oracleChild.setMeasureFunc(() => ({ width: 1, height: 1 }));
+      sibling.setMeasureFunc(() => ({ width: 1, height: 1 }));
+      oracleSibling.setMeasureFunc(() => ({ width: 1, height: 1 }));
+      zeroBasis.insertChild(child, 0);
+      oracleZeroBasis.insertChild(oracleChild, 0);
+      root.insertChild(zeroBasis, 0);
+      oracleRoot.insertChild(oracleZeroBasis, 0);
+      root.insertChild(sibling, 1);
+      oracleRoot.insertChild(oracleSibling, 1);
+
+      root.calculateLayout(undefined, undefined);
+      oracleRoot.calculateLayout(undefined, undefined);
+      for (const [index, node] of actual.entries()) {
+        assertLayoutEqual(node, expected[index], `${axis} node ${index}`);
+      }
+    } finally {
+      root.freeRecursive();
+      oracleRoot.freeRecursive();
+    }
+  }
+});
+
 test("one calculation commits the complete selected subtree atomically", async () => {
   const facade = await loadYoga();
   const root = facade.Node.create();

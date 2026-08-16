@@ -179,7 +179,7 @@ test("constant measurement matches Yoga while callback traces remain deliberatel
   oracleRoot.freeRecursive();
 });
 
-test("MeasureMode-sensitive and flex-basis-sensitive layouts pin the documented Differences", () => {
+test("MeasureMode-sensitive layout differs while constant measured flex basis matches Yoga", () => {
   const modeSensitive: MeasureFunction = (width, widthMode) => ({
     width: widthMode === MeasureMode.Undefined ? 80 : widthMode === MeasureMode.AtMost ? 20 : width,
     height: 10,
@@ -231,8 +231,8 @@ test("MeasureMode-sensitive and flex-basis-sensitive layouts pin the documented 
   oracleBasisRoot.insertChild(oracleBasisChild, 0);
   basisRoot.calculateLayout(undefined, undefined);
   oracleBasisRoot.calculateLayout(undefined, undefined);
-  assert.deepEqual(layoutSize(basisChild), [30, 10]);
-  assert.deepEqual(layoutSize(oracleBasisChild), [20, 10]);
+  assert.deepEqual(layoutSize(basisChild), [20, 10]);
+  assert.deepEqual(layoutSize(basisChild), layoutSize(oracleBasisChild));
   basisRoot.freeRecursive();
   oracleBasisRoot.freeRecursive();
 });

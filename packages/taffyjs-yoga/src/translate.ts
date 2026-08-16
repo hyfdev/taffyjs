@@ -33,6 +33,7 @@ import {
   toDimension,
   toLengthPercentage,
   toLengthPercentageAuto,
+  toMinDimension,
   undefinedValue,
   resolvePercentage,
   type YogaValue,
@@ -254,8 +255,8 @@ export function translateStyle(
       height: toDimension(declarations.height),
     },
     minSize: {
-      width: toDimension(declarations.minWidth),
-      height: toDimension(declarations.minHeight),
+      width: toMinDimension(declarations.minWidth),
+      height: toMinDimension(declarations.minHeight),
     },
     maxSize: {
       width: toDimension(declarations.maxWidth),

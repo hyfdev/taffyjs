@@ -129,6 +129,10 @@ export function toDimension(value: YogaValue): DimensionInput {
   }
 }
 
+export function toMinDimension(value: YogaValue): DimensionInput {
+  return value.unit === Unit.Undefined ? TaffyDimension.Length(0) : toDimension(value);
+}
+
 export function toLengthPercentage(value: YogaValue): LengthPercentageInput {
   switch (value.unit) {
     case Unit.Point:
