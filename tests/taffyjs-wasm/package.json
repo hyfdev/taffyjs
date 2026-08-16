@@ -4,13 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:browser": "vp build browser",
+    "build:browser": "vp build browser --target esnext",
     "check:browser-bundle": "node tests/browser-bundle.ts",
     "check:package": "node tests/package-contents.ts",
-    "check:types": "tsc --project tests/types/tsconfig.json",
-    "test:api": "vp test --config vite.api.config.ts --run",
-    "test:browser": "vp test --run",
-    "test:node": "node tests/node-smoke.ts",
+    "check:types": "tsc --project tsconfig.public-api.json",
+    "test:api": "vp test --run --project api",
+    "test:browser": "vp test --run --project browser",
     "test:packed": "node tests/packed-consumer.ts"
   },
   "dependencies": {

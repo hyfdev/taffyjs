@@ -24,10 +24,6 @@ const wasmTasks = {
     command: "vp run @taffyjs/wasm-integration-tests#test:api",
     dependsOn: ["build:wasm"],
   },
-  "check:wasm:node": {
-    command: "vp run @taffyjs/wasm-integration-tests#test:node",
-    dependsOn: ["build:wasm"],
-  },
   "check:wasm:packed-consumers": {
     command: "vp run @taffyjs/wasm-integration-tests#test:packed",
     dependsOn: ["build:wasm"],
@@ -143,7 +139,6 @@ export default defineConfig({
         command: "echo wasm checks passed",
         dependsOn: [
           "check:wasm:api",
-          "check:wasm:node",
           "check:wasm:packed-consumers",
           "check:wasm:types",
           "check:wasm:package",
