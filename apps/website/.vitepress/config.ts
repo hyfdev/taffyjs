@@ -40,6 +40,10 @@ const documentationSidebar = [
     text: "@taffyjs/wasm",
     items: [{ text: "Overview", link: "/wasm/" }],
   },
+  {
+    text: "Benchmarks",
+    items: [{ text: "Node vs. Wasm", link: "/benchmarks/" }],
+  },
 ];
 
 export default defineConfig({
@@ -58,6 +62,7 @@ export default defineConfig({
       "/guide/": documentationSidebar,
       "/node/": documentationSidebar,
       "/wasm/": documentationSidebar,
+      "/benchmarks/": documentationSidebar,
     },
     socialLinks: [{ icon: "github", link: "https://github.com/hyfdev/taffyjs" }],
     externalLinkIcon: true,

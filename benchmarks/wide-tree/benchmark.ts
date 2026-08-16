@@ -52,7 +52,4 @@ function createWideTreeScenario(leafCount: number): TaffyBenchmarkScenario {
   };
 }
 
-export const wideTreeScenarios: readonly TaffyBenchmarkScenario[] = [
-  createWideTreeScenario(1_000),
-  createWideTreeScenario(10_000),
-];
+export const wideTreeScenarios: readonly TaffyBenchmarkScenario[] = [createWideTreeScenario(1_000)];

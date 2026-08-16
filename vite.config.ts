@@ -85,6 +85,7 @@ export default defineConfig({
       "tests/taffyjs-wasm/browser/dist",
       "packages/taffyjs-yoga/dist",
       "packages/taffyjs-yoga-wasm/dist",
+      "benchmarks/results/published.json",
     ],
     overrides: [
       {
