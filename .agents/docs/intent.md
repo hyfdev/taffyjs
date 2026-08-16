@@ -6,8 +6,8 @@ TaffyJS is intended to bring Taffy, a high-performance layout engine written in 
 
 - `@taffyjs/node` is the first entry point and provides native Node-API bindings built with napi-rs.
 - `@taffyjs/wasm` is the explicit WebAssembly entry point for Node.js and bundled browsers. It reuses the `@taffyjs/node` public API over a threadless napi-rs WASIP binding rather than acting as an automatic fallback; its vouched contract is in [@taffyjs/wasm package design](taffyjs-wasm-package.md).
-- `@taffyjs/yoga` is the Node-only Yoga 3.2.1 compatibility package built on top of `@taffyjs/node`; browser and WASM backends remain outside that package.
-- `@taffyjs/yoga-wasm` is the separate Node.js and bundled-browser transport for that same compatibility facade. It builds the same source over `@taffyjs/wasm` so the two packages cannot drift into separate Yoga implementations.
+- `@taffyjs/yoga` is the native Yoga 3.2.1 compatibility package built on top of `@taffyjs/node` for Node.js, Bun, and Deno; browser and WASM backends remain outside that package.
+- `@taffyjs/yoga-wasm` is the separate Node.js, Bun, Deno, and bundled-browser transport for that same compatibility facade. It builds the same source over `@taffyjs/wasm` so the two packages cannot drift into separate Yoga implementations.
 - The package family should support real consumers such as terminal UI frameworks without forcing those consumers to own their own Taffy bindings.
 
 ## Bun and Deno runtime support

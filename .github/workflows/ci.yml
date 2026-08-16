@@ -98,6 +98,10 @@ jobs:
         run: pnpm dlx bun@1.2.0 packages/taffyjs-wasm/tests/runtime-smoke.mjs
       - name: Smoke test @taffyjs/wasm with Deno 2.2
         run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual packages/taffyjs-wasm/tests/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/yoga-wasm with Bun 1.2
+        run: pnpm dlx bun@1.2.0 tests/taffyjs-yoga-wasm/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/yoga-wasm with Deno 2.2
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual tests/taffyjs-yoga-wasm/runtime-smoke.mjs
 
   check-node:
     name: Node checks

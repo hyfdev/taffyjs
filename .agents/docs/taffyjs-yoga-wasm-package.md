@@ -5,7 +5,7 @@
 ## Public contract
 
 - The package is ESM-only and exposes the same root and `/load` shapes, declarations, constants, and Yoga compatibility classifications as `@taffyjs/yoga`.
-- The package supports Node.js `>=22.18` and modern bundled browsers within the existing `@taffyjs/wasm` contract. It does not claim direct CDN, legacy-browser, Bun, Deno, workerd, or other edge-runtime support without separate evidence.
+- The package supports Node.js `>=22.18`, Bun 1.2+ within major 1, Deno 2.2+ within major 2, and modern bundled browsers within the existing `@taffyjs/wasm` contract. Deno requires no permission flags. It does not claim direct CDN, legacy-browser, workerd, or other edge-runtime support without separate evidence.
 - Consumers may install it under Yoga's original name with the registry alias `"yoga-layout": "npm:@taffyjs/yoga-wasm@<version>"`; supported application imports remain unchanged.
 - `PositionType.Static` and every other Unsupported capability stay unsupported. Replacing the runtime transport does not create missing Taffy layout semantics.
 
@@ -36,5 +36,6 @@ Expected validation, callback, and Taffy errors retain the compatibility facade'
 - Pack both `@taffyjs/wasm` and `@taffyjs/yoga-wasm`; install the latter under the bare `yoga-layout` dependency name in fresh npm and pnpm consumers; run both Node entries.
 - From the installed tarballs, build bare `yoga-layout` and `yoga-layout/load` imports with Vite. Each browser bundle must select the `@taffyjs/wasm` browser condition, contain one inline payload and one `WebAssembly.compile`, emit no `.wasm` asset, and contain no `node:wasi` path.
 - Run both installed browser entries in real Chromium without cross-origin isolation or `SharedArrayBuffer`. Importing `/load` must compile zero Wasm modules; the first `loadYoga()` call must compile exactly one.
+- Run one fixed-layout smoke through both public entries on Bun 1.2.0 and Deno 2.2.0, the first releases of the supported minimum minors. The Deno smoke uses no permission flags, matching the underlying `@taffyjs/wasm` runtime.
 
-The Yoga Wasm checks live in the existing Linux-only `check:wasm` graph because they require the WASIP Rust target and Chromium. Native cross-platform checks continue to own `@taffyjs/yoga`.
+The Yoga Wasm build, package, Node.js, and browser checks live in the existing Linux-only `check:wasm` graph because they require the WASIP Rust target and Chromium. CI runs the alternate-runtime smokes immediately afterward using the packages produced by that graph. Native cross-platform checks continue to own `@taffyjs/yoga`.
