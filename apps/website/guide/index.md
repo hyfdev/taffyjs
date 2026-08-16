@@ -35,9 +35,13 @@ The WebAssembly package for Node.js and bundled browsers. It provides the same h
 
 ### `@taffyjs/yoga`
 
-A planned Yoga-compatible API built on `@taffyjs/node`. It is intended for projects that already use Yoga's node and style model or need a straightforward migration path. It will be a compatibility layer rather than another form of the direct `TaffyTree` API.
+A Yoga 3.2.1 compatibility facade built on `@taffyjs/node`. It is for projects that already use Yoga's node and style model or need a migration path that keeps supported Yoga imports and calls intact.
 
-This guide uses `@taffyjs/node` by default. The same direct API also applies to `@taffyjs/wasm`; `@taffyjs/yoga` will have a separate consumer-facing model.
+### `@taffyjs/yoga-wasm`
+
+The same Yoga compatibility facade built on `@taffyjs/wasm`. It keeps the Yoga-facing source and compatibility rules shared with `@taffyjs/yoga` while making WebAssembly an explicit runtime choice.
+
+This guide uses `@taffyjs/node` by default. The same direct API also applies to `@taffyjs/wasm`. The two Yoga packages preserve Yoga's separate consumer-facing model over the corresponding native and WebAssembly runtimes.
 
 ## Credits
 

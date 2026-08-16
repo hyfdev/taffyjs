@@ -174,6 +174,16 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 ## Decided
 
+### Native distribution targets
+
+**Ruling:** `@taffyjs/node` must provide native packages for macOS arm64, Linux x64 GNU, and Windows x64 MSVC.
+
+**Limits:** This adds `aarch64-apple-darwin` to the existing distribution model. It does not add macOS x64, Linux arm64, Linux musl, or another target. Each additional target still requires its own package metadata, artifact synchronization, public support documentation, and CI coverage.
+
+**Why:** Yunfei required the Apple M3 Pro benchmark host to be supported as a real native target rather than bypassing the platform-package build step.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly asked to support the current `darwin/arm64` host before continuing the benchmark website work.
+
 ### Generated numeric input shorthand
 
 [VOUCHED @hyfdev 2026-08-15]
@@ -185,6 +195,28 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 **Why:** The shorthand's target branch is one cross-language fact currently represented by TypeScript types and helpers, JSDoc, and Rust parsing, so handwritten copies can drift. Converting the shorthand to an object in JavaScript would add allocation and eventually require an extra walk over nested Style input; direct generated Rust normalization preserves the separation between the ergonomic public input and the private native path.
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-15; required examples and ordinary tests to prefer available shorthand, required JSDoc to name the corresponding complete form, accepted generator ownership with direct Rust normalization instead of JavaScript object materialization, and explicitly asked for the resulting design to be vouched. See [Generated tagged inputs](api-codegen.md#generated-tagged-inputs).
+
+### Partial style updates
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** `TaffyTree.updateStyle` must preserve every omitted or `undefined` value and update only the supplied parts of a node's current Style, while `setStyle` continues to replace the complete Style from Taffy's defaults. A public partial `Point`, `Size`, `Rect`, or `Line` input, such as `size`, `margin`, or `padding`, updates only its supplied components. Every array, tagged union, and other input modeled as a complete value is replaced as a whole; an empty array clears that array, and `null` clears only a field whose public input already permits null. The public TypeScript update type must keep arrays, every tagged-union branch, and complete records complete; it must not use a general recursive `Partial`.
+
+**Limits:** `updateStyle` does not update an array element or a tagged-union payload in place. A concrete future need may add a separate array-editing operation without changing these rules. This decision does not fix the private field numbering, transport shape, parsing strategy, generated type name, or whether a later Taffy API can avoid copying a complete Rust Style.
+
+**Why:** Callers should be able to change an independently meaningful style part without reconstructing unrelated Style data, while values whose meaning depends on their complete variant or sequence remain predictable. Copying, combining, and validating the current and supplied values belongs in Rust rather than in a `getStyle()` to JavaScript merge to `setStyle()` round trip. The complete prospective Style must be validated before one write; an invalid update changes nothing, and an empty update or an update whose result is unchanged must leave the node's existing dirty state unchanged rather than making a clean node dirty. These rules keep the common API friendly without introducing recursive array merging, partial tagged variants, or a JavaScript-owned shadow Style.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; kept `setStyle` as the direct complete-replacement operation, chose an additive update operation for ergonomic partial changes, required Rust-owned copying rather than JavaScript object cloning, required invalid, empty, and unchanged updates not to produce mutation or new dirty state, accepted whole-array replacement, and explicitly confirmed that generated TypeScript must prevent partial tagged-union inputs before asking for this accumulated design to be vouched.
+
+### Preferred style mutation operation
+
+**Ruling:** Public documentation must recommend `updateStyle` as the default operation for changing an existing node. `setStyle` is the intentional complete-replacement operation and should be chosen when omitted fields must reset to Taffy's defaults, including a complete reset with `{}`.
+
+**Limits:** This recommendation does not remove or deprecate `setStyle`, change whole-value replacement for supplied arrays and complete values, promise that every individual `updateStyle` call is faster, or fix the binding's private copying strategy. The exact cost depends on the input shape and runtime.
+
+**Why:** Reconstructing preserved state for `setStyle` requires a caller-owned prior value or a `getStyle` snapshot and makes every retained supplied value cross the JavaScript-to-Rust conversion boundary again. `updateStyle` directly represents the incremental intent and generally avoids converting unrelated JavaScript values. Retained end-to-end measurements support this qualitative default while also showing that direct replacement of a large collection can make the operations converge, so the public claim must remain comparative rather than absolute.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly requested a dedicated `@taffyjs/node` documentation page that explains the distinction and tells readers to prefer `updateStyle` unless they have a specific need for `setStyle`.
 
 ## Open
 

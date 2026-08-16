@@ -1,6 +1,8 @@
 # `@taffyjs/wasm`
 
-`@taffyjs/wasm` runs the Taffy layout engine as threadless WebAssembly in Node.js and bundled browsers. It exposes the same public TaffyJS API as `@taffyjs/node`; choosing this package guarantees that the implementation is Wasm rather than a native addon.
+`@taffyjs/wasm` runs the Taffy layout engine as threadless WebAssembly in Node.js, Bun 1.2+ within major 1, Deno 2.2+ within major 2, and bundled browsers. It exposes the same public TaffyJS API as `@taffyjs/node`; choosing this package guarantees that the implementation is Wasm rather than a native addon.
+
+The [design philosophy](../../apps/website/wasm/design-philosophy.md) explains how the package keeps one direct API across native and WebAssembly runtimes.
 
 ```ts
 import { TaffyTree } from "@taffyjs/wasm";
@@ -16,4 +18,4 @@ No explicit initialization call is needed. The Wasm payload is inlined once in t
 const { TaffyTree } = await import("@taffyjs/wasm");
 ```
 
-The supported browser path is through a bundler that honors conditional exports and top-level await. It does not emit or fetch a separate `.wasm` asset. Direct CDN use and runtimes other than supported Node.js and bundled browsers are not currently part of the package contract.
+The supported browser path is through a bundler that honors conditional exports and top-level await. It does not emit or fetch a separate `.wasm` asset. Deno needs no runtime permission flags. Bun versions below 1.2, Deno versions below 2.2, other Bun and Deno majors, direct CDN use, and other runtimes are not currently part of the package contract.

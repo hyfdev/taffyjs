@@ -1,0 +1,16 @@
+{
+  "name": "@taffyjs/binding-darwin-arm64",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": [
+    "taffyjs.darwin-arm64.node"
+  ],
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "taffyjs.darwin-arm64.node"
+}

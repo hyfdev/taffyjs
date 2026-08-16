@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["es2023"],
+    "moduleDetection": "force",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "paths": {
+      "#taffyjs-yoga-test-source": ["../../packages/taffyjs-yoga/src/index.ts"],
+      "#taffyjs-yoga-test-load-source": ["../../packages/taffyjs-yoga/src/load.ts"]
+    },
+    "strict": true,
+    "noUnusedLocals": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
+  },
+  "include": ["*.test.mts", "vite.config.ts", "yoga-layout-source.d.ts"]
+}

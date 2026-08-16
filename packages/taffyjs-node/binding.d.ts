@@ -22,6 +22,7 @@ export declare class BindingTaffyTree {
   rawNewLeafWithContext(style: unknown, hasContext: boolean): bigint;
   rawNewWithChildren(style: unknown, children: Array<bigint>): bigint;
   rawSetStyle(node: bigint, style: unknown): void;
+  rawUpdateStyle(node: bigint, update: unknown): void;
   rawSetNodeContext(node: bigint, hasContext: boolean): void;
   rawGetStyle(node: bigint): StyleOutput;
   rawComputeLayout(node: bigint, availableSpace: unknown): void;

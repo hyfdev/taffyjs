@@ -33,6 +33,7 @@ const operations: readonly Operation[] = [
   ["getParent", () => tree.getParent(measured)],
   ["getChildren", () => tree.getChildren(root)],
   ["setStyle", () => tree.setStyle(measured, {})],
+  ["updateStyle", () => tree.updateStyle(measured, {})],
   ["getStyle", () => tree.getStyle(measured)],
   ["getLayout", () => tree.getLayout(measured)],
   ["getUnroundedLayout", () => tree.getUnroundedLayout(measured)],

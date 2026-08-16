@@ -22,9 +22,14 @@ const documentationSidebar = [
   {
     text: "@taffyjs/node",
     items: [
+      { text: "Design Philosophy", link: "/node/design-philosophy" },
       { text: "Overview", link: "/node/" },
       { text: "Nodes and Topology", link: "/node/nodes-and-topology" },
       { text: "Styles and Context", link: "/node/styles-and-context" },
+      {
+        text: "setStyle vs updateStyle",
+        link: "/node/set-style-vs-update-style",
+      },
       { text: "Computing Layout", link: "/node/computing-layout" },
       { text: "Layout Results", link: "/node/layout-results" },
       { text: "Style", link: "/node/style" },
@@ -34,7 +39,28 @@ const documentationSidebar = [
   },
   {
     text: "@taffyjs/wasm",
-    items: [{ text: "Overview", link: "/wasm/" }],
+    items: [
+      { text: "Design Philosophy", link: "/wasm/design-philosophy" },
+      { text: "Overview", link: "/wasm/" },
+    ],
+  },
+  {
+    text: "@taffyjs/yoga",
+    items: [
+      { text: "Design Philosophy", link: "/yoga/design-philosophy" },
+      { text: "Overview", link: "/yoga/" },
+    ],
+  },
+  {
+    text: "@taffyjs/yoga-wasm",
+    items: [
+      { text: "Design Philosophy", link: "/yoga-wasm/design-philosophy" },
+      { text: "Overview", link: "/yoga-wasm/" },
+    ],
+  },
+  {
+    text: "Benchmarks",
+    items: [{ text: "Node vs. Wasm", link: "/benchmarks/" }],
   },
 ];
 
@@ -47,13 +73,16 @@ export default defineConfig({
       {
         text: "Guide",
         link: "/guide/getting-started",
-        activeMatch: "^/(guide|node|wasm)/",
+        activeMatch: "^/(guide|node|wasm|yoga|yoga-wasm|benchmarks)/",
       },
     ],
     sidebar: {
       "/guide/": documentationSidebar,
       "/node/": documentationSidebar,
       "/wasm/": documentationSidebar,
+      "/yoga/": documentationSidebar,
+      "/yoga-wasm/": documentationSidebar,
+      "/benchmarks/": documentationSidebar,
     },
     socialLinks: [{ icon: "github", link: "https://github.com/hyfdev/taffyjs" }],
     externalLinkIcon: true,
