@@ -17,6 +17,14 @@ const testTasks = {
     command: "vp exec tsc --project tests/taffyjs-node/tests/types/tsconfig.json",
     dependsOn: ["build"],
   },
+  "check:test:yoga": {
+    command: "vp run @taffyjs/yoga-integration-tests#test",
+    dependsOn: ["build"],
+  },
+  "check:test:yoga:types": {
+    command: "vp exec tsc --project tests/taffyjs-yoga/types/tsconfig.json",
+    dependsOn: ["build"],
+  },
 };
 
 const wasmTasks = {
@@ -59,6 +67,7 @@ export default defineConfig({
       "packages/.taffyjs-*.napi-stage-*",
       "packages/**/.napi-rs-filesystem-transaction*",
       "tests/taffyjs-wasm/browser/dist",
+      "packages/taffyjs-yoga/dist",
     ],
     overrides: [
       {
@@ -77,6 +86,7 @@ export default defineConfig({
       "packages/.taffyjs-*.napi-stage-*",
       "packages/**/.napi-rs-filesystem-transaction*",
       "tests/taffyjs-wasm/browser/dist",
+      "packages/taffyjs-yoga/dist",
     ],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: {
@@ -135,9 +145,13 @@ export default defineConfig({
         command: "vp run @taffyjs/website#dev",
         dependsOn: ["build:wasm"],
       },
+      "build:yoga": {
+        command: "vp run @taffyjs/yoga#build",
+        dependsOn: ["build:node:entries"],
+      },
       build: {
         command: "echo build ok",
-        dependsOn: ["build:node:platform-artifact", "build:node:entries"],
+        dependsOn: ["build:node:platform-artifact", "build:node:entries", "build:yoga"],
       },
       "check:format": {
         command: "vp fmt --check",

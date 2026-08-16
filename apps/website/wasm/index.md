@@ -31,11 +31,13 @@ The [Guide](../guide/getting-started.md) and [`TaffyTree` reference](../node/nod
 | Environment | Support                                                                                       |
 | ----------- | --------------------------------------------------------------------------------------------- |
 | Node.js     | Node.js 22.18 or newer                                                                        |
+| Bun         | Version 1.2 or newer within the Bun 1 major                                                   |
+| Deno        | Version 2.2 or newer within the Deno 2 major, without permission flags                        |
 | Browser     | Applications built with a bundler that supports package export conditions and top-level await |
 
 The browser build contains the Wasm payload inside JavaScript, so it does not fetch a separate `.wasm` file. It is threadless and does not require `SharedArrayBuffer` or cross-origin isolation headers.
 
-Direct imports from a CDN and runtimes other than the supported Node.js and bundled-browser paths are not currently part of the package contract.
+Bun versions below 1.2, Deno versions below 2.2, other Bun and Deno majors, direct CDN imports, and runtimes not listed above are not part of the package contract.
 
 ## Loading
 
@@ -58,7 +60,7 @@ Your bundler must select the package's browser entry. No TaffyJS-specific loader
 |                                 | `@taffyjs/node`                  | `@taffyjs/wasm`                          |
 | ------------------------------- | -------------------------------- | ---------------------------------------- |
 | Engine                          | Taffy compiled as a native addon | Taffy compiled to threadless WebAssembly |
-| Main use                        | Supported Node.js platforms      | Bundled browsers and supported Node.js   |
+| Main use                        | Supported native platforms       | Bundled browsers and supported runtimes  |
 | Public layout API               | Direct TaffyJS API               | The same direct TaffyJS API              |
 | Initialization visible to users | None                             | None                                     |
 | Distribution                    | Platform-specific native binary  | Wasm payload embedded in JavaScript      |

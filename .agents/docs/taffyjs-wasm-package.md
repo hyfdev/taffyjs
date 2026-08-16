@@ -8,7 +8,7 @@ The package reuses the public API and authored JavaScript behavior of `@taffyjs/
 
 ## Public use
 
-Node.js and browser applications use the same ESM import and receive an initialized API:
+Node.js, Bun 1.2+ within major 1, Deno 2.2+ within major 2, and browser applications use the same ESM import and receive an initialized API:
 
 ```ts
 import { TaffyTree } from "@taffyjs/wasm";
@@ -44,7 +44,7 @@ Exact output extensions and directories may follow the repository's Vite+ conven
 
 ## Runtime chains
 
-The default Node entry connects the existing authored TaffyJS source to a private ESM bridge and a generated CommonJS factory. The bridge statically imports the shared payload and immediately calls that factory. The factory is mechanically derived from napi-rs's generated eager Node loader: it decodes the supplied payload with `Buffer.from`, uses `instantiateNapiModuleSync`, and retains the generated registration, rollback, cleanup, and binding-export lifecycle. The selected graph has no top-level await, so ordinary static imports expose an initialized `TaffyTree` without making Node consumers await package initialization.
+The default entry used by Node.js, Bun, and Deno connects the existing authored TaffyJS source to a private ESM bridge and a generated CommonJS factory. The bridge statically imports the shared payload and immediately calls that factory. The factory is mechanically derived from napi-rs's generated eager Node loader: it decodes the supplied payload with `Buffer.from`, uses `instantiateNapiModuleSync`, and retains the generated registration, rollback, cleanup, and binding-export lifecycle. The selected graph has no top-level await, so ordinary static imports expose an initialized `TaffyTree` without making consumers await package initialization. Deno uses this package without runtime permission flags.
 
 The browser entry connects the same authored source to a private ESM adapter. That adapter decodes the shared payload with `Uint8Array.fromBase64` when available and otherwise uses `atob` plus a direct `Uint8Array` fill, calls `WebAssembly.compile` exactly once, and passes the resulting `WebAssembly.Module` to napi-rs's unmodified deferred loader through `instantiate(module)`. It uses top-level await, so browser static importers run only after initialization and still use `new TaffyTree()` without an explicit initialization call.
 
@@ -68,11 +68,12 @@ Both runtime chains use napi-rs's JavaScript WASI implementation without forward
 - Do not publish or ask users to install a TaffyJS WASIP binding package.
 - Do not add a public initialization API, public raw binding, hand-maintained WASI or emnapi implementation, or Wasm-specific Taffy API.
 - Do not use wasm-bindgen, a second Rust binding implementation, a second authored `TaffyTree`, gzip, `wasm-opt`, or a threaded WASIP target.
-- Do not claim workerd, Deno, Bun, unbundled CDN, or legacy-browser support without separate evidence and a deliberate support decision.
+- Do not claim support below the documented Bun or Deno minor floors, across Bun or Deno majors, for workerd, for unbundled CDN use, or for legacy browsers without separate evidence and a deliberate support decision.
 
 ## Verification contract
 
 - A Node.js ESM consumer must import `@taffyjs/wasm` and use the ordinary public Taffy API without initialization calls, top-level await in the selected package graph, or native platform packages.
+- Consumers on Bun 1.2+ within major 1 and Deno 2.2+ within major 2 must import the same public entry and complete a minimal layout through the ordinary API; the Deno check must run without permission flags. CI covers only Bun 1.2.0 and Deno 2.2.0 as the first releases of the supported minor floors and does not retain a cross-major runtime matrix.
 - A bundled browser consumer must use the same import and API, include the inline payload without emitting a `.wasm` asset, and work without `SharedArrayBuffer`, cross-origin isolation, COOP, or COEP.
 - The Node and browser builds must derive their JavaScript and TypeScript surface from the same authored source. Except for a documented and evidenced host-specific exception, every public Node binding behavior test must run unchanged against both `@taffyjs/node` and `@taffyjs/wasm`; one test configuration redirects the exact package import instead of copying test files.
 - Package inspection must show exactly one base64 Wasm payload, no independent `.wasm` file, exactly one browser-side `WebAssembly.compile`, synchronous `instantiateNapiModuleSync` in the Node graph, no Node environment or filesystem-root WASI capabilities, no retained `require.resolve` or dependency on `@taffyjs/binding-wasm32-wasip1`, no public initialization subpath, and no accidentally published raw binding entry.
