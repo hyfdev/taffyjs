@@ -26,6 +26,17 @@ npm install @taffyjs/node
 | [`@taffyjs/yoga`](https://www.npmjs.com/package/@taffyjs/yoga)           | Yoga-compatible API backed by `@taffyjs/node`.  | —       |
 | [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | Yoga-compatible API backed by `@taffyjs/wasm`.  | WIP     |
 
+## Runtime compatibility
+
+TaffyJS supports Bun 1.2+ within the Bun 1 major and Deno 2.2+ within the Deno 2 major. CI smoke-tests the first release of each minimum minor by importing each public package, computing a minimal layout, and verifying the result. Support follows one current major per runtime rather than spanning runtime majors.
+
+| Package              | Bun 1.2+           | Deno 2.2+                                                                   |
+| -------------------- | ------------------ | --------------------------------------------------------------------------- |
+| `@taffyjs/node`      | ✅                 | ✅ (local `node_modules`; `--allow-env`, `--allow-read`, and `--allow-ffi`) |
+| `@taffyjs/wasm`      | ✅                 | ✅ (without permission flags)                                               |
+| `@taffyjs/yoga`      | ⚠️ Not implemented | ⚠️ Not implemented                                                          |
+| `@taffyjs/yoga-wasm` | ⚠️ Not implemented | ⚠️ Not implemented                                                          |
+
 ## Documentation
 
 - [Guide](apps/website/guide/index.md) explains the shared layout model, layout modes, and text and image measurement.

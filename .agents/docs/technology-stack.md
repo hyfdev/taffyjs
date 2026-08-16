@@ -2,7 +2,7 @@
 
 ## Native bindings and distribution
 
-napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, and target-specific package metadata. It generates an ESM loader, which Vite+ bundles into the ESM public entry without maintaining a custom loader.
+napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, and target-specific package metadata. It generates an ESM loader, which Vite+ bundles into the ESM public entry without maintaining a custom loader. The pinned napi-rs template deliberately emits bare Node builtin specifiers to retain Node 12 compatibility; TaffyJS targets Node 22.18 or newer, so the repository mechanically normalizes those generated specifiers to the explicit `node:` protocol before formatting and bundling the loader.
 
 The generated ESM loader is a private build input. The authored wrapper imports it privately, and the bundled public entry does not re-export raw native operations.
 
@@ -18,7 +18,7 @@ At the current pins, napi-rs 3.8.2 requires emnapi 2.0.0-alpha.3, but its genera
 
 ## JavaScript package builds
 
-Vite+ is the JavaScript toolchain. The root task graph builds the `@taffyjs/node` napi-rs binding, formats its generated loader and declaration, then lets platform-artifact synchronization and `vp pack` run as independent final branches. `vp pack` compiles the public source in `packages/taffyjs-node/src`, bundles the private napi-rs loader, and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private native declaration remains a generated build input rather than a published file; package metadata does not duplicate the repository build pipeline as a compound script.
+Vite+ is the JavaScript toolchain. The root task graph builds the `@taffyjs/node` napi-rs binding, normalizes Node builtin module specifiers in its generated loader, formats the loader and declaration, then lets platform-artifact synchronization and `vp pack` run as independent final branches. `vp pack` compiles the public source in `packages/taffyjs-node/src`, bundles the private napi-rs loader, and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private native declaration remains a generated build input rather than a published file; package metadata does not duplicate the repository build pipeline as a compound script.
 
 The `@taffyjs/wasm` Vite+ pack configuration compiles that same entry twice. A filtered build-time resolver redirects only the resolved private binding import to `./taffyjs.node.js` for Node and `./taffyjs.browser.js` for browsers, leaving those generated adapters external. Both adapters reference `./taffyjs.wasm-base64.js`, so the base64 literal occurs once in the package. The Node compilation emits the one public declaration bundle; the browser compilation does not maintain a second declaration source.
 
@@ -26,7 +26,7 @@ The root Vite+ task graph builds the napi-rs artifacts into `packages/taffyjs-wa
 
 `tools/api-codegen` owns source generation that must keep Rust and TypeScript API facts aligned. Its first maintained input is `api/numeric-families.json`; `vp run codegen` updates both language outputs. CI runs `vp run check:codegen`, which regenerates and rejects any resulting Git diff.
 
-CI has five jobs. Ubuntu x64 and Windows x64 each build the native addon and run all Rust, JavaScript, and type tests with Node.js 22.18.0. Ubuntu also rejects stale committed package JavaScript and declarations after the build. A separate Ubuntu WASIP job installs the Rust target and Playwright Chromium, builds `@taffyjs/wasm`, reruns the complete Node public API suite against it, and runs type, package-content, packed-consumer, bundled-consumer, and browser-runtime checks against the generated package. A Node-only job checks formatting, JavaScript and repository TypeScript including maintained tools through Vite+'s type-aware lint path, and generated-source drift. A Rust-only job checks formatting and Clippy. macOS and publication workflows are not configured.
+CI has five jobs. Ubuntu x64 and Windows x64 each build the native addon and run all Rust, JavaScript, and type tests with Node.js 22.18.0, then smoke-test the public `@taffyjs/node` entry with Bun 1.2.0 and Deno 2.2.0; Ubuntu also rejects stale committed package JavaScript and declarations after the build. A separate Ubuntu WASIP job installs the Rust target and Playwright Chromium, builds `@taffyjs/wasm`, reruns the complete Node public API suite against it, runs type, package-content, packed-consumer, bundled-consumer, and browser-runtime checks against the generated package, and applies the same Bun 1.2.0 and Deno 2.2.0 smoke checks to the public entry. Alternate-runtime smoke checks perform one fixed layout rather than copying the complete behavior suite. A Node-only job checks formatting, JavaScript and repository TypeScript including maintained tools through Vite+'s type-aware lint path, and generated-source drift. A Rust-only job checks formatting and Clippy. macOS and publication workflows are not configured.
 
 ## Public website
 
@@ -42,7 +42,7 @@ The interactive Getting Started example imports the real browser entry from `@ta
 
 ## Task orchestration
 
-The root `vite.config.ts` defines build and verification dependencies. The native build is an explicit graph from napi-rs binding generation through generated-file formatting to the independent platform-artifact and Vite+ entry branches. The Wasm build is a three-stage chain—staged napi-rs binding, Vite+ public entries, then final inline runtime files. Native build completion precedes package-local and consumer tests. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Node formatting and linting do not depend on a native build. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
+The root `vite.config.ts` defines build and verification dependencies. The native build is an explicit graph from napi-rs binding generation through Node builtin specifier normalization and generated-file formatting to the independent platform-artifact and Vite+ entry branches. The Wasm build is a three-stage chain—staged napi-rs binding, Vite+ public entries, then final inline runtime files. Native build completion precedes package-local and consumer tests. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Node formatting and linting do not depend on a native build. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
 
 Task caching is disabled at the root. This keeps native artifacts and runtime tests from being skipped or restored from stale task outputs until the project makes a new explicit caching decision.
 
