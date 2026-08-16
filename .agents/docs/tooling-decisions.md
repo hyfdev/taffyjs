@@ -4,6 +4,28 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### @taffyjs scope boundary
+
+**Ruling:** A package name may use the `@taffyjs` npm scope only when that package is intended to be published separately under the organization, with one explicit build-only exception: the napi-rs generated Wasm target used to assemble inline `@taffyjs/wasm` output also retains the scope. Other repository-only workspaces and generated or staged packages must use unscoped names.
+
+**Limits:** Separately published implementation artifacts qualify even when consumers should not import them directly. The native platform packages used as `@taffyjs/node` optional dependencies therefore remain scoped because they must be published with the public package. The Wasm exception applies only to its generated staging identity: the scoped package fallback appears in napi-rs template source but is removed when the binary is inlined, so the final package must retain neither `require.resolve` nor a binding package dependency. A temporary `private` field or missing publication automation during repository bootstrap does not by itself override the intended distribution boundary.
+
+**Why:** Yunfei reserved the organization scope for packages that will actually be published, then explicitly kept the inline Wasm staging target scoped as a special case; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; asked to generalize the test-package correction so every package that is not truly published avoids the `@taffyjs` scope, then corrected the Wasm staging target as an explicit scoped exception because the public Wasm package is inline.
+
+### Direct names for top-level test packages
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Every workspace package directly under the repository's top-level `tests/` directory must use an unscoped name formed by appending its corresponding identifier to `tests-taffy-`. Identifiers such as `node`, `wasm`, `yoga`, and `yoga-wasm` therefore produce names such as `tests-taffy-node`, `tests-taffy-wasm`, `tests-taffy-yoga`, and `tests-taffy-yoga-wasm`.
+
+**Limits:** This governs test workspace package names and every task selector that refers to them. It does not rename their directories, public `@taffyjs/*` packages, or projects nested below a top-level test package.
+
+**Why:** Yunfei preferred the direct `tests-taffy-<identifier>` convention over scoped names ending in `integration-tests`; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly chose `tests-taffy-node`, extended that pattern to every package directly under top-level `tests/`, clarified that the suffix is the corresponding identifier rather than an abstract target, and asked to vouch the decision.
+
 ### Repository-wide TypeScript default
 
 [VOUCHED @hyfdev 2026-08-16]

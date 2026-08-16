@@ -83,6 +83,8 @@ const __wasi = new __nodeWASI({
 })`,
   "Node WASI capability block and factory boundary",
 );
+// This is the exact file-loading fallback emitted by napi-rs. The replacement removes the
+// whole block, so neither require.resolve nor a binding package dependency reaches dist.
 nodeLoaderSource = replaceExactly(
   nodeLoaderSource,
   `let __wasmFilePath = __nodePath.join(__dirname, 'taffyjs.wasm32-wasip1.wasm')

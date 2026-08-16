@@ -72,16 +72,24 @@ assert.equal(nodeGraph.includes("WebAssembly.compile("), false);
 assert.equal(/\bawait\b/.test(nodeGraph), false);
 assert.equal(nodeGraph.includes("instantiateNapiModuleSync"), true);
 assert.equal(nodeGraph.includes("initial: 4000"), true);
+assert.equal(nodeGraph.includes("require.resolve("), false);
+assert.equal(nodeGraph.includes("@taffyjs/binding-wasm"), false);
 assert.equal(browserAdapter.includes("await WebAssembly.compile("), true);
 assert.equal(browserAdapter.includes("await instantiate("), true);
 assert.equal(deferredLoader.includes("initial: 1024"), true);
 
 const manifest = await import("@taffyjs/wasm/package.json", { with: { type: "json" } });
 assert.deepEqual(Object.keys(manifest.default.exports).sort(), [".", "./package.json"]);
+assert.equal(manifest.default.napi.packageName, "@taffyjs/binding");
+const dependencyNames = Object.entries(manifest.default).flatMap(([key, dependencies]) => {
+  const isDependencyMap = key === "dependencies" || key.endsWith("Dependencies");
+  if (!isDependencyMap || typeof dependencies !== "object" || dependencies === null) {
+    return [];
+  }
+  return Object.keys(dependencies);
+});
 assert.equal(
-  Object.keys(manifest.default.dependencies).some((name) =>
-    name.startsWith("@taffyjs/binding-wasm"),
-  ),
+  dependencyNames.some((name) => name.includes("binding-wasm")),
   false,
 );
 
