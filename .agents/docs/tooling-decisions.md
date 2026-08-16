@@ -4,6 +4,18 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### Repository-wide TypeScript default
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Across the entire repository, maintained code that would otherwise be authored in JavaScript—including source, tests, fixtures, configuration, scripts, and tools—must be written in TypeScript unless a concrete execution or generated-output boundary requires JavaScript.
+
+**Limits:** This chooses TypeScript over JavaScript; it does not turn Rust, JSON, Markdown, or other domain-appropriate files into TypeScript. Generated package files, napi-rs loader output, required final `.js` or `.cjs` package formats, and JavaScript text intentionally executed as an installed-consumer payload are not authored TypeScript source. Any maintained `.js`, `.mjs`, or `.cjs` file needs a specific present constraint; convenience, file size, or lack of existing annotations is not sufficient. This does not change the public package output format.
+
+**Why:** Yunfei established TypeScript as the repository-wide default and required an actual special reason for any exception; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly stated that everything should use TypeScript unless there is a special reason not to, then explicitly promoted and vouched this as a repository-wide PCR rule.
+
 ### Vite+ owns JavaScript package builds
 
 [VOUCHED @hyfdev 2026-08-09]
@@ -27,6 +39,18 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 **Why:** Yunfei selected vue-tui's command graph as the reference and explicitly required caching to remain disabled; no additional rationale was given.
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly selected the [vue-tui Vite+ configuration](https://github.com/vuejs-ai/vue-tui/blob/main/vite.config.ts) as the orchestration reference and requested `run.cache: false`.
+
+### Typed tools with scope-revealing ownership
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Maintained repository tools must be written in TypeScript and covered by repository type checking. Reusable tools belong at an appropriately shared `tools` scope; a tool coupled to one product or build belongs under `tools/<area>`, such as `tools/taffy-wasm`. Tool filenames must describe the transformation they actually perform rather than using a generic workflow-stage name.
+
+**Limits:** This governs maintained code under `tools`; it does not require generated JavaScript, third-party output, or ephemeral local experiments to become TypeScript. Directory placement follows real ownership and reuse rather than anticipated reuse. A tool whose behavior expands must be split or renamed when its existing name no longer describes that behavior. Command ordering remains governed separately by the explicit Vite+ task-graph ruling.
+
+**Why:** Yunfei required tool code to receive TypeScript validation and required generic and area-specific tools to be distinguishable from their location and behavior-based names. No additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required future tools to use TypeScript with type checking and asked to vouch the principle distilled from placing Taffy Wasm-specific behavior under `tools/taffy-wasm` with a behavior-describing filename.
 
 ### Code generation remains demand-driven
 

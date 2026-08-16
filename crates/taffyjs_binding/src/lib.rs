@@ -26,6 +26,8 @@ use owner::TreeOwner;
 use std::collections::HashSet;
 use taffy::{NodeId, TraversePartialTree};
 
+const JS_MAX_SAFE_INTEGER: u64 = (1u64 << 53) - 1;
+
 #[napi]
 pub struct BindingTaffyTree {
     owner: TreeOwner,
@@ -83,8 +85,9 @@ impl BindingTaffyTree {
         into_napi(
             env,
             self.owner.access("getChildCount", |tree| {
-                let count = tree.child_count(parent);
-                if count > 9_007_199_254_740_991usize {
+                let count =
+                    u64::try_from(tree.child_count(parent)).map_err(|_| internal_error())?;
+                if count > JS_MAX_SAFE_INTEGER {
                     return Err(internal_error());
                 }
                 Ok(count as f64)
@@ -126,16 +129,18 @@ impl BindingTaffyTree {
     #[napi(js_name = "rawGetChildAtIndex")]
     pub fn child_at_index(&self, env: Env, parent: BigInt, index: f64) -> napi::Result<BigInt> {
         let parent = into_napi(env, raw_node_id(&parent))?;
-        let index = into_napi(env, number::to_safe_usize(index))?;
+        let index = into_napi(env, number::to_safe_u64(index))?;
         into_napi(
             env,
             self.owner.access("getChildAtIndex", |tree| {
                 let child_count = tree.child_count(parent);
-                if index >= child_count {
+                let child_count_u64 = u64::try_from(child_count).map_err(|_| internal_error())?;
+                if index >= child_count_u64 {
                     return Err(child_index_out_of_bounds_error(format!(
                         "Child index {index} is outside a list of {child_count} children"
                     )));
                 }
+                let index = usize::try_from(index).map_err(|_| internal_error())?;
                 tree.child_at_index(parent, index)
                     .map(|child| BigInt::from(u64::from(child)))
                     .map_err(|_| internal_error())
@@ -166,16 +171,18 @@ impl BindingTaffyTree {
     ) -> napi::Result<()> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let child = into_napi(env, raw_node_id(&child))?;
-        let index = into_napi(env, number::to_safe_usize(index))?;
+        let index = into_napi(env, number::to_safe_u64(index))?;
         into_napi(
             env,
             self.owner.access("insertChildAtIndex", |tree| {
                 let child_count = tree.child_count(parent);
-                if index > child_count {
+                let child_count_u64 = u64::try_from(child_count).map_err(|_| internal_error())?;
+                if index > child_count_u64 {
                     return Err(child_index_out_of_bounds_error(format!(
                         "Child index {index} is outside the insertion range for {child_count} children"
                     )));
                 }
+                let index = usize::try_from(index).map_err(|_| internal_error())?;
                 validate_unattached_child(tree, parent, child)?;
                 tree.insert_child_at_index(parent, index, child)
                     .map_err(|_| internal_error())
@@ -250,16 +257,18 @@ impl BindingTaffyTree {
         index: f64,
     ) -> napi::Result<BigInt> {
         let parent = into_napi(env, raw_node_id(&parent))?;
-        let index = into_napi(env, number::to_safe_usize(index))?;
+        let index = into_napi(env, number::to_safe_u64(index))?;
         into_napi(
             env,
             self.owner.access("removeChildAtIndex", |tree| {
                 let child_count = tree.child_count(parent);
-                if index >= child_count {
+                let child_count_u64 = u64::try_from(child_count).map_err(|_| internal_error())?;
+                if index >= child_count_u64 {
                     return Err(child_index_out_of_bounds_error(format!(
                         "Child index {index} is outside a list of {child_count} children"
                     )));
                 }
+                let index = usize::try_from(index).map_err(|_| internal_error())?;
                 tree.remove_child_at_index(parent, index)
                     .map(|child| BigInt::from(u64::from(child)))
                     .map_err(|_| internal_error())
@@ -280,11 +289,14 @@ impl BindingTaffyTree {
             env,
             self.owner.access("removeChildrenRange", |tree| {
                 let child_count = tree.child_count(parent);
-                if start > end || end > child_count {
+                let child_count_u64 = u64::try_from(child_count).map_err(|_| internal_error())?;
+                if start > end || end > child_count_u64 {
                     return Err(error::range_error(format!(
                         "Child range {start}..{end} is outside a list of {child_count} children"
                     )));
                 }
+                let start = usize::try_from(start).map_err(|_| internal_error())?;
+                let end = usize::try_from(end).map_err(|_| internal_error())?;
                 tree.remove_children_range(parent, start..end)
                     .map_err(|_| internal_error())
             }),
@@ -301,16 +313,18 @@ impl BindingTaffyTree {
     ) -> napi::Result<BigInt> {
         let parent = into_napi(env, raw_node_id(&parent))?;
         let new_child = into_napi(env, raw_node_id(&new_child))?;
-        let index = into_napi(env, number::to_safe_usize(index))?;
+        let index = into_napi(env, number::to_safe_u64(index))?;
         into_napi(
             env,
             self.owner.access("replaceChildAtIndex", |tree| {
                 let child_count = tree.child_count(parent);
-                if index >= child_count {
+                let child_count_u64 = u64::try_from(child_count).map_err(|_| internal_error())?;
+                if index >= child_count_u64 {
                     return Err(child_index_out_of_bounds_error(format!(
                         "Child index {index} is outside a list of {child_count} children"
                     )));
                 }
+                let index = usize::try_from(index).map_err(|_| internal_error())?;
                 let old_child = tree
                     .child_at_index(parent, index)
                     .map_err(|_| internal_error())?;
@@ -592,10 +606,10 @@ fn raw_node_id(value: &BigInt) -> BindingResult<NodeId> {
     Ok(NodeId::from(value))
 }
 
-fn child_range(input: ChildRangeInput) -> BindingResult<(usize, usize)> {
+fn child_range(input: ChildRangeInput) -> BindingResult<(u64, u64)> {
     Ok((
-        number::to_safe_usize(input.start)?,
-        number::to_safe_usize(input.end)?,
+        number::to_safe_u64(input.start)?,
+        number::to_safe_u64(input.end)?,
     ))
 }
 

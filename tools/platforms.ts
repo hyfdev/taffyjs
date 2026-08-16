@@ -1,4 +1,12 @@
-export const platforms = [
+export interface Platform {
+  readonly os: string;
+  readonly cpu: string;
+  readonly packageName: string;
+  readonly directory: string;
+  readonly binary: string;
+}
+
+export const platforms: readonly Platform[] = [
   {
     os: "win32",
     cpu: "x64",
@@ -15,6 +23,9 @@ export const platforms = [
   },
 ];
 
-export function platformForHost(os = process.platform, cpu = process.arch) {
+export function platformForHost(
+  os: string = process.platform,
+  cpu: string = process.arch,
+): Platform | undefined {
   return platforms.find((platform) => platform.os === os && platform.cpu === cpu);
 }
