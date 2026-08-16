@@ -85,6 +85,7 @@ export default defineConfig({
       "tests/taffyjs-wasm/browser/dist",
       "packages/taffyjs-yoga/dist",
       "packages/taffyjs-yoga-wasm/dist",
+      "benchmarks/results/published.json",
     ],
     overrides: [
       {
@@ -159,6 +160,14 @@ export default defineConfig({
       "build:website": {
         command: "vp run @taffyjs/website#build",
         dependsOn: ["build:wasm"],
+      },
+      benchmark: {
+        command: "vp run taffyjs-benchmarks#benchmark",
+        dependsOn: ["build", "build:yoga-wasm"],
+      },
+      "benchmark:update-website": {
+        command: "vp run taffyjs-benchmarks#benchmark:update-website",
+        dependsOn: ["build", "build:yoga-wasm"],
       },
       "dev:website": {
         command: "vp run @taffyjs/website#dev",

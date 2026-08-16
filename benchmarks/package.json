@@ -1,0 +1,20 @@
+{
+  "name": "taffyjs-benchmarks",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@taffyjs/node": "workspace:*",
+    "@taffyjs/wasm": "workspace:*",
+    "@taffyjs/yoga": "workspace:*",
+    "@taffyjs/yoga-wasm": "workspace:*",
+    "yoga-layout": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tinybench": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

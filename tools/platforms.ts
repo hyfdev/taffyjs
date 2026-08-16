@@ -8,6 +8,13 @@ export interface Platform {
 
 export const platforms: readonly Platform[] = [
   {
+    os: "darwin",
+    cpu: "arm64",
+    packageName: "@taffyjs/binding-darwin-arm64",
+    directory: "darwin-arm64",
+    binary: "taffyjs.darwin-arm64.node",
+  },
+  {
     os: "win32",
     cpu: "x64",
     packageName: "@taffyjs/binding-win32-x64-msvc",
