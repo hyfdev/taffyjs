@@ -18,7 +18,7 @@ At the current pins, napi-rs 3.8.2 requires emnapi 2.0.0-alpha.3, but its genera
 
 ## JavaScript package builds
 
-Vite+ is the JavaScript toolchain. `vp pack` compiles the public source in `packages/taffyjs-node/src`, bundles the private napi-rs loader, and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private native declaration remains a generated build input rather than a published file.
+Vite+ is the JavaScript toolchain. The root task graph builds the `@taffyjs/node` napi-rs binding, formats its generated loader and declaration, then lets platform-artifact synchronization and `vp pack` run as independent final branches. `vp pack` compiles the public source in `packages/taffyjs-node/src`, bundles the private napi-rs loader, and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private native declaration remains a generated build input rather than a published file; package metadata does not duplicate the repository build pipeline as a compound script.
 
 The `@taffyjs/wasm` Vite+ pack configuration compiles that same entry twice. A filtered build-time resolver redirects only the resolved private binding import to `./taffyjs.node.js` for Node and `./taffyjs.browser.js` for browsers, leaving those generated adapters external. Both adapters reference `./taffyjs.wasm-base64.js`, so the base64 literal occurs once in the package. The Node compilation emits the one public declaration bundle; the browser compilation does not maintain a second declaration source.
 
@@ -30,10 +30,10 @@ CI has five jobs. Ubuntu x64 and Windows x64 each build the native addon and run
 
 ## Task orchestration
 
-The root `vite.config.ts` defines build and verification dependencies. The Wasm build is an explicit three-stage dependency chain—staged napi-rs binding, Vite+ public entries, then final inline runtime files—instead of a compound package script. Native build completion precedes package-local and consumer tests. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Node formatting and linting do not depend on a native build. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
+The root `vite.config.ts` defines build and verification dependencies. The native build is an explicit graph from napi-rs binding generation through generated-file formatting to the independent platform-artifact and Vite+ entry branches. The Wasm build is a three-stage chain—staged napi-rs binding, Vite+ public entries, then final inline runtime files. Native build completion precedes package-local and consumer tests. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Node formatting and linting do not depend on a native build. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
 
 Task caching is disabled at the root. This keeps native artifacts and runtime tests from being skipped or restored from stale task outputs until the project makes a new explicit caching decision.
 
-`check:wasm` is a separate Linux-capable graph rather than a dependency of the cross-platform default `check:test`: it requires the `wasm32-wasip1` Rust target and a Playwright browser. Its public API, Node smoke, type, packaging, packed-consumer, and browser tasks are sibling nodes after the shared Wasm build, so Vite+ can run them in parallel. Existing native jobs therefore keep their target assumptions while the dedicated WASIP job exercises the complete package boundary.
+`check:wasm` is a separate Linux-capable graph rather than a dependency of the cross-platform default `check:test`: it requires the `wasm32-wasip1` Rust target and a Playwright browser. Independent verification branches run in parallel after the shared Wasm build, while browser-bundle inspection waits only for its consumer build. Existing native jobs therefore keep their target assumptions while the dedicated WASIP job exercises the complete package boundary.
 
 The corresponding rulings are recorded in [tooling decisions](tooling-decisions.md).
