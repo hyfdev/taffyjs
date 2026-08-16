@@ -174,6 +174,16 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 ## Decided
 
+### napi-rs native target parity
+
+**Ruling:** `@taffyjs/node` must track napi-rs's own officially supported native platform set instead of limiting its binaries to a small hand-selected subset.
+
+**Limits:** This governs native target coverage. It does not change the public JavaScript API, runtime-version policy, explicit `@taffyjs/wasm` package boundary, or the rule against a custom loader. The concrete target list must be derived from current upstream support evidence rather than from every target triple the CLI can parse.
+
+**Why:** No rationale was given beyond requiring parity with napi-rs's official platform support and rejecting the existing narrow target set.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; asked to inspect both projects' platform coverage and align TaffyJS with napi-rs's official support instead of retaining only the current few targets.
+
 ### Generated numeric input shorthand
 
 [VOUCHED @hyfdev 2026-08-15]

@@ -1,5 +1,5 @@
 {
-  "name": "@taffyjs/binding-linux-x64-gnu",
+  "name": "@taffyjs/binding-darwin-x64",
   "version": "0.0.0",
   "private": true,
   "description": "Native Node-API bindings for the Taffy layout engine.",
@@ -10,18 +10,15 @@
     "directory": "packages/taffyjs-node"
   },
   "files": [
-    "taffyjs.linux-x64-gnu.node"
+    "taffyjs.darwin-x64.node"
   ],
   "os": [
-    "linux"
+    "darwin"
   ],
   "cpu": [
     "x64"
   ],
-  "libc": [
-    "glibc"
-  ],
-  "main": "taffyjs.linux-x64-gnu.node",
+  "main": "taffyjs.darwin-x64.node",
   "engines": {
     "node": ">=22.18.0"
   }

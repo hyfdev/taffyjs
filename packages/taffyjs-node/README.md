@@ -8,7 +8,9 @@ Install it with npm:
 npm install @taffyjs/node
 ```
 
-The package requires Node.js 22.18.0 or newer. Its native targets are Linux x64 GNU and Windows x64 MSVC. Bun 1.2+ within major 1 and Deno 2.2+ within major 2 are also supported and smoke-tested on those targets; support does not span runtime majors. Deno requires a local `node_modules` directory and the `--allow-env`, `--allow-read`, and `--allow-ffi` permissions. Application code imports only the public package entry:
+The package requires Node.js 22.18.0 or newer. Its package metadata and distribution build matrix cover the napi-rs template's complete native target set: macOS x64 and ARM64; Windows x86, x64, and ARM64 MSVC; Linux x64 and ARM64 with GNU or musl plus ARMv7 GNU; Android ARMv7 and ARM64; and FreeBSD x64. The [package overview](../../apps/website/node/index.md) lists the exact Rust target triples and distinguishes build coverage from the current blocking runtime matrix.
+
+Bun 1.2+ within major 1 and Deno 2.2+ within major 2 are smoke-tested on Linux x64 GNU and Windows x64 MSVC; support does not span runtime majors. Deno requires a local `node_modules` directory and the `--allow-env`, `--allow-read`, and `--allow-ffi` permissions. Application code imports only the public package entry:
 
 ```ts
 import { TaffyTree } from "@taffyjs/node";

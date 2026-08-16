@@ -1,5 +1,5 @@
 {
-  "name": "@taffyjs/binding-linux-x64-gnu",
+  "name": "@taffyjs/binding-linux-arm-gnueabihf",
   "version": "0.0.0",
   "private": true,
   "description": "Native Node-API bindings for the Taffy layout engine.",
@@ -10,18 +10,18 @@
     "directory": "packages/taffyjs-node"
   },
   "files": [
-    "taffyjs.linux-x64-gnu.node"
+    "taffyjs.linux-arm-gnueabihf.node"
   ],
   "os": [
     "linux"
   ],
   "cpu": [
-    "x64"
+    "arm"
   ],
   "libc": [
     "glibc"
   ],
-  "main": "taffyjs.linux-x64-gnu.node",
+  "main": "taffyjs.linux-arm-gnueabihf.node",
   "engines": {
     "node": ">=22.18.0"
   }
