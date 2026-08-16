@@ -6,7 +6,7 @@ This is the implementation reference for @taffyjs/yoga. It records the audited Y
 
 The ownership design rejects a normal create, insert, remove, detach, or free path that implicitly reconstructs or migrates an entire subtree or all unrelated roots. Operations whose meaning requires traversal, such as freeRecursive, are exempt. Style and topology changes must not implicitly compute layout; calculateLayout remains the explicit calculation boundary.
 
-Internal file splitting, private class names, code generation versus handwritten code, exact error wording, benchmark thresholds, a named external consumer, and multi-version Yoga support are deliberately deferred unless evidence makes one of them necessary to preserve the compatibility boundary. Browser and WASM support are excluded: @taffyjs/yoga is permanently the Node package over @taffyjs/node; any future WASM implementation would use a separate package.
+Internal file splitting, private class names, code generation versus handwritten code, exact error wording, benchmark thresholds, a named external consumer, and multi-version Yoga support are deliberately deferred unless evidence makes one of them necessary to preserve the compatibility boundary. Browser and WASM backends are excluded: @taffyjs/yoga permanently uses the native @taffyjs/node backend, including when that backend runs on supported Bun and Deno versions; any future WASM implementation would use a separate package.
 
 ## Inventory method
 
@@ -51,7 +51,7 @@ API shape, accepted input, stored getter value, state transition, error behavior
 
 ## Package entries and exports
 
-The decided package is ESM-only, follows @taffyjs/node's supported Node.js version (currently Node.js >=22.18), and mirrors both Yoga entry shapes at @taffyjs/yoga and @taffyjs/yoga/load. It never provides browser or WASM support.
+The decided package is ESM-only, follows @taffyjs/node's supported Node.js version (currently Node.js >=22.18) and alternate-runtime floors and constraints, and mirrors both Yoga entry shapes at @taffyjs/yoga and @taffyjs/yoga/load. It never provides a browser or WASM backend.
 
 Yoga 3.2.1 is ESM and publishes two package entries.
 
