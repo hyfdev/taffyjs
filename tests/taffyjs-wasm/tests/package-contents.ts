@@ -78,10 +78,9 @@ assert.equal(deferredLoader.includes("initial: 1024"), true);
 
 const manifest = await import("@taffyjs/wasm/package.json", { with: { type: "json" } });
 assert.deepEqual(Object.keys(manifest.default.exports).sort(), [".", "./package.json"]);
+assert.equal(manifest.default.napi.packageName, "taffyjs-binding");
 assert.equal(
-  Object.keys(manifest.default.dependencies).some((name) =>
-    name.startsWith("@taffyjs/binding-wasm"),
-  ),
+  Object.keys(manifest.default.dependencies).some((name) => name.includes("binding-wasm")),
   false,
 );
 

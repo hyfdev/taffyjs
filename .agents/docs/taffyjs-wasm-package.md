@@ -1,7 +1,5 @@
 # @taffyjs/wasm Package Design
 
-[VOUCHED @hyfdev 2026-08-15]
-
 ## Outcome
 
 `@taffyjs/wasm` is the explicit distribution for consumers that want TaffyJS to run as WebAssembly in both Node.js and browsers. A consumer chooses it by importing that package; it is not an automatic fallback for `@taffyjs/node`, and installing `@taffyjs/node` must not download its Wasm binary.
@@ -26,7 +24,7 @@ The package is ESM-only, matching `@taffyjs/node`. A dedicated public CommonJS b
 
 The package contains the threadless `wasm32-wasip1` artifact as one raw base64 string in a generated private JavaScript module. The npm tarball does not contain an independent `.wasm` file. Base64 increases the uncompressed payload size, but avoiding a separate binary asset is more important for this package and ordinary package compression still applies during transfer.
 
-The base64 payload occurs exactly once in the package, even though the package retains browser and default public entries. The private Node and browser ESM adapters both import that generated no-TLA ESM payload module normally. The generated target package such as `@taffyjs/binding-wasm32-wasip1` is not a public dependency or separately published TaffyJS package.
+The base64 payload occurs exactly once in the package, even though the package retains browser and default public entries. The private Node and browser ESM adapters both import that generated no-TLA ESM payload module normally. The generated unscoped target package such as `taffyjs-binding-wasm32-wasip1` is a build-only staging artifact, not a public dependency or separately published TaffyJS package.
 
 The package root uses conditional exports with one declaration surface, a browser entry, and a default Node.js entry. The intended shape is:
 
@@ -77,7 +75,7 @@ Both runtime chains use napi-rs's JavaScript WASI implementation without forward
 - A Node.js ESM consumer must import `@taffyjs/wasm` and use the ordinary public Taffy API without initialization calls, top-level await in the selected package graph, or native platform packages.
 - A bundled browser consumer must use the same import and API, include the inline payload without emitting a `.wasm` asset, and work without `SharedArrayBuffer`, cross-origin isolation, COOP, or COEP.
 - The Node and browser builds must derive their JavaScript and TypeScript surface from the same authored source. Except for a documented and evidenced host-specific exception, every public Node binding behavior test must run unchanged against both `@taffyjs/node` and `@taffyjs/wasm`; one test configuration redirects the exact package import instead of copying test files.
-- Package inspection must show exactly one base64 Wasm payload, no independent `.wasm` file, exactly one browser-side `WebAssembly.compile`, synchronous `instantiateNapiModuleSync` in the Node graph, no Node environment or filesystem-root WASI capabilities, no dependency on `@taffyjs/binding-wasm32-wasip1`, no public initialization subpath, and no accidentally published raw binding entry.
+- Package inspection must show exactly one base64 Wasm payload, no independent `.wasm` file, exactly one browser-side `WebAssembly.compile`, synchronous `instantiateNapiModuleSync` in the Node graph, no Node environment or filesystem-root WASI capabilities, no dependency on `taffyjs-binding-wasm32-wasip1`, no public initialization subpath, and no accidentally published raw binding entry.
 - Generated napi-rs artifacts and all derived package modules must be reproducible from the pinned toolchain and repository generator. The napi-rs deferred loader must not contain maintained TaffyJS edits, and the Node adapter transformation must reject unexpected upstream template changes.
 
 ## Evidence
