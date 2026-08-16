@@ -21,6 +21,7 @@ Do not import `native.js`, a `.node` file, or a platform package directly.
 ## Documentation
 
 - [Guide](../../apps/website/guide/index.md) introduces the tree, styles, layout algorithms, and measurement.
+- [Design philosophy](../../apps/website/node/design-philosophy.md) explains why the binding follows Taffy's model and where it adds JavaScript-specific operations.
 - [`@taffyjs/node` overview](../../apps/website/node/index.md) records supported targets and the public entry point.
 - The API reference covers [nodes and topology](../../apps/website/node/nodes-and-topology.md), [styles and context](../../apps/website/node/styles-and-context.md), [computation](../../apps/website/node/computing-layout.md), [layout results](../../apps/website/node/layout-results.md), [Style](../../apps/website/node/style.md), [value helpers](../../apps/website/node/value-helpers.md), and [errors](../../apps/website/node/errors.md).
 
