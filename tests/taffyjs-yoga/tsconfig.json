@@ -7,8 +7,8 @@
     "moduleResolution": "nodenext",
     "types": ["node"],
     "paths": {
-      "yoga-layout": ["../../packages/taffyjs-yoga/src/index.ts"],
-      "yoga-layout/load": ["../../packages/taffyjs-yoga/src/load.ts"]
+      "#taffyjs-yoga-test-source": ["../../packages/taffyjs-yoga/src/index.ts"],
+      "#taffyjs-yoga-test-load-source": ["../../packages/taffyjs-yoga/src/load.ts"]
     },
     "strict": true,
     "noUnusedLocals": true,
@@ -19,5 +19,5 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["*.test.mts", "vite.config.ts"]
+  "include": ["*.test.mts", "vite.config.ts", "yoga-layout-source.d.ts"]
 }

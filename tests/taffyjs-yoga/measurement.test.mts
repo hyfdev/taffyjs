@@ -422,7 +422,7 @@ test("same-facade native reentrancy fails before mutation while JavaScript gette
   node.free();
 });
 
-test("unmeasured calculations stay on the ordinary native path", () => {
+test("unmeasured calculations stay on the ordinary backend path", () => {
   const fixture = fileURLToPath(new URL("./fixtures/measure-path-profile.mjs", import.meta.url));
   const result = spawnSync(process.execPath, [fixture], { encoding: "utf8", timeout: 20_000 });
   assert.equal(result.signal, null);
