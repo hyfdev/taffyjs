@@ -79,7 +79,10 @@ export default defineConfig({
       "tests/taffyjs-wasm/browser/dist",
     ],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
-    rules: { "vite-plus/prefer-vite-plus-imports": "error" },
+    rules: {
+      "unicorn/prefer-node-protocol": "error",
+      "vite-plus/prefer-vite-plus-imports": "error",
+    },
     options: { typeAware: true, typeCheck: true },
   },
   run: {
@@ -96,9 +99,13 @@ export default defineConfig({
         command:
           "vp exec --filter @taffyjs/node -- napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js binding.js --dts binding.d.ts --esm --release -- --locked",
       },
+      "build:node:normalize-builtins": {
+        command: "node tools/taffy-node/normalize-node-builtin-specifiers.ts",
+        dependsOn: ["build:node:binding"],
+      },
       "build:node:format": {
         command: "vp exec --filter @taffyjs/node -- vp fmt binding.js binding.d.ts package.json",
-        dependsOn: ["build:node:binding"],
+        dependsOn: ["build:node:normalize-builtins"],
       },
       "build:node:platform-artifact": {
         command: "node tools/sync-platform-artifact.ts",
