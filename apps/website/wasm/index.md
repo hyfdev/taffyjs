@@ -2,6 +2,8 @@
 
 `@taffyjs/wasm` runs the same TaffyJS API through WebAssembly. Choose it for a bundled browser application, or when you want to use WebAssembly explicitly in Node.js instead of loading a native addon.
 
+Read the [Design Philosophy](./design-philosophy.md) to understand how the package keeps one direct API across native and WebAssembly runtimes.
+
 ## Install
 
 ```sh
