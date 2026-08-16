@@ -12,7 +12,7 @@ The landing page speaks for TaffyJS as a family and presents the intended comple
 
 The home page is only a landing page and uses VitePress's default theme. It contains a concise performance-led introduction, short summaries of the Rust/Taffy foundation, native Node.js performance and portable WebAssembly support, and direct routes to real package documentation and source. Tutorials, complete examples, runtime details and API reference belong to Guide or package documentation rather than the home page. The home page does not use invented testimonials, unsupported benchmark numbers or generic feature text to fill space.
 
-The landing page includes one code-to-layout example below the default Home content. It shows ordinary direct TaffyJS JavaScript rather than JSX or a second wrapper API, and the adjacent rectangles come from that exact source through `@taffyjs/wasm` and `getLayout`. Variable names label the corresponding boxes. One `availableWidth` control demonstrates recomputation; the home page does not grow into an arbitrary code editor or a multi-control playground.
+The landing page includes one code-to-layout example below the default Home content. It shows ordinary direct TaffyJS JavaScript rather than JSX or a second wrapper API, and the adjacent rectangles come from that exact source through `@taffyjs/wasm` and `getLayout`. Variable names label the corresponding boxes. Controls expose only inputs whose effects are immediately visible in those rectangles: available width, sidebar width, header height, and the horizontal and vertical gaps. The home page does not grow into an arbitrary code editor or a general-purpose playground.
 
 ## Package family
 
