@@ -30,12 +30,12 @@ npm install @taffyjs/node
 
 TaffyJS supports Node.js 22.18+, Bun 1.2+ within the Bun 1 major, and Deno 2.2+ within the Deno 2 major. CI runs the complete test suite on Node.js 22.18.0 and smoke-tests Bun 1.2.0 and Deno 2.2.0 by importing each implemented public package, computing a minimal layout, and verifying the result. Bun and Deno support follows one current major per runtime rather than spanning runtime majors.
 
-| Package              | Node.js 22.18+     | Bun 1.2+           | Deno 2.2+                                                                   |
-| -------------------- | ------------------ | ------------------ | --------------------------------------------------------------------------- |
-| `@taffyjs/node`      | ✅                 | ✅                 | ✅ (local `node_modules`; `--allow-env`, `--allow-read`, and `--allow-ffi`) |
-| `@taffyjs/wasm`      | ✅                 | ✅                 | ✅ (without permission flags)                                               |
-| `@taffyjs/yoga`      | ✅                 | ✅                 | ✅ (local `node_modules`; `--allow-env`, `--allow-read`, and `--allow-ffi`) |
-| `@taffyjs/yoga-wasm` | ⚠️ Not implemented | ⚠️ Not implemented | ⚠️ Not implemented                                                          |
+| Package              | Node.js 22.18+ | Bun 1.2+ | Deno 2.2+                                                                   |
+| -------------------- | -------------- | -------- | --------------------------------------------------------------------------- |
+| `@taffyjs/node`      | ✅             | ✅       | ✅ (local `node_modules`; `--allow-env`, `--allow-read`, and `--allow-ffi`) |
+| `@taffyjs/wasm`      | ✅             | ✅       | ✅ (without permission flags)                                               |
+| `@taffyjs/yoga`      | ✅             | ✅       | ✅ (local `node_modules`; `--allow-env`, `--allow-read`, and `--allow-ffi`) |
+| `@taffyjs/yoga-wasm` | ✅             | ✅       | ✅ (without permission flags)                                               |
 
 ## Documentation
 

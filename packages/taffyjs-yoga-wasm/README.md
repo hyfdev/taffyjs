@@ -4,7 +4,7 @@
 
 The [design philosophy](../../apps/website/yoga-wasm/design-philosophy.md) explains why the Yoga-facing model and runtime transport remain separate choices.
 
-The package supports Node.js `>=22.18` and modern bundled browsers within the [documented `@taffyjs/wasm` runtime boundary](https://github.com/hyfdev/taffyjs/blob/main/packages/taffyjs-wasm/README.md). Browser consumers need a bundler that honors package export conditions and top-level await. Direct CDN scripts, legacy browsers, and non-browser edge runtimes are not currently supported.
+The package supports Node.js `>=22.18`, Bun 1.2+ within the Bun 1 major, Deno 2.2+ within the Deno 2 major, and modern bundled browsers within the [documented `@taffyjs/wasm` runtime boundary](https://github.com/hyfdev/taffyjs/blob/main/packages/taffyjs-wasm/README.md). Deno requires no permission flags. Browser consumers need a bundler that honors package export conditions and top-level await. Direct CDN scripts, legacy browsers, and non-browser edge runtimes are not currently supported.
 
 This package is still private and unpublished. The installation form below describes the intended registry substitution after publication.
 
