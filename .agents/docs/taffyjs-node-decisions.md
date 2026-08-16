@@ -198,6 +198,16 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-16; kept `setStyle` as the direct complete-replacement operation, chose an additive update operation for ergonomic partial changes, required Rust-owned copying rather than JavaScript object cloning, required invalid, empty, and unchanged updates not to produce mutation or new dirty state, accepted whole-array replacement, and explicitly confirmed that generated TypeScript must prevent partial tagged-union inputs before asking for this accumulated design to be vouched.
 
+### Preferred style mutation operation
+
+**Ruling:** Public documentation must recommend `updateStyle` as the default operation for changing an existing node. `setStyle` is the intentional complete-replacement operation and should be chosen when omitted fields must reset to Taffy's defaults, including a complete reset with `{}`.
+
+**Limits:** This recommendation does not remove or deprecate `setStyle`, change whole-value replacement for supplied arrays and complete values, promise that every individual `updateStyle` call is faster, or fix the binding's private copying strategy. The exact cost depends on the input shape and runtime.
+
+**Why:** Reconstructing preserved state for `setStyle` requires a caller-owned prior value or a `getStyle` snapshot and makes every retained supplied value cross the JavaScript-to-Rust conversion boundary again. `updateStyle` directly represents the incremental intent and generally avoids converting unrelated JavaScript values. Retained end-to-end measurements support this qualitative default while also showing that direct replacement of a large collection can make the operations converge, so the public claim must remain comparative rather than absolute.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly requested a dedicated `@taffyjs/node` documentation page that explains the distinction and tells readers to prefer `updateStyle` unless they have a specific need for `setStyle`.
+
 ## Open
 
 ### Selective query implementation details

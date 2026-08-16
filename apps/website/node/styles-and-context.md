@@ -35,6 +35,8 @@ Floating-point style values accept JavaScript numbers and are stored with Taffy'
 
 `getStyle(node)` returns a complete detached snapshot, including defaults. Its fields are recursively readonly in TypeScript, but its runtime objects are not frozen. Mutating a returned object does not change the tree. A style snapshot can be passed back as a later `StyleInput` or `StyleUpdate` because its structure is compatible.
 
+For ordinary changes to an existing node, prefer `updateStyle`. Use `setStyle` when complete replacement or resetting omitted fields to their defaults is the intended operation. See [setStyle vs updateStyle](./set-style-vs-update-style.md) for the detailed comparison and performance model.
+
 ## Store JavaScript context
 
 The generic parameter on `TaffyTree<TContext>` describes the values returned by `getNodeContext` and supplied to measurement:

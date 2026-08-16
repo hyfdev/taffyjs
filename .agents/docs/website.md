@@ -42,7 +42,7 @@ The target page groups are:
 
 - Guide: Introduction and Getting Started only.
 - Essentials: the tree-compute-read workflow, styles and values, Block, Flexbox, Grid, and measuring text and images.
-- `@taffyjs/node`: package overview and supported targets; `TaffyTree` node and topology operations, styles and context, computation and dirty state, and layout results; the grouped `Style` data model; value helpers; and errors.
+- `@taffyjs/node`: package overview and supported targets; `TaffyTree` node and topology operations, styles and context, the detailed `setStyle` versus `updateStyle` choice, computation and dirty state, and layout results; the grouped `Style` data model; value helpers; and errors.
 - `@taffyjs/wasm`: package overview and setup, supported environments, initialization and deployment, observable differences from Node, and a link to the shared direct API reference.
 - `@taffyjs/yoga`: package overview and installation, compatibility scope, migration from Yoga, Yoga-facing API reference, and documented differences from the direct Taffy API.
 
