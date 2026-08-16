@@ -8,7 +8,7 @@ TaffyJS brings the Taffy layout engine to JavaScript through native, WebAssembly
 - **Optimized binding bridge:** Minimizes cross-boundary data transfer with targeted tree operations that update only the relevant state.
 - **Native performance:** Runs Taffy as native Rust code in Node.js through Node-API.
 - **WebAssembly support:** Runs Taffy in bundled browsers and deployments where a native addon is not the right fit.
-- **One API, two runtimes:** Use `@taffyjs/node` for native performance on Node.js or `@taffyjs/wasm` for WebAssembly portability; only the underlying implementation changes.
+- **One API, two runtimes:** Switch freely between `@taffyjs/node` and `@taffyjs/wasm` for native performance or WebAssembly flexibility—their public APIs are identical.
 - **Yoga compatibility:** Use `@taffyjs/yoga` or `@taffyjs/yoga-wasm` (work in progress) while preserving Yoga's API shape for straightforward migration.
 
 ## Installation
@@ -19,12 +19,12 @@ npm install @taffyjs/node
 
 ## Packages
 
-| Package                                                                  | Version |
-| ------------------------------------------------------------------------ | ------- |
-| [`@taffyjs/node`](https://www.npmjs.com/package/@taffyjs/node)           | —       |
-| [`@taffyjs/wasm`](https://www.npmjs.com/package/@taffyjs/wasm)           | —       |
-| [`@taffyjs/yoga`](https://www.npmjs.com/package/@taffyjs/yoga)           | —       |
-| [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | WIP     |
+| Package                                                                  | Description                                     | Version |
+| ------------------------------------------------------------------------ | ----------------------------------------------- | ------- |
+| [`@taffyjs/node`](https://www.npmjs.com/package/@taffyjs/node)           | Native Node.js runtime for maximum performance. | —       |
+| [`@taffyjs/wasm`](https://www.npmjs.com/package/@taffyjs/wasm)           | WebAssembly runtime for flexible deployment.    | —       |
+| [`@taffyjs/yoga`](https://www.npmjs.com/package/@taffyjs/yoga)           | Yoga-compatible API backed by `@taffyjs/node`.  | —       |
+| [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | Yoga-compatible API backed by `@taffyjs/wasm`.  | WIP     |
 
 ## Credits
 
