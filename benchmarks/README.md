@@ -10,7 +10,7 @@ Each scenario directory owns its workload and states the user transaction it mea
 
 The wide and deep categories follow the questions asked by [Taffy's upstream large-tree benchmarks](https://github.com/DioxusLabs/taffy/blob/3ce6bef173028b1cb33d782de8c262e6dd8edd39/benches/benches/flexbox.rs), but their boundary is intentionally different: Taffy upstream measures layout computation with a prepared tree, while this workspace measures public JavaScript tree construction, layout, and result reads as one transaction. The coding-agent chat case is explicitly a maintained model, not a captured production application.
 
-The current suite keeps one representative scale for each wide-tree and deep-tree question. The retained 1,000-leaf wide tree and 500-node deep tree already distinguish the target behavior, so larger versions of the same structures would add measurement cost without answering another question.
+The current suite keeps one representative scale for each wide-tree and deep-tree question. The retained 500-leaf wide tree and 500-node deep tree already distinguish the target behavior, so larger versions of the same structures would add measurement cost without answering another question.
 
 ## Delivery status
 
