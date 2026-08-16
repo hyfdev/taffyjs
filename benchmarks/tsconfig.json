@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["es2023"],
+    "moduleDetection": "force",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "paths": {
+      "@taffyjs/node": ["../packages/taffyjs-node/src/index.ts"],
+      "@taffyjs/wasm": ["../packages/taffyjs-node/src/index.ts"]
+    },
+    "strict": true,
+    "noUnusedLocals": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"]
+}

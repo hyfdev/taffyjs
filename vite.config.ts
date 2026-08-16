@@ -160,6 +160,14 @@ export default defineConfig({
         command: "vp run @taffyjs/website#build",
         dependsOn: ["build:wasm"],
       },
+      benchmark: {
+        command: "vp run taffyjs-benchmarks#benchmark",
+        dependsOn: ["build", "build:wasm"],
+      },
+      "benchmark:update-website": {
+        command: "vp run taffyjs-benchmarks#benchmark:update-website",
+        dependsOn: ["build", "build:wasm"],
+      },
       "dev:website": {
         command: "vp run @taffyjs/website#dev",
         dependsOn: ["build:wasm"],

@@ -86,6 +86,18 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-09; explicitly selected the [vue-tui Vite+ configuration](https://github.com/vuejs-ai/vue-tui/blob/main/vite.config.ts) as the orchestration reference and requested `run.cache: false`.
 
+### Benchmark ownership and command surface
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Maintained benchmark cases and results must belong to the top-level `benchmarks/` workspace, and the root Vite+ task graph must expose `vp run benchmark` for non-mutating local runs and `vp run benchmark:update-website` for a complete run that updates the retained website data.
+
+**Limits:** This ruling fixes ownership and the two public commands, not the internal coordinator API, exact scenario set, sampling library, result schema, fixed benchmark machine, or Node.js version. Internal selection remains an argument to the local command rather than a larger public command family. Updating benchmark data does not deploy the website.
+
+**Why:** Yunfei wanted benchmark examples to be first-class top-level cases rather than unrelated scripts, distinguished ordinary measurement from measurement that updates documentation data, and explicitly corrected the updating command to `benchmark:update-website`; no additional rationale was stated.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; accepted and vouched the complete benchmark design and explicitly named the two public commands. See [Benchmark Design](benchmark.md).
+
 ### Typed tools with scope-revealing ownership
 
 [VOUCHED @hyfdev 2026-08-16]
