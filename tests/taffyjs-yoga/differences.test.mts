@@ -694,6 +694,72 @@ test("Different: main-axis auto margins retain Taffy's justify offset", () => {
   }
 });
 
+for (const fixture of [
+  { name: "both auto", left: "auto", right: "auto", taffyLeft: -10, yogaLeft: [0, -20] },
+  { name: "left auto", left: "auto", right: undefined, taffyLeft: -20, yogaLeft: [0, -20] },
+  { name: "left 10, right auto", left: 10, right: "auto", taffyLeft: 10, yogaLeft: [10, -20] },
+  { name: "left auto, right 10", left: "auto", right: 10, taffyLeft: -30, yogaLeft: [0, -30] },
+] as const) {
+  test(`Different: oversized cross-axis auto margins keep Taffy's alignment (${fixture.name})`, () => {
+    const config = Yoga.Config.create();
+    const oracleConfig = OracleYoga.Config.create();
+    config.setPointScaleFactor(0);
+    oracleConfig.setPointScaleFactor(0);
+    const root = Yoga.Node.createWithConfig(config);
+    const child = Yoga.Node.createWithConfig(config);
+    const oracleRoot = OracleYoga.Node.createWithConfig(oracleConfig);
+    const oracleChild = OracleYoga.Node.createWithConfig(oracleConfig);
+    try {
+      root.setWidth(52);
+      root.setHeight(52);
+      root.setJustifyContent(Justify.Center);
+      child.setWidth(72);
+      child.setHeight(72);
+      oracleRoot.setWidth(52);
+      oracleRoot.setHeight(52);
+      oracleRoot.setJustifyContent(OracleJustify.Center);
+      oracleChild.setWidth(72);
+      oracleChild.setHeight(72);
+
+      for (const [value, edge, oracleEdge] of [
+        [fixture.left, Edge.Left, OracleEdge.Left],
+        [fixture.right, Edge.Right, OracleEdge.Right],
+      ] as const) {
+        if (value === "auto") {
+          child.setMarginAuto(edge);
+          oracleChild.setMarginAuto(oracleEdge);
+        } else if (value !== undefined) {
+          child.setMargin(edge, value);
+          oracleChild.setMargin(oracleEdge, value);
+        }
+      }
+
+      root.insertChild(child, 0);
+      oracleRoot.insertChild(oracleChild, 0);
+      for (const [index, direction, oracleDirection] of [
+        [0, Direction.LTR, OracleDirection.LTR],
+        [1, Direction.RTL, OracleDirection.RTL],
+      ] as const) {
+        root.calculateLayout(undefined, undefined, direction);
+        oracleRoot.calculateLayout(undefined, undefined, oracleDirection);
+        assert.deepEqual(
+          [child.getComputedLeft(), child.getComputedTop()],
+          [fixture.taffyLeft, -10],
+        );
+        assert.deepEqual(
+          [oracleChild.getComputedLeft(), oracleChild.getComputedTop()],
+          [fixture.yogaLeft[index], -10],
+        );
+      }
+    } finally {
+      root.freeRecursive();
+      oracleRoot.freeRecursive();
+      config.free();
+      oracleConfig.free();
+    }
+  });
+}
+
 test("Different: reversed-axis auto margins keep Taffy's distribution", () => {
   const config = Yoga.Config.create();
   const oracleConfig = OracleYoga.Config.create();

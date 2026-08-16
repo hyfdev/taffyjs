@@ -19,5 +19,5 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["*.test.mts", "vite.config.ts", "yoga-layout-source.d.ts"]
+  "include": ["*.test.mts", "vite.config.ts", "yoga-layout-source.d.ts", "yoga-official/*.ts"]
 }
