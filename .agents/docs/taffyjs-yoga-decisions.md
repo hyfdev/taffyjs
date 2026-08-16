@@ -192,6 +192,16 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-14; required differences to be documented, accepted explicit unsupported behavior, vouched the original consolidated verification rules, and later clarified that the base design must not preselect Ink or another external consumer.
 
+### Official Yoga compatibility corpus
+
+**Ruling:** Compatibility verification must run the official Yoga JavaScript test snapshot under `tests/taffyjs-yoga/yoga-official/` against every maintained Yoga backend. The directory name remains stable while the exact Yoga version, tag, and commit live in its README. Cases covered by a published Different or Unsupported classification must be registered as explicit expected failures; every other active upstream case must pass.
+
+**Limits:** The snapshot is a bounded regression corpus, not a compatibility percentage and not a replacement for focused TaffyJS differential, rejection, type, state, or failure-atomicity tests. Yoga's benchmarks and Chrome/Selenium generator are not part of the normal suite. The copied upstream sources stay unchanged, retain their license, and are replaced from one reviewed commit when the compatibility baseline changes. An unexpected failure or an expected failure that begins passing requires reviewing the implementation, classification, focused tests, and documentation together rather than silently changing the expected-failure list.
+
+**Why:** The official suite provides broad, maintained combinations of Yoga's JavaScript API and layout behavior, while the existing focused tests explain and enforce TaffyJS-specific compatibility boundaries. Keeping the version in the README avoids renaming the directory on a future baseline update.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; asked to migrate Yoga's official JavaScript tests as compatibility coverage, selected `tests/taffyjs-yoga/yoga-official/`, required the version to live in its README, and accepted the proposed pinned-snapshot and classified-failure approach.
+
 ### Upstream work and current compatibility
 
 [VOUCHED @hyfdev 2026-08-16]
