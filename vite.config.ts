@@ -18,7 +18,7 @@ const testTasks = {
     dependsOn: ["build"],
   },
   "check:test:yoga": {
-    command: "vp run @taffyjs/yoga-integration-tests#test",
+    command: "vp run tests-taffy-yoga#test",
     dependsOn: ["build"],
   },
   "check:test:yoga:types": {
@@ -56,6 +56,22 @@ const wasmTasks = {
     command: "vp run tests-taffy-wasm#check:browser-bundle",
     dependsOn: ["build:wasm:browser-consumer"],
   },
+  "check:wasm:yoga:api": {
+    command: "vp run tests-taffy-yoga-wasm#test:api",
+    dependsOn: ["build:yoga-wasm"],
+  },
+  "check:wasm:yoga:types": {
+    command: "vp run tests-taffy-yoga-wasm#check:types",
+    dependsOn: ["build:yoga-wasm"],
+  },
+  "check:wasm:yoga:package": {
+    command: "vp run tests-taffy-yoga-wasm#check:package",
+    dependsOn: ["build:yoga-wasm"],
+  },
+  "check:wasm:yoga:packed": {
+    command: "vp run tests-taffy-yoga-wasm#test:packed",
+    dependsOn: ["build:yoga-wasm"],
+  },
 };
 
 export default defineConfig({
@@ -68,6 +84,7 @@ export default defineConfig({
       "packages/**/.napi-rs-filesystem-transaction*",
       "tests/taffyjs-wasm/browser/dist",
       "packages/taffyjs-yoga/dist",
+      "packages/taffyjs-yoga-wasm/dist",
     ],
     overrides: [
       {
@@ -87,6 +104,7 @@ export default defineConfig({
       "packages/**/.napi-rs-filesystem-transaction*",
       "tests/taffyjs-wasm/browser/dist",
       "packages/taffyjs-yoga/dist",
+      "packages/taffyjs-yoga-wasm/dist",
     ],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: {
@@ -149,16 +167,16 @@ export default defineConfig({
         command: "vp run @taffyjs/yoga#build",
         dependsOn: ["build:node:entries"],
       },
+      "build:yoga-wasm": {
+        command: "vp run @taffyjs/yoga-wasm#build",
+        dependsOn: ["build:wasm"],
+      },
       build: {
         command: "echo build ok",
         dependsOn: ["build:node:platform-artifact", "build:node:entries", "build:yoga"],
       },
       "check:format": {
         command: "vp fmt --check",
-      },
-      "check:format:after-build": {
-        command: "vp fmt --check",
-        dependsOn: ["build"],
       },
       "check:lint": {
         command: "vp lint --deny-warnings",
@@ -173,9 +191,13 @@ export default defineConfig({
         command: "echo tests ok",
         dependsOn: Object.keys(testTasks),
       },
+      "check:test:after-format": {
+        command: "vp run check:test",
+        dependsOn: ["check:format"],
+      },
       check: {
         command: "echo check ok",
-        dependsOn: ["check:format:after-build", "check:lint", "check:rust", "check:test"],
+        dependsOn: ["check:lint", "check:rust", "check:test:after-format"],
       },
       "check:wasm": {
         command: "echo wasm checks passed",
@@ -186,6 +208,10 @@ export default defineConfig({
           "check:wasm:package",
           "check:wasm:browser-runtime",
           "check:wasm:browser-bundle",
+          "check:wasm:yoga:api",
+          "check:wasm:yoga:types",
+          "check:wasm:yoga:package",
+          "check:wasm:yoga:packed",
           "build:website",
         ],
       },

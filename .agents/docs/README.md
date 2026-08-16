@@ -15,4 +15,5 @@
 - [@taffyjs/wasm package design](taffyjs-wasm-package.md) — public contract, artifact layout, initialization model, ownership boundary, and verification requirements for the explicit Wasm package.
 - [@taffyjs/yoga decisions](taffyjs-yoga-decisions.md) — compatibility decisions for replacing yoga-layout through the TaffyJS Yoga layer.
 - [@taffyjs/yoga implementation reference](taffyjs-yoga-reference.md) — the audited Yoga 3.2.1 public API inventory, implemented compatibility boundary, evidence, and ongoing maintenance constraints.
+- [@taffyjs/yoga-wasm package design](taffyjs-yoga-wasm-package.md) — the shared-source Wasm transport, package boundary, loading behavior, and verification contract for the Yoga facade.
 - [Tooling decisions](tooling-decisions.md) — rulings for npm scope and test workspace package naming, the repository-wide TypeScript default, JavaScript package builds, repository command orchestration, tool ownership, and demand-driven API code generation.

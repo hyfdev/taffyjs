@@ -1,194 +1,19 @@
+import { y as legacyConstants } from "./enums-CbyzWgT7.js";
 import { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Dimension, Direction, Display, FlexDirection, FlexWrap, Overflow, Position, TaffyTree } from "@taffyjs/node";
-//#region src/enums.ts
-let Align = /* @__PURE__ */ function(Align) {
-	Align[Align["Auto"] = 0] = "Auto";
-	Align[Align["FlexStart"] = 1] = "FlexStart";
-	Align[Align["Center"] = 2] = "Center";
-	Align[Align["FlexEnd"] = 3] = "FlexEnd";
-	Align[Align["Stretch"] = 4] = "Stretch";
-	Align[Align["Baseline"] = 5] = "Baseline";
-	Align[Align["SpaceBetween"] = 6] = "SpaceBetween";
-	Align[Align["SpaceAround"] = 7] = "SpaceAround";
-	Align[Align["SpaceEvenly"] = 8] = "SpaceEvenly";
-	return Align;
-}({});
-let BoxSizing$1 = /* @__PURE__ */ function(BoxSizing) {
-	BoxSizing[BoxSizing["BorderBox"] = 0] = "BorderBox";
-	BoxSizing[BoxSizing["ContentBox"] = 1] = "ContentBox";
-	return BoxSizing;
-}({});
-let Dimension$1 = /* @__PURE__ */ function(Dimension) {
-	Dimension[Dimension["Width"] = 0] = "Width";
-	Dimension[Dimension["Height"] = 1] = "Height";
-	return Dimension;
-}({});
-let Direction$1 = /* @__PURE__ */ function(Direction) {
-	Direction[Direction["Inherit"] = 0] = "Inherit";
-	Direction[Direction["LTR"] = 1] = "LTR";
-	Direction[Direction["RTL"] = 2] = "RTL";
-	return Direction;
-}({});
-let Display$1 = /* @__PURE__ */ function(Display) {
-	Display[Display["Flex"] = 0] = "Flex";
-	Display[Display["None"] = 1] = "None";
-	return Display;
-}({});
-let Edge = /* @__PURE__ */ function(Edge) {
-	Edge[Edge["Left"] = 0] = "Left";
-	Edge[Edge["Top"] = 1] = "Top";
-	Edge[Edge["Right"] = 2] = "Right";
-	Edge[Edge["Bottom"] = 3] = "Bottom";
-	Edge[Edge["Start"] = 4] = "Start";
-	Edge[Edge["End"] = 5] = "End";
-	Edge[Edge["Horizontal"] = 6] = "Horizontal";
-	Edge[Edge["Vertical"] = 7] = "Vertical";
-	Edge[Edge["All"] = 8] = "All";
-	return Edge;
-}({});
-let Errata = /* @__PURE__ */ function(Errata) {
-	Errata[Errata["None"] = 0] = "None";
-	return Errata;
-}({});
-let ExperimentalFeature = /* @__PURE__ */ function(ExperimentalFeature) {
-	ExperimentalFeature[ExperimentalFeature["WebFlexBasis"] = 0] = "WebFlexBasis";
-	return ExperimentalFeature;
-}({});
-let FlexDirection$1 = /* @__PURE__ */ function(FlexDirection) {
-	FlexDirection[FlexDirection["Column"] = 0] = "Column";
-	FlexDirection[FlexDirection["ColumnReverse"] = 1] = "ColumnReverse";
-	FlexDirection[FlexDirection["Row"] = 2] = "Row";
-	FlexDirection[FlexDirection["RowReverse"] = 3] = "RowReverse";
-	return FlexDirection;
-}({});
-let Gutter = /* @__PURE__ */ function(Gutter) {
-	Gutter[Gutter["Column"] = 0] = "Column";
-	Gutter[Gutter["Row"] = 1] = "Row";
-	Gutter[Gutter["All"] = 2] = "All";
-	return Gutter;
-}({});
-let Justify = /* @__PURE__ */ function(Justify) {
-	Justify[Justify["FlexStart"] = 0] = "FlexStart";
-	Justify[Justify["Center"] = 1] = "Center";
-	Justify[Justify["FlexEnd"] = 2] = "FlexEnd";
-	Justify[Justify["SpaceBetween"] = 3] = "SpaceBetween";
-	Justify[Justify["SpaceAround"] = 4] = "SpaceAround";
-	Justify[Justify["SpaceEvenly"] = 5] = "SpaceEvenly";
-	return Justify;
-}({});
-let LogLevel = /* @__PURE__ */ function(LogLevel) {
-	LogLevel[LogLevel["Error"] = 0] = "Error";
-	LogLevel[LogLevel["Warn"] = 1] = "Warn";
-	LogLevel[LogLevel["Info"] = 2] = "Info";
-	LogLevel[LogLevel["Debug"] = 3] = "Debug";
-	LogLevel[LogLevel["Verbose"] = 4] = "Verbose";
-	LogLevel[LogLevel["Fatal"] = 5] = "Fatal";
-	return LogLevel;
-}({});
-let MeasureMode = /* @__PURE__ */ function(MeasureMode) {
-	MeasureMode[MeasureMode["Undefined"] = 0] = "Undefined";
-	MeasureMode[MeasureMode["Exactly"] = 1] = "Exactly";
-	MeasureMode[MeasureMode["AtMost"] = 2] = "AtMost";
-	return MeasureMode;
-}({});
-let NodeType = /* @__PURE__ */ function(NodeType) {
-	NodeType[NodeType["Default"] = 0] = "Default";
-	NodeType[NodeType["Text"] = 1] = "Text";
-	return NodeType;
-}({});
-let Overflow$1 = /* @__PURE__ */ function(Overflow) {
-	Overflow[Overflow["Visible"] = 0] = "Visible";
-	Overflow[Overflow["Hidden"] = 1] = "Hidden";
-	Overflow[Overflow["Scroll"] = 2] = "Scroll";
-	return Overflow;
-}({});
-let PositionType = /* @__PURE__ */ function(PositionType) {
-	PositionType[PositionType["Relative"] = 1] = "Relative";
-	PositionType[PositionType["Absolute"] = 2] = "Absolute";
-	return PositionType;
-}({});
-let Unit = /* @__PURE__ */ function(Unit) {
-	Unit[Unit["Undefined"] = 0] = "Undefined";
-	Unit[Unit["Point"] = 1] = "Point";
-	Unit[Unit["Percent"] = 2] = "Percent";
-	Unit[Unit["Auto"] = 3] = "Auto";
-	return Unit;
-}({});
-let Wrap = /* @__PURE__ */ function(Wrap) {
-	Wrap[Wrap["NoWrap"] = 0] = "NoWrap";
-	Wrap[Wrap["Wrap"] = 1] = "Wrap";
-	Wrap[Wrap["WrapReverse"] = 2] = "WrapReverse";
-	return Wrap;
-}({});
-const legacyConstants = {
-	ALIGN_AUTO: 0,
-	ALIGN_FLEX_START: 1,
-	ALIGN_CENTER: 2,
-	ALIGN_FLEX_END: 3,
-	ALIGN_STRETCH: 4,
-	ALIGN_BASELINE: 5,
-	ALIGN_SPACE_BETWEEN: 6,
-	ALIGN_SPACE_AROUND: 7,
-	ALIGN_SPACE_EVENLY: 8,
-	BOX_SIZING_BORDER_BOX: 0,
-	BOX_SIZING_CONTENT_BOX: 1,
-	DIMENSION_WIDTH: 0,
-	DIMENSION_HEIGHT: 1,
-	DIRECTION_INHERIT: 0,
-	DIRECTION_LTR: 1,
-	DIRECTION_RTL: 2,
-	DISPLAY_FLEX: 0,
-	DISPLAY_NONE: 1,
-	EDGE_LEFT: 0,
-	EDGE_TOP: 1,
-	EDGE_RIGHT: 2,
-	EDGE_BOTTOM: 3,
-	EDGE_START: 4,
-	EDGE_END: 5,
-	EDGE_HORIZONTAL: 6,
-	EDGE_VERTICAL: 7,
-	EDGE_ALL: 8,
-	ERRATA_NONE: 0,
-	EXPERIMENTAL_FEATURE_WEB_FLEX_BASIS: 0,
-	FLEX_DIRECTION_COLUMN: 0,
-	FLEX_DIRECTION_COLUMN_REVERSE: 1,
-	FLEX_DIRECTION_ROW: 2,
-	FLEX_DIRECTION_ROW_REVERSE: 3,
-	GUTTER_COLUMN: 0,
-	GUTTER_ROW: 1,
-	GUTTER_ALL: 2,
-	JUSTIFY_FLEX_START: 0,
-	JUSTIFY_CENTER: 1,
-	JUSTIFY_FLEX_END: 2,
-	JUSTIFY_SPACE_BETWEEN: 3,
-	JUSTIFY_SPACE_AROUND: 4,
-	JUSTIFY_SPACE_EVENLY: 5,
-	LOG_LEVEL_ERROR: 0,
-	LOG_LEVEL_WARN: 1,
-	LOG_LEVEL_INFO: 2,
-	LOG_LEVEL_DEBUG: 3,
-	LOG_LEVEL_VERBOSE: 4,
-	LOG_LEVEL_FATAL: 5,
-	MEASURE_MODE_UNDEFINED: 0,
-	MEASURE_MODE_EXACTLY: 1,
-	MEASURE_MODE_AT_MOST: 2,
-	NODE_TYPE_DEFAULT: 0,
-	NODE_TYPE_TEXT: 1,
-	OVERFLOW_VISIBLE: 0,
-	OVERFLOW_HIDDEN: 1,
-	OVERFLOW_SCROLL: 2,
-	POSITION_TYPE_RELATIVE: 1,
-	POSITION_TYPE_ABSOLUTE: 2,
-	UNIT_UNDEFINED: 0,
-	UNIT_POINT: 1,
-	UNIT_PERCENT: 2,
-	UNIT_AUTO: 3,
-	WRAP_NO_WRAP: 0,
-	WRAP_WRAP: 1,
-	WRAP_WRAP_REVERSE: 2
+//#region \0rolldown/runtime.js
+var __defProp = Object.defineProperty;
+var __exportAll = (all, no_symbols) => {
+	let target = {};
+	for (var name in all) __defProp(target, name, {
+		get: all[name],
+		enumerable: true
+	});
+	if (!no_symbols) __defProp(target, Symbol.toStringTag, { value: "Module" });
+	return target;
 };
 //#endregion
 //#region src/values.ts
-const percentPattern = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?%$/i;
+const percentPattern = /^\s*(?:[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|0x[\da-f]+|0b[01]+|0o[0-7]+)\s*%$/i;
 function float32(value) {
 	if (!Number.isFinite(value)) return value;
 	if (value === 0) return 0;
@@ -250,8 +75,10 @@ function normalizeLength(value, name, allowAuto) {
 	if (typeof value !== "string") throw new TypeError(`${name} must be a number, percentage,${allowAuto ? " auto," : ""} or undefined`);
 	if (allowAuto && value === "auto") return autoValue();
 	if (!percentPattern.test(value)) throw new TypeError(`${name} must be a number, percentage,${allowAuto ? " auto," : ""} or undefined`);
-	const numeric = Number(value.slice(0, -1));
-	if (!Number.isFinite(numeric)) throw new TypeError(`${name} percentage must be finite`);
+	const numericSource = value.slice(0, -1);
+	if (!Number.isFinite(Number(numericSource))) throw new TypeError(`${name} percentage must be finite`);
+	const numeric = Number.parseFloat(numericSource);
+	if (Number.isNaN(numeric)) throw new TypeError(`${name} percentage must be numeric`);
 	const normalized = finiteFloat32(numeric);
 	return normalized === void 0 ? undefinedValue() : percentValue(normalized);
 }
@@ -913,6 +740,7 @@ function declarationDirection(declarations, ownerDirection) {
 }
 //#endregion
 //#region src/facade.ts
+var facade_exports = /* @__PURE__ */ __exportAll({ createYoga: () => createYoga });
 const initialLayout = () => ({
 	left: 0,
 	right: 0,
@@ -1955,4 +1783,4 @@ function createYoga() {
 	};
 }
 //#endregion
-export { PositionType as _, Direction$1 as a, Errata as c, Gutter as d, Justify as f, Overflow$1 as g, NodeType as h, Dimension$1 as i, ExperimentalFeature as l, MeasureMode as m, Align as n, Display$1 as o, LogLevel as p, BoxSizing$1 as r, Edge as s, createYoga as t, FlexDirection$1 as u, Unit as v, Wrap as y };
+export { facade_exports as n, createYoga as t };

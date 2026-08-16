@@ -9,7 +9,7 @@ TaffyJS brings the Taffy layout engine to JavaScript through native, WebAssembly
 - **Native performance:** Runs Taffy as native Rust code in Node.js through Node-API.
 - **WebAssembly support:** Runs Taffy in bundled browsers and deployments where a native addon is not the right fit.
 - **One API, two runtimes:** The same JavaScript API, backed by native code in `@taffyjs/node` for performance or WebAssembly in `@taffyjs/wasm` for flexibility.
-- **Yoga compatibility:** Use `@taffyjs/yoga` or `@taffyjs/yoga-wasm` (work in progress) while preserving Yoga's API shape for straightforward migration.
+- **Yoga compatibility:** Use `@taffyjs/yoga` or `@taffyjs/yoga-wasm` while preserving Yoga's API shape for straightforward migration.
 
 ## Installation
 
@@ -24,7 +24,7 @@ npm install @taffyjs/node
 | [`@taffyjs/node`](https://www.npmjs.com/package/@taffyjs/node)           | Native Node.js runtime for maximum performance. | —       |
 | [`@taffyjs/wasm`](https://www.npmjs.com/package/@taffyjs/wasm)           | WebAssembly runtime for flexible deployment.    | —       |
 | [`@taffyjs/yoga`](https://www.npmjs.com/package/@taffyjs/yoga)           | Yoga-compatible API backed by `@taffyjs/node`.  | —       |
-| [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | Yoga-compatible API backed by `@taffyjs/wasm`.  | WIP     |
+| [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | Yoga-compatible API backed by `@taffyjs/wasm`.  | —       |
 
 ## Runtime compatibility
 
@@ -42,6 +42,7 @@ TaffyJS supports Node.js 22.18+, Bun 1.2+ within the Bun 1 major, and Deno 2.2+ 
 - [Guide](apps/website/guide/index.md) explains the shared layout model, layout modes, and text and image measurement.
 - [`@taffyjs/node`](apps/website/node/index.md) documents runtime support and the current public API.
 - [`@taffyjs/wasm`](apps/website/wasm/index.md) documents WebAssembly setup, supported environments, and differences from the native package.
+- [`@taffyjs/yoga`](packages/taffyjs-yoga/README.md) and [`@taffyjs/yoga-wasm`](packages/taffyjs-yoga-wasm/README.md) document dependency substitution and the shared Yoga 3.2.1 compatibility boundary.
 
 ## Credits
 
