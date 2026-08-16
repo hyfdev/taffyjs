@@ -58,6 +58,10 @@ const documentationSidebar = [
       { text: "Overview", link: "/yoga-wasm/" },
     ],
   },
+  {
+    text: "Benchmarks",
+    items: [{ text: "Node vs. Wasm", link: "/benchmarks/" }],
+  },
 ];
 
 export default defineConfig({
@@ -69,7 +73,7 @@ export default defineConfig({
       {
         text: "Guide",
         link: "/guide/getting-started",
-        activeMatch: "^/(guide|node|wasm|yoga|yoga-wasm)/",
+        activeMatch: "^/(guide|node|wasm|yoga|yoga-wasm|benchmarks)/",
       },
     ],
     sidebar: {
@@ -78,6 +82,7 @@ export default defineConfig({
       "/wasm/": documentationSidebar,
       "/yoga/": documentationSidebar,
       "/yoga-wasm/": documentationSidebar,
+      "/benchmarks/": documentationSidebar,
     },
     socialLinks: [{ icon: "github", link: "https://github.com/hyfdev/taffyjs" }],
     externalLinkIcon: true,

@@ -6,7 +6,7 @@ The public TaffyJS site is one VitePress application at `apps/website`. It repre
 
 The landing page should foreground performance and the engine's maturity rather than present TaffyJS as a generic wrapper. TaffyJS brings a mature, high-performance layout engine written in Rust to JavaScript through bindings designed to preserve that performance.
 
-Taffy upstream describes the engine as high-performance and lists use by projects including Servo, Bevy, Slint and Zed, which supports the engine-level position. This evidence does not by itself prove the performance of a JavaScript binding. Before the website publishes numerical or comparative TaffyJS performance claims, retained end-to-end measurements must include the JavaScript-to-Rust boundary and JavaScript input and output conversion costs. See the [Taffy repository](https://github.com/DioxusLabs/taffy) and [API alignment TODOs](api-alignment-todos.md).
+Taffy upstream describes the engine as high-performance and lists use by projects including Servo, Bevy, Slint and Zed, which supports the engine-level position. This evidence does not by itself prove the performance of a JavaScript binding. Before the website publishes numerical or comparative TaffyJS performance claims, retained end-to-end measurements must include the JavaScript-to-Rust boundary and JavaScript input and output conversion costs. The public measurement and presentation contract is recorded in [Benchmark Design](benchmark.md). See also the [Taffy repository](https://github.com/DioxusLabs/taffy) and [API alignment TODOs](api-alignment-todos.md).
 
 The landing page speaks for TaffyJS as a family and presents the intended complete product rather than serving as a release-status page. It may describe the native and WebAssembly packages without labeling unfinished packages as planned; Guide and package documentation own concrete setup, runtime support, and public behavior.
 
@@ -50,6 +50,8 @@ The target page groups are:
 
 The global site navigation and the documentation sidebar serve different purposes. The landing page and later real Blog or Showcase sections are site-level content; Guide, Essentials, and package sections all belong to the same documentation sidebar. Do not create empty Blog, Showcase, version switcher or package pages merely to make the site appear complete.
 
+The benchmark page is a site-level view of retained Node.js results rather than another package reference section. It reads the canonical dataset owned by top-level `benchmarks/` and follows [Benchmark Design](benchmark.md); the website neither runs the suite nor maintains a second result source.
+
 ## Content ownership
 
 - The landing page states the product value, intended package family, supported layout modes and the next useful destination.
@@ -60,4 +62,5 @@ The global site navigation and the documentation sidebar serve different purpose
 - Getting Started and each relevant layout or measurement page own one complete example. There is no separate example collection that repeats those programs, and package pages and README files link to the Guide rather than copying them.
 - Package README files remain short installation and orientation pages that link to the website.
 - Source declarations and JSDoc remain the exhaustive editor-facing type and field reference. The website explains high-level APIs in human-written prose; its `Style` page groups related fields without reproducing a generated declaration dump or creating one page per field.
+- The benchmark page presents the retained scenario results and concise run identity; benchmark source, execution, comparison policy, and canonical data remain owned by top-level `benchmarks/`.
 - Internal rationale and unsettled implementation details remain in Project Context Records rather than leaking into user documentation.

@@ -12,6 +12,7 @@ The package requires Node.js 22.18.0 or newer and currently provides native bina
 
 | Operating system | Architecture | Native target              |
 | ---------------- | ------------ | -------------------------- |
+| macOS            | arm64        | `aarch64-apple-darwin`     |
 | Linux            | x64          | `x86_64-unknown-linux-gnu` |
 | Windows          | x64          | `x86_64-pc-windows-msvc`   |
 

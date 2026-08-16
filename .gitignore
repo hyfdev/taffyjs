@@ -19,3 +19,5 @@ packages/taffyjs-yoga-wasm/dist/
 tests/taffyjs-wasm/browser/dist/
 apps/website/.vitepress/cache/
 apps/website/.vitepress/dist/
+benchmarks/results/local/
+benchmarks/results/*.next

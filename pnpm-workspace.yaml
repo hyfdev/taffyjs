@@ -1,5 +1,6 @@
 packages:
   - apps/*
+  - benchmarks
   - packages/*
   - packages/taffyjs-node/npm/*
   - tests/*
@@ -10,6 +11,7 @@ linkWorkspacePackages: true
 catalog:
   "@napi-rs/cli": 3.8.2
   "@types/node": 22.18.0
+  tinybench: 2.9.0
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@0.2.8
   vite-plus: 0.2.8
