@@ -1,12 +1,12 @@
 # Intent
 
-TaffyJS is intended to make the Taffy layout engine available through maintained JavaScript packages that are straightforward for JavaScript projects to install and adopt.
+TaffyJS is intended to bring Taffy, a high-performance layout engine written in Rust, to JavaScript through maintained packages that are straightforward to install and adopt without hiding Taffy's high-level model or adding avoidable language-boundary overhead. [VOUCHED @hyfdev 2026-08-14]
 
 ## Current direction
 
-- @taffyjs/node is the first entry point and provides native Node-API bindings built with napi-rs.
-- @taffyjs/wasm is the approved explicit WebAssembly entry point for Node.js and bundled browsers. It reuses the @taffyjs/node public API over a threadless napi-rs WASIP binding rather than acting as an automatic fallback; its vouched contract is in [@taffyjs/wasm package design](taffyjs-wasm-package.md).
-- The repository may later add @taffyjs/node-yoga as a Yoga-compatible JavaScript API built on top of @taffyjs/node rather than as a second native implementation.
+- `@taffyjs/node` is the first entry point and provides native Node-API bindings built with napi-rs.
+- `@taffyjs/wasm` is the explicit WebAssembly entry point for Node.js and bundled browsers. It reuses the `@taffyjs/node` public API over a threadless napi-rs WASIP binding rather than acting as an automatic fallback; its vouched contract is in [@taffyjs/wasm package design](taffyjs-wasm-package.md).
+- A future `@taffyjs/yoga` package may provide a Yoga-compatible JavaScript API built on top of `@taffyjs/node` rather than as a second native implementation. [VOUCHED @hyfdev 2026-08-14]
 - The package family should support real consumers such as terminal UI frameworks without forcing those consumers to own their own Taffy bindings.
 
 ## @taffyjs/node binding role
@@ -19,5 +19,5 @@ The binding role and API priority are recorded in [@taffyjs/node decisions](taff
 
 ## Open questions
 
-- Runtime and platform support beyond the current native targets and the approved @taffyjs/wasm Node.js and bundled-browser scope require a concrete consumer need.
-- Yoga compatibility is a possible package, not part of the @taffyjs/node contract.
+- Runtime and platform support beyond the current native targets and the approved `@taffyjs/wasm` Node.js and bundled-browser scope require a concrete consumer need.
+- The coverage and release timing of `@taffyjs/yoga` remain open. Yoga compatibility is not part of the `@taffyjs/node` contract.

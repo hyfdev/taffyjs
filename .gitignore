@@ -15,3 +15,5 @@ packages/taffyjs-wasm/dist/
 packages/taffyjs-wasm/.napi-build/
 
 tests/taffyjs-wasm/browser/dist/
+apps/website/.vitepress/cache/
+apps/website/.vitepress/dist/

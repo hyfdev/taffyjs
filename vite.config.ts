@@ -120,6 +120,14 @@ export default defineConfig({
         command: "node tools/taffy-wasm/generate-inline-wasm-runtime-files.ts",
         dependsOn: ["build:wasm:entries"],
       },
+      "build:website": {
+        command: "vp run @taffyjs/website#build",
+        dependsOn: ["build:wasm"],
+      },
+      "dev:website": {
+        command: "vp run @taffyjs/website#dev",
+        dependsOn: ["build:wasm"],
+      },
       build: {
         command: "echo build ok",
         dependsOn: ["build:node:platform-artifact", "build:node:entries"],
@@ -157,6 +165,7 @@ export default defineConfig({
           "check:wasm:package",
           "check:wasm:browser-runtime",
           "check:wasm:browser-bundle",
+          "build:website",
         ],
       },
       ready: {

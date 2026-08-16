@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" role="img" aria-labelledby="title description">
+  <title id="title">Browser layout and TaffyJS layout</title>
+  <desc id="description">The browser takes a DOM tree, CSS, and a containing block through layout to geometry and then paints it. TaffyJS takes a TaffyTree, style objects, and available space through computeLayout to Layout objects, then leaves rendering to the caller.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="arrow-head" />
+    </marker>
+  </defs>
+  <style>
+    .heading { font: 700 18px ui-sans-serif, system-ui, sans-serif; fill: #3c3c43; }
+    .label { font: 600 15px ui-sans-serif, system-ui, sans-serif; fill: #3c3c43; text-anchor: middle; }
+    .detail { font: 400 13px ui-sans-serif, system-ui, sans-serif; fill: #67676c; text-anchor: middle; }
+    .box { fill: #f6f6f7; stroke: #c9c9cf; stroke-width: 1.5; }
+    .engine { fill: #eef2ff; stroke: #5873d8; stroke-width: 1.5; }
+    .result { fill: #eef9f1; stroke: #4f9167; stroke-width: 1.5; }
+    .outside { fill: #fff5ed; stroke: #c96a32; stroke-width: 1.5; }
+    .arrow { stroke: #8e8e93; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+    .arrow-head { fill: #8e8e93; }
+    .boundary { stroke: #c96a32; stroke-width: 1.5; stroke-dasharray: 6 6; }
+    .boundary-label { font: 600 12px ui-sans-serif, system-ui, sans-serif; fill: #a84d20; text-anchor: middle; }
+    @media (prefers-color-scheme: dark) {
+      .heading, .label { fill: #dfdfd6; }
+      .detail { fill: #a6a6a0; }
+      .box { fill: #242424; stroke: #505055; }
+      .engine { fill: #202a49; stroke: #758ee9; }
+      .result { fill: #193325; stroke: #67a97e; }
+      .outside { fill: #38271e; stroke: #db814c; }
+      .arrow { stroke: #8f8f87; }
+      .arrow-head { fill: #8f8f87; }
+      .boundary { stroke: #db814c; }
+      .boundary-label { fill: #e29668; }
+    }
+  </style>
+
+  <text x="24" y="37" class="heading">Browser</text>
+  <rect x="24" y="54" width="278" height="92" rx="10" class="box" />
+  <text x="163" y="88" class="label">DOM tree + CSS</text>
+  <text x="163" y="114" class="detail">+ containing block</text>
+  <path d="M 302 100 H 360" class="arrow" />
+  <rect x="362" y="54" width="170" height="92" rx="10" class="engine" />
+  <text x="447" y="96" class="label">Browser layout</text>
+  <path d="M 532 100 H 590" class="arrow" />
+  <rect x="592" y="54" width="150" height="92" rx="10" class="result" />
+  <text x="667" y="89" class="label">Box geometry</text>
+  <text x="667" y="115" class="detail">positions + sizes</text>
+  <path d="M 742 100 H 798" class="arrow" />
+  <rect x="800" y="54" width="136" height="92" rx="10" class="outside" />
+  <text x="868" y="96" class="label">Painted UI</text>
+
+  <text x="24" y="211" class="heading">TaffyJS</text>
+  <rect x="24" y="228" width="278" height="92" rx="10" class="box" />
+  <text x="163" y="262" class="label">TaffyTree + styles</text>
+  <text x="163" y="288" class="detail">+ availableSpace</text>
+  <path d="M 302 274 H 360" class="arrow" />
+  <rect x="362" y="228" width="170" height="92" rx="10" class="engine" />
+  <text x="447" y="270" class="label">computeLayout</text>
+  <path d="M 532 274 H 590" class="arrow" />
+  <rect x="592" y="228" width="150" height="92" rx="10" class="result" />
+  <text x="667" y="263" class="label">Layout objects</text>
+  <text x="667" y="289" class="detail">positions + sizes</text>
+  <path d="M 742 274 H 798" class="arrow" />
+  <rect x="800" y="228" width="136" height="92" rx="10" class="outside" />
+  <text x="868" y="270" class="label">Your renderer</text>
+
+  <line x1="771" y1="29" x2="771" y2="337" class="boundary" />
+  <rect x="686" y="328" width="170" height="24" rx="12" class="outside" />
+  <text x="771" y="345" class="boundary-label">layout / rendering boundary</text>
+</svg>
