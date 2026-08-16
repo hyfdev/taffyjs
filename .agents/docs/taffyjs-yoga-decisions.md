@@ -50,6 +50,16 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-15; vouched Node-only support, the inherited Node.js version, ESM-only publication, and both public entries, and explicitly ruled out ever adding browser or WASM support to `@taffyjs/yoga` itself.
 
+### Bun and Deno platform smoke coverage
+
+**Ruling:** `@taffyjs/yoga` must run the same minimum-endpoint Bun and Deno platform smoke checks as its native `@taffyjs/node` backend, using the repository's current runtime versions and Deno native-loading requirements.
+
+**Limits:** This is one minimal public-package layout smoke per runtime endpoint, not a copy of the Yoga compatibility suite. It does not add a browser or WASM backend to `@taffyjs/yoga`, implement `@taffyjs/yoga-wasm`, or independently choose runtime floors apart from the repository-wide Bun and Deno policy.
+
+**Why:** No additional rationale was stated.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; stated that Yoga was implemented and asked to add the platform tests alongside the existing package coverage.
+
 ### Compatibility levels and behavior
 
 [VOUCHED @hyfdev 2026-08-15]
