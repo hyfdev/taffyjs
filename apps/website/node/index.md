@@ -8,15 +8,27 @@ Read the [Design Philosophy](./design-philosophy.md) to understand why the API f
 
 ## Runtime support
 
-The package requires Node.js 22.18.0 or newer and currently provides native binaries for these targets:
+The package requires Node.js 22.18.0 or newer. Its native package metadata and distribution build matrix cover these targets:
 
-| Operating system | Architecture | Native target              |
-| ---------------- | ------------ | -------------------------- |
-| macOS            | arm64        | `aarch64-apple-darwin`     |
-| Linux            | x64          | `x86_64-unknown-linux-gnu` |
-| Windows          | x64          | `x86_64-pc-windows-msvc`   |
+| Operating system | Architecture | Native target                   |
+| ---------------- | ------------ | ------------------------------- |
+| Android          | ARMv7        | `armv7-linux-androideabi`       |
+| Android          | ARM64        | `aarch64-linux-android`         |
+| FreeBSD          | x64          | `x86_64-unknown-freebsd`        |
+| Linux            | ARMv7 GNU    | `armv7-unknown-linux-gnueabihf` |
+| Linux            | ARM64 GNU    | `aarch64-unknown-linux-gnu`     |
+| Linux            | ARM64 musl   | `aarch64-unknown-linux-musl`    |
+| Linux            | x64 GNU      | `x86_64-unknown-linux-gnu`      |
+| Linux            | x64 musl     | `x86_64-unknown-linux-musl`     |
+| macOS            | ARM64        | `aarch64-apple-darwin`          |
+| macOS            | x64          | `x86_64-apple-darwin`           |
+| Windows          | ARM64 MSVC   | `aarch64-pc-windows-msvc`       |
+| Windows          | x86 MSVC     | `i686-pc-windows-msvc`          |
+| Windows          | x64 MSVC     | `x86_64-pc-windows-msvc`        |
 
-Bun 1.2+ within major 1 and Deno 2.2+ within major 2 are also supported on these native targets. CI smoke-tests Bun 1.2.0 and Deno 2.2.0 through the public package entry. Support does not span runtime majors. Deno requires a local `node_modules` directory and the `--allow-env`, `--allow-read`, and `--allow-ffi` permissions.
+This matches the complete native target set carried by napi-rs's maintained package templates. CI compiles every row and retains each binary as a build artifact. The current blocking runtime suite loads the Linux x64 GNU, Windows x64 MSVC, and macOS ARM64 binaries; the other ten rows have build coverage but are not yet runtime-tested or published by this repository, so the table does not claim a broader tested runtime matrix. TaffyJS keeps WebAssembly explicit: the separate [`@taffyjs/wasm`](../wasm/index.md) package provides the threadless Wasm build instead of making `@taffyjs/node` silently fall back to napi-rs's threaded WASI target.
+
+Bun 1.2+ within major 1 and Deno 2.2+ within major 2 are smoke-tested on Linux x64 GNU and Windows x64 MSVC. Support does not span runtime majors. Deno requires a local `node_modules` directory and the `--allow-env`, `--allow-read`, and `--allow-ffi` permissions.
 
 The package is ESM-only. Application code imports the public package entry:
 

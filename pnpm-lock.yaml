@@ -309,19 +309,69 @@ importers:
         specifier: 'catalog:'
         version: 0.2.8(@types/node@22.18.0)(@vitest/browser-playwright@4.1.10)(@voidzero-dev/vite-plus-core@0.2.8(@types/node@22.18.0)(typescript@7.0.2))(typescript@7.0.2)
     optionalDependencies:
+      '@taffyjs/binding-android-arm-eabi':
+        specifier: 0.0.0
+        version: link:npm/android-arm-eabi
+      '@taffyjs/binding-android-arm64':
+        specifier: 0.0.0
+        version: link:npm/android-arm64
       '@taffyjs/binding-darwin-arm64':
         specifier: 0.0.0
         version: link:npm/darwin-arm64
+      '@taffyjs/binding-darwin-x64':
+        specifier: 0.0.0
+        version: link:npm/darwin-x64
+      '@taffyjs/binding-freebsd-x64':
+        specifier: 0.0.0
+        version: link:npm/freebsd-x64
+      '@taffyjs/binding-linux-arm-gnueabihf':
+        specifier: 0.0.0
+        version: link:npm/linux-arm-gnueabihf
+      '@taffyjs/binding-linux-arm64-gnu':
+        specifier: 0.0.0
+        version: link:npm/linux-arm64-gnu
+      '@taffyjs/binding-linux-arm64-musl':
+        specifier: 0.0.0
+        version: link:npm/linux-arm64-musl
       '@taffyjs/binding-linux-x64-gnu':
         specifier: 0.0.0
         version: link:npm/linux-x64-gnu
+      '@taffyjs/binding-linux-x64-musl':
+        specifier: 0.0.0
+        version: link:npm/linux-x64-musl
+      '@taffyjs/binding-win32-arm64-msvc':
+        specifier: 0.0.0
+        version: link:npm/win32-arm64-msvc
+      '@taffyjs/binding-win32-ia32-msvc':
+        specifier: 0.0.0
+        version: link:npm/win32-ia32-msvc
       '@taffyjs/binding-win32-x64-msvc':
         specifier: 0.0.0
         version: link:npm/win32-x64-msvc
 
+  packages/taffyjs-node/npm/android-arm-eabi: {}
+
+  packages/taffyjs-node/npm/android-arm64: {}
+
   packages/taffyjs-node/npm/darwin-arm64: {}
 
+  packages/taffyjs-node/npm/darwin-x64: {}
+
+  packages/taffyjs-node/npm/freebsd-x64: {}
+
+  packages/taffyjs-node/npm/linux-arm-gnueabihf: {}
+
+  packages/taffyjs-node/npm/linux-arm64-gnu: {}
+
+  packages/taffyjs-node/npm/linux-arm64-musl: {}
+
   packages/taffyjs-node/npm/linux-x64-gnu: {}
+
+  packages/taffyjs-node/npm/linux-x64-musl: {}
+
+  packages/taffyjs-node/npm/win32-arm64-msvc: {}
+
+  packages/taffyjs-node/npm/win32-ia32-msvc: {}
 
   packages/taffyjs-node/npm/win32-x64-msvc: {}
 

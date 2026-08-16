@@ -36,17 +36,37 @@
     "vite-plus": "catalog:"
   },
   "optionalDependencies": {
+    "@taffyjs/binding-android-arm-eabi": "0.0.0",
+    "@taffyjs/binding-android-arm64": "0.0.0",
     "@taffyjs/binding-darwin-arm64": "0.0.0",
+    "@taffyjs/binding-darwin-x64": "0.0.0",
+    "@taffyjs/binding-freebsd-x64": "0.0.0",
+    "@taffyjs/binding-linux-arm-gnueabihf": "0.0.0",
+    "@taffyjs/binding-linux-arm64-gnu": "0.0.0",
+    "@taffyjs/binding-linux-arm64-musl": "0.0.0",
     "@taffyjs/binding-linux-x64-gnu": "0.0.0",
+    "@taffyjs/binding-linux-x64-musl": "0.0.0",
+    "@taffyjs/binding-win32-arm64-msvc": "0.0.0",
+    "@taffyjs/binding-win32-ia32-msvc": "0.0.0",
     "@taffyjs/binding-win32-x64-msvc": "0.0.0"
   },
   "napi": {
     "binaryName": "taffyjs",
     "packageName": "@taffyjs/binding",
     "targets": [
+      "x86_64-apple-darwin",
       "aarch64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
       "x86_64-pc-windows-msvc",
-      "x86_64-unknown-linux-gnu"
+      "x86_64-unknown-linux-musl",
+      "aarch64-unknown-linux-gnu",
+      "i686-pc-windows-msvc",
+      "armv7-unknown-linux-gnueabihf",
+      "aarch64-linux-android",
+      "x86_64-unknown-freebsd",
+      "aarch64-unknown-linux-musl",
+      "aarch64-pc-windows-msvc",
+      "armv7-linux-androideabi"
     ]
   },
   "engines": {

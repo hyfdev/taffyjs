@@ -1,5 +1,5 @@
 {
-  "name": "@taffyjs/binding-linux-x64-gnu",
+  "name": "@taffyjs/binding-linux-arm64-musl",
   "version": "0.0.0",
   "private": true,
   "description": "Native Node-API bindings for the Taffy layout engine.",
@@ -10,18 +10,18 @@
     "directory": "packages/taffyjs-node"
   },
   "files": [
-    "taffyjs.linux-x64-gnu.node"
+    "taffyjs.linux-arm64-musl.node"
   ],
   "os": [
     "linux"
   ],
   "cpu": [
-    "x64"
+    "arm64"
   ],
   "libc": [
-    "glibc"
+    "musl"
   ],
-  "main": "taffyjs.linux-x64-gnu.node",
+  "main": "taffyjs.linux-arm64-musl.node",
   "engines": {
     "node": ">=22.18.0"
   }
