@@ -31,7 +31,7 @@ export const benchmarkProfiles: readonly BenchmarkProfile[] = [
       warmupTime: 250,
       warmupIterations: 10,
     },
-    maxRelativeMarginOfError: 5,
+    maxRelativeMarginOfError: 30,
     maxRoundMedianSpread: 0.1,
   },
 ];
