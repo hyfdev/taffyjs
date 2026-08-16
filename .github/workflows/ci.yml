@@ -25,9 +25,9 @@ jobs:
       - name: Build and run all tests
         run: pnpm exec vp run check:test
       - name: Smoke test @taffyjs/node with Bun 1.2
-        run: pnpm dlx bun@1.2.0 tests/taffyjs-node/runtime-smoke.ts
+        run: pnpm dlx bun@1.2.0 packages/taffyjs-node/tests/runtime-smoke.mjs
       - name: Smoke test @taffyjs/node with Deno 2.2
-        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi tests/taffyjs-node/runtime-smoke.ts
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi packages/taffyjs-node/tests/runtime-smoke.mjs
       - name: Verify committed package outputs are current
         run: git diff --exit-code -- packages/taffyjs-node/index.js packages/taffyjs-node/index.d.ts packages/taffyjs-node/binding.js packages/taffyjs-node/binding.d.ts
 
@@ -47,9 +47,9 @@ jobs:
       - name: Build and run all tests
         run: pnpm exec vp run check:test
       - name: Smoke test @taffyjs/node with Bun 1.2
-        run: pnpm dlx bun@1.2.0 tests/taffyjs-node/runtime-smoke.ts
+        run: pnpm dlx bun@1.2.0 packages/taffyjs-node/tests/runtime-smoke.mjs
       - name: Smoke test @taffyjs/node with Deno 2.2
-        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi tests/taffyjs-node/runtime-smoke.ts
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi packages/taffyjs-node/tests/runtime-smoke.mjs
 
   test-wasm:
     name: Build and test WASIP
@@ -71,9 +71,9 @@ jobs:
       - name: Build and test the Wasm package
         run: pnpm exec vp run check:wasm
       - name: Smoke test @taffyjs/wasm with Bun 1.2
-        run: pnpm dlx bun@1.2.0 tests/taffyjs-wasm/runtime-smoke.ts
+        run: pnpm dlx bun@1.2.0 packages/taffyjs-wasm/tests/runtime-smoke.mjs
       - name: Smoke test @taffyjs/wasm with Deno 2.2
-        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual tests/taffyjs-wasm/runtime-smoke.ts
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual packages/taffyjs-wasm/tests/runtime-smoke.mjs
 
   check-node:
     name: Node checks

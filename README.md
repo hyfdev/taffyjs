@@ -30,12 +30,12 @@ npm install @taffyjs/node
 
 TaffyJS supports Bun 1.2+ within the Bun 1 major and Deno 2.2+ within the Deno 2 major. CI smoke-tests the first release of each minimum minor by importing each public package, computing a minimal layout, and verifying the result. Support follows one current major per runtime rather than spanning runtime majors.
 
-| Package              | Bun 1.2+        | Deno 2.2+                                                                             |
-| -------------------- | --------------- | ------------------------------------------------------------------------------------- |
-| `@taffyjs/node`      | Supported       | Supported with local `node_modules`, `--allow-env`, `--allow-read`, and `--allow-ffi` |
-| `@taffyjs/wasm`      | Supported       | Supported without permission flags                                                    |
-| `@taffyjs/yoga`      | Not implemented | Not implemented                                                                       |
-| `@taffyjs/yoga-wasm` | Not implemented | Not implemented                                                                       |
+| Package              | Bun 1.2+           | Deno 2.2+                                                                   |
+| -------------------- | ------------------ | --------------------------------------------------------------------------- |
+| `@taffyjs/node`      | ✅                 | ✅ (local `node_modules`; `--allow-env`, `--allow-read`, and `--allow-ffi`) |
+| `@taffyjs/wasm`      | ✅                 | ✅ (without permission flags)                                               |
+| `@taffyjs/yoga`      | ⚠️ Not implemented | ⚠️ Not implemented                                                          |
+| `@taffyjs/yoga-wasm` | ⚠️ Not implemented | ⚠️ Not implemented                                                          |
 
 ## Documentation
 
