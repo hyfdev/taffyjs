@@ -12,6 +12,7 @@ import {
   type NodeId,
   type Style,
   type StyleInput,
+  type StyleUpdate,
 } from "@taffyjs/node";
 
 type Context = { readonly label: string };
@@ -38,6 +39,7 @@ type ExpectedTree<TContext> = {
   getParent(node: NodeId): NodeId | null;
   getChildren(parent: NodeId): readonly NodeId[];
   setStyle(node: NodeId, style: StyleInput): void;
+  updateStyle(node: NodeId, update: StyleUpdate): void;
   getStyle(node: NodeId): Style;
   getLayout(node: NodeId): Layout;
   getUnroundedLayout(node: NodeId): Layout;
@@ -77,7 +79,12 @@ const readonlyStyleInput: StyleInput = {
   gridTemplateRowNames: readonlyLineNames,
 };
 const reusableStyleInput: StyleInput = tree.getStyle(node);
+const readonlyStyleUpdate: StyleUpdate = {
+  size: { width: 10 },
+  gridAutoRows: readonlyTracks,
+};
 tree.setStyle(node, reusableStyleInput);
+tree.updateStyle(node, readonlyStyleUpdate);
 tree.newLeaf(readonlyStyleInput);
 
 tree.computeLayoutWithMeasure({

@@ -46,12 +46,17 @@ pub(crate) fn partial_point<T>(
     value: Unknown<'_>,
     default: Point<T>,
     mut convert: impl FnMut(f64) -> BindingResult<T>,
-) -> BindingResult<Point<T>> {
+) -> BindingResult<(Point<T>, Point<bool>)> {
     let input: PartialPointInput = js_object::input(value, "a Point object", Some(POINT_FIELDS))?;
-    Ok(Point {
+    let present = Point {
+        x: input.x.is_some(),
+        y: input.y.is_some(),
+    };
+    let value = Point {
         x: input.x.map(&mut convert).transpose()?.unwrap_or(default.x),
         y: input.y.map(&mut convert).transpose()?.unwrap_or(default.y),
-    })
+    };
+    Ok((value, present))
 }
 
 pub(crate) fn size<'env, T>(
@@ -70,10 +75,14 @@ pub(crate) fn partial_size<'env, T>(
     value: Unknown<'env>,
     default: Size<T>,
     mut convert: impl FnMut(Unknown<'env>) -> BindingResult<T>,
-) -> BindingResult<Size<T>> {
+) -> BindingResult<(Size<T>, Size<bool>)> {
     let input: PartialSizeInput<'env> =
         js_object::input(value, "a Size object", Some(SIZE_FIELDS))?;
-    Ok(Size {
+    let present = Size {
+        width: input.width.is_some(),
+        height: input.height.is_some(),
+    };
+    let value = Size {
         width: input
             .width
             .map(&mut convert)
@@ -84,17 +93,24 @@ pub(crate) fn partial_size<'env, T>(
             .map(&mut convert)
             .transpose()?
             .unwrap_or(default.height),
-    })
+    };
+    Ok((value, present))
 }
 
 pub(crate) fn partial_rect<'env, T>(
     value: Unknown<'env>,
     default: Rect<T>,
     mut convert: impl FnMut(Unknown<'env>) -> BindingResult<T>,
-) -> BindingResult<Rect<T>> {
+) -> BindingResult<(Rect<T>, Rect<bool>)> {
     let input: PartialRectInput<'env> =
         js_object::input(value, "a Rect object", Some(RECT_FIELDS))?;
-    Ok(Rect {
+    let present = Rect {
+        left: input.left.is_some(),
+        right: input.right.is_some(),
+        top: input.top.is_some(),
+        bottom: input.bottom.is_some(),
+    };
+    let value = Rect {
         left: input
             .left
             .map(&mut convert)
@@ -115,17 +131,22 @@ pub(crate) fn partial_rect<'env, T>(
             .map(&mut convert)
             .transpose()?
             .unwrap_or(default.bottom),
-    })
+    };
+    Ok((value, present))
 }
 
 pub(crate) fn partial_line<'env, T>(
     value: Unknown<'env>,
     default: Line<T>,
     mut convert: impl FnMut(Unknown<'env>) -> BindingResult<T>,
-) -> BindingResult<Line<T>> {
+) -> BindingResult<(Line<T>, Line<bool>)> {
     let input: PartialLineInput<'env> =
         js_object::input(value, "a Line object", Some(LINE_FIELDS))?;
-    Ok(Line {
+    let present = Line {
+        start: input.start.is_some(),
+        end: input.end.is_some(),
+    };
+    let value = Line {
         start: input
             .start
             .map(&mut convert)
@@ -136,5 +157,6 @@ pub(crate) fn partial_line<'env, T>(
             .map(&mut convert)
             .transpose()?
             .unwrap_or(default.end),
-    })
+    };
+    Ok((value, present))
 }

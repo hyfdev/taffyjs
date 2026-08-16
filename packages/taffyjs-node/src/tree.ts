@@ -9,6 +9,7 @@ import type {
   Size,
   Style,
   StyleInput,
+  StyleUpdate,
 } from "./public-types.js";
 import type { AvailableSpace } from "./tagged-values.js";
 
@@ -180,6 +181,11 @@ export class TaffyTree<TContext = unknown> {
   /** Replaces a node style and marks affected layout state dirty. */
   setStyle(node: NodeId, style: StyleInput): void {
     this.#inner.rawSetStyle(this.#nodes.resolve(node), style);
+  }
+
+  /** Updates supplied style fields and geometry components, preserving omitted values. */
+  updateStyle(node: NodeId, update: StyleUpdate): void {
+    this.#inner.rawUpdateStyle(this.#nodes.resolve(node), update);
   }
 
   /** Returns a detached readable snapshot of the node style. */

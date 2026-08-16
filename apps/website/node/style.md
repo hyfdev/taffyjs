@@ -1,6 +1,6 @@
 # Style
 
-`StyleInput` is the partial object accepted when a node is created or passed to `setStyle`. Omitted fields and explicit `undefined` use Taffy's defaults. `Style` is the complete detached object returned by `getStyle` and supplied to measure callbacks.
+`StyleInput` is the partial object accepted when a node is created or passed to `setStyle`; omitted fields and explicit `undefined` use Taffy's defaults. `StyleUpdate` has the same accepted field shapes for `updateStyle`, but omitted fields and explicit `undefined` preserve stored values. `Style` is the complete detached object returned by `getStyle` and supplied to measure callbacks.
 
 Concrete lengths can usually be written as numbers. For example, `size: { width: 200 }` is the concise form of `size: { width: Dimension.Length(200) }`. Percentage, automatic, intrinsic, and Grid-specific values remain explicit. [Styles and Values](../guide/styles-and-values.md) explains these input forms in context.
 
@@ -17,7 +17,7 @@ These fields describe the node itself or are shared by more than one layout mode
 | `margin`, `padding`, `border`, `gap`                                                       | Supply spacing around, inside, and between boxes.                        |
 | `alignItems`, `alignSelf`, `justifyItems`, `justifySelf`, `alignContent`, `justifyContent` | Align items, individual nodes, or groups of lines and tracks.            |
 
-Geometry fields accept either one supported value for every component or a partial named record. For example, `padding: 12` applies to all four sides, while `padding: { left: 12, right: 12 }` changes only those sides from their defaults.
+Geometry fields accept either one supported value for every component or a partial named record. For example, `padding: 12` applies to all four sides. With creation or `setStyle`, `padding: { left: 12, right: 12 }` fills the other sides from defaults; with `updateStyle`, it preserves the other stored sides.
 
 The optional fields `aspectRatio`, the six alignment fields, and `gridTemplateAreas` accept `null` to store Taffy's absent value. Other fields reject `null`.
 
@@ -56,8 +56,8 @@ The shared alignment fields control placement along the main and cross axes. See
 
 The [Grid guide](../guide/grid.md) introduces the helper values used by these fields and shows a complete computation.
 
-## Reading and replacing style
+## Reading, replacing, and updating style
 
-`getStyle(node)` returns every field, including defaults, as a detached `Style` snapshot. That snapshot can be passed back anywhere a `StyleInput` is accepted. `setStyle(node, input)` replaces the complete stored style rather than merging with the previous one; see [Styles and Context](./styles-and-context.md) for the exact update and invalidation behavior.
+`getStyle(node)` returns every field, including defaults, as a detached `Style` snapshot. That snapshot can be passed back anywhere a `StyleInput` or `StyleUpdate` is accepted. `setStyle(node, input)` replaces the complete stored style from defaults. `updateStyle(node, update)` preserves omitted fields and omitted partial-geometry components while replacing arrays, tagged values, and complete records as whole values. See [Styles and Context](./styles-and-context.md) for the exact mutation and invalidation behavior.
 
 The package declarations and JSDoc remain the exact reference for each field's accepted TypeScript shape and each numeric constant member. This page groups the fields by their role so related choices can be found together.
