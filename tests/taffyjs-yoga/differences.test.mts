@@ -5,6 +5,7 @@ import Yoga, {
   Edge,
   ExperimentalFeature,
   FlexDirection,
+  Gutter,
   Justify,
   Wrap,
 } from "yoga-layout";
@@ -14,6 +15,7 @@ import OracleYoga, {
   Edge as OracleEdge,
   ExperimentalFeature as OracleExperimentalFeature,
   FlexDirection as OracleFlexDirection,
+  Gutter as OracleGutter,
   Justify as OracleJustify,
   Wrap as OracleWrap,
 } from "yoga-layout-oracle";
@@ -138,6 +140,94 @@ test("Different: max size combined with flex shrink keeps Taffy geometry", () =>
     oracleRoot.calculateLayout(undefined, undefined);
     assert.equal(child.getComputedWidth(), 60);
     assert.equal(oracleChild.getComputedWidth(), 67.5);
+  } finally {
+    root.freeRecursive();
+    oracleRoot.freeRecursive();
+    config.free();
+    oracleConfig.free();
+  }
+});
+
+test("Different: shrink factors totaling below one keep Taffy's partial shrink", () => {
+  const config = Yoga.Config.create();
+  const oracleConfig = OracleYoga.Config.create();
+  config.setPointScaleFactor(0);
+  oracleConfig.setPointScaleFactor(0);
+  const root = Yoga.Node.createWithConfig(config);
+  const first = Yoga.Node.createWithConfig(config);
+  const second = Yoga.Node.createWithConfig(config);
+  const oracleRoot = OracleYoga.Node.createWithConfig(oracleConfig);
+  const oracleFirst = OracleYoga.Node.createWithConfig(oracleConfig);
+  const oracleSecond = OracleYoga.Node.createWithConfig(oracleConfig);
+  try {
+    root.setFlexDirection(FlexDirection.Row);
+    root.setWidth(100);
+    first.setWidth(80);
+    first.setFlexShrink(0.5);
+    second.setWidth(80);
+    second.setFlexShrink(0);
+    root.insertChild(first, 0);
+    root.insertChild(second, 1);
+    oracleRoot.setFlexDirection(OracleFlexDirection.Row);
+    oracleRoot.setWidth(100);
+    oracleFirst.setWidth(80);
+    oracleFirst.setFlexShrink(0.5);
+    oracleSecond.setWidth(80);
+    oracleSecond.setFlexShrink(0);
+    oracleRoot.insertChild(oracleFirst, 0);
+    oracleRoot.insertChild(oracleSecond, 1);
+    root.calculateLayout(undefined, undefined);
+    oracleRoot.calculateLayout(undefined, undefined);
+    assert.deepEqual([first.getComputedWidth(), second.getComputedWidth()], [50, 80]);
+    assert.deepEqual([oracleFirst.getComputedWidth(), oracleSecond.getComputedWidth()], [20, 80]);
+  } finally {
+    root.freeRecursive();
+    oracleRoot.freeRecursive();
+    config.free();
+    oracleConfig.free();
+  }
+});
+
+test("Different: a percentage gap does not contribute to an auto main size", () => {
+  const config = Yoga.Config.create();
+  const oracleConfig = OracleYoga.Config.create();
+  config.setPointScaleFactor(0);
+  oracleConfig.setPointScaleFactor(0);
+  const root = Yoga.Node.createWithConfig(config);
+  const first = Yoga.Node.createWithConfig(config);
+  const second = Yoga.Node.createWithConfig(config);
+  const oracleRoot = OracleYoga.Node.createWithConfig(oracleConfig);
+  const oracleFirst = OracleYoga.Node.createWithConfig(oracleConfig);
+  const oracleSecond = OracleYoga.Node.createWithConfig(oracleConfig);
+  try {
+    root.setGapPercent(Gutter.Row, 10);
+    first.setWidth(30);
+    first.setHeight(20);
+    second.setWidth(30);
+    second.setHeight(20);
+    root.insertChild(first, 0);
+    root.insertChild(second, 1);
+    oracleRoot.setGapPercent(OracleGutter.Row, 10);
+    oracleFirst.setWidth(30);
+    oracleFirst.setHeight(20);
+    oracleSecond.setWidth(30);
+    oracleSecond.setHeight(20);
+    oracleRoot.insertChild(oracleFirst, 0);
+    oracleRoot.insertChild(oracleSecond, 1);
+    root.calculateLayout(undefined, undefined);
+    oracleRoot.calculateLayout(undefined, undefined);
+    assert.deepEqual(
+      [root.getComputedHeight(), second.getComputedTop(), second.getComputedHeight()],
+      [40, 24, 20],
+    );
+    assert.deepEqual(
+      [
+        oracleRoot.getComputedHeight(),
+        oracleSecond.getComputedTop(),
+        oracleSecond.getComputedHeight(),
+      ],
+      [44, 24, 20],
+    );
   } finally {
     root.freeRecursive();
     oracleRoot.freeRecursive();

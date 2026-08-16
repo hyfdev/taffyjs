@@ -1,17 +1,16 @@
 {
-  "name": "@taffyjs/yoga",
+  "name": "@taffyjs/yoga-wasm",
   "version": "0.0.0",
   "private": true,
-  "description": "Yoga-compatible Node.js facade backed by TaffyJS.",
+  "description": "Yoga-compatible facade backed by TaffyJS WebAssembly.",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hyfdev/taffyjs.git",
-    "directory": "packages/taffyjs-yoga"
+    "directory": "packages/taffyjs-yoga-wasm"
   },
   "files": [
     "README.md",
-    "COMPATIBILITY.md",
     "THIRD-PARTY-LICENSES",
     "dist"
   ],
@@ -34,7 +33,7 @@
     "check": "vp check"
   },
   "dependencies": {
-    "@taffyjs/node": "workspace:*"
+    "@taffyjs/wasm": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

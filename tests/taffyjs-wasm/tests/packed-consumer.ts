@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, readdir, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,6 +35,10 @@ try {
   for (const packageManager of ["npm", "pnpm"] as const) {
     const consumerDirectory = resolve(temporaryDirectory, packageManager);
     await mkdir(consumerDirectory);
+    await writeFile(
+      resolve(consumerDirectory, "package.json"),
+      `${JSON.stringify({ name: `taffyjs-wasm-${packageManager}-consumer`, private: true, type: "module" }, null, 2)}\n`,
+    );
     if (packageManager === "npm") {
       execFileSync(npm, ["install", tarball, "--ignore-scripts", "--no-audit", "--no-fund"], {
         cwd: consumerDirectory,

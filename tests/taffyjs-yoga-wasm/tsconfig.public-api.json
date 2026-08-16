@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "paths": {
+      "yoga-layout": ["../../packages/taffyjs-yoga-wasm/dist/index.d.ts"],
+      "yoga-layout/load": ["../../packages/taffyjs-yoga-wasm/dist/load.d.ts"]
+    },
+    "strict": true,
+    "target": "ES2022"
+  },
+  "files": ["../taffyjs-yoga/types/public-api.test-d.ts"]
+}
