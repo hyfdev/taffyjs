@@ -1,19 +1,21 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "lib": ["es2023"],
+    "lib": ["es2023", "dom"],
     "moduleDetection": "force",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "types": ["node"],
+    "paths": {
+      "@taffyjs/wasm": ["../../packages/taffyjs-node/src/index.ts"]
+    },
     "strict": true,
     "noUnusedLocals": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "esModuleInterop": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["tests/**/*.mts", "tests/**/*.ts", "vite.config.ts"]
+  "include": ["browser/**/*.ts", "tests/**/*.ts", "vite.config.ts"]
 }

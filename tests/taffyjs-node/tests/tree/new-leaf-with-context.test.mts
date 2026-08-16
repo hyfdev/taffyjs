@@ -65,7 +65,7 @@ test("primitive-null-undefined", () => {
 });
 
 test("removal-cleanup", () => {
-  const fixture = fileURLToPath(new URL("./fixtures/context-lifetime.mjs", import.meta.url));
+  const fixture = fileURLToPath(new URL("./fixtures/context-lifetime.ts", import.meta.url));
   const child = spawnSync(process.execPath, ["--expose-gc", fixture], {
     encoding: "utf8",
     timeout: 20_000,

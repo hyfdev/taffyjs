@@ -19,9 +19,47 @@ const testTasks = {
   },
 };
 
+const wasmTasks = {
+  "check:wasm:api": {
+    command: "vp run @taffyjs/wasm-integration-tests#test:api",
+    dependsOn: ["build:wasm"],
+  },
+  "check:wasm:packed-consumers": {
+    command: "vp run @taffyjs/wasm-integration-tests#test:packed",
+    dependsOn: ["build:wasm"],
+  },
+  "check:wasm:types": {
+    command: "vp run @taffyjs/wasm-integration-tests#check:types",
+    dependsOn: ["build:wasm"],
+  },
+  "check:wasm:package": {
+    command: "vp run @taffyjs/wasm-integration-tests#check:package",
+    dependsOn: ["build:wasm"],
+  },
+  "check:wasm:browser-runtime": {
+    command: "vp run @taffyjs/wasm-integration-tests#test:browser",
+    dependsOn: ["build:wasm"],
+  },
+  "build:wasm:browser-consumer": {
+    command: "vp run @taffyjs/wasm-integration-tests#build:browser",
+    dependsOn: ["build:wasm"],
+  },
+  "check:wasm:browser-bundle": {
+    command: "vp run @taffyjs/wasm-integration-tests#check:browser-bundle",
+    dependsOn: ["build:wasm:browser-consumer"],
+  },
+};
+
 export default defineConfig({
   fmt: {
-    ignorePatterns: ["packages/taffyjs-node/index.js", "packages/taffyjs-node/index.d.ts"],
+    ignorePatterns: [
+      "packages/taffyjs-node/index.js",
+      "packages/taffyjs-node/index.d.ts",
+      "packages/taffyjs-wasm/dist",
+      "packages/.taffyjs-*.napi-stage-*",
+      "packages/**/.napi-rs-filesystem-transaction*",
+      "tests/taffyjs-wasm/browser/dist",
+    ],
     overrides: [
       {
         files: ["**/*.md"],
@@ -35,6 +73,10 @@ export default defineConfig({
       "packages/taffyjs-node/index.d.ts",
       "packages/taffyjs-node/binding.js",
       "packages/taffyjs-node/binding.d.ts",
+      "packages/taffyjs-wasm/dist",
+      "packages/.taffyjs-*.napi-stage-*",
+      "packages/**/.napi-rs-filesystem-transaction*",
+      "tests/taffyjs-wasm/browser/dist",
     ],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },
@@ -53,12 +95,28 @@ export default defineConfig({
       "build:binding": {
         command: "vp run @taffyjs/node#build",
       },
+      "build:wasm:binding": {
+        command:
+          "vp exec --filter @taffyjs/wasm -- napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir .napi-build --target wasm32-wasip1 --platform --js binding.js --dts binding.d.cts --esm --release -- --locked",
+      },
+      "build:wasm:entries": {
+        command: "vp exec --filter @taffyjs/wasm -- vp pack",
+        dependsOn: ["build:wasm:binding"],
+      },
+      "build:wasm": {
+        command: "node tools/taffy-wasm/generate-inline-wasm-runtime-files.ts",
+        dependsOn: ["build:wasm:entries"],
+      },
       build: {
         command: "echo build ok",
         dependsOn: ["build:binding"],
       },
       "check:format": {
         command: "vp fmt --check",
+      },
+      "check:format:after-build": {
+        command: "vp fmt --check",
+        dependsOn: ["build"],
       },
       "check:lint": {
         command: "vp lint --deny-warnings",
@@ -68,13 +126,25 @@ export default defineConfig({
           "cargo fmt --all -- --check && cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
       },
       ...testTasks,
+      ...wasmTasks,
       "check:test": {
         command: "echo tests ok",
         dependsOn: Object.keys(testTasks),
       },
       check: {
         command: "echo check ok",
-        dependsOn: ["check:format", "check:lint", "check:rust", "check:test"],
+        dependsOn: ["check:format:after-build", "check:lint", "check:rust", "check:test"],
+      },
+      "check:wasm": {
+        command: "echo wasm checks passed",
+        dependsOn: [
+          "check:wasm:api",
+          "check:wasm:packed-consumers",
+          "check:wasm:types",
+          "check:wasm:package",
+          "check:wasm:browser-runtime",
+          "check:wasm:browser-bundle",
+        ],
       },
       ready: {
         command: "echo ready checks passed",

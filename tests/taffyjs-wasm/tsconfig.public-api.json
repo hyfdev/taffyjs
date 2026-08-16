@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "paths": {
+      "@taffyjs/node": ["../../packages/taffyjs-wasm/dist/index.d.ts"]
+    },
+    "strict": true,
+    "target": "ES2022"
+  },
+  "files": [
+    "../taffyjs-node/tests/types/public-api.test-d.ts",
+    "../taffyjs-node/tests/types/style.test-d.ts",
+    "../taffyjs-node/tests/types/values.test-d.ts"
+  ]
+}

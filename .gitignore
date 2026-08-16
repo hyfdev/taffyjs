@@ -10,3 +10,8 @@ coverage/
 .env
 .env.*
 !.env.example
+
+packages/taffyjs-wasm/dist/
+packages/taffyjs-wasm/.napi-build/
+
+tests/taffyjs-wasm/browser/dist/

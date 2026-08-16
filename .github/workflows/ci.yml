@@ -43,6 +43,26 @@ jobs:
       - name: Build and run all tests
         run: pnpm exec vp run check:test
 
+  test-wasm:
+    name: Build and test WASIP
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+      - run: pnpm install --frozen-lockfile
+      - name: Install the browser used by the Wasm runtime test
+        run: pnpm --filter @taffyjs/wasm-integration-tests exec playwright install --with-deps chromium
+      - name: Build and test the Wasm package
+        run: pnpm exec vp run check:wasm
+
   check-node:
     name: Node checks
     runs-on: ubuntu-24.04
