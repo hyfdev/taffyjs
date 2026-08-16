@@ -226,6 +226,9 @@ catalogs:
     vitepress:
       specifier: 2.0.0-alpha.19
       version: 2.0.0-alpha.19
+    yoga-layout:
+      specifier: 3.2.1
+      version: 3.2.1
 
 importers:
 
@@ -262,6 +265,15 @@ importers:
       '@taffyjs/wasm':
         specifier: workspace:*
         version: link:../packages/taffyjs-wasm
+      '@taffyjs/yoga':
+        specifier: workspace:*
+        version: link:../packages/taffyjs-yoga
+      '@taffyjs/yoga-wasm':
+        specifier: workspace:*
+        version: link:../packages/taffyjs-yoga-wasm
+      yoga-layout:
+        specifier: 'catalog:'
+        version: 3.2.1
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

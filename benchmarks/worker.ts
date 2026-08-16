@@ -2,22 +2,43 @@ import assert from "node:assert/strict";
 
 import { Bench } from "tinybench";
 
-import type { BenchmarkWorkerResult, TaffyApi } from "./scenario.ts";
-import { benchmarkProfiles, taffyScenarios, taffyTargets } from "./suite.ts";
+import type {
+  BenchmarkScenarioMetadata,
+  BenchmarkWorkerResult,
+  TaffyApi,
+  YogaApi,
+} from "./scenario.ts";
+import { benchmarkComparisonGroups, benchmarkProfiles } from "./suite.ts";
 
-const [targetId, scenarioId, profileId] = process.argv.slice(2);
-const target = taffyTargets.find(({ id }) => id === targetId);
-const scenario = taffyScenarios.find(({ id }) => id === scenarioId);
+const [groupId, targetId, scenarioId, profileId] = process.argv.slice(2);
+const group = benchmarkComparisonGroups.find(({ id }) => id === groupId);
 const profile = benchmarkProfiles.find(({ id }) => id === profileId);
+assert.ok(group, `Unknown benchmark comparison group ${groupId ?? "<missing>"}`);
+const target = group.targets.find(({ id }) => id === targetId);
 assert.ok(target, `Unknown benchmark target ${targetId ?? "<missing>"}`);
-assert.ok(scenario, `Unknown benchmark scenario ${scenarioId ?? "<missing>"}`);
 assert.ok(profile, `Unknown benchmark profile ${profileId ?? "<missing>"}`);
 
-const api = (await import(target.packageName)) as TaffyApi;
-const checksum = scenario.createTransaction(api)();
+const importedApi: unknown = await import(target.packageName);
+let scenario: BenchmarkScenarioMetadata;
+let createTransaction: () => () => number;
+if (group.id === "taffy-api") {
+  const typedScenario = group.scenarios.find(({ id }) => id === scenarioId);
+  assert.ok(typedScenario, `Unknown benchmark scenario ${scenarioId ?? "<missing>"}`);
+  const api = importedApi as TaffyApi;
+  scenario = typedScenario;
+  createTransaction = () => typedScenario.createTransaction(api);
+} else {
+  const typedScenario = group.scenarios.find(({ id }) => id === scenarioId);
+  assert.ok(typedScenario, `Unknown benchmark scenario ${scenarioId ?? "<missing>"}`);
+  const api = importedApi as YogaApi;
+  scenario = typedScenario;
+  createTransaction = () => typedScenario.createTransaction(api);
+}
+
+const checksum = createTransaction()();
 assert.ok(Number.isFinite(checksum), `${scenario.id}/${target.id} returned a non-finite checksum`);
 
-const transaction = scenario.createTransaction(api);
+const transaction = createTransaction();
 const bench = new Bench({ ...profile.settings, throws: true });
 let blackhole = 0;
 bench.add(target.id, () => {
@@ -47,6 +68,7 @@ const medianMs =
     ? (sortedSamples[middle - 1] + sortedSamples[middle]) / 2
     : sortedSamples[middle];
 const output: BenchmarkWorkerResult = {
+  groupId: group.id,
   targetId: target.id,
   scenarioId: scenario.id,
   checksum,

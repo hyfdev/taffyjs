@@ -5,7 +5,10 @@
   "type": "module",
   "dependencies": {
     "@taffyjs/node": "workspace:*",
-    "@taffyjs/wasm": "workspace:*"
+    "@taffyjs/wasm": "workspace:*",
+    "@taffyjs/yoga": "workspace:*",
+    "@taffyjs/yoga-wasm": "workspace:*",
+    "yoga-layout": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

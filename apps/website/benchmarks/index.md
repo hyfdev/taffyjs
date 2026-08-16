@@ -2,10 +2,10 @@
 import BenchmarkResults from "../.vitepress/components/BenchmarkResults.vue";
 </script>
 
-# Node vs. Wasm
+# Benchmarks
 
-These results compare `@taffyjs/node` and `@taffyjs/wasm` in Node.js through the same public JavaScript API. Each timed end-to-end transaction starts after package import and includes public tree construction, JavaScript-to-native or JavaScript-to-Wasm data conversion, layout computation, and reading the requested layout results. The benchmark does not isolate engine time or subtract wrapper overhead.
+These results compare complete public JavaScript transactions in Node.js. The Taffy API group compares `@taffyjs/node` with `@taffyjs/wasm`. The Yoga API group compares packages through the same Yoga-shaped API. Each transaction starts after package import and includes public tree construction, data conversion, layout computation, reading the requested layout results, and any lifecycle work required by that API.
 
-Each scenario asks a different question and stands on its own. Relative throughput uses `@taffyjs/node` as the `1.00×` reference within that scenario; the results are not combined into an overall score or winner.
+Each scenario asks a different question and stands on its own. Relative throughput uses the first target as the `1.00×` reference within its own API group. Results from different APIs or scenarios are not combined into an overall score or winner.
 
 <BenchmarkResults />
