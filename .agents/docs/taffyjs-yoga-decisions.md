@@ -184,6 +184,8 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 
 ### Upstream work and current compatibility
 
+[VOUCHED @hyfdev 2026-08-16]
+
 **Ruling:** Published compatibility classifications must describe only the behavior available through the Taffy version actually pinned by `@taffyjs/yoga`; relevant upstream implementation work must be shown separately as work in progress without changing the current Compatible, Different, or Unsupported classification.
 
 **Limits:** An upstream issue or pull request is evidence of active work, not shipped support, a delivery promise, or an ETA. Reclassification requires the upstream capability to land in a released Taffy version, the required native API to be adopted and exposed by `@taffyjs/node`, and the affected Yoga behavior to pass differential verification with updated documentation and regression fixtures. Current upstream-work entries and statuses live only in the [public compatibility document](../../packages/taffyjs-yoga/COMPATIBILITY.md#upstream-work-in-progress) and must be refreshed when work merges, closes, or is replaced.
