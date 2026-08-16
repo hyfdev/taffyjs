@@ -38,6 +38,18 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly stated that everything should use TypeScript unless there is a special reason not to, then explicitly promoted and vouched this as a repository-wide PCR rule.
 
+### Node builtin module protocol
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Every reference to a Node.js builtin module in repository code must use the explicit `node:` protocol by default, including imports, exports, dynamic imports, and `require` calls in authored source and generated or distributed JavaScript controlled by the repository build.
+
+**Limits:** This does not modify third-party packages or their source templates in place. When an upstream generator emits bare builtin specifiers for an older Node.js compatibility floor that TaffyJS does not support, the repository must normalize its generated artifact at the owned build boundary. Only a concrete supported-runtime requirement that cannot resolve `node:` may reopen this default.
+
+**Why:** A Deno compatibility check exposed the generated public entry's bare `from "module"` specifier, after which Yunfei required every Node builtin module reference to default to the `node:` protocol; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required repository code to default every Node builtin module reference to the `node:` protocol, asked to vouch the rule, and requested the implementation and pull request.
+
 ### Vite+ owns JavaScript package builds
 
 [VOUCHED @hyfdev 2026-08-09]
