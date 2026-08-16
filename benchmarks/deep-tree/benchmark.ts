@@ -89,4 +89,4 @@ function createDeepTreeScenario(nodeCount: number): TaffyBenchmarkScenario {
   };
 }
 
-export const deepTreeScenarios: readonly TaffyBenchmarkScenario[] = [createDeepTreeScenario(500)];
+export const deepTreeScenarios: readonly TaffyBenchmarkScenario[] = [createDeepTreeScenario(511)];

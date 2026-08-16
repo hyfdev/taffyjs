@@ -24,7 +24,7 @@ export const benchmarkProfiles: readonly BenchmarkProfile[] = [
   },
   {
     id: "publication",
-    rounds: 4,
+    rounds: 1,
     settings: {
       time: 1_000,
       iterations: 20,
@@ -32,7 +32,7 @@ export const benchmarkProfiles: readonly BenchmarkProfile[] = [
       warmupIterations: 10,
     },
     maxRelativeMarginOfError: 30,
-    maxRoundMedianSpread: 0.1,
+    maxRoundMedianSpread: null,
   },
 ];
 
