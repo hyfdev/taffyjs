@@ -1,10 +1,10 @@
 # @taffyjs/yoga Implementation Loop Status
 
-Updated: 2026-08-15
+Updated: 2026-08-16
 
 ## State
 
-Milestones 1 through 6 are complete and reviewed. The implementation is ready for Yunfei's decision in the existing draft, unmerged pull request.
+Milestones 1 through 6 are complete and reviewed. The implementation is undergoing its final stacked-PR review before merge.
 
 ## Done
 
@@ -64,15 +64,16 @@ Milestones 1 through 6 are complete and reviewed. The implementation is ready fo
 - A final `pnpm pack --dry-run --json` preview contains exactly `package.json`, the three package documents, root and `/load` JavaScript, root and `/load` declarations, one shared JavaScript chunk, and one shared declaration chunk. The cleaned output contains no `yoga-layout` or `yoga-layout-oracle` runtime import.
 - The fresh Milestone 6 adversarial reviewer found two material public-surface issues: the facade and factories were frozen and their declarations narrowed writable enum constants into readonly literals, and the public min/max Flex Difference row was narrower than the vouched result group. Runtime and declaration mutability now match the oracle with direct tests, and the public row now covers min or max constraints combined with Flex growth or shrinkage while retaining the exact max-plus-shrink fixture.
 - The same reviewer's single targeted follow-up returned PASS for both repairs and confirmed the neighboring `Direction.Inherit` and infinite-owner-dimension behavior. The bounded follow-up passed 23 focused tests and the Yoga declaration check.
-- After the reviewed Milestone 6 commit, the branch was linearly rebased onto `origin/main` at `17a567d`. The only conflict was the project-document index, where the completed Yoga entries and main's expanded codegen description were both retained. On the rebased tree, the complete `vp run ready` gate passes with the same test counts.
+- The VueTUI consumer run exposed one real translation defect: an undefined Yoga minimum was translated to Taffy's automatic minimum instead of zero. The fix now translates only undefined minimum dimensions to zero, retains ordinary undefined dimensions as auto, and adds row and column differential fixtures. It also removed the previously reported measured-flex-basis Difference, which the same defect had caused. A bounded 270-case flex-basis probe found no remaining mismatch in that tested constant-measure corpus.
+- The complete stack was linearly rebased onto `origin/main` at `dbdad1e`, retaining the newer Node build, Wasm package, website, and Yoga integration. On the rebased tree, `vp run ready` passes: 9 Rust tests, 45 native tests, 195 `@taffyjs/node` integration tests, 78 Yoga tests, both declaration checks, formatting, linting, and Clippy pass.
 
 ## In flight
 
-- None.
+- Final combined-diff correctness and simplicity reviews, stacked branch synchronization, and merge.
 
 ## Next
 
-- Yunfei reviews draft PR [#9](https://github.com/hyfdev/taffyjs/pull/9) and decides whether or when to merge. This run does not mark it ready, merge it, publish packages, or add release automation.
+- Merge the reviewed stacked PRs when their final combined-diff review and CI gates pass. Publication and release automation remain outside this implementation run.
 - After a future @taffyjs/yoga publication, run one real registry installation using the `yoga-layout` npm alias. That smoke test cannot be completed against the current private, unpublished package and is outside this implementation run.
 
 ## Blocked
@@ -83,7 +84,7 @@ Milestones 1 through 6 are complete and reviewed. The implementation is ready fo
 
 - Pull request: [hyfdev/taffyjs#9](https://github.com/hyfdev/taffyjs/pull/9), still draft and unmerged.
 - Baseline and scope: exactly `yoga-layout@3.2.1`; ESM-only; Node.js >=22.18; TypeScript over the existing public `@taffyjs/node` API; no Rust, Taffy core, `@taffyjs/node` API, Flex, browser, WASM, generator, query, batch, compact-transport, publication, or release-automation expansion.
-- Milestone commits after the rebase: `f646c29` package foundation; `e1861a1` Config and Style; `3f1f557` topology and state; `a65114a` computed output; `7bb18c7` Measure API; `ff6f8a9` compatibility closure and handover. The vouched run baseline is `bd40988`; the branch is based on `origin/main` at `17a567d`.
+- Milestone commits after the latest rebase: `91be271` package foundation; `0a58671` Config and Style; `d10d156` topology and state; `c354269` computed output; `336772f` Measure API; `577cbca` compatibility closure and handover. The vouched run baseline is `806c862`; the branch is based on `origin/main` at `dbdad1e`.
 - Remaining Different groups: named Yoga cache artifacts; corrected dirtied-callback argument and null behavior; min or max constraints combined with Flex growth or shrinkage; overlapping physical/logical main-axis margins; calculated aspect ratio; oversized or ordinary WrapReverse placement; overflowing reversed-axis distribution; zero-cross-size wrapped-line distribution; main-axis auto margins with reversal or justification; Measure callback trace, mode-sensitive result, and callback replacement/removal cache behavior. Exact triggers and pinned results are in the package compatibility guide.
 - Remaining Unsupported triggers: Display.Contents; PositionType.Static; every non-None Errata; property-invalid Align values; `setIsReferenceBaseline(true)`; positive or negative infinite calculation owner dimensions; and undeclared malformed or Value-like generic-setter coercions. Types omit or narrow these where possible, and dynamic inputs throw before mutation.
 - Only post-publication evidence remains: install the published package under the `yoga-layout` registry alias and smoke-test both entries. It does not block this private draft implementation.
