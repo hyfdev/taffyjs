@@ -130,10 +130,13 @@ const operatingSystem =
 <template>
   <div class="benchmark-results">
     <p class="benchmark-method">
-      The publication profile uses {{ report.profile.rounds }} independent rounds per target. Each
-      round must stay at or below {{ report.profile.maxRelativeMarginOfError }}% relative margin of
-      error, and the round medians must stay within
-      {{ (report.profile.maxRoundMedianSpread ?? 0) * 100 }}% of their median.
+      The publication profile uses {{ report.profile.rounds }} isolated
+      {{ report.profile.rounds === 1 ? "round" : "rounds" }} per target. Each round must stay at or
+      below {{ report.profile.maxRelativeMarginOfError }}% relative margin of error<template
+        v-if="report.profile.rounds > 1 && report.profile.maxRoundMedianSpread !== null"
+        >, and the round medians must stay within {{ report.profile.maxRoundMedianSpread * 100 }}%
+        of their median</template
+      >.
     </p>
 
     <section
