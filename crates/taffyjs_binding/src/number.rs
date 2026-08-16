@@ -32,7 +32,7 @@ where
     T::try_from(value as i64).map_err(|_| range_error("Expected a finite integer in range"))
 }
 
-pub(crate) fn to_safe_usize(value: f64) -> BindingResult<usize> {
+pub(crate) fn to_safe_u64(value: f64) -> BindingResult<u64> {
     if value > JS_MAX_SAFE_INTEGER {
         return Err(range_error("Expected a non-negative safe integer"));
     }

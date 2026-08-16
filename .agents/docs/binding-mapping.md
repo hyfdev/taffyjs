@@ -48,7 +48,9 @@ Named geometry uses `x/y`, `width/height`, `left/right/top/bottom`, or `start/en
 
 JavaScript floating-point input must be a `number`. The binding converts `f64` to Taffy's `f32` with normal Rust cast behavior and returns the stored `f32` widened to a JavaScript number. Negative values, `NaN`, infinities, and finite overflow are passed through unless a concrete shape is known to panic or violate native safety.
 
-Indices and Rust integer payloads must be finite exact integers in the target range. Allocation arithmetic and child ranges are checked before use.
+Indices and Rust integer payloads must be finite exact integers in their public range. Allocation arithmetic and child ranges are checked before use.
+
+`usize` remains Taffy's internal collection-index type rather than a public-width promise. Public child indices and range endpoints are first validated as non-negative JavaScript safe integers and represented as `u64` on every target. The binding compares them with the actual collection length before converting a proven-in-bounds value to `usize`. An impossible large index therefore receives the same public bounds error on x64 Node and wasm32 instead of exposing the host width at a conversion step.
 
 Fieldless families such as `Display`, `Overflow`, and `AlignItems` use stable numeric literal members exposed through frozen PascalCase objects. Public code should use the names, while an exact valid raw code remains accepted. Rust conversion checks exact family membership and does not derive codes from Rust declaration order.
 
@@ -98,7 +100,7 @@ Validate complete input, every involved NodeId, topology, index, and range befor
 
 Shape failures use `TypeError`, numeric range failures use `RangeError`, and ordinary Taffy operation failures use `Error`. Stable NodeId and busy codes are part of the public contract; exact prose is not.
 
-Known JavaScript-controlled panic paths are prevented before Taffy. The Rust owner catches unexpected panics as a final boundary and prevents later access to a possibly inconsistent native tree; panic handling is not normal error control flow.
+Known JavaScript-controlled panic paths are prevented before Taffy. On native targets, the Rust owner catches unexpected panics as a final boundary and prevents later access to a possibly inconsistent tree; panic handling is not normal error control flow. `wasm32-wasip1` is compiled with aborting panics, so `@taffyjs/wasm` does not promise that this final unexpected-panic containment is recoverable. Expected validation and callback errors are still controlled before any abort path and are tested to leave the tree reusable.
 
 ## Changes and optimization
 
