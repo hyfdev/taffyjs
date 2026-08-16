@@ -44,6 +44,10 @@ TaffyJS supports Node.js 22.18+, Bun 1.2+ within the Bun 1 major, and Deno 2.2+ 
 - [`@taffyjs/wasm`](apps/website/wasm/index.md) documents WebAssembly setup, supported environments, and differences from the native package.
 - [`@taffyjs/yoga`](packages/taffyjs-yoga/README.md) and [`@taffyjs/yoga-wasm`](packages/taffyjs-yoga-wasm/README.md) document dependency substitution and the shared Yoga 3.2.1 compatibility boundary.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the commit and pull request conventions used by this repository.
+
 ## Credits
 
 - [Taffy](https://github.com/DioxusLabs/taffy), the layout engine at the core of TaffyJS.
