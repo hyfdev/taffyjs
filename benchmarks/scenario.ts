@@ -1,16 +1,47 @@
 import type { NodeId, TaffyTree } from "@taffyjs/node";
+import type { Node as YogaNode } from "@taffyjs/yoga";
 
 export type TaffyApi = typeof import("@taffyjs/node");
+export type YogaApi = typeof import("@taffyjs/yoga");
 
-export interface TaffyBenchmarkScenario {
+export interface BenchmarkScenarioMetadata {
   readonly id: string;
   readonly name: string;
   readonly question: string;
   readonly description: string;
   readonly transaction: string;
   readonly parameters: Readonly<Record<string, string | number | boolean>>;
-  createTransaction(api: TaffyApi): () => number;
 }
+
+export interface BenchmarkScenario<TApi> extends BenchmarkScenarioMetadata {
+  createTransaction(api: TApi): () => number;
+}
+
+export type TaffyBenchmarkScenario = BenchmarkScenario<TaffyApi>;
+export type YogaBenchmarkScenario = BenchmarkScenario<YogaApi>;
+
+export interface BenchmarkTarget {
+  readonly id: string;
+  readonly label: string;
+  readonly packageName: string;
+}
+
+interface BenchmarkComparisonGroupBase {
+  readonly name: string;
+  readonly targets: readonly BenchmarkTarget[];
+}
+
+export interface TaffyBenchmarkComparisonGroup extends BenchmarkComparisonGroupBase {
+  readonly id: "taffy-api";
+  readonly scenarios: readonly TaffyBenchmarkScenario[];
+}
+
+export interface YogaBenchmarkComparisonGroup extends BenchmarkComparisonGroupBase {
+  readonly id: "yoga-api";
+  readonly scenarios: readonly YogaBenchmarkScenario[];
+}
+
+export type BenchmarkComparisonGroup = TaffyBenchmarkComparisonGroup | YogaBenchmarkComparisonGroup;
 
 export interface SampledBenchmarkResult {
   readonly hz: number;
@@ -26,6 +57,7 @@ export interface SampledBenchmarkResult {
 }
 
 export interface BenchmarkWorkerResult {
+  readonly groupId: BenchmarkComparisonGroup["id"];
   readonly targetId: string;
   readonly scenarioId: string;
   readonly checksum: number;
@@ -75,6 +107,28 @@ export function readLayoutChecksum<TContext>(
       layout.margin.right,
       layout.margin.top,
       layout.margin.bottom,
+    ];
+
+    for (let valueIndex = 0; valueIndex < values.length; valueIndex += 1) {
+      checksum += values[valueIndex] * (nodeIndex + 1) * (valueIndex + 1);
+    }
+  }
+
+  return checksum;
+}
+
+export function readYogaLayoutChecksum(nodes: readonly YogaNode[]): number {
+  let checksum = nodes.length * 17;
+
+  for (let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex += 1) {
+    const layout = nodes[nodeIndex].getComputedLayout();
+    const values = [
+      layout.left,
+      layout.right,
+      layout.top,
+      layout.bottom,
+      layout.width,
+      layout.height,
     ];
 
     for (let valueIndex = 0; valueIndex < values.length; valueIndex += 1) {

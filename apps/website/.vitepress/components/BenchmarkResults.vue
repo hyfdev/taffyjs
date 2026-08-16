@@ -29,6 +29,7 @@ interface BenchmarkScenario {
 
 interface BenchmarkComparisonGroup {
   readonly id: string;
+  readonly name: string;
   readonly targets: readonly BenchmarkTarget[];
   readonly scenarios: readonly BenchmarkScenario[];
 }
@@ -63,35 +64,40 @@ if (report.source.dirty) {
   throw new Error("Published benchmark results must come from a clean worktree");
 }
 
-const comparisonGroup = report.comparisonGroups.find(({ id }) => id === "taffy-api");
-if (!comparisonGroup) {
-  throw new Error("Published benchmark results are missing the Taffy API comparison");
+if (report.comparisonGroups.length === 0) {
+  throw new Error("Published benchmark results contain no comparison groups");
 }
 
-const nodeTarget = comparisonGroup.targets.find(
-  ({ packageName }) => packageName === "@taffyjs/node",
-);
-if (!nodeTarget) {
-  throw new Error("Published benchmark results are missing @taffyjs/node");
-}
-
-const scenarios = comparisonGroup.scenarios.map((scenario) => {
-  const nodeResult = scenario.results.find(({ targetId }) => targetId === nodeTarget.id);
-  if (!nodeResult) {
-    throw new Error(`${scenario.id} is missing its @taffyjs/node result`);
+const comparisonGroups = report.comparisonGroups.map((group) => {
+  const baselineTarget = group.targets[0];
+  if (!baselineTarget) {
+    throw new Error(`${group.id} contains no benchmark targets`);
   }
 
   return {
-    ...scenario,
-    rows: comparisonGroup.targets.map((target) => {
-      const result = scenario.results.find(({ targetId }) => targetId === target.id);
-      if (!result) {
-        throw new Error(`${scenario.id} is missing its ${target.packageName} result`);
+    ...group,
+    baselineTarget,
+    scenarios: group.scenarios.map((scenario) => {
+      const baselineResult = scenario.results.find(
+        ({ targetId }) => targetId === baselineTarget.id,
+      );
+      if (!baselineResult) {
+        throw new Error(`${scenario.id} is missing its ${baselineTarget.packageName} result`);
       }
+
       return {
-        target,
-        result,
-        relativeThroughput: result.hz / nodeResult.hz,
+        ...scenario,
+        rows: group.targets.map((target) => {
+          const result = scenario.results.find(({ targetId }) => targetId === target.id);
+          if (!result) {
+            throw new Error(`${scenario.id} is missing its ${target.packageName} result`);
+          }
+          return {
+            target,
+            result,
+            relativeThroughput: result.hz / baselineResult.hz,
+          };
+        }),
       };
     }),
   };
@@ -140,69 +146,81 @@ const operatingSystem =
     </p>
 
     <section
-      v-for="scenario in scenarios"
-      :key="scenario.id"
-      class="benchmark-scenario"
-      :aria-labelledby="`${scenario.id}-heading`"
+      v-for="group in comparisonGroups"
+      :key="group.id"
+      class="benchmark-group"
+      :aria-labelledby="`${group.id}-heading`"
     >
-      <h2 :id="`${scenario.id}-heading`">{{ scenario.name }}</h2>
-      <p class="benchmark-question">{{ scenario.question }}</p>
-      <p class="benchmark-description">{{ scenario.description }}</p>
+      <h2 :id="`${group.id}-heading`">{{ group.name }}</h2>
 
-      <div class="benchmark-boundary">
-        <div class="benchmark-boundary-item">
-          <h3>Timed transaction</h3>
-          <p>{{ scenario.transaction }}</p>
-        </div>
-        <div class="benchmark-boundary-item">
-          <h3>Scale</h3>
-          <dl class="benchmark-parameters">
-            <div v-for="(value, name) in scenario.parameters" :key="name">
-              <dt>{{ formatParameterName(name) }}</dt>
-              <dd>{{ formatParameterValue(value) }}</dd>
-            </div>
-          </dl>
-        </div>
-      </div>
-
-      <div
-        class="benchmark-table-region"
-        role="region"
-        :aria-label="`${scenario.name} results`"
-        tabindex="0"
+      <section
+        v-for="scenario in group.scenarios"
+        :key="scenario.id"
+        class="benchmark-scenario"
+        :aria-labelledby="`${scenario.id}-heading`"
       >
-        <table>
-          <caption>
-            {{
-              scenario.name
-            }}
-            throughput and latency by package
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Package</th>
-              <th scope="col">ops/s</th>
-              <th scope="col">Mean (ms)</th>
-              <th scope="col">Median (ms)</th>
-              <th scope="col">
-                Relative throughput
-                <span>Node = 1.00×</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in scenario.rows" :key="row.target.id">
-              <th scope="row">
-                <code>{{ row.target.packageName }}</code>
-              </th>
-              <td>{{ throughputFormatter.format(row.result.hz) }}</td>
-              <td>{{ durationFormatter.format(row.result.meanMs) }}</td>
-              <td>{{ durationFormatter.format(row.result.medianMs) }}</td>
-              <td>{{ throughputFormatter.format(row.relativeThroughput) }}×</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <h3 :id="`${scenario.id}-heading`">{{ scenario.name }}</h3>
+        <p class="benchmark-question">{{ scenario.question }}</p>
+        <p class="benchmark-description">{{ scenario.description }}</p>
+
+        <div class="benchmark-boundary">
+          <div class="benchmark-boundary-item">
+            <h4>Timed transaction</h4>
+            <p>{{ scenario.transaction }}</p>
+          </div>
+          <div class="benchmark-boundary-item">
+            <h4>Scale</h4>
+            <dl class="benchmark-parameters">
+              <div v-for="(value, name) in scenario.parameters" :key="name">
+                <dt>{{ formatParameterName(name) }}</dt>
+                <dd>{{ formatParameterValue(value) }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div
+          class="benchmark-table-region"
+          role="region"
+          :aria-label="`${group.name} ${scenario.name} results`"
+          tabindex="0"
+        >
+          <table>
+            <caption>
+              {{
+                group.name
+              }}
+              {{
+                scenario.name
+              }}
+              throughput and latency by package
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Package</th>
+                <th scope="col">ops/s</th>
+                <th scope="col">Mean (ms)</th>
+                <th scope="col">Median (ms)</th>
+                <th scope="col">
+                  Relative throughput
+                  <span>{{ group.baselineTarget.label }} = 1.00×</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in scenario.rows" :key="row.target.id">
+                <th scope="row">
+                  <code>{{ row.target.packageName }}</code>
+                </th>
+                <td>{{ throughputFormatter.format(row.result.hz) }}</td>
+                <td>{{ durationFormatter.format(row.result.meanMs) }}</td>
+                <td>{{ durationFormatter.format(row.result.medianMs) }}</td>
+                <td>{{ throughputFormatter.format(row.relativeThroughput) }}×</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </section>
 
     <section class="benchmark-run" aria-labelledby="benchmark-run-heading">
@@ -246,13 +264,21 @@ const operatingSystem =
   color: var(--vp-c-text-2);
 }
 
-.benchmark-scenario {
+.benchmark-group {
   margin-top: 44px;
+}
+
+.benchmark-group > h2 {
+  margin: 0;
+}
+
+.benchmark-scenario {
+  margin-top: 28px;
   padding-top: 34px;
   border-top: 1px solid var(--vp-c-divider);
 }
 
-.benchmark-scenario h2 {
+.benchmark-scenario > h3 {
   margin: 0;
   padding: 0;
   border: 0;
@@ -288,7 +314,7 @@ const operatingSystem =
   border-left: 1px solid var(--vp-c-divider);
 }
 
-.benchmark-boundary h3 {
+.benchmark-boundary h4 {
   margin: 0 0 8px;
   font-size: 0.8rem;
   font-weight: 700;

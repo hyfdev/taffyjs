@@ -6,17 +6,14 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type {
+  BenchmarkComparisonGroup,
   BenchmarkProfile,
+  BenchmarkScenarioMetadata,
+  BenchmarkTarget,
   BenchmarkWorkerResult,
   SampledBenchmarkResult,
-  TaffyBenchmarkScenario,
 } from "./scenario.ts";
-import {
-  benchmarkProfiles,
-  taffyScenarios,
-  taffyTargets,
-  type TaffyBenchmarkTarget,
-} from "./suite.ts";
+import { benchmarkComparisonGroups, benchmarkProfiles } from "./suite.ts";
 
 const benchmarkDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = resolve(benchmarkDirectory, "..");
@@ -38,13 +35,13 @@ if (updateWebsite && requestedScenarioIds.length > 0) {
   throw new Error("benchmark:update-website requires the complete scenario suite");
 }
 const requestedScenarioSet = new Set(requestedScenarioIds);
-const selectedScenarios =
-  requestedScenarioSet.size === 0
-    ? taffyScenarios
-    : taffyScenarios.filter(({ id }) => requestedScenarioSet.has(id));
+const knownScenarioIds = new Set<string>();
+for (const group of benchmarkComparisonGroups) {
+  for (const scenario of group.scenarios) knownScenarioIds.add(scenario.id);
+}
 for (const requestedScenarioId of requestedScenarioSet) {
   assert.ok(
-    selectedScenarios.some(({ id }) => id === requestedScenarioId),
+    knownScenarioIds.has(requestedScenarioId),
     `Unknown benchmark scenario ${requestedScenarioId}`,
   );
 }
@@ -60,13 +57,14 @@ function repositoryOutput(args: readonly string[]): string {
 }
 
 function runWorker(
-  target: TaffyBenchmarkTarget,
-  scenario: TaffyBenchmarkScenario,
+  group: BenchmarkComparisonGroup,
+  target: BenchmarkTarget,
+  scenario: BenchmarkScenarioMetadata,
   profile: BenchmarkProfile,
 ): BenchmarkWorkerResult {
   const output = execFileSync(
     process.execPath,
-    ["--expose-gc", workerPath, target.id, scenario.id, profile.id],
+    ["--expose-gc", workerPath, group.id, target.id, scenario.id, profile.id],
     {
       cwd: benchmarkDirectory,
       encoding: "utf8",
@@ -77,10 +75,12 @@ function runWorker(
 }
 
 function assertWorkerResult(
-  target: TaffyBenchmarkTarget,
-  scenario: TaffyBenchmarkScenario,
+  group: BenchmarkComparisonGroup,
+  target: BenchmarkTarget,
+  scenario: BenchmarkScenarioMetadata,
   worker: BenchmarkWorkerResult,
 ): void {
+  assert.equal(worker.groupId, group.id, `${scenario.id} returned the wrong comparison group`);
   assert.equal(worker.targetId, target.id, `${scenario.id} returned the wrong target`);
   assert.equal(worker.scenarioId, scenario.id, `${target.id} returned the wrong scenario`);
   assert.ok(
@@ -106,7 +106,7 @@ function assertWorkerResult(
 }
 
 function assertEquivalentChecksums(
-  scenario: TaffyBenchmarkScenario,
+  scenario: BenchmarkScenarioMetadata,
   workers: readonly BenchmarkWorkerResult[],
 ): void {
   const expected = workers[0]?.checksum;
@@ -126,7 +126,7 @@ function median(values: readonly number[]): number {
   return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
 }
 
-function summarizeTarget(target: TaffyBenchmarkTarget, rounds: readonly SampledBenchmarkResult[]) {
+function summarizeTarget(target: BenchmarkTarget, rounds: readonly SampledBenchmarkResult[]) {
   assert.ok(rounds.length > 0, `${target.id} produced no benchmark rounds`);
   return {
     targetId: target.id,
@@ -148,8 +148,8 @@ function summarizeTarget(target: TaffyBenchmarkTarget, rounds: readonly SampledB
 }
 
 function assertPublicationStability(
-  scenario: TaffyBenchmarkScenario,
-  target: TaffyBenchmarkTarget,
+  scenario: BenchmarkScenarioMetadata,
+  target: BenchmarkTarget,
   profile: BenchmarkProfile,
   rounds: readonly SampledBenchmarkResult[],
 ): void {
@@ -173,19 +173,20 @@ function assertPublicationStability(
 }
 
 function printScenario(
-  scenario: TaffyBenchmarkScenario,
+  group: BenchmarkComparisonGroup,
+  scenario: BenchmarkScenarioMetadata,
   results: readonly ReturnType<typeof summarizeTarget>[],
 ): void {
-  const nativeHz = results[0]?.hz;
-  assert.ok(nativeHz, `${scenario.id} is missing the native result`);
-  console.log(`\n${scenario.name}\n${scenario.question}`);
+  const baselineHz = results[0]?.hz;
+  assert.ok(baselineHz, `${scenario.id} is missing the baseline result`);
+  console.log(`\n${group.name} · ${scenario.name}\n${scenario.question}`);
   console.table(
     results.map((result) => ({
       target: result.packageName,
       "ops/s": Math.round(result.hz).toLocaleString("en-US"),
       "mean (ms)": result.meanMs.toFixed(4),
       "median (ms)": result.medianMs.toFixed(4),
-      "vs native": `${(result.hz / nativeHz).toFixed(2)}x`,
+      relative: `${(result.hz / baselineHz).toFixed(2)}x`,
       rounds: result.roundCount,
       samples: result.sampleCount,
       "max rme": `${result.maxRelativeMarginOfError.toFixed(2)}%`,
@@ -201,35 +202,50 @@ if (updateWebsite && source.dirty) {
   throw new Error("benchmark:update-website requires a clean worktree");
 }
 
-const scenarioResults = [];
-for (const scenario of selectedScenarios) {
-  const workers: BenchmarkWorkerResult[] = [];
-  for (let round = 0; round < profile.rounds; round += 1) {
-    const targets = round % 2 === 0 ? taffyTargets : [...taffyTargets].reverse();
-    for (const target of targets) {
-      const worker = runWorker(target, scenario, profile);
-      assertWorkerResult(target, scenario, worker);
-      workers.push(worker);
+const comparisonGroupResults = [];
+for (const group of benchmarkComparisonGroups) {
+  const selectedScenarios = group.scenarios.filter(
+    ({ id }) => requestedScenarioSet.size === 0 || requestedScenarioSet.has(id),
+  );
+  if (selectedScenarios.length === 0) continue;
+
+  const scenarioResults = [];
+  for (const scenario of selectedScenarios) {
+    const workers: BenchmarkWorkerResult[] = [];
+    for (let round = 0; round < profile.rounds; round += 1) {
+      const targets = round % 2 === 0 ? group.targets : [...group.targets].reverse();
+      for (const target of targets) {
+        const worker = runWorker(group, target, scenario, profile);
+        assertWorkerResult(group, target, scenario, worker);
+        workers.push(worker);
+      }
     }
+    assertEquivalentChecksums(scenario, workers);
+    const results = group.targets.map((target) => {
+      const rounds = workers
+        .filter(({ targetId }) => targetId === target.id)
+        .map(({ result }) => result);
+      assert.equal(rounds.length, profile.rounds, `${scenario.id}/${target.id} missed a round`);
+      assertPublicationStability(scenario, target, profile, rounds);
+      return summarizeTarget(target, rounds);
+    });
+    printScenario(group, scenario, results);
+    scenarioResults.push({
+      id: scenario.id,
+      name: scenario.name,
+      question: scenario.question,
+      description: scenario.description,
+      transaction: scenario.transaction,
+      parameters: scenario.parameters,
+      results,
+    });
   }
-  assertEquivalentChecksums(scenario, workers);
-  const results = taffyTargets.map((target) => {
-    const rounds = workers
-      .filter(({ targetId }) => targetId === target.id)
-      .map(({ result }) => result);
-    assert.equal(rounds.length, profile.rounds, `${scenario.id}/${target.id} missed a round`);
-    assertPublicationStability(scenario, target, profile, rounds);
-    return summarizeTarget(target, rounds);
-  });
-  printScenario(scenario, results);
-  scenarioResults.push({
-    id: scenario.id,
-    name: scenario.name,
-    question: scenario.question,
-    description: scenario.description,
-    transaction: scenario.transaction,
-    parameters: scenario.parameters,
-    results,
+
+  comparisonGroupResults.push({
+    id: group.id,
+    name: group.name,
+    targets: group.targets.map(({ id, label, packageName }) => ({ id, label, packageName })),
+    scenarios: scenarioResults,
   });
 }
 
@@ -245,14 +261,7 @@ const report = {
     cpu: cpus()[0]?.model ?? "unknown",
   },
   profile,
-  comparisonGroups: [
-    {
-      id: "taffy-api",
-      name: "Taffy API",
-      targets: taffyTargets.map(({ id, label, packageName }) => ({ id, label, packageName })),
-      scenarios: scenarioResults,
-    },
-  ],
+  comparisonGroups: comparisonGroupResults,
 };
 
 const outputPath = updateWebsite
