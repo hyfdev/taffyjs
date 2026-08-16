@@ -4,6 +4,18 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### Direct names for top-level test packages
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Every workspace package directly under the repository's top-level `tests/` directory must use an unscoped name formed by appending its corresponding identifier to `tests-taffy-`. Identifiers such as `node`, `wasm`, `yoga`, and `yoga-wasm` therefore produce names such as `tests-taffy-node`, `tests-taffy-wasm`, `tests-taffy-yoga`, and `tests-taffy-yoga-wasm`.
+
+**Limits:** This governs test workspace package names and every task selector that refers to them. It does not rename their directories, public `@taffyjs/*` packages, or projects nested below a top-level test package.
+
+**Why:** Yunfei preferred the direct `tests-taffy-<identifier>` convention over scoped names ending in `integration-tests`; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly chose `tests-taffy-node`, extended that pattern to every package directly under top-level `tests/`, clarified that the suffix is the corresponding identifier rather than an abstract target, and asked to vouch the decision.
+
 ### Repository-wide TypeScript default
 
 [VOUCHED @hyfdev 2026-08-16]

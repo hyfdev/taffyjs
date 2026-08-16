@@ -1,5 +1,5 @@
 {
-  "name": "@taffyjs/node-integration-tests",
+  "name": "tests-taffy-node",
   "version": "0.0.0",
   "private": true,
   "type": "module",
