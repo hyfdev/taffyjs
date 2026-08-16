@@ -64,11 +64,15 @@ function runWorker(
   scenario: TaffyBenchmarkScenario,
   profile: BenchmarkProfile,
 ): BenchmarkWorkerResult {
-  const output = execFileSync(process.execPath, [workerPath, target.id, scenario.id, profile.id], {
-    cwd: benchmarkDirectory,
-    encoding: "utf8",
-    maxBuffer: 16 * 1024 * 1024,
-  });
+  const output = execFileSync(
+    process.execPath,
+    ["--expose-gc", workerPath, target.id, scenario.id, profile.id],
+    {
+      cwd: benchmarkDirectory,
+      encoding: "utf8",
+      maxBuffer: 16 * 1024 * 1024,
+    },
+  );
   return JSON.parse(output) as BenchmarkWorkerResult;
 }
 

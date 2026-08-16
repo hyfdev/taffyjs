@@ -25,6 +25,13 @@ bench.add(target.id, () => {
 });
 
 await bench.warmup();
+const garbageCollector = (
+  globalThis as typeof globalThis & {
+    gc?: () => void;
+  }
+).gc;
+assert.ok(garbageCollector, "Benchmark workers require --expose-gc");
+garbageCollector();
 await bench.run();
 assert.ok(Number.isFinite(blackhole), `${scenario.id}/${target.id} produced a non-finite checksum`);
 
