@@ -57,7 +57,7 @@ function inexactEquals(left: number, right: number): boolean {
   return Number.isNaN(left) && Number.isNaN(right);
 }
 
-// Ported from Yoga 3.2.1's `yoga/algorithm/PixelGrid.cpp`, copyright Facebook, Inc. and its affiliates, under the MIT license. See `../THIRD_PARTY_NOTICES.md`.
+// Ported from Yoga 3.2.1's `yoga/algorithm/PixelGrid.cpp`, copyright Facebook, Inc. and its affiliates, under the MIT license. See `../THIRD-PARTY-LICENSES`.
 function roundValueToPixelGrid(
   value: number,
   pointScaleFactor: number,

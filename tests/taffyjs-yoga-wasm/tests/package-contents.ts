@@ -18,7 +18,7 @@ const distFiles = (await readdir(resolve(packageDirectory, "dist")))
   .map((name) => `dist/${name}`)
   .sort();
 
-assert.deepEqual(files, ["README.md", "THIRD_PARTY_NOTICES.md", ...distFiles, "package.json"]);
+assert.deepEqual(files, ["README.md", "THIRD-PARTY-LICENSES", ...distFiles, "package.json"]);
 assert.equal(
   files.some((path) => path.endsWith(".wasm")),
   false,

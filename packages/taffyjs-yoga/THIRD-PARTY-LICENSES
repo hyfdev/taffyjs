@@ -1,8 +1,8 @@
-# Third-Party Notices
+# Third-Party Licenses
 
 ## Yoga 3.2.1
 
-The point-grid rounding implementation compiled into this package from `../taffyjs-yoga/src/projection.ts` is derived from Yoga 3.2.1's `yoga/algorithm/PixelGrid.cpp`.
+The point-grid rounding implementation in `src/projection.ts` is derived from Yoga 3.2.1's `yoga/algorithm/PixelGrid.cpp`.
 
 MIT License
 

@@ -11,7 +11,7 @@
   },
   "files": [
     "README.md",
-    "THIRD_PARTY_NOTICES.md",
+    "THIRD-PARTY-LICENSES",
     "dist"
   ],
   "type": "module",

@@ -49,4 +49,4 @@ The supported Yoga surface and known layout differences are exactly those docume
 
 Expected validation and callback failures remain recoverable. An unexpected Rust panic follows the `@taffyjs/wasm` abort boundary and can terminate the current WebAssembly module or worker rather than unwinding like the native Node backend.
 
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) contains the required third-party notice for the Yoga PixelGrid logic shared by both compatibility packages.
+[THIRD-PARTY-LICENSES](THIRD-PARTY-LICENSES) contains the required third-party license for the Yoga PixelGrid logic shared by both compatibility packages.
