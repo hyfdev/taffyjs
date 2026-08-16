@@ -4,12 +4,12 @@ TaffyJS brings the Taffy layout engine to JavaScript through native, WebAssembly
 
 ## Features
 
-- A direct binding to Taffy's behavior, without another layout abstraction or a new mental model.
-- JavaScript-friendly inputs and readable outputs, with APIs optimized for common usage patterns while preserving Taffy's semantics.
-- Native performance on Node.js through Rust and Node-API.
-- First-class WebAssembly support for bundled browsers and deployments where a native addon is not the right fit.
-- One public API across native and WebAssembly runtimes: use `@taffyjs/node` for native performance on Node.js or `@taffyjs/wasm` for WebAssembly portability; only the underlying implementation changes.
-- Yoga compatibility through `@taffyjs/yoga` and `@taffyjs/yoga-wasm` (work in progress), preserving Yoga's API shape for straightforward migration.
+- **Direct binding to Taffy:** Preserves Taffy's behavior without adding another layout abstraction or mental model.
+- **Optimized binding bridge:** Minimizes cross-boundary data transfer with targeted tree operations that update only the relevant state.
+- **Native performance:** Runs Taffy as native Rust code in Node.js through Node-API.
+- **WebAssembly support:** Runs Taffy in bundled browsers and deployments where a native addon is not the right fit.
+- **One API, two runtimes:** Use `@taffyjs/node` for native performance on Node.js or `@taffyjs/wasm` for WebAssembly portability; only the underlying implementation changes.
+- **Yoga compatibility:** Use `@taffyjs/yoga` or `@taffyjs/yoga-wasm` (work in progress) while preserving Yoga's API shape for straightforward migration.
 
 ## Installation
 
