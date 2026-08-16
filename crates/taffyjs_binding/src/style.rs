@@ -106,7 +106,7 @@ pub struct StyleInput<'env> {
     pub grid_column: Option<Unknown<'env>>,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq)]
 struct StylePresence {
     display: bool,
     item_is_table: bool,
@@ -479,395 +479,238 @@ fn grid_auto_flow(value: f64) -> BindingResult<GridAutoFlow> {
     })
 }
 
-fn field_changed<T: PartialEq>(present: bool, update: &T, current: &T) -> bool {
-    present && update != current
-}
-
-fn f32_field_changed(present: bool, update: f32, current: f32) -> bool {
-    present && update.to_bits() != current.to_bits()
-}
-
-fn optional_f32_field_changed(present: bool, update: Option<f32>, current: Option<f32>) -> bool {
-    if !present {
+fn apply_field<T: PartialEq>(supplied: bool, update: T, current: &mut T) -> bool {
+    if !supplied {
         return false;
     }
-    match (update, current) {
+    let changed = update != *current;
+    *current = update;
+    changed
+}
+
+fn apply_f32_field(supplied: bool, update: f32, current: &mut f32) -> bool {
+    if !supplied {
+        return false;
+    }
+    let changed = update.to_bits() != current.to_bits();
+    *current = update;
+    changed
+}
+
+fn apply_optional_f32_field(
+    supplied: bool,
+    update: Option<f32>,
+    current: &mut Option<f32>,
+) -> bool {
+    if !supplied {
+        return false;
+    }
+    let changed = match (update.as_ref(), current.as_ref()) {
         (Some(update), Some(current)) => update.to_bits() != current.to_bits(),
         (None, None) => false,
         _ => true,
-    }
+    };
+    *current = update;
+    changed
 }
 
-fn point_changed<T: PartialEq>(
-    present: &Point<bool>,
-    update: &Point<T>,
-    current: &Point<T>,
-) -> bool {
-    field_changed(present.x, &update.x, &current.x)
-        || field_changed(present.y, &update.y, &current.y)
-}
-
-fn size_changed<T: PartialEq>(present: &Size<bool>, update: &Size<T>, current: &Size<T>) -> bool {
-    field_changed(present.width, &update.width, &current.width)
-        || field_changed(present.height, &update.height, &current.height)
-}
-
-fn rect_changed<T: PartialEq>(present: &Rect<bool>, update: &Rect<T>, current: &Rect<T>) -> bool {
-    field_changed(present.left, &update.left, &current.left)
-        || field_changed(present.right, &update.right, &current.right)
-        || field_changed(present.top, &update.top, &current.top)
-        || field_changed(present.bottom, &update.bottom, &current.bottom)
-}
-
-fn line_changed<T: PartialEq>(present: &Line<bool>, update: &Line<T>, current: &Line<T>) -> bool {
-    field_changed(present.start, &update.start, &current.start)
-        || field_changed(present.end, &update.end, &current.end)
-}
-
-fn preserve_field<T: Clone>(supplied: bool, update: &mut T, current: &T) {
-    if !supplied {
-        update.clone_from(current);
-    }
-}
-
-fn preserve_point<T: Clone>(
+fn apply_point<T: PartialEq>(
     supplied: Option<Point<bool>>,
-    update: &mut Point<T>,
-    current: &Point<T>,
-) {
-    match supplied {
-        Some(supplied) => {
-            preserve_field(supplied.x, &mut update.x, &current.x);
-            preserve_field(supplied.y, &mut update.y, &current.y);
-        }
-        None => update.clone_from(current),
-    }
+    update: Point<T>,
+    current: &mut Point<T>,
+) -> bool {
+    let Some(supplied) = supplied else {
+        return false;
+    };
+    apply_field(supplied.x, update.x, &mut current.x)
+        | apply_field(supplied.y, update.y, &mut current.y)
 }
 
-fn preserve_size<T: Clone>(supplied: Option<Size<bool>>, update: &mut Size<T>, current: &Size<T>) {
-    match supplied {
-        Some(supplied) => {
-            preserve_field(supplied.width, &mut update.width, &current.width);
-            preserve_field(supplied.height, &mut update.height, &current.height);
-        }
-        None => update.clone_from(current),
-    }
+fn apply_size<T: PartialEq>(
+    supplied: Option<Size<bool>>,
+    update: Size<T>,
+    current: &mut Size<T>,
+) -> bool {
+    let Some(supplied) = supplied else {
+        return false;
+    };
+    apply_field(supplied.width, update.width, &mut current.width)
+        | apply_field(supplied.height, update.height, &mut current.height)
 }
 
-fn preserve_rect<T: Clone>(supplied: Option<Rect<bool>>, update: &mut Rect<T>, current: &Rect<T>) {
-    match supplied {
-        Some(supplied) => {
-            preserve_field(supplied.left, &mut update.left, &current.left);
-            preserve_field(supplied.right, &mut update.right, &current.right);
-            preserve_field(supplied.top, &mut update.top, &current.top);
-            preserve_field(supplied.bottom, &mut update.bottom, &current.bottom);
-        }
-        None => update.clone_from(current),
-    }
+fn apply_rect<T: PartialEq>(
+    supplied: Option<Rect<bool>>,
+    update: Rect<T>,
+    current: &mut Rect<T>,
+) -> bool {
+    let Some(supplied) = supplied else {
+        return false;
+    };
+    apply_field(supplied.left, update.left, &mut current.left)
+        | apply_field(supplied.right, update.right, &mut current.right)
+        | apply_field(supplied.top, update.top, &mut current.top)
+        | apply_field(supplied.bottom, update.bottom, &mut current.bottom)
 }
 
-fn preserve_line<T: Clone>(supplied: Option<Line<bool>>, update: &mut Line<T>, current: &Line<T>) {
-    match supplied {
-        Some(supplied) => {
-            preserve_field(supplied.start, &mut update.start, &current.start);
-            preserve_field(supplied.end, &mut update.end, &current.end);
-        }
-        None => update.clone_from(current),
-    }
+fn apply_line<T: PartialEq>(
+    supplied: Option<Line<bool>>,
+    update: Line<T>,
+    current: &mut Line<T>,
+) -> bool {
+    let Some(supplied) = supplied else {
+        return false;
+    };
+    apply_field(supplied.start, update.start, &mut current.start)
+        | apply_field(supplied.end, update.end, &mut current.end)
 }
 
 impl StylePatch {
-    fn changes(&self, current: &Style) -> bool {
-        let update = &self.value;
-        let present = &self.presence;
-        field_changed(present.display, &update.display, &current.display)
-            || field_changed(
-                present.item_is_table,
-                &update.item_is_table,
-                &current.item_is_table,
-            )
-            || field_changed(
-                present.item_is_replaced,
-                &update.item_is_replaced,
-                &current.item_is_replaced,
-            )
-            || field_changed(present.box_sizing, &update.box_sizing, &current.box_sizing)
-            || field_changed(present.direction, &update.direction, &current.direction)
-            || present
-                .overflow
-                .as_ref()
-                .is_some_and(|present| point_changed(present, &update.overflow, &current.overflow))
-            || f32_field_changed(
-                present.scrollbar_width,
-                update.scrollbar_width,
-                current.scrollbar_width,
-            )
-            || field_changed(present.r#float, &update.float, &current.float)
-            || field_changed(present.clear, &update.clear, &current.clear)
-            || field_changed(present.position, &update.position, &current.position)
-            || present
-                .inset
-                .as_ref()
-                .is_some_and(|present| rect_changed(present, &update.inset, &current.inset))
-            || present
-                .size
-                .as_ref()
-                .is_some_and(|present| size_changed(present, &update.size, &current.size))
-            || present
-                .min_size
-                .as_ref()
-                .is_some_and(|present| size_changed(present, &update.min_size, &current.min_size))
-            || present
-                .max_size
-                .as_ref()
-                .is_some_and(|present| size_changed(present, &update.max_size, &current.max_size))
-            || optional_f32_field_changed(
-                present.aspect_ratio,
-                update.aspect_ratio,
-                current.aspect_ratio,
-            )
-            || present
-                .margin
-                .as_ref()
-                .is_some_and(|present| rect_changed(present, &update.margin, &current.margin))
-            || present
-                .padding
-                .as_ref()
-                .is_some_and(|present| rect_changed(present, &update.padding, &current.padding))
-            || present
-                .border
-                .as_ref()
-                .is_some_and(|present| rect_changed(present, &update.border, &current.border))
-            || field_changed(
-                present.align_items,
-                &update.align_items,
-                &current.align_items,
-            )
-            || field_changed(present.align_self, &update.align_self, &current.align_self)
-            || field_changed(
-                present.justify_items,
-                &update.justify_items,
-                &current.justify_items,
-            )
-            || field_changed(
-                present.justify_self,
-                &update.justify_self,
-                &current.justify_self,
-            )
-            || field_changed(
-                present.align_content,
-                &update.align_content,
-                &current.align_content,
-            )
-            || field_changed(
-                present.justify_content,
-                &update.justify_content,
-                &current.justify_content,
-            )
-            || present
-                .gap
-                .as_ref()
-                .is_some_and(|present| size_changed(present, &update.gap, &current.gap))
-            || field_changed(present.text_align, &update.text_align, &current.text_align)
-            || field_changed(
-                present.flex_direction,
-                &update.flex_direction,
-                &current.flex_direction,
-            )
-            || field_changed(present.flex_wrap, &update.flex_wrap, &current.flex_wrap)
-            || field_changed(present.flex_basis, &update.flex_basis, &current.flex_basis)
-            || f32_field_changed(present.flex_grow, update.flex_grow, current.flex_grow)
-            || f32_field_changed(present.flex_shrink, update.flex_shrink, current.flex_shrink)
-            || field_changed(
-                present.grid_template_rows,
-                &update.grid_template_rows,
-                &current.grid_template_rows,
-            )
-            || field_changed(
-                present.grid_template_columns,
-                &update.grid_template_columns,
-                &current.grid_template_columns,
-            )
-            || field_changed(
-                present.grid_auto_rows,
-                &update.grid_auto_rows,
-                &current.grid_auto_rows,
-            )
-            || field_changed(
-                present.grid_auto_columns,
-                &update.grid_auto_columns,
-                &current.grid_auto_columns,
-            )
-            || field_changed(
-                present.grid_auto_flow,
-                &update.grid_auto_flow,
-                &current.grid_auto_flow,
-            )
-            || field_changed(
-                present.grid_template_areas,
-                &update.grid_template_areas,
-                &current.grid_template_areas,
-            )
-            || field_changed(
-                present.grid_template_column_names,
-                &update.grid_template_column_names,
-                &current.grid_template_column_names,
-            )
-            || field_changed(
-                present.grid_template_row_names,
-                &update.grid_template_row_names,
-                &current.grid_template_row_names,
-            )
-            || present
-                .grid_row
-                .as_ref()
-                .is_some_and(|present| line_changed(present, &update.grid_row, &current.grid_row))
-            || present.grid_column.as_ref().is_some_and(|present| {
-                line_changed(present, &update.grid_column, &current.grid_column)
-            })
+    fn is_empty(&self) -> bool {
+        self.presence == StylePresence::default()
     }
 
-    fn merge(self, current: &Style) -> Style {
-        let mut update = self.value;
-        let present = self.presence;
-        preserve_field(present.display, &mut update.display, &current.display);
-        preserve_field(
-            present.item_is_table,
-            &mut update.item_is_table,
-            &current.item_is_table,
+    fn apply(self, current: &mut Style) -> bool {
+        let update = self.value;
+        let supplied = self.presence;
+        let mut changed = false;
+        changed |= apply_field(supplied.display, update.display, &mut current.display);
+        changed |= apply_field(
+            supplied.item_is_table,
+            update.item_is_table,
+            &mut current.item_is_table,
         );
-        preserve_field(
-            present.item_is_replaced,
-            &mut update.item_is_replaced,
-            &current.item_is_replaced,
+        changed |= apply_field(
+            supplied.item_is_replaced,
+            update.item_is_replaced,
+            &mut current.item_is_replaced,
         );
-        preserve_field(
-            present.box_sizing,
-            &mut update.box_sizing,
-            &current.box_sizing,
+        changed |= apply_field(
+            supplied.box_sizing,
+            update.box_sizing,
+            &mut current.box_sizing,
         );
-        preserve_field(present.direction, &mut update.direction, &current.direction);
-        preserve_point(present.overflow, &mut update.overflow, &current.overflow);
-        preserve_field(
-            present.scrollbar_width,
-            &mut update.scrollbar_width,
-            &current.scrollbar_width,
+        changed |= apply_field(supplied.direction, update.direction, &mut current.direction);
+        changed |= apply_point(supplied.overflow, update.overflow, &mut current.overflow);
+        changed |= apply_f32_field(
+            supplied.scrollbar_width,
+            update.scrollbar_width,
+            &mut current.scrollbar_width,
         );
-        preserve_field(present.r#float, &mut update.float, &current.float);
-        preserve_field(present.clear, &mut update.clear, &current.clear);
-        preserve_field(present.position, &mut update.position, &current.position);
-        preserve_rect(present.inset, &mut update.inset, &current.inset);
-        preserve_size(present.size, &mut update.size, &current.size);
-        preserve_size(present.min_size, &mut update.min_size, &current.min_size);
-        preserve_size(present.max_size, &mut update.max_size, &current.max_size);
-        preserve_field(
-            present.aspect_ratio,
-            &mut update.aspect_ratio,
-            &current.aspect_ratio,
+        changed |= apply_field(supplied.r#float, update.float, &mut current.float);
+        changed |= apply_field(supplied.clear, update.clear, &mut current.clear);
+        changed |= apply_field(supplied.position, update.position, &mut current.position);
+        changed |= apply_rect(supplied.inset, update.inset, &mut current.inset);
+        changed |= apply_size(supplied.size, update.size, &mut current.size);
+        changed |= apply_size(supplied.min_size, update.min_size, &mut current.min_size);
+        changed |= apply_size(supplied.max_size, update.max_size, &mut current.max_size);
+        changed |= apply_optional_f32_field(
+            supplied.aspect_ratio,
+            update.aspect_ratio,
+            &mut current.aspect_ratio,
         );
-        preserve_rect(present.margin, &mut update.margin, &current.margin);
-        preserve_rect(present.padding, &mut update.padding, &current.padding);
-        preserve_rect(present.border, &mut update.border, &current.border);
-        preserve_field(
-            present.align_items,
-            &mut update.align_items,
-            &current.align_items,
+        changed |= apply_rect(supplied.margin, update.margin, &mut current.margin);
+        changed |= apply_rect(supplied.padding, update.padding, &mut current.padding);
+        changed |= apply_rect(supplied.border, update.border, &mut current.border);
+        changed |= apply_field(
+            supplied.align_items,
+            update.align_items,
+            &mut current.align_items,
         );
-        preserve_field(
-            present.align_self,
-            &mut update.align_self,
-            &current.align_self,
+        changed |= apply_field(
+            supplied.align_self,
+            update.align_self,
+            &mut current.align_self,
         );
-        preserve_field(
-            present.justify_items,
-            &mut update.justify_items,
-            &current.justify_items,
+        changed |= apply_field(
+            supplied.justify_items,
+            update.justify_items,
+            &mut current.justify_items,
         );
-        preserve_field(
-            present.justify_self,
-            &mut update.justify_self,
-            &current.justify_self,
+        changed |= apply_field(
+            supplied.justify_self,
+            update.justify_self,
+            &mut current.justify_self,
         );
-        preserve_field(
-            present.align_content,
-            &mut update.align_content,
-            &current.align_content,
+        changed |= apply_field(
+            supplied.align_content,
+            update.align_content,
+            &mut current.align_content,
         );
-        preserve_field(
-            present.justify_content,
-            &mut update.justify_content,
-            &current.justify_content,
+        changed |= apply_field(
+            supplied.justify_content,
+            update.justify_content,
+            &mut current.justify_content,
         );
-        preserve_size(present.gap, &mut update.gap, &current.gap);
-        preserve_field(
-            present.text_align,
-            &mut update.text_align,
-            &current.text_align,
+        changed |= apply_size(supplied.gap, update.gap, &mut current.gap);
+        changed |= apply_field(
+            supplied.text_align,
+            update.text_align,
+            &mut current.text_align,
         );
-        preserve_field(
-            present.flex_direction,
-            &mut update.flex_direction,
-            &current.flex_direction,
+        changed |= apply_field(
+            supplied.flex_direction,
+            update.flex_direction,
+            &mut current.flex_direction,
         );
-        preserve_field(present.flex_wrap, &mut update.flex_wrap, &current.flex_wrap);
-        preserve_field(
-            present.flex_basis,
-            &mut update.flex_basis,
-            &current.flex_basis,
+        changed |= apply_field(supplied.flex_wrap, update.flex_wrap, &mut current.flex_wrap);
+        changed |= apply_field(
+            supplied.flex_basis,
+            update.flex_basis,
+            &mut current.flex_basis,
         );
-        preserve_field(present.flex_grow, &mut update.flex_grow, &current.flex_grow);
-        preserve_field(
-            present.flex_shrink,
-            &mut update.flex_shrink,
-            &current.flex_shrink,
+        changed |= apply_f32_field(supplied.flex_grow, update.flex_grow, &mut current.flex_grow);
+        changed |= apply_f32_field(
+            supplied.flex_shrink,
+            update.flex_shrink,
+            &mut current.flex_shrink,
         );
-        preserve_field(
-            present.grid_template_rows,
-            &mut update.grid_template_rows,
-            &current.grid_template_rows,
+        changed |= apply_field(
+            supplied.grid_template_rows,
+            update.grid_template_rows,
+            &mut current.grid_template_rows,
         );
-        preserve_field(
-            present.grid_template_columns,
-            &mut update.grid_template_columns,
-            &current.grid_template_columns,
+        changed |= apply_field(
+            supplied.grid_template_columns,
+            update.grid_template_columns,
+            &mut current.grid_template_columns,
         );
-        preserve_field(
-            present.grid_auto_rows,
-            &mut update.grid_auto_rows,
-            &current.grid_auto_rows,
+        changed |= apply_field(
+            supplied.grid_auto_rows,
+            update.grid_auto_rows,
+            &mut current.grid_auto_rows,
         );
-        preserve_field(
-            present.grid_auto_columns,
-            &mut update.grid_auto_columns,
-            &current.grid_auto_columns,
+        changed |= apply_field(
+            supplied.grid_auto_columns,
+            update.grid_auto_columns,
+            &mut current.grid_auto_columns,
         );
-        preserve_field(
-            present.grid_auto_flow,
-            &mut update.grid_auto_flow,
-            &current.grid_auto_flow,
+        changed |= apply_field(
+            supplied.grid_auto_flow,
+            update.grid_auto_flow,
+            &mut current.grid_auto_flow,
         );
-        preserve_field(
-            present.grid_template_areas,
-            &mut update.grid_template_areas,
-            &current.grid_template_areas,
+        changed |= apply_field(
+            supplied.grid_template_areas,
+            update.grid_template_areas,
+            &mut current.grid_template_areas,
         );
-        preserve_field(
-            present.grid_template_column_names,
-            &mut update.grid_template_column_names,
-            &current.grid_template_column_names,
+        changed |= apply_field(
+            supplied.grid_template_column_names,
+            update.grid_template_column_names,
+            &mut current.grid_template_column_names,
         );
-        preserve_field(
-            present.grid_template_row_names,
-            &mut update.grid_template_row_names,
-            &current.grid_template_row_names,
+        changed |= apply_field(
+            supplied.grid_template_row_names,
+            update.grid_template_row_names,
+            &mut current.grid_template_row_names,
         );
-        preserve_line(present.grid_row, &mut update.grid_row, &current.grid_row);
-        preserve_line(
-            present.grid_column,
-            &mut update.grid_column,
-            &current.grid_column,
+        changed |= apply_line(supplied.grid_row, update.grid_row, &mut current.grid_row);
+        changed |= apply_line(
+            supplied.grid_column,
+            update.grid_column,
+            &mut current.grid_column,
         );
-        update
+        changed
     }
 }
 
@@ -1105,10 +948,13 @@ pub(crate) fn input(value: Unknown<'_>) -> BindingResult<Style> {
 }
 
 pub(crate) fn apply_patch(current: &Style, patch: StylePatch) -> BindingResult<Option<Style>> {
-    if !patch.changes(current) {
+    if patch.is_empty() {
         return Ok(None);
     }
-    let updated = patch.merge(current);
+    let mut updated = current.clone();
+    if !patch.apply(&mut updated) {
+        return Ok(None);
+    }
     validate(&updated)?;
     Ok(Some(updated))
 }
