@@ -59,7 +59,7 @@ jobs:
           targets: wasm32-wasip1
       - run: pnpm install --frozen-lockfile
       - name: Install the browser used by the Wasm runtime test
-        run: pnpm --filter @taffyjs/wasm-integration-tests exec playwright install --with-deps chromium
+        run: pnpm --filter tests-taffy-wasm exec playwright install --with-deps chromium
       - name: Build and test the Wasm package
         run: pnpm exec vp run check:wasm
 

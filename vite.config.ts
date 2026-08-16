@@ -10,7 +10,7 @@ const testTasks = {
     dependsOn: ["build"],
   },
   "check:test:integration": {
-    command: "vp run @taffyjs/node-integration-tests#test",
+    command: "vp run tests-taffy-node#test",
     dependsOn: ["build"],
   },
   "check:test:types": {
@@ -21,31 +21,31 @@ const testTasks = {
 
 const wasmTasks = {
   "check:wasm:api": {
-    command: "vp run @taffyjs/wasm-integration-tests#test:api",
+    command: "vp run tests-taffy-wasm#test:api",
     dependsOn: ["build:wasm"],
   },
   "check:wasm:packed-consumers": {
-    command: "vp run @taffyjs/wasm-integration-tests#test:packed",
+    command: "vp run tests-taffy-wasm#test:packed",
     dependsOn: ["build:wasm"],
   },
   "check:wasm:types": {
-    command: "vp run @taffyjs/wasm-integration-tests#check:types",
+    command: "vp run tests-taffy-wasm#check:types",
     dependsOn: ["build:wasm"],
   },
   "check:wasm:package": {
-    command: "vp run @taffyjs/wasm-integration-tests#check:package",
+    command: "vp run tests-taffy-wasm#check:package",
     dependsOn: ["build:wasm"],
   },
   "check:wasm:browser-runtime": {
-    command: "vp run @taffyjs/wasm-integration-tests#test:browser",
+    command: "vp run tests-taffy-wasm#test:browser",
     dependsOn: ["build:wasm"],
   },
   "build:wasm:browser-consumer": {
-    command: "vp run @taffyjs/wasm-integration-tests#build:browser",
+    command: "vp run tests-taffy-wasm#build:browser",
     dependsOn: ["build:wasm"],
   },
   "check:wasm:browser-bundle": {
-    command: "vp run @taffyjs/wasm-integration-tests#check:browser-bundle",
+    command: "vp run tests-taffy-wasm#check:browser-bundle",
     dependsOn: ["build:wasm:browser-consumer"],
   },
 };
