@@ -1,19 +1,43 @@
 # TaffyJS
 
-TaffyJS provides JavaScript bindings and compatibility layers for the Taffy layout engine.
+TaffyJS brings the Taffy layout engine to JavaScript through native, WebAssembly, and Yoga-compatible packages.
 
-The first package is `@taffyjs/node`, the ESM-only native Node-API entry point built with napi-rs. A future `@taffyjs/node-yoga` package may provide a Yoga-compatible API on top of `@taffyjs/node` without adding another native binding.
+## Features
 
-The current package implements Taffy 0.13 for Linux x64 GNU and Windows x64 MSVC with Node.js 22.18.0 or newer. Publication is not configured.
+- **Direct binding to Taffy:** Preserves Taffy's behavior without adding another layout abstraction or mental model.
+- **Optimized binding bridge:** Minimizes cross-boundary data transfer with targeted tree operations that update only the relevant state.
+- **Native performance:** Runs Taffy as native Rust code in Node.js through Node-API.
+- **WebAssembly support:** Runs Taffy in bundled browsers and deployments where a native addon is not the right fit.
+- **One API, two runtimes:** The same JavaScript API, backed by native code in `@taffyjs/node` for performance or WebAssembly in `@taffyjs/wasm` for flexibility.
+- **Yoga compatibility:** Use `@taffyjs/yoga` or `@taffyjs/yoga-wasm` (work in progress) while preserving Yoga's API shape for straightforward migration.
 
-## Repository layout
+## Installation
 
-- `crates/` contains Rust crates. The repository starts with one native adapter in `crates/taffyjs_binding`; shared Rust crates should only be extracted when another native consumer needs them.
-- `packages/` contains independent JavaScript package boundaries. `packages/taffyjs-node` owns the authored public ESM wrapper and types, the private generated native loader, rare package-local unit tests, and npm metadata for `@taffyjs/node`.
-- `tests/` contains private consumer packages for integration and end-to-end coverage. `tests/taffyjs-node` exercises `@taffyjs/node` through the same package boundary used by downstream JavaScript consumers.
+```sh
+npm install @taffyjs/node
+```
 
-The two native packages are `@taffyjs/binding-linux-x64-gnu` and `@taffyjs/binding-win32-x64-msvc`. They are private implementation dependencies; application code imports only `@taffyjs/node`.
+## Packages
 
-## Development
+| Package                                                                  | Description                                     | Version |
+| ------------------------------------------------------------------------ | ----------------------------------------------- | ------- |
+| [`@taffyjs/node`](https://www.npmjs.com/package/@taffyjs/node)           | Native Node.js runtime for maximum performance. | —       |
+| [`@taffyjs/wasm`](https://www.npmjs.com/package/@taffyjs/wasm)           | WebAssembly runtime for flexible deployment.    | —       |
+| [`@taffyjs/yoga`](https://www.npmjs.com/package/@taffyjs/yoga)           | Yoga-compatible API backed by `@taffyjs/node`.  | —       |
+| [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | Yoga-compatible API backed by `@taffyjs/wasm`.  | WIP     |
 
-Install dependencies with `vp install`, then run `vp run ready` for formatting, linting, Rust checks, the native build, Rust and JavaScript tests, and type checks. After changing an input under `api/`, run `vp run codegen`; the default local checks never run generation. CI separately regenerates source and rejects any resulting Git diff. The public `@taffyjs/node` TypeScript source is built with `vp pack`; napi-rs generates the private native loader separately.
+## Documentation
+
+- [Guide](apps/website/guide/index.md) explains the shared layout model, layout modes, and text and image measurement.
+- [`@taffyjs/node`](apps/website/node/index.md) documents runtime support and the current public API.
+- [`@taffyjs/wasm`](apps/website/wasm/index.md) documents WebAssembly setup, supported environments, and differences from the native package.
+
+## Credits
+
+- [Taffy](https://github.com/DioxusLabs/taffy), the layout engine at the core of TaffyJS.
+- [napi-rs](https://github.com/napi-rs/napi-rs), the tooling behind the native and WebAssembly bindings.
+- [Yoga](https://github.com/react/yoga), the API and compatibility target for the Yoga packages.
+
+## License
+
+MIT

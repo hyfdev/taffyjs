@@ -28,6 +28,18 @@ The root Vite+ task graph builds the napi-rs artifacts into `packages/taffyjs-wa
 
 CI has five jobs. Ubuntu x64 and Windows x64 each build the native addon and run all Rust, JavaScript, and type tests with Node.js 22.18.0. Ubuntu also rejects stale committed package JavaScript and declarations after the build. A separate Ubuntu WASIP job installs the Rust target and Playwright Chromium, builds `@taffyjs/wasm`, reruns the complete Node public API suite against it, and runs type, package-content, packed-consumer, bundled-consumer, and browser-runtime checks against the generated package. A Node-only job checks formatting, JavaScript and repository TypeScript including maintained tools through Vite+'s type-aware lint path, and generated-source drift. A Rust-only job checks formatting and Clippy. macOS and publication workflows are not configured.
 
+## Public website
+
+[VOUCHED @hyfdev 2026-08-14]
+
+The package family has one public VitePress application at `apps/website`. It owns the project landing page, shared Guide, per-package documentation, examples, and any later editorial sections with real content.
+
+The API reference is maintained by humans alongside the Guide rather than emitted by TypeDoc. The current high-level API is stable enough for this, and useful reference prose must explain behavior and relationships that a generated symbol listing would not provide. Source JSDoc remains the complete editor-facing signature and field reference.
+
+The VitePress build verifies that the site and its internal links compile. Documentation does not gain a separate example-extraction or source-text test harness; public behavior stays covered by the owning type and integration tests.
+
+The interactive Getting Started example imports the real browser entry from `@taffyjs/wasm`. The website build and development tasks therefore depend on the Wasm package build, and the production build runs as part of `check:wasm`, whose CI job already provides the WASIP target. Node-only checks do not gain a Rust or browser dependency merely to build the site.
+
 ## Task orchestration
 
 The root `vite.config.ts` defines build and verification dependencies. The native build is an explicit graph from napi-rs binding generation through generated-file formatting to the independent platform-artifact and Vite+ entry branches. The Wasm build is a three-stage chain—staged napi-rs binding, Vite+ public entries, then final inline runtime files. Native build completion precedes package-local and consumer tests. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Node formatting and linting do not depend on a native build. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
