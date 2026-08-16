@@ -28,8 +28,9 @@ npm install @taffyjs/node
 
 ## Documentation
 
-- [Guide](apps/website/guide/index.md) explains the shared layout model, layout modes, and measured content.
+- [Guide](apps/website/guide/index.md) explains the shared layout model, layout modes, and text and image measurement.
 - [`@taffyjs/node`](apps/website/node/index.md) documents runtime support and the current public API.
+- [`@taffyjs/wasm`](apps/website/wasm/index.md) documents WebAssembly setup, supported environments, and differences from the native package.
 
 ## Credits
 

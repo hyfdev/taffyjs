@@ -122,9 +122,11 @@ export default defineConfig({
       },
       "build:website": {
         command: "vp run @taffyjs/website#build",
+        dependsOn: ["build:wasm"],
       },
       "dev:website": {
         command: "vp run @taffyjs/website#dev",
+        dependsOn: ["build:wasm"],
       },
       build: {
         command: "echo build ok",
@@ -163,6 +165,7 @@ export default defineConfig({
           "check:wasm:package",
           "check:wasm:browser-runtime",
           "check:wasm:browser-bundle",
+          "build:website",
         ],
       },
       ready: {

@@ -7,7 +7,13 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: "Guide", link: "/guide/getting-started", activeMatch: "^/guide/" },
-      { text: "@taffyjs/node", link: "/node/" },
+      {
+        text: "Packages",
+        items: [
+          { text: "@taffyjs/node", link: "/node/" },
+          { text: "@taffyjs/wasm", link: "/wasm/" },
+        ],
+      },
     ],
     sidebar: {
       "/guide/": [
@@ -26,7 +32,7 @@ export default defineConfig({
             { text: "Block", link: "/guide/block" },
             { text: "Flexbox", link: "/guide/flexbox" },
             { text: "Grid", link: "/guide/grid" },
-            { text: "Measuring Content", link: "/guide/measuring-content" },
+            { text: "Measuring Text and Images", link: "/guide/measuring-content" },
           ],
         },
       ],
@@ -47,6 +53,12 @@ export default defineConfig({
         { text: "Style", link: "/node/style" },
         { text: "Value Helpers", link: "/node/value-helpers" },
         { text: "Errors", link: "/node/errors" },
+      ],
+      "/wasm/": [
+        {
+          text: "@taffyjs/wasm",
+          items: [{ text: "Overview", link: "/wasm/" }],
+        },
       ],
     },
     socialLinks: [{ icon: "github", link: "https://github.com/hyfdev/taffyjs" }],

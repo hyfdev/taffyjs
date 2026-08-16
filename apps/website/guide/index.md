@@ -15,7 +15,7 @@ TaffyJS brings [Taffy](https://github.com/DioxusLabs/taffy), a mature layout eng
 - **A proven layout engine:** Taffy implements Block, Flexbox, and Grid and is used by projects including Servo, Bevy, Slint, and Zed.
 - **Native performance:** `@taffyjs/node` runs the Rust engine through a native Node-API binding instead of requiring a WebAssembly runtime.
 - **A JavaScript-facing API:** Inputs and results use typed, readable JavaScript values while the binding handles the lower-level conversion to Rust.
-- **A direct API across runtimes:** The planned WebAssembly package will share the same high-level tree and layout API as the Node.js package.
+- **A direct API across runtimes:** `@taffyjs/wasm` exposes the same high-level tree and layout API in Node.js and bundled browsers.
 
 If your content is already HTML and CSS in a browser, the browser's layout engine is usually the more direct choice. TaffyJS is for software that needs layout as data.
 
@@ -31,13 +31,13 @@ The native package for Node.js. It calls Taffy through Node-API and is the defau
 
 ### `@taffyjs/wasm`
 
-A planned WebAssembly package for browsers and other JavaScript runtimes. It will provide the same high-level API as `@taffyjs/node`, so the tree, styles, and layout code can stay the same when the runtime changes.
+The WebAssembly package for Node.js and bundled browsers. It provides the same high-level API as `@taffyjs/node`, so the tree, styles, and layout code stay the same when the binding changes.
 
 ### `@taffyjs/yoga`
 
 A planned Yoga-compatible API built on `@taffyjs/node`. It is intended for projects that already use Yoga's node and style model or need a straightforward migration path. It will be a compatibility layer rather than another form of the direct `TaffyTree` API.
 
-This guide uses `@taffyjs/node` by default. Its direct API concepts will also apply to `@taffyjs/wasm`; `@taffyjs/yoga` will have a separate consumer-facing model.
+This guide uses `@taffyjs/node` by default. The same direct API also applies to `@taffyjs/wasm`; `@taffyjs/yoga` will have a separate consumer-facing model.
 
 ## Credits
 

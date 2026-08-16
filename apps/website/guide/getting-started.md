@@ -1,3 +1,7 @@
+<script setup>
+import LayoutWidthDemo from "../.vitepress/components/LayoutWidthDemo.vue";
+</script>
+
 # Getting Started
 
 If you have used CSS Flexbox, you already understand most of the layout in this example. The new part is making the inputs and the layout step explicit.
@@ -83,7 +87,13 @@ The output describes the same two boxes as the CSS example:
 
 The two programs express the same relationships. `newWithChildren` records the parent and its ordered children. `Display.Flex`, the percentage width, and `flexGrow` play the same roles as their CSS counterparts. `computeLayout` performs the layout step, and `getLayout` reads the resulting geometry.
 
-<!-- When @taffyjs/wasm is available, replace the two static width runs with one in-page control that varies availableSpace.width while keeping the tree and styles unchanged. Keep the Node example above as the canonical code path. -->
+## Try the same relationship
+
+This control runs the same tree through `@taffyjs/wasm` in your browser. Change only the available width and watch Taffy recompute the two child rectangles.
+
+<ClientOnly>
+  <LayoutWidthDemo />
+</ClientOnly>
 
 ## Change one input
 

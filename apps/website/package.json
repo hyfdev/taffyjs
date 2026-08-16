@@ -8,6 +8,9 @@
     "dev": "vitepress dev",
     "preview": "vitepress preview"
   },
+  "dependencies": {
+    "@taffyjs/wasm": "workspace:*"
+  },
   "devDependencies": {
     "vitepress": "catalog:"
   }

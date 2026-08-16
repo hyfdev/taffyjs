@@ -52,7 +52,7 @@ tree.computeLayoutWithMeasure({
 });
 ```
 
-Only a node with present JavaScript context is measurable. `newLeafWithContext` marks the node measurable when its context is not `undefined`; `setNodeContext(node, undefined)` clears both the context and that marker.
+Taffy may ask the callback to measure any leaf that needs an intrinsic size. Context is optional: `newLeafWithContext` is a convenient way to attach measurement data, while a leaf without context is passed to the callback with `context === undefined`. `setNodeContext` changes or clears that value; it does not enable or disable measurement.
 
 The callback is validated as a function before native computation, even when Taffy may satisfy the request from cache. Taffy controls whether it runs, how often it runs, and the order of calls.
 

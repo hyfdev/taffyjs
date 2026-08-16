@@ -38,6 +38,8 @@ The API reference is maintained by humans alongside the Guide rather than emitte
 
 The VitePress build verifies that the site and its internal links compile. Documentation does not gain a separate example-extraction or source-text test harness; public behavior stays covered by the owning type and integration tests.
 
+The interactive Getting Started example imports the real browser entry from `@taffyjs/wasm`. The website build and development tasks therefore depend on the Wasm package build, and the production build runs as part of `check:wasm`, whose CI job already provides the WASIP target. Node-only checks do not gain a Rust or browser dependency merely to build the site.
+
 ## Task orchestration
 
 The root `vite.config.ts` defines build and verification dependencies. The native build is an explicit graph from napi-rs binding generation through generated-file formatting to the independent platform-artifact and Vite+ entry branches. The Wasm build is a three-stage chain—staged napi-rs binding, Vite+ public entries, then final inline runtime files. Native build completion precedes package-local and consumer tests. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Node formatting and linting do not depend on a native build. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.

@@ -34,6 +34,8 @@ const tree = new TaffyTree<TextContext>();
 const label = tree.newLeafWithContext({}, { text: "Hello", fontSize: 16 });
 ```
 
+Context is optional measurement data, not a switch that makes a node measurable. A measure callback can receive any leaf; for a leaf without context, it receives `undefined`.
+
 `getNodeContext(node)` returns the exact JavaScript value by identity, or `undefined` when no value is attached. `setNodeContext(node, value)` replaces the value. Passing `undefined` clears it; `null` is an ordinary present value when `TContext` includes `null`.
 
 The wrapper holds context strongly while the node is live. `remove` releases the removed node's context, and `clear` releases them all. Context is not copied into Rust, serialized, or included in style snapshots.
