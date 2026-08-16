@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300" role="img" aria-labelledby="title desc">
+  <title id="title">Taffy content measurement flow</title>
+  <desc id="desc">Taffy asks the application to measure a leaf with known dimensions and available space. The application uses its text or image system and returns a width and height. Taffy continues layout with that size.</desc>
+  <style>
+    .background { fill: #ffffff; }
+    .box { fill: #f6f6f7; stroke: #c2c2c4; stroke-width: 2; }
+    .accent { fill: #eef2ff; stroke: #5672cd; stroke-width: 2; }
+    .title { fill: #3c3c43; font: 600 18px system-ui, sans-serif; }
+    .text { fill: #67676c; font: 15px system-ui, sans-serif; }
+    .label { fill: #3451b2; font: 600 14px system-ui, sans-serif; }
+    .arrow { fill: none; stroke: #5672cd; stroke-width: 3; marker-end: url(#arrowhead); }
+    @media (prefers-color-scheme: dark) {
+      .background { fill: #1b1b1f; }
+      .box { fill: #202127; stroke: #515258; }
+      .accent { fill: #20263d; stroke: #7c93df; }
+      .title { fill: #dfdfd6; }
+      .text { fill: #a8a8a2; }
+      .label { fill: #a8b8f8; }
+      .arrow { stroke: #7c93df; }
+    }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#5672cd" />
+    </marker>
+  </defs>
+  <rect class="background" width="960" height="300" />
+
+  <rect class="box" x="24" y="62" width="250" height="176" rx="12" />
+  <text class="title" x="48" y="98">Taffy layout</text>
+  <text class="text" x="48" y="132">Knows the tree, styles,</text>
+  <text class="text" x="48" y="156">and available space.</text>
+  <text class="text" x="48" y="198">Needs a leaf size.</text>
+
+  <path class="arrow" d="M282 116 H350" />
+  <text class="label" x="316" y="91" text-anchor="middle">asks with constraints</text>
+
+  <rect class="accent" x="358" y="36" width="280" height="228" rx="12" />
+  <text class="title" x="382" y="74">Your measure callback</text>
+  <text class="text" x="382" y="110">Reads known dimensions</text>
+  <text class="text" x="382" y="134">and available space.</text>
+  <line x1="382" y1="158" x2="614" y2="158" stroke="#909096" />
+  <text class="text" x="382" y="188">Text shaping and fonts</text>
+  <text class="text" x="382" y="214">Image metadata or decoder</text>
+  <text class="text" x="382" y="240">Other application-owned content</text>
+
+  <path class="arrow" d="M646 184 H714" />
+  <text class="label" x="680" y="159" text-anchor="middle">returns a size</text>
+
+  <rect class="box" x="722" y="62" width="214" height="176" rx="12" />
+  <text class="title" x="746" y="98">Taffy continues</text>
+  <text class="text" x="746" y="132">Uses { width, height }</text>
+  <text class="text" x="746" y="156">to lay out the tree.</text>
+  <text class="text" x="746" y="198">Returns rectangles.</text>
+</svg>
