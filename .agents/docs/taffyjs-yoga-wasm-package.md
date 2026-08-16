@@ -15,7 +15,7 @@
 
 The package has one runtime dependency, `@taffyjs/wasm`. It must not depend on `@taffyjs/yoga` or `@taffyjs/node`, which would pull the native package into the Wasm transport. It does not embed another Wasm payload: the consuming tool resolves `@taffyjs/wasm` and owns selection and bundling of that package's default or browser graph.
 
-`packages/taffyjs-yoga-wasm/dist` is ignored build output, matching the direct Wasm package. Every Yoga Wasm verification branch builds it before inspecting declarations, package contents, tarballs, or runtime behavior; publication must likewise build first. The native `@taffyjs/yoga` package keeps its separately vouched committed-output policy.
+`packages/taffyjs-yoga-wasm/dist` is ignored build output, matching the direct Wasm and native Yoga packages. Every Yoga Wasm verification branch builds it before inspecting declarations, package contents, tarballs, or runtime behavior; publication must likewise build first.
 
 The declaration bundle uses the tsconfig located beside the shared Yoga source. With the pinned TypeScript 7 and declaration generator, placing that tsconfig under the Yoga Wasm package makes the generator treat the wrong directory as `rootDir`, fail with TS6059, and potentially leave declarations beside the shared source. Clean builds and package checks therefore require the sibling Yoga tsconfig and reject any `.d.ts` written under `packages/taffyjs-yoga/src`.
 

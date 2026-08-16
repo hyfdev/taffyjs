@@ -103,6 +103,7 @@ export default defineConfig({
       "packages/.taffyjs-*.napi-stage-*",
       "packages/**/.napi-rs-filesystem-transaction*",
       "tests/taffyjs-wasm/browser/dist",
+      "tests/taffyjs-yoga/types/public-api.test-d.ts",
       "packages/taffyjs-yoga/dist",
       "packages/taffyjs-yoga-wasm/dist",
     ],

@@ -6,6 +6,10 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "types": ["node"],
+    "paths": {
+      "yoga-layout": ["../../packages/taffyjs-yoga/src/index.ts"],
+      "yoga-layout/load": ["../../packages/taffyjs-yoga/src/load.ts"]
+    },
     "strict": true,
     "noUnusedLocals": true,
     "noEmit": true,
