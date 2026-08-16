@@ -129,6 +129,13 @@ export function toDimension(value: YogaValue): DimensionInput {
   }
 }
 
+export function toSizeDimension(value: YogaValue): DimensionInput {
+  if ((value.unit === Unit.Point || value.unit === Unit.Percent) && value.value < 0) {
+    return TaffyDimension.Auto;
+  }
+  return toDimension(value);
+}
+
 export function toMinDimension(value: YogaValue): DimensionInput {
   return value.unit === Unit.Undefined ? TaffyDimension.Length(0) : toDimension(value);
 }

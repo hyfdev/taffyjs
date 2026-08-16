@@ -136,6 +136,169 @@ test("finite owner dimensions become exact selected-root constraints", () => {
   }
 });
 
+test("negative width and height declarations compute as auto without changing getters", () => {
+  const scenarios: Array<{
+    readonly name: string;
+    readonly axis: "width" | "height";
+    readonly configure: (actual: Node, expected: OracleNode) => void;
+  }> = [
+    {
+      name: "negative point width",
+      axis: "width",
+      configure: (actual, expected) => {
+        actual.setWidth(-1);
+        expected.setWidth(-1);
+      },
+    },
+    {
+      name: "negative percent width",
+      axis: "width",
+      configure: (actual, expected) => {
+        actual.setWidthPercent(-10);
+        expected.setWidthPercent(-10);
+      },
+    },
+    {
+      name: "negative point height",
+      axis: "height",
+      configure: (actual, expected) => {
+        actual.setHeight(-1);
+        expected.setHeight(-1);
+      },
+    },
+    {
+      name: "negative percent height",
+      axis: "height",
+      configure: (actual, expected) => {
+        actual.setHeightPercent(-10);
+        expected.setHeightPercent(-10);
+      },
+    },
+  ];
+
+  for (const scenario of scenarios) {
+    const actualParent = Yoga.Node.create();
+    const actualChild = Yoga.Node.create();
+    const expectedParent = OracleYoga.Node.create();
+    const expectedChild = OracleYoga.Node.create();
+    try {
+      actualParent.setWidth(100);
+      actualParent.setHeight(100);
+      expectedParent.setWidth(100);
+      expectedParent.setHeight(100);
+      if (scenario.axis === "width") {
+        actualParent.setFlexDirection(FlexDirection.Column);
+        expectedParent.setFlexDirection(OracleFlexDirection.Column);
+        actualChild.setHeight(20);
+        expectedChild.setHeight(20);
+      } else {
+        actualParent.setFlexDirection(FlexDirection.Row);
+        expectedParent.setFlexDirection(OracleFlexDirection.Row);
+        actualChild.setWidth(20);
+        expectedChild.setWidth(20);
+      }
+      scenario.configure(actualChild, expectedChild);
+      actualParent.insertChild(actualChild, 0);
+      expectedParent.insertChild(expectedChild, 0);
+
+      const actualDeclaration =
+        scenario.axis === "width" ? actualChild.getWidth() : actualChild.getHeight();
+      const expectedDeclaration =
+        scenario.axis === "width" ? expectedChild.getWidth() : expectedChild.getHeight();
+      assert.deepEqual(actualDeclaration, expectedDeclaration, `${scenario.name} declaration`);
+      actualParent.calculateLayout(undefined, undefined);
+      expectedParent.calculateLayout(undefined, undefined);
+      assertLayoutEqual(actualChild, expectedChild, scenario.name);
+      assert.deepEqual(
+        scenario.axis === "width" ? actualChild.getWidth() : actualChild.getHeight(),
+        actualDeclaration,
+        `${scenario.name} retained declaration`,
+      );
+    } finally {
+      actualParent.freeRecursive();
+      expectedParent.freeRecursive();
+    }
+  }
+});
+
+test("selected-root definite sizes follow Yoga's conflicting-constraint order", () => {
+  for (const axis of ["width", "height"] as const) {
+    for (const unit of ["point", "percent"] as const) {
+      for (const base of [25, 50, 75]) {
+        const actual = Yoga.Node.create();
+        const expected = OracleYoga.Node.create();
+        const name = `${axis} ${unit} base ${base}`;
+        try {
+          if (axis === "width") {
+            actual.setWidth(base);
+            actual.setHeight(10);
+            expected.setWidth(base);
+            expected.setHeight(10);
+            if (unit === "point") {
+              actual.setMinWidth(100);
+              actual.setMaxWidth(50);
+              expected.setMinWidth(100);
+              expected.setMaxWidth(50);
+            } else {
+              actual.setMinWidthPercent(60);
+              actual.setMaxWidthPercent(25);
+              expected.setMinWidthPercent(60);
+              expected.setMaxWidthPercent(25);
+            }
+          } else {
+            actual.setWidth(10);
+            actual.setHeight(base);
+            expected.setWidth(10);
+            expected.setHeight(base);
+            if (unit === "point") {
+              actual.setMinHeight(100);
+              actual.setMaxHeight(50);
+              expected.setMinHeight(100);
+              expected.setMaxHeight(50);
+            } else {
+              actual.setMinHeightPercent(60);
+              actual.setMaxHeightPercent(25);
+              expected.setMinHeightPercent(60);
+              expected.setMaxHeightPercent(25);
+            }
+          }
+
+          const ownerWidth = unit === "percent" && axis === "width" ? 200 : undefined;
+          const ownerHeight = unit === "percent" && axis === "height" ? 200 : undefined;
+          const minimum = axis === "width" ? actual.getMinWidth() : actual.getMinHeight();
+          const maximum = axis === "width" ? actual.getMaxWidth() : actual.getMaxHeight();
+          assert.deepEqual(
+            minimum,
+            axis === "width" ? expected.getMinWidth() : expected.getMinHeight(),
+            `${name} minimum`,
+          );
+          assert.deepEqual(
+            maximum,
+            axis === "width" ? expected.getMaxWidth() : expected.getMaxHeight(),
+            `${name} maximum`,
+          );
+          actual.calculateLayout(ownerWidth, ownerHeight);
+          expected.calculateLayout(ownerWidth, ownerHeight);
+          assertLayoutEqual(actual, expected, name);
+          assert.deepEqual(
+            axis === "width" ? actual.getMinWidth() : actual.getMinHeight(),
+            minimum,
+            `${name} retained minimum`,
+          );
+          assert.deepEqual(
+            axis === "width" ? actual.getMaxWidth() : actual.getMaxHeight(),
+            maximum,
+            `${name} retained maximum`,
+          );
+        } finally {
+          actual.free();
+          expected.free();
+        }
+      }
+    }
+  }
+});
+
 test("calculation input preserves Yoga's owner-direction fallback and finite boundary", () => {
   for (const direction of [Direction.Inherit, Direction.LTR, Direction.RTL] as const) {
     const actualRoot = Yoga.Node.create();
@@ -406,6 +569,51 @@ test("absolute logical margins use containing direction for placement", () => {
   } finally {
     parent.freeRecursive();
     oracleParent.freeRecursive();
+  }
+});
+
+test("absolute vertical percentage margins separate placement and computed-margin bases", () => {
+  for (const [edge, oracleEdge] of [
+    [Edge.Top, OracleEdge.Top],
+    [Edge.Bottom, OracleEdge.Bottom],
+  ] as const) {
+    const config = Yoga.Config.create();
+    const oracleConfig = OracleYoga.Config.create();
+    config.setPointScaleFactor(0);
+    oracleConfig.setPointScaleFactor(0);
+    const parent = Yoga.Node.createWithConfig(config);
+    const child = Yoga.Node.createWithConfig(config);
+    const oracleParent = OracleYoga.Node.createWithConfig(oracleConfig);
+    const oracleChild = OracleYoga.Node.createWithConfig(oracleConfig);
+    try {
+      parent.setWidth(120);
+      parent.setHeight(90);
+      child.setPositionType(PositionType.Absolute);
+      child.setWidth(10);
+      child.setHeight(10);
+      child.setPosition(edge, 0);
+      child.setMarginPercent(edge, 5);
+      parent.insertChild(child, 0);
+      oracleParent.setWidth(120);
+      oracleParent.setHeight(90);
+      oracleChild.setPositionType(OraclePositionType.Absolute);
+      oracleChild.setWidth(10);
+      oracleChild.setHeight(10);
+      oracleChild.setPosition(oracleEdge, 0);
+      oracleChild.setMarginPercent(oracleEdge, 5);
+      oracleParent.insertChild(oracleChild, 0);
+
+      parent.calculateLayout(undefined, undefined);
+      oracleParent.calculateLayout(undefined, undefined);
+      assertLayoutEqual(child, oracleChild, Edge[edge]);
+      assert.equal(child.getComputedMargin(edge), oracleChild.getComputedMargin(oracleEdge));
+      assert.equal(child.getComputedMargin(edge), 6, `${Edge[edge]} computed margin uses width`);
+    } finally {
+      parent.freeRecursive();
+      oracleParent.freeRecursive();
+      config.free();
+      oracleConfig.free();
+    }
   }
 });
 
