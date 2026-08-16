@@ -32,9 +32,9 @@ The package does not parse CSS, create DOM elements, or render output. It also d
 ## API
 
 - [Nodes and Topology](./nodes-and-topology.md) covers node creation, inspection, parent-child changes, removal, `clear`, and `NodeId` lifetime.
-- [Styles and Context](./styles-and-context.md) covers style replacement, style snapshots, JavaScript context, and measurement invalidation.
+- [Styles and Context](./styles-and-context.md) covers style replacement and partial updates, style snapshots, JavaScript context, and measurement invalidation.
 - [Computing Layout](./computing-layout.md) covers available space, dirty state, rounding, measurement, caching, and callback restrictions.
 - [Layout Results](./layout-results.md) covers ordinary, unrounded, and detailed Grid output.
-- [Style](./style.md) groups the fields accepted by `StyleInput` and returned by `Style`.
+- [Style](./style.md) groups the fields accepted by `StyleInput` and `StyleUpdate` and returned by `Style`.
 - [Value Helpers](./value-helpers.md) covers numeric constants and tagged values used throughout style and computation inputs.
 - [Errors](./errors.md) covers stable error codes, JavaScript error classes, and state after failure.

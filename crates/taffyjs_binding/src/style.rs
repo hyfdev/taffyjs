@@ -1,7 +1,7 @@
 use napi::ValueType;
 use napi::bindgen_prelude::{Either, Null, Unknown};
 use napi_derive::napi;
-use taffy::geometry::{Rect, Size};
+use taffy::geometry::{Line, Point, Rect, Size};
 use taffy::style::{
     AlignContent, AlignItems, BoxSizing, Clear, Direction, Display, FlexDirection, FlexWrap, Float,
     GridAutoFlow, Overflow, Position, Style, TextAlign,
@@ -106,6 +106,56 @@ pub struct StyleInput<'env> {
     pub grid_column: Option<Unknown<'env>>,
 }
 
+#[derive(Default, PartialEq)]
+struct StylePresence {
+    display: bool,
+    item_is_table: bool,
+    item_is_replaced: bool,
+    box_sizing: bool,
+    direction: bool,
+    overflow: Option<Point<bool>>,
+    scrollbar_width: bool,
+    r#float: bool,
+    clear: bool,
+    position: bool,
+    inset: Option<Rect<bool>>,
+    size: Option<Size<bool>>,
+    min_size: Option<Size<bool>>,
+    max_size: Option<Size<bool>>,
+    aspect_ratio: bool,
+    margin: Option<Rect<bool>>,
+    padding: Option<Rect<bool>>,
+    border: Option<Rect<bool>>,
+    align_items: bool,
+    align_self: bool,
+    justify_items: bool,
+    justify_self: bool,
+    align_content: bool,
+    justify_content: bool,
+    gap: Option<Size<bool>>,
+    text_align: bool,
+    flex_direction: bool,
+    flex_wrap: bool,
+    flex_basis: bool,
+    flex_grow: bool,
+    flex_shrink: bool,
+    grid_template_rows: bool,
+    grid_template_columns: bool,
+    grid_auto_rows: bool,
+    grid_auto_columns: bool,
+    grid_auto_flow: bool,
+    grid_template_areas: bool,
+    grid_template_column_names: bool,
+    grid_template_row_names: bool,
+    grid_row: Option<Line<bool>>,
+    grid_column: Option<Line<bool>>,
+}
+
+pub(crate) struct StylePatch {
+    value: Style,
+    presence: StylePresence,
+}
+
 #[napi(object, object_to_js = false)]
 pub struct MaybeTaggedLengthInput {
     pub unit: Option<f64>,
@@ -208,13 +258,19 @@ fn is_length_input(value: Unknown<'_>) -> BindingResult<bool> {
 fn dimension_size(
     value: Unknown<'_>,
     default: Size<taffy::Dimension>,
-) -> BindingResult<Size<taffy::Dimension>> {
+) -> BindingResult<(Size<taffy::Dimension>, Size<bool>)> {
     if is_length_input(value)? {
         let value = length::dimension(value)?;
-        Ok(Size {
-            width: value,
-            height: value,
-        })
+        Ok((
+            Size {
+                width: value,
+                height: value,
+            },
+            Size {
+                width: true,
+                height: true,
+            },
+        ))
     } else {
         geometry::partial_size(value, default, length::dimension)
     }
@@ -223,15 +279,23 @@ fn dimension_size(
 fn auto_rect(
     value: Unknown<'_>,
     default: Rect<taffy::LengthPercentageAuto>,
-) -> BindingResult<Rect<taffy::LengthPercentageAuto>> {
+) -> BindingResult<(Rect<taffy::LengthPercentageAuto>, Rect<bool>)> {
     if is_length_input(value)? {
         let value = length::length_percentage_auto(value)?;
-        Ok(Rect {
-            left: value,
-            right: value,
-            top: value,
-            bottom: value,
-        })
+        Ok((
+            Rect {
+                left: value,
+                right: value,
+                top: value,
+                bottom: value,
+            },
+            Rect {
+                left: true,
+                right: true,
+                top: true,
+                bottom: true,
+            },
+        ))
     } else {
         geometry::partial_rect(value, default, length::length_percentage_auto)
     }
@@ -240,15 +304,23 @@ fn auto_rect(
 fn length_rect(
     value: Unknown<'_>,
     default: Rect<taffy::LengthPercentage>,
-) -> BindingResult<Rect<taffy::LengthPercentage>> {
+) -> BindingResult<(Rect<taffy::LengthPercentage>, Rect<bool>)> {
     if is_length_input(value)? {
         let value = length::length_percentage(value)?;
-        Ok(Rect {
-            left: value,
-            right: value,
-            top: value,
-            bottom: value,
-        })
+        Ok((
+            Rect {
+                left: value,
+                right: value,
+                top: value,
+                bottom: value,
+            },
+            Rect {
+                left: true,
+                right: true,
+                top: true,
+                bottom: true,
+            },
+        ))
     } else {
         geometry::partial_rect(value, default, length::length_percentage)
     }
@@ -257,13 +329,19 @@ fn length_rect(
 fn length_size(
     value: Unknown<'_>,
     default: Size<taffy::LengthPercentage>,
-) -> BindingResult<Size<taffy::LengthPercentage>> {
+) -> BindingResult<(Size<taffy::LengthPercentage>, Size<bool>)> {
     if is_length_input(value)? {
         let value = length::length_percentage(value)?;
-        Ok(Size {
-            width: value,
-            height: value,
-        })
+        Ok((
+            Size {
+                width: value,
+                height: value,
+            },
+            Size {
+                width: true,
+                height: true,
+            },
+        ))
     } else {
         geometry::partial_size(value, default, length::length_percentage)
     }
@@ -401,170 +479,484 @@ fn grid_auto_flow(value: f64) -> BindingResult<GridAutoFlow> {
     })
 }
 
-pub(crate) fn input(value: Unknown<'_>) -> BindingResult<Style> {
+fn apply_field<T: PartialEq>(supplied: bool, update: T, current: &mut T) -> bool {
+    if !supplied {
+        return false;
+    }
+    let changed = update != *current;
+    *current = update;
+    changed
+}
+
+fn apply_f32_field(supplied: bool, update: f32, current: &mut f32) -> bool {
+    if !supplied {
+        return false;
+    }
+    let changed = update.to_bits() != current.to_bits();
+    *current = update;
+    changed
+}
+
+fn apply_optional_f32_field(
+    supplied: bool,
+    update: Option<f32>,
+    current: &mut Option<f32>,
+) -> bool {
+    if !supplied {
+        return false;
+    }
+    let changed = match (update.as_ref(), current.as_ref()) {
+        (Some(update), Some(current)) => update.to_bits() != current.to_bits(),
+        (None, None) => false,
+        _ => true,
+    };
+    *current = update;
+    changed
+}
+
+fn apply_point<T: PartialEq>(
+    supplied: Option<Point<bool>>,
+    update: Point<T>,
+    current: &mut Point<T>,
+) -> bool {
+    let Some(supplied) = supplied else {
+        return false;
+    };
+    apply_field(supplied.x, update.x, &mut current.x)
+        | apply_field(supplied.y, update.y, &mut current.y)
+}
+
+fn apply_size<T: PartialEq>(
+    supplied: Option<Size<bool>>,
+    update: Size<T>,
+    current: &mut Size<T>,
+) -> bool {
+    let Some(supplied) = supplied else {
+        return false;
+    };
+    apply_field(supplied.width, update.width, &mut current.width)
+        | apply_field(supplied.height, update.height, &mut current.height)
+}
+
+fn apply_rect<T: PartialEq>(
+    supplied: Option<Rect<bool>>,
+    update: Rect<T>,
+    current: &mut Rect<T>,
+) -> bool {
+    let Some(supplied) = supplied else {
+        return false;
+    };
+    apply_field(supplied.left, update.left, &mut current.left)
+        | apply_field(supplied.right, update.right, &mut current.right)
+        | apply_field(supplied.top, update.top, &mut current.top)
+        | apply_field(supplied.bottom, update.bottom, &mut current.bottom)
+}
+
+fn apply_line<T: PartialEq>(
+    supplied: Option<Line<bool>>,
+    update: Line<T>,
+    current: &mut Line<T>,
+) -> bool {
+    let Some(supplied) = supplied else {
+        return false;
+    };
+    apply_field(supplied.start, update.start, &mut current.start)
+        | apply_field(supplied.end, update.end, &mut current.end)
+}
+
+impl StylePatch {
+    fn is_empty(&self) -> bool {
+        self.presence == StylePresence::default()
+    }
+
+    fn apply(self, current: &mut Style) -> bool {
+        let update = self.value;
+        let supplied = self.presence;
+        let mut changed = false;
+        changed |= apply_field(supplied.display, update.display, &mut current.display);
+        changed |= apply_field(
+            supplied.item_is_table,
+            update.item_is_table,
+            &mut current.item_is_table,
+        );
+        changed |= apply_field(
+            supplied.item_is_replaced,
+            update.item_is_replaced,
+            &mut current.item_is_replaced,
+        );
+        changed |= apply_field(
+            supplied.box_sizing,
+            update.box_sizing,
+            &mut current.box_sizing,
+        );
+        changed |= apply_field(supplied.direction, update.direction, &mut current.direction);
+        changed |= apply_point(supplied.overflow, update.overflow, &mut current.overflow);
+        changed |= apply_f32_field(
+            supplied.scrollbar_width,
+            update.scrollbar_width,
+            &mut current.scrollbar_width,
+        );
+        changed |= apply_field(supplied.r#float, update.float, &mut current.float);
+        changed |= apply_field(supplied.clear, update.clear, &mut current.clear);
+        changed |= apply_field(supplied.position, update.position, &mut current.position);
+        changed |= apply_rect(supplied.inset, update.inset, &mut current.inset);
+        changed |= apply_size(supplied.size, update.size, &mut current.size);
+        changed |= apply_size(supplied.min_size, update.min_size, &mut current.min_size);
+        changed |= apply_size(supplied.max_size, update.max_size, &mut current.max_size);
+        changed |= apply_optional_f32_field(
+            supplied.aspect_ratio,
+            update.aspect_ratio,
+            &mut current.aspect_ratio,
+        );
+        changed |= apply_rect(supplied.margin, update.margin, &mut current.margin);
+        changed |= apply_rect(supplied.padding, update.padding, &mut current.padding);
+        changed |= apply_rect(supplied.border, update.border, &mut current.border);
+        changed |= apply_field(
+            supplied.align_items,
+            update.align_items,
+            &mut current.align_items,
+        );
+        changed |= apply_field(
+            supplied.align_self,
+            update.align_self,
+            &mut current.align_self,
+        );
+        changed |= apply_field(
+            supplied.justify_items,
+            update.justify_items,
+            &mut current.justify_items,
+        );
+        changed |= apply_field(
+            supplied.justify_self,
+            update.justify_self,
+            &mut current.justify_self,
+        );
+        changed |= apply_field(
+            supplied.align_content,
+            update.align_content,
+            &mut current.align_content,
+        );
+        changed |= apply_field(
+            supplied.justify_content,
+            update.justify_content,
+            &mut current.justify_content,
+        );
+        changed |= apply_size(supplied.gap, update.gap, &mut current.gap);
+        changed |= apply_field(
+            supplied.text_align,
+            update.text_align,
+            &mut current.text_align,
+        );
+        changed |= apply_field(
+            supplied.flex_direction,
+            update.flex_direction,
+            &mut current.flex_direction,
+        );
+        changed |= apply_field(supplied.flex_wrap, update.flex_wrap, &mut current.flex_wrap);
+        changed |= apply_field(
+            supplied.flex_basis,
+            update.flex_basis,
+            &mut current.flex_basis,
+        );
+        changed |= apply_f32_field(supplied.flex_grow, update.flex_grow, &mut current.flex_grow);
+        changed |= apply_f32_field(
+            supplied.flex_shrink,
+            update.flex_shrink,
+            &mut current.flex_shrink,
+        );
+        changed |= apply_field(
+            supplied.grid_template_rows,
+            update.grid_template_rows,
+            &mut current.grid_template_rows,
+        );
+        changed |= apply_field(
+            supplied.grid_template_columns,
+            update.grid_template_columns,
+            &mut current.grid_template_columns,
+        );
+        changed |= apply_field(
+            supplied.grid_auto_rows,
+            update.grid_auto_rows,
+            &mut current.grid_auto_rows,
+        );
+        changed |= apply_field(
+            supplied.grid_auto_columns,
+            update.grid_auto_columns,
+            &mut current.grid_auto_columns,
+        );
+        changed |= apply_field(
+            supplied.grid_auto_flow,
+            update.grid_auto_flow,
+            &mut current.grid_auto_flow,
+        );
+        changed |= apply_field(
+            supplied.grid_template_areas,
+            update.grid_template_areas,
+            &mut current.grid_template_areas,
+        );
+        changed |= apply_field(
+            supplied.grid_template_column_names,
+            update.grid_template_column_names,
+            &mut current.grid_template_column_names,
+        );
+        changed |= apply_field(
+            supplied.grid_template_row_names,
+            update.grid_template_row_names,
+            &mut current.grid_template_row_names,
+        );
+        changed |= apply_line(supplied.grid_row, update.grid_row, &mut current.grid_row);
+        changed |= apply_line(
+            supplied.grid_column,
+            update.grid_column,
+            &mut current.grid_column,
+        );
+        changed
+    }
+}
+
+fn validate(style: &Style) -> BindingResult<()> {
+    grid::validate_template_line_names(&style.grid_template_rows, &style.grid_template_row_names)?;
+    grid::validate_template_line_names(
+        &style.grid_template_columns,
+        &style.grid_template_column_names,
+    )?;
+    Ok(())
+}
+
+pub(crate) fn patch(value: Unknown<'_>) -> BindingResult<StylePatch> {
     let input: StyleInput<'_> = js_object::input(value, "a Style object", Some(STYLE_FIELDS))?;
     let mut style = Style::default();
+    let mut presence = StylePresence::default();
 
     if let Some(value) = input.display {
         style.display = display(value)?;
+        presence.display = true;
     }
     if let Some(value) = input.item_is_table {
         style.item_is_table = value;
+        presence.item_is_table = true;
     }
     if let Some(value) = input.item_is_replaced {
         style.item_is_replaced = value;
+        presence.item_is_replaced = true;
     }
     if let Some(value) = input.box_sizing {
         style.box_sizing = box_sizing(value)?;
+        presence.box_sizing = true;
     }
     if let Some(value) = input.direction {
         style.direction = direction(value)?;
+        presence.direction = true;
     }
     if let Some(value) = input.overflow {
-        style.overflow = geometry::partial_point(value, style.overflow, overflow)?;
+        let (value, fields) = geometry::partial_point(value, style.overflow, overflow)?;
+        style.overflow = value;
+        presence.overflow = Some(fields);
     }
     if let Some(value) = input.scrollbar_width {
         style.scrollbar_width = number::to_f32(value);
+        presence.scrollbar_width = true;
     }
     if let Some(value) = input.r#float {
         style.float = float(value)?;
+        presence.r#float = true;
     }
     if let Some(value) = input.clear {
         style.clear = clear(value)?;
+        presence.clear = true;
     }
     if let Some(value) = input.position {
         style.position = position(value)?;
+        presence.position = true;
     }
     if let Some(value) = input.inset {
-        style.inset = auto_rect(value, style.inset)?;
+        let (value, fields) = auto_rect(value, style.inset)?;
+        style.inset = value;
+        presence.inset = Some(fields);
     }
     if let Some(value) = input.size {
-        style.size = dimension_size(value, style.size)?;
+        let (value, fields) = dimension_size(value, style.size)?;
+        style.size = value;
+        presence.size = Some(fields);
     }
     if let Some(value) = input.min_size {
-        style.min_size = dimension_size(value, style.min_size)?;
+        let (value, fields) = dimension_size(value, style.min_size)?;
+        style.min_size = value;
+        presence.min_size = Some(fields);
     }
     if let Some(value) = input.max_size {
-        style.max_size = dimension_size(value, style.max_size)?;
+        let (value, fields) = dimension_size(value, style.max_size)?;
+        style.max_size = value;
+        presence.max_size = Some(fields);
     }
     if let Some(value) = input.aspect_ratio {
         style.aspect_ratio = match value {
             Either::A(value) => Some(number::to_f32(value)),
             Either::B(_) => None,
         };
+        presence.aspect_ratio = true;
     }
     if let Some(value) = input.margin {
-        style.margin = auto_rect(value, style.margin)?;
+        let (value, fields) = auto_rect(value, style.margin)?;
+        style.margin = value;
+        presence.margin = Some(fields);
     }
     if let Some(value) = input.padding {
-        style.padding = length_rect(value, style.padding)?;
+        let (value, fields) = length_rect(value, style.padding)?;
+        style.padding = value;
+        presence.padding = Some(fields);
     }
     if let Some(value) = input.border {
-        style.border = length_rect(value, style.border)?;
+        let (value, fields) = length_rect(value, style.border)?;
+        style.border = value;
+        presence.border = Some(fields);
     }
     if let Some(value) = input.align_items {
         style.align_items = match value {
             Either::A(value) => Some(align_items(value)?),
             Either::B(_) => None,
         };
+        presence.align_items = true;
     }
     if let Some(value) = input.align_self {
         style.align_self = match value {
             Either::A(value) => Some(align_items(value)?),
             Either::B(_) => None,
         };
+        presence.align_self = true;
     }
     if let Some(value) = input.justify_items {
         style.justify_items = match value {
             Either::A(value) => Some(align_items(value)?),
             Either::B(_) => None,
         };
+        presence.justify_items = true;
     }
     if let Some(value) = input.justify_self {
         style.justify_self = match value {
             Either::A(value) => Some(align_items(value)?),
             Either::B(_) => None,
         };
+        presence.justify_self = true;
     }
     if let Some(value) = input.align_content {
         style.align_content = match value {
             Either::A(value) => Some(align_content(value)?),
             Either::B(_) => None,
         };
+        presence.align_content = true;
     }
     if let Some(value) = input.justify_content {
         style.justify_content = match value {
             Either::A(value) => Some(align_content(value)?),
             Either::B(_) => None,
         };
+        presence.justify_content = true;
     }
     if let Some(value) = input.gap {
-        style.gap = length_size(value, style.gap)?;
+        let (value, fields) = length_size(value, style.gap)?;
+        style.gap = value;
+        presence.gap = Some(fields);
     }
     if let Some(value) = input.text_align {
         style.text_align = text_align(value)?;
+        presence.text_align = true;
     }
     if let Some(value) = input.flex_direction {
         style.flex_direction = flex_direction(value)?;
+        presence.flex_direction = true;
     }
     if let Some(value) = input.flex_wrap {
         style.flex_wrap = flex_wrap(value)?;
+        presence.flex_wrap = true;
     }
     if let Some(value) = input.flex_basis {
         style.flex_basis = length::dimension(value)?;
+        presence.flex_basis = true;
     }
     if let Some(value) = input.flex_grow {
         style.flex_grow = number::to_f32(value);
+        presence.flex_grow = true;
     }
     if let Some(value) = input.flex_shrink {
         style.flex_shrink = number::to_f32(value);
+        presence.flex_shrink = true;
     }
     if let Some(value) = input.grid_template_rows {
         style.grid_template_rows = grid::template_components(value)?;
+        presence.grid_template_rows = true;
     }
     if let Some(value) = input.grid_template_columns {
         style.grid_template_columns = grid::template_components(value)?;
+        presence.grid_template_columns = true;
     }
     if let Some(value) = input.grid_auto_rows {
         style.grid_auto_rows = value
             .into_iter()
             .map(grid::track_sizing)
             .collect::<BindingResult<Vec<_>>>()?;
+        presence.grid_auto_rows = true;
     }
     if let Some(value) = input.grid_auto_columns {
         style.grid_auto_columns = value
             .into_iter()
             .map(grid::track_sizing)
             .collect::<BindingResult<Vec<_>>>()?;
+        presence.grid_auto_columns = true;
     }
     if let Some(value) = input.grid_auto_flow {
         style.grid_auto_flow = grid_auto_flow(value)?;
+        presence.grid_auto_flow = true;
     }
     if let Some(value) = input.grid_template_areas {
         style.grid_template_areas = match value {
             Either::A(value) => Some(grid::template_areas(value)?),
             Either::B(_) => None,
         };
+        presence.grid_template_areas = true;
     }
     if let Some(value) = input.grid_template_column_names {
         style.grid_template_column_names = value;
+        presence.grid_template_column_names = true;
     }
     if let Some(value) = input.grid_template_row_names {
         style.grid_template_row_names = value;
+        presence.grid_template_row_names = true;
     }
-    grid::validate_template_line_names(&style.grid_template_rows, &style.grid_template_row_names)?;
-    grid::validate_template_line_names(
-        &style.grid_template_columns,
-        &style.grid_template_column_names,
-    )?;
     if let Some(value) = input.grid_row {
-        style.grid_row = geometry::partial_line(value, style.grid_row, grid::grid_placement)?;
+        let (value, fields) = geometry::partial_line(value, style.grid_row, grid::grid_placement)?;
+        style.grid_row = value;
+        presence.grid_row = Some(fields);
     }
     if let Some(value) = input.grid_column {
-        style.grid_column = geometry::partial_line(value, style.grid_column, grid::grid_placement)?;
+        let (value, fields) =
+            geometry::partial_line(value, style.grid_column, grid::grid_placement)?;
+        style.grid_column = value;
+        presence.grid_column = Some(fields);
     }
 
-    Ok(style)
+    Ok(StylePatch {
+        value: style,
+        presence,
+    })
+}
+
+pub(crate) fn input(value: Unknown<'_>) -> BindingResult<Style> {
+    let patch = patch(value)?;
+    validate(&patch.value)?;
+    Ok(patch.value)
+}
+
+pub(crate) fn apply_patch(current: &Style, patch: StylePatch) -> BindingResult<Option<Style>> {
+    if patch.is_empty() {
+        return Ok(None);
+    }
+    let mut updated = current.clone();
+    if !patch.apply(&mut updated) {
+        return Ok(None);
+    }
+    validate(&updated)?;
+    Ok(Some(updated))
 }
 
 fn display_output(value: Display) -> u8 {

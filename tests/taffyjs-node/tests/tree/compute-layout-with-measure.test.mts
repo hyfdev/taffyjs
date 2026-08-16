@@ -161,7 +161,7 @@ test("same-tree-busy", () => {
     results: { method: string; code?: string; message: string }[];
   };
   assert.equal(results.callbackRan, true);
-  assert.equal(results.results.length, 29);
+  assert.equal(results.results.length, 30);
   for (const result of results.results) {
     assert.equal(result.code, "ERR_TAFFY_TREE_BUSY", result.method);
     assert.equal(

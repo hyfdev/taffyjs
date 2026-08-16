@@ -326,144 +326,127 @@ export interface GridTemplateArea {
   /** Stores the column end component of this GridTemplateArea value. */ readonly columnEnd: number;
 }
 
-/** Supplies partial writable style data, using Taffy defaults for omitted fields. */
+/** Supplies writable style fields; creation and setStyle use defaults for omitted fields. */
 export interface StyleInput {
-  /** Sets the node's display style; omission uses Taffy's default. */ display?:
-    | Display
-    | undefined;
-  /** Sets the node's item is table style; omission uses Taffy's default. */ itemIsTable?:
+  /** Supplies the node's display style when present. */ display?: Display | undefined;
+  /** Supplies the node's item is table style when present. */ itemIsTable?: boolean | undefined;
+  /** Supplies the node's item is replaced style when present. */ itemIsReplaced?:
     | boolean
     | undefined;
-  /** Sets the node's item is replaced style; omission uses Taffy's default. */ itemIsReplaced?:
-    | boolean
-    | undefined;
-  /** Sets the node's box sizing style; omission uses Taffy's default. */ boxSizing?:
-    | BoxSizing
-    | undefined;
-  /** Sets the node's direction style; omission uses Taffy's default. */ direction?:
-    | Direction
-    | undefined;
-  /** Sets the node's overflow style; omission uses Taffy's default. */ overflow?:
+  /** Supplies the node's box sizing style when present. */ boxSizing?: BoxSizing | undefined;
+  /** Supplies the node's direction style when present. */ direction?: Direction | undefined;
+  /** Supplies the node's overflow style when present. */ overflow?:
     | PartialPointInput<Overflow>
     | undefined;
-  /** Sets the node's scrollbar width style; omission uses Taffy's default. */ scrollbarWidth?:
+  /** Supplies the node's scrollbar width style when present. */ scrollbarWidth?:
     | number
     | undefined;
-  /** Sets the node's float style; omission uses Taffy's default. */ float?: Float | undefined;
+  /** Supplies the node's float style when present. */ float?: Float | undefined;
   /** Sets which preceding floats this node must clear. */ clear?: Clear | undefined;
-  /** Sets the node's position style; omission uses Taffy's default. */ position?:
-    | Position
-    | undefined;
-  /** Sets the node's inset style; omission uses Taffy's default. */ inset?:
+  /** Supplies the node's position style when present. */ position?: Position | undefined;
+  /** Supplies the node's inset style when present. */ inset?:
     | LengthPercentageAutoInput
     | PartialRectInput<LengthPercentageAutoInput>
     | undefined;
-  /** Sets the node's size style; omission uses Taffy's default. */ size?:
+  /** Supplies the node's size style when present. */ size?:
     | DimensionInput
     | PartialSizeInput<DimensionInput>
     | undefined;
-  /** Sets the node's min size style; omission uses Taffy's default. */ minSize?:
+  /** Supplies the node's min size style when present. */ minSize?:
     | DimensionInput
     | PartialSizeInput<DimensionInput>
     | undefined;
-  /** Sets the node's max size style; omission uses Taffy's default. */ maxSize?:
+  /** Supplies the node's max size style when present. */ maxSize?:
     | DimensionInput
     | PartialSizeInput<DimensionInput>
     | undefined;
-  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ aspectRatio?:
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ aspectRatio?:
     | number
     | null
     | undefined;
-  /** Sets the node's margin style; omission uses Taffy's default. */ margin?:
+  /** Supplies the node's margin style when present. */ margin?:
     | LengthPercentageAutoInput
     | PartialRectInput<LengthPercentageAutoInput>
     | undefined;
-  /** Sets the node's padding style; omission uses Taffy's default. */ padding?:
+  /** Supplies the node's padding style when present. */ padding?:
     | LengthPercentageInput
     | PartialRectInput<LengthPercentageInput>
     | undefined;
-  /** Sets the node's border style; omission uses Taffy's default. */ border?:
+  /** Supplies the node's border style when present. */ border?:
     | LengthPercentageInput
     | PartialRectInput<LengthPercentageInput>
     | undefined;
-  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ alignItems?:
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignItems?:
     | AlignItems
     | null
     | undefined;
-  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ alignSelf?:
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignSelf?:
     | AlignItems
     | null
     | undefined;
-  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ justifyItems?:
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifyItems?:
     | AlignItems
     | null
     | undefined;
-  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ justifySelf?:
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifySelf?:
     | AlignItems
     | null
     | undefined;
-  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ alignContent?:
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignContent?:
     | AlignContent
     | null
     | undefined;
-  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ justifyContent?:
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifyContent?:
     | AlignContent
     | null
     | undefined;
-  /** Sets the node's gap style; omission uses Taffy's default. */ gap?:
+  /** Supplies the node's gap style when present. */ gap?:
     | LengthPercentageInput
     | PartialSizeInput<LengthPercentageInput>
     | undefined;
-  /** Sets the node's text align style; omission uses Taffy's default. */ textAlign?:
-    | TextAlign
-    | undefined;
-  /** Sets the node's flex direction style; omission uses Taffy's default. */ flexDirection?:
+  /** Supplies the node's text align style when present. */ textAlign?: TextAlign | undefined;
+  /** Supplies the node's flex direction style when present. */ flexDirection?:
     | FlexDirection
     | undefined;
-  /** Sets the node's flex wrap style; omission uses Taffy's default. */ flexWrap?:
-    | FlexWrap
-    | undefined;
-  /** Sets the node's flex basis style; omission uses Taffy's default. */ flexBasis?:
-    | DimensionInput
-    | undefined;
-  /** Sets the node's flex grow style; omission uses Taffy's default. */ flexGrow?:
-    | number
-    | undefined;
-  /** Sets the node's flex shrink style; omission uses Taffy's default. */ flexShrink?:
-    | number
-    | undefined;
-  /** Sets the node's grid template rows style; omission uses Taffy's default. */ gridTemplateRows?:
+  /** Supplies the node's flex wrap style when present. */ flexWrap?: FlexWrap | undefined;
+  /** Supplies the node's flex basis style when present. */ flexBasis?: DimensionInput | undefined;
+  /** Supplies the node's flex grow style when present. */ flexGrow?: number | undefined;
+  /** Supplies the node's flex shrink style when present. */ flexShrink?: number | undefined;
+  /** Supplies the complete Grid template row list when present. */ gridTemplateRows?:
     | readonly GridTemplateComponentInput[]
     | undefined;
-  /** Sets the node's grid template columns style; omission uses Taffy's default. */ gridTemplateColumns?:
+  /** Supplies the complete Grid template column list when present. */ gridTemplateColumns?:
     | readonly GridTemplateComponentInput[]
     | undefined;
-  /** Sets the node's grid auto rows style; omission uses Taffy's default. */ gridAutoRows?:
+  /** Supplies the complete automatic Grid row list when present. */ gridAutoRows?:
     | readonly TrackSizingFunctionInput[]
     | undefined;
-  /** Sets the node's grid auto columns style; omission uses Taffy's default. */ gridAutoColumns?:
+  /** Supplies the complete automatic Grid column list when present. */ gridAutoColumns?:
     | readonly TrackSizingFunctionInput[]
     | undefined;
-  /** Sets the node's grid auto flow style; omission uses Taffy's default. */ gridAutoFlow?:
+  /** Supplies the node's Grid auto flow style when present. */ gridAutoFlow?:
     | GridAutoFlow
     | undefined;
-  /** Omission or undefined uses the Taffy default; null stores Taffy None. */ gridTemplateAreas?:
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ gridTemplateAreas?:
     | GridTemplateAreasInput
     | null
     | undefined;
-  /** Sets the node's grid template column names style; omission uses Taffy's default. */ gridTemplateColumnNames?:
+  /** Supplies the complete Grid template column-name list when present. */ gridTemplateColumnNames?:
     | readonly (readonly string[])[]
     | undefined;
-  /** Sets the node's grid template row names style; omission uses Taffy's default. */ gridTemplateRowNames?:
+  /** Supplies the complete Grid template row-name list when present. */ gridTemplateRowNames?:
     | readonly (readonly string[])[]
     | undefined;
-  /** Sets the node's grid row style; omission uses Taffy's default. */ gridRow?:
+  /** Supplies the node's Grid row placement when present. */ gridRow?:
     | PartialLineInput<GridPlacementInput>
     | undefined;
-  /** Sets the node's grid column style; omission uses Taffy's default. */ gridColumn?:
+  /** Supplies the node's Grid column placement when present. */ gridColumn?:
     | PartialLineInput<GridPlacementInput>
     | undefined;
 }
+
+/** Supplies style fields to update; omitted or undefined fields and geometry components are preserved. */
+export type StyleUpdate = StyleInput;
 
 /** Returns a complete detached readonly snapshot of a node's stored style. */
 export interface Style {
