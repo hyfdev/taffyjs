@@ -169,6 +169,20 @@ Rust converts the JavaScript object and all supplied collections into an owned p
 
 Taffy 0.13 exposes the stored value through `style(&self) -> &Style` and replaces it through `set_style(Style)`, with no public mutable or take operation. `std::mem::take` would move a `Vec` allocation rather than clone it if the binding had `&mut Style`, but that reference cannot be obtained safely from the high-level tree. The implemented fallback returns an empty patch before cloning; every nonempty patch clones the current Style once, then compares and applies supplied fields in one traversal. An unchanged candidate is discarded without dirtying, while a changed candidate is validated and written once. Replacing a collection can therefore clone the old collection before overwriting it, but there is no workload benchmark justifying the larger selective-reconstruction implementation in the initial API. This preserves Taffy's sole ownership and avoids a JavaScript shadow Style; a future upstream closure-style update operation could safely expose in-place mutation and automatic dirty propagation.
 
+A focused end-to-end native-binding microbenchmark on implementation commit `6ed48b4` retained the JavaScript-to-Rust boundary, input conversion, mutation, and alternating real value changes. It ran on Node.js 24.19.0 on Linux with an Intel Core i5-13500H, pinned to one core, after warmup, with 13 samples in each of two runs. Representative per-operation timings were:
+
+| Preserved state and changed value                            | `setStyle` reconstruction | `updateStyle` |         Observed relation |
+| ------------------------------------------------------------ | ------------------------: | ------------: | ------------------------: |
+| One retained scalar; replace one scalar                      |                   3.83 µs |       3.89 µs |         Effectively equal |
+| 13 retained sparse fields; replace one scalar                |                   11.8 µs |       3.89 µs | `updateStyle` 3.0× faster |
+| Complete 41-field `getStyle` snapshot; replace one scalar    |                   23.1 µs |       3.97 µs | `updateStyle` 5.8× faster |
+| 1,000 retained `gridAutoRows`; replace one scalar            |                    428 µs |       4.60 µs |  `updateStyle` 93× faster |
+| Replace 1,000 `gridAutoRows`                                 |                    446 µs |        448 µs |         Effectively equal |
+| 1,000 retained nested string grid values; replace one scalar |                    139 µs |       64.3 µs | `updateStyle` 2.2× faster |
+| Replace 1,000 nested string grid values                      |                    139 µs |        196 µs |    `setStyle` 1.4× faster |
+
+These measurements support recommending `updateStyle` for incremental changes: it avoids reconverting retained JavaScript fields, and the advantage grows when retained input is larger. They do not establish per-call dominance. When the changed field itself is the large collection, both operations must parse its replacement and can converge; with string-heavy replacements, the current full-Style clone fallback can make `updateStyle` slower. This focused boundary microbenchmark also does not justify adding selective reconstruction without representative workload evidence. Public documentation should therefore say that `updateStyle` is generally faster for incremental changes, not that every call must be faster.
+
 The pointer-backed calc variant is a stop rather than a routine field mapping. The public high-level Style vocabulary excludes calc because `TaffyTree` resolves every calc pointer to zero and exposes no resolver. Whether the Cargo feature is also disabled is an implementation choice to verify separately; keeping an internal feature enabled does not make calc a supported JavaScript value.
 
 ### Selected closed-enum representation

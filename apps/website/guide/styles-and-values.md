@@ -67,6 +67,8 @@ Arrays, tagged values, and other complete records are replaced as complete value
 
 The prospective merged style is validated before it is stored. A failed update changes neither style nor dirty state. An empty update or one that supplies only already-stored values also leaves dirty state unchanged.
 
+Unless you intentionally want a complete replacement, prefer `updateStyle` when changing an existing node. [setStyle vs updateStyle](../node/set-style-vs-update-style.md) explains the semantic and performance tradeoff in detail.
+
 ## Named constants and tagged values
 
 Closed choices use frozen numeric families such as `Display`, `Overflow`, `FlexDirection`, and `AlignItems`:
