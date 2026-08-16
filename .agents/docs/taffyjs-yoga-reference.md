@@ -454,6 +454,12 @@ For supported APIs, @taffyjs/yoga preserves Yoga 3.2.1's published declaration s
 - calculateLayout requires width and height arguments in TypeScript while allowing each to be explicitly undefined; the runtime wrapper also permits the arguments to be omitted and supplies NaN, NaN, and LTR defaults.
 - The generic setter wrapper attempts to accept Value-like objects and comments that a getter result can be passed back to a setter, but the published Value is a plain object without a numeric valueOf implementation. A published 3.2.1 getWidth-to-setWidth round trip resets the value to Unit.Undefined rather than preserving it.
 
+## Official Yoga compatibility corpus
+
+The package-boundary suite includes an unchanged snapshot of Yoga's official JavaScript tests at [`tests/taffyjs-yoga/yoga-official/`](../../tests/taffyjs-yoga/yoga-official/README.md). It runs through the same bare `yoga-layout` imports against both the native and Wasm packages.
+
+Cases covered by a published Different or Unsupported classification are explicit expected failures, and every other active upstream case must pass. An expected failure that begins passing is a review signal rather than a reason to silently remove it. This bounded corpus provides broad regression coverage rather than a compatibility percentage; focused local fixtures remain authoritative for the exact TaffyJS rejection or stable Different result. The snapshot README is the single source for its version, provenance, contents, counts, license, and refresh procedure.
+
 ## Ongoing maintenance
 
 - Re-audit the complete capability matrix before deliberately adopting a Yoga version newer than 3.2.1; no supported release may contain an unclassified method, value, or result trigger.

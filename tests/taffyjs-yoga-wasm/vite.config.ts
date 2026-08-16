@@ -22,9 +22,15 @@ export default defineConfig({
     ],
   },
   test: {
-    include: ["../taffyjs-yoga/*.test.mts"],
+    globals: true,
+    include: [
+      "../taffyjs-yoga/*.test.mts",
+      "../taffyjs-yoga/yoga-official/tests/*.test.ts",
+      "../taffyjs-yoga/yoga-official/tests/generated/*.test.ts",
+    ],
     retry: 0,
     sequence: { concurrent: true },
+    setupFiles: [resolve(import.meta.dirname, "../taffyjs-yoga/yoga-official/setup.ts")],
     env: {
       TAFFYJS_TEST_ENTRY: pathToFileURL(wasmEntry).href,
       TAFFYJS_YOGA_TEST_ENTRY: pathToFileURL(yogaWasmEntry).href,

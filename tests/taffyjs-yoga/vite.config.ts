@@ -6,9 +6,9 @@ const yogaEntry = resolve(import.meta.dirname, "../../packages/taffyjs-yoga/dist
 const yogaLoadEntry = resolve(import.meta.dirname, "../../packages/taffyjs-yoga/dist/load.js");
 
 export default defineConfig({
-  fmt: {},
+  fmt: { ignorePatterns: ["yoga-official/tests"] },
   lint: {
-    ignorePatterns: ["types/public-api.test-d.ts"],
+    ignorePatterns: ["types/public-api.test-d.ts", "yoga-official/tests"],
     options: {
       typeAware: true,
       typeCheck: true,
@@ -27,8 +27,14 @@ export default defineConfig({
     ],
   },
   test: {
-    include: ["*.test.mts"],
+    globals: true,
+    include: [
+      "*.test.mts",
+      "yoga-official/tests/*.test.ts",
+      "yoga-official/tests/generated/*.test.ts",
+    ],
     retry: 0,
     sequence: { concurrent: true },
+    setupFiles: [resolve(import.meta.dirname, "yoga-official/setup.ts")],
   },
 });
