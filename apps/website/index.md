@@ -12,12 +12,12 @@ hero:
       text: GitHub
       link: https://github.com/hyfdev/taffyjs
 features:
-  - title: Powered by Rust
-    details: TaffyJS uses Taffy, a mature, high-performance Rust engine for Block, Flexbox, and Grid layout.
+  - title: Direct Taffy binding
+    details: "Taffy is a mature Rust engine for Block, Flexbox, and Grid. TaffyJS preserves its layout model instead of adding another abstraction."
   - title: Native performance
-    details: The Node.js package runs natively and avoids unnecessary work when passing data between JavaScript and Rust.
-  - title: Available everywhere
-    details: Use @taffyjs/wasm in browsers and other runtimes, with the same API as @taffyjs/node.
+    details: "@taffyjs/node runs Taffy as native Rust through Node-API. Tree operations update native state directly instead of maintaining a JavaScript copy."
+  - title: One API, two runtimes
+    details: "Choose native @taffyjs/node for Node.js or @taffyjs/wasm for Node.js and bundled browsers. The JavaScript API stays the same."
 ---
 
 <script setup>
