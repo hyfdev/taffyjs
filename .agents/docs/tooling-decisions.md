@@ -4,6 +4,16 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### The @taffyjs scope is reserved for published packages
+
+**Ruling:** A package name may use the `@taffyjs` npm scope only when that package is intended to be published separately under the organization. Repository-only workspaces and generated or staged build-only packages must use unscoped names.
+
+**Limits:** Separately published implementation artifacts qualify even when consumers should not import them directly. The native platform packages used as `@taffyjs/node` optional dependencies therefore remain scoped because they must be published with the public package, while the generated Wasm target package is unscoped because it is only a staging input. A temporary `private` field or missing publication automation during repository bootstrap does not by itself override the intended distribution boundary.
+
+**Why:** Yunfei reserved the organization scope for packages that will actually be published; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; asked to generalize the test-package correction so every package that is not truly published avoids the `@taffyjs` scope.
+
 ### Direct names for top-level test packages
 
 [VOUCHED @hyfdev 2026-08-16]

@@ -48,7 +48,7 @@
   },
   "napi": {
     "binaryName": "taffyjs",
-    "packageName": "@taffyjs/binding",
+    "packageName": "taffyjs-binding",
     "targets": [
       "wasm32-wasip1"
     ],
