@@ -1,0 +1,57 @@
+# Technology Stack
+
+## Native bindings and distribution
+
+napi-rs owns the Rust-to-Node boundary, private native declarations, native loader, and target-specific package metadata. It generates an ESM loader, which Vite+ bundles into the ESM public entry without maintaining a custom loader. The pinned napi-rs template deliberately emits bare Node builtin specifiers to retain Node 12 compatibility; TaffyJS targets Node 22.18 or newer, so the repository mechanically normalizes those generated specifiers to the explicit `node:` protocol before formatting and bundling the loader.
+
+The generated ESM loader is a private build input. The authored wrapper imports it privately, and the bundled public entry does not re-export raw native operations.
+
+The root package has exact-version optional packages for the three supported targets: `@taffyjs/binding-darwin-arm64`, `@taffyjs/binding-linux-x64-gnu`, and `@taffyjs/binding-win32-x64-msvc`. Publication is not configured.
+
+The bigint NodeId marker and its JavaScript validity registry require the authored wrapper, but not a custom loader or another package.
+
+`@taffyjs/wasm` uses the same Rust crate through napi-rs's threadless `wasm32-wasip1` target. The pinned CLI generates eager Node and deferred ESM loaders plus the release Wasm binary in a package-local staging directory. The package build encodes that binary into one generated ESM payload, publishes the deferred loader unchanged, and mechanically derives a synchronous CommonJS factory from the eager loader with exact-match drift assertions. The no-TLA Node ESM bridge imports the payload and immediately calls that factory; the browser adapter imports the same payload directly. Raw binaries and unadapted eager loaders never enter the final output directory, and the generated target package is not published. napi-rs 3.8.2 still requires the staged declaration output passed to `--dts` to use a `.d.cts` filename.
+
+The default Node chain imports the shared payload through its synchronous ESM graph, decodes it with `Buffer.from`, and uses `instantiateNapiModuleSync`; its selected package graph has no top-level await. The browser adapter uses `Uint8Array.fromBase64` or an `atob` fallback, calls `WebAssembly.compile` once, and passes the resulting module to the official deferred loader; top-level await makes an ordinary browser static import fully initialized. Dynamic `import()` is the lazy-loading mechanism on both hosts. Both adapters use the JavaScript WASI runtime and grant no environment or filesystem-root capabilities. TaffyJS keeps the generated loader defaults: 4,000 initial pages (250 MiB) for Node and 1,024 pages (64 MiB) for browsers.
+
+At the current pins, napi-rs 3.8.2 requires emnapi 2.0.0-alpha.3, but its generated target-package metadata asks for `@napi-rs/wasm-runtime ~1.2.3`, whose 1.2.3 peer range accepts emnapi 2.x only from alpha.4. npm then installs a second stable emnapi copy for `wasm-runtime`, and mixing that copy with the loader's direct alpha.3 runtime fails during initialization. The public package pins `@napi-rs/wasm-runtime` 1.2.2 instead: it is the last 1.2.x release whose declared peers accept alpha.3, so the CLI, linked core, generated loader, and runtime use one emnapi version under both npm and pnpm. Packed-consumer tests cover both installation layouts. Upgrade these packages as one generated-toolchain unit rather than independently guessing versions.
+
+## JavaScript package builds
+
+Vite+ is the JavaScript toolchain. The root task graph builds the `@taffyjs/node` napi-rs binding, normalizes Node builtin module specifiers in its generated loader, formats the loader and declaration, then lets platform-artifact synchronization and `vp pack` run as independent final branches. `vp pack` compiles the public source in `packages/taffyjs-node/src`, bundles the private napi-rs loader, and emits `index.js` and `index.d.ts`, including public types and JSDoc. The private native declaration remains a generated build input rather than a published file; package metadata does not duplicate the repository build pipeline as a compound script.
+
+The `@taffyjs/wasm` Vite+ pack configuration compiles that same entry twice. A filtered build-time resolver redirects only the resolved private binding import to `./taffyjs.node.js` for Node and `./taffyjs.browser.js` for browsers, leaving those generated adapters external. Both adapters reference `./taffyjs.wasm-base64.js`, so the base64 literal occurs once in the package. The Node compilation emits the one public declaration bundle; the browser compilation does not maintain a second declaration source.
+
+The root Vite+ task graph builds the napi-rs artifacts into `packages/taffyjs-wasm/.napi-build`, runs `vp pack` with `dist` cleanup enabled for the two public entries, then runs `tools/taffy-wasm/generate-inline-wasm-runtime-files.ts`. That typed, package-specific generator validates and base64-encodes the staged release binary, copies the deferred loader unchanged, generates the small host adapters, and transforms the freshly generated eager Node loader only at asserted input and WASI-construction sites. Because only final runtime files are written after `vp pack` cleans `dist`, the build has no separate package-finalization or deletion phase. `dist` is ignored build output: CI, package inspection, and packed-consumer tests build it before use rather than committing compiler output to Git.
+
+For `packages/taffyjs-yoga`, `vp pack` builds the root and `/load` entries plus shared chunks and declarations over the public `@taffyjs/node` dependency. Its `dist` is ignored build output: the native task graph builds it before runtime and declaration tests, and any future publication workflow must build it before packing or publishing. Test-only ambient declarations resolve authored Yoga test types to source so a clean checkout does not require `dist` without remapping the public runtime specifiers that Bun, Deno, and Node resolve; exact Vite aliases, subprocess entry injection, runtime smoke checks, and the dedicated public-declaration check still exercise the built package entries.
+
+The Yoga consumer suite also runs the pinned official JavaScript snapshot under `tests/taffyjs-yoga/yoga-official` through exact bare-import aliases against both Yoga backends. Upstream test sources are excluded from formatting, linting, and TaffyJS type checking to preserve the reviewed snapshot; the local classifier converts only documented Different and Unsupported cases into required failures, while its manifest and setup remain normal maintained TypeScript.
+
+For `packages/taffyjs-yoga-wasm`, Vite+ builds those same sibling source entries and redirects only the exact bare `@taffyjs/node` import to the external public `@taffyjs/wasm` dependency. The package owns no facade source and emits no second Wasm payload. Its `dist` is ignored build output; the Wasm verification graph builds it before type, package, tarball, Node, bundle, or Chromium checks.
+
+`tools/api-codegen` owns source generation that must keep Rust and TypeScript API facts aligned. Its first maintained input is `api/numeric-families.json`; `vp run codegen` updates both language outputs. CI runs `vp run check:codegen`, which regenerates and rejects any resulting Git diff.
+
+CI has six jobs. Ubuntu x64, Windows x64, and macOS arm64 each build the native addon and run all Rust, JavaScript, and type tests with Node.js 22.18.0; Ubuntu and Windows then smoke-test the public `@taffyjs/node` and `@taffyjs/yoga` entries with Bun 1.2.0 and Deno 2.2.0. Ubuntu also rejects stale committed package JavaScript and declarations after the build. A separate Ubuntu WASIP job installs the Rust target and Playwright Chromium, builds `@taffyjs/wasm`, reruns the complete Node public API suite against it, runs type, package-content, packed-consumer, bundled-consumer, and browser-runtime checks against the generated package, and applies the same Bun 1.2.0 and Deno 2.2.0 smoke checks to the public entry. That job also builds `@taffyjs/yoga-wasm`, reruns the complete maintained Yoga behavior and declaration suites, inspects and installs the packed package with npm and pnpm, and exercises both public entries in bundled Chromium. Alternate-runtime smoke checks perform one fixed layout rather than copying the complete behavior suite. A Node-only job checks formatting, JavaScript and repository TypeScript including maintained tools through Vite+'s type-aware lint path, and generated-source drift. A Rust-only job checks formatting and Clippy. Publication workflows are not configured.
+
+## Public website
+
+[VOUCHED @hyfdev 2026-08-14]
+
+The package family has one public VitePress application at `apps/website`. It owns the project landing page, shared Guide, per-package documentation, examples, and any later editorial sections with real content.
+
+The API reference is maintained by humans alongside the Guide rather than emitted by TypeDoc. The current high-level API is stable enough for this, and useful reference prose must explain behavior and relationships that a generated symbol listing would not provide. Source JSDoc remains the complete editor-facing signature and field reference.
+
+The VitePress build verifies that the site and its internal links compile. Documentation does not gain a separate example-extraction or source-text test harness; public behavior stays covered by the owning type and integration tests.
+
+The interactive Getting Started example imports the real browser entry from `@taffyjs/wasm`. The website build and development tasks therefore depend on the Wasm package build, and the production build runs as part of `check:wasm`, whose CI job already provides the WASIP target. Node-only checks do not gain a Rust or browser dependency merely to build the site.
+
+## Task orchestration
+
+The root `vite.config.ts` defines build and verification dependencies. The native build is an explicit graph from napi-rs binding generation through Node builtin specifier normalization and generated-file formatting to the independent platform-artifact and Vite+ entry branches. The Wasm build is a three-stage chain—staged napi-rs binding, Vite+ public entries, then final inline runtime files—and the Yoga Wasm build depends on that completed public backend. Native build completion precedes package-local and consumer tests. Repository formatting completes before build-backed native tests so generated artifacts cannot race the formatter; lint and Rust checks remain independent. Rust tests are part of the full test task, while Rust formatting and Clippy remain separate checks. Generated-source drift is checked separately in CI and is not part of the default local `check` or `ready` graph.
+
+Task caching is disabled at the root. This keeps native artifacts and runtime tests from being skipped or restored from stale task outputs until the project makes a new explicit caching decision.
+
+`check:wasm` is a separate Linux-capable graph rather than a dependency of the cross-platform default `check:test`: it requires the `wasm32-wasip1` Rust target and a Playwright browser. Independent direct and Yoga verification branches run in parallel after their shared Wasm build, while browser-bundle inspection waits only for its consumer build. Existing native jobs therefore keep their target assumptions while the dedicated WASIP job exercises both complete package boundaries.
+
+The corresponding rulings are recorded in [tooling decisions](tooling-decisions.md).

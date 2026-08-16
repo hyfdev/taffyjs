@@ -1,0 +1,62 @@
+{
+  "name": "@taffyjs/wasm",
+  "version": "0.0.0",
+  "private": true,
+  "description": "WebAssembly bindings for the Taffy layout engine in Node.js and bundled browsers.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyfdev/taffyjs.git",
+    "directory": "packages/taffyjs-wasm"
+  },
+  "files": [
+    "README.md",
+    "dist/index.js",
+    "dist/index.browser.js",
+    "dist/index.d.ts",
+    "dist/taffyjs.browser.js",
+    "dist/taffyjs.node.cjs",
+    "dist/taffyjs.node.js",
+    "dist/taffyjs.wasm-base64.js",
+    "dist/taffyjs.wasip1-deferred.js"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": "./dist/index.browser.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "check": "vp check"
+  },
+  "dependencies": {
+    "@emnapi/core": "2.0.0-alpha.3",
+    "@emnapi/runtime": "2.0.0-alpha.3",
+    "@napi-rs/wasm-runtime": "1.2.2"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "napi": {
+    "binaryName": "taffyjs",
+    "packageName": "@taffyjs/binding",
+    "targets": [
+      "wasm32-wasip1"
+    ],
+    "wasm": {
+      "optionalDependency": false
+    }
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}

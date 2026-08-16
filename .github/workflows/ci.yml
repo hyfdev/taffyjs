@@ -1,0 +1,132 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-ubuntu-x64-gnu:
+    name: Build and test Ubuntu x64
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - run: pnpm install --frozen-lockfile
+      - name: Build and run all tests
+        run: pnpm exec vp run check:test
+      - name: Smoke test @taffyjs/node with Bun 1.2
+        run: pnpm dlx bun@1.2.0 packages/taffyjs-node/tests/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/node with Deno 2.2
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi packages/taffyjs-node/tests/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/yoga with Bun 1.2
+        run: pnpm dlx bun@1.2.0 tests/taffyjs-yoga/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/yoga with Deno 2.2
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi tests/taffyjs-yoga/runtime-smoke.mjs
+      - name: Verify committed package outputs are current
+        run: git diff --exit-code -- packages/taffyjs-node/index.js packages/taffyjs-node/index.d.ts packages/taffyjs-node/binding.js packages/taffyjs-node/binding.d.ts
+
+  test-windows-x64-msvc:
+    name: Build and test Windows x64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - run: pnpm install --frozen-lockfile
+      - name: Build and run all tests
+        run: pnpm exec vp run check:test
+      - name: Smoke test @taffyjs/node with Bun 1.2
+        run: pnpm dlx bun@1.2.0 packages/taffyjs-node/tests/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/node with Deno 2.2
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi packages/taffyjs-node/tests/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/yoga with Bun 1.2
+        run: pnpm dlx bun@1.2.0 tests/taffyjs-yoga/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/yoga with Deno 2.2
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi tests/taffyjs-yoga/runtime-smoke.mjs
+
+  test-macos-arm64:
+    name: Build and test macOS arm64
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - run: pnpm install --frozen-lockfile
+      - name: Build and run all tests
+        run: pnpm exec vp run check:test
+
+  test-wasm:
+    name: Build and test WASIP
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+      - run: pnpm install --frozen-lockfile
+      - name: Install the browser used by the Wasm runtime test
+        run: pnpm --filter tests-taffy-wasm exec playwright install --with-deps chromium
+      - name: Build and test the Wasm package
+        run: pnpm exec vp run check:wasm
+      - name: Smoke test @taffyjs/wasm with Bun 1.2
+        run: pnpm dlx bun@1.2.0 packages/taffyjs-wasm/tests/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/wasm with Deno 2.2
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual packages/taffyjs-wasm/tests/runtime-smoke.mjs
+
+  check-node:
+    name: Node checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.20.0
+          runtime: node@22.18.0
+          cache: true
+          install: false
+      - run: pnpm install --frozen-lockfile
+      - name: Check formatting
+        run: pnpm exec vp run check:format
+      - name: Check JavaScript and TypeScript
+        run: pnpm exec vp run check:lint
+      - name: Verify generated sources are committed
+        run: pnpm exec vp run check:codegen
+
+  check-rust:
+    name: Rust checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
