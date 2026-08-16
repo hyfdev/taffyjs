@@ -47,3 +47,10 @@ When working here:
   - `loop-goal.md` — only for an unattended run: the run's contract — goal, boundaries, finish criteria. You may draft it; the run starts only once the human has vouched the whole file (stamp below the title), and a human edit plus re-vouch re-baselines it. Never edit it yourself; if the contract itself blocks progress, stop and surface the conflict rather than stepping outside it.
   - `loop-status.md` — only for an unattended run: the run's memory — done, in flight, next, blocked — overwritten in place each iteration; its final overwrite is the handover to the returning human (what landed, what to vouch, what to prune, conflicts included). Both `loop-*` files die after the human's distillation pass over that handover; git keeps them.
 <!-- PCR:END -->
+
+## Main branch commits and pull requests
+
+- Every commit retained on `main` must follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
+- Pull requests targeting `main` must use squash merge. The pull request title must be the Conventional Commit subject that lands on `main`.
+- Topic-branch commits do not need to follow Conventional Commits individually when the pull request will be squashed.
+- Keep the repository settings, pull request title check, and contributor documentation aligned with these rules.

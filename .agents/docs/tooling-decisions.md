@@ -4,6 +4,18 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### Main branch commit and merge convention
+
+[VOUCHED @hyfdev 2026-08-17]
+
+**Ruling:** Every commit retained on `main` must follow Conventional Commits 1.0.0, and pull requests targeting `main` must use squash merge.
+
+**Limits:** This governs commits retained on `main` and normal pull request integration. Topic-branch commits need not individually follow the convention because they are squashed. It does not choose release automation, require a scope, or govern pull requests targeting another branch. Direct pushes do not use pull request integration, but any resulting commit retained on `main` remains subject to the commit convention.
+
+**Why:** Yunfei selected these conventions while requesting a one-time cleanup of the repository's pre-release `main` history; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16 and 2026-08-17; explicitly required Conventional Commits, strengthened squash merge from the default to the only permitted pull request integration method for `main`, and asked to vouch the decision.
+
 ### Third-party license filename
 
 [VOUCHED @hyfdev 2026-08-16]
