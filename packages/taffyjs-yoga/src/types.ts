@@ -47,6 +47,7 @@ export type MeasureFunction = (
 
 export type LayoutDimension = number | "auto" | undefined;
 
+/** Values supported by {@link Node.setAlignContent}. */
 export type AlignContentValue =
   | Align.FlexStart
   | Align.Center
@@ -56,6 +57,7 @@ export type AlignContentValue =
   | Align.SpaceAround
   | Align.SpaceEvenly;
 
+/** Values supported by {@link Node.setAlignItems}. */
 export type AlignItemsValue =
   | Align.FlexStart
   | Align.Center
@@ -63,6 +65,7 @@ export type AlignItemsValue =
   | Align.Stretch
   | Align.Baseline;
 
+/** Values supported by {@link Node.setAlignSelf}. */
 export type AlignSelfValue = Align.Auto | AlignItemsValue;
 
 export interface Config {

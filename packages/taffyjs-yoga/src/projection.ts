@@ -321,7 +321,7 @@ function absoluteAxisLocation(
   const selectedMargin =
     resolvePosition(
       physicalValue(entry.declarations.margin, selectedEdge, parentEntry.direction),
-      containingWidth,
+      positionBasis,
     ) ?? 0;
   const selectedBorder =
     selectedEdge === Edge.Left

@@ -188,8 +188,11 @@ interface Value {
 type DirtiedFunction = (node: Node) => void;
 type MeasureFunction = (width: number, widthMode: MeasureMode, height: number, heightMode: MeasureMode) => Size;
 type LayoutDimension = number | "auto" | undefined;
+/** Values supported by {@link Node.setAlignContent}. */
 type AlignContentValue = Align.FlexStart | Align.Center | Align.FlexEnd | Align.Stretch | Align.SpaceBetween | Align.SpaceAround | Align.SpaceEvenly;
+/** Values supported by {@link Node.setAlignItems}. */
 type AlignItemsValue = Align.FlexStart | Align.Center | Align.FlexEnd | Align.Stretch | Align.Baseline;
+/** Values supported by {@link Node.setAlignSelf}. */
 type AlignSelfValue = Align.Auto | AlignItemsValue;
 interface Config {
   free(): void;
@@ -318,4 +321,4 @@ type Yoga = {
   Node: NodeFactory;
 } & typeof legacyConstants;
 //#endregion
-export { Wrap as C, Unit as S, LogLevel as _, Yoga as a, Overflow as b, Dimension as c, Edge as d, Errata as f, Justify as g, Gutter as h, Node as i, Direction as l, FlexDirection as m, DirtiedFunction as n, Align as o, ExperimentalFeature as p, MeasureFunction as r, BoxSizing as s, Config as t, Display as u, MeasureMode as v, PositionType as x, NodeType as y };
+export { Overflow as C, Wrap as E, NodeType as S, Unit as T, FlexDirection as _, DirtiedFunction as a, LogLevel as b, Yoga as c, Dimension as d, Direction as f, ExperimentalFeature as g, Errata as h, Config as i, Align as l, Edge as m, AlignItemsValue as n, MeasureFunction as o, Display as p, AlignSelfValue as r, Node as s, AlignContentValue as t, BoxSizing as u, Gutter as v, PositionType as w, MeasureMode as x, Justify as y };

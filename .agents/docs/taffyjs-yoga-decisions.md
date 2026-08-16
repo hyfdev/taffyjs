@@ -148,15 +148,15 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 
 ### Type and runtime rejection
 
-[VOUCHED @hyfdev 2026-08-14]
+[VOUCHED @hyfdev 2026-08-16]
 
-**Ruling:** A statically known unsupported method or value must be rejected by the public TypeScript declarations where TypeScript can express the restriction, and every unsupported capability must also throw at runtime for JavaScript, `any`, and dynamic values.
+**Ruling:** An unsupported method or value that TypeScript can identify from one call must be rejected by the public declarations even when Yoga's published parameter type is broader, and every unsupported capability must also throw at runtime for JavaScript, `any`, and dynamic values.
 
-**Limits:** The types need not model combinations assembled across multiple mutable setter calls, such as `minWidth` followed by `flexGrow`; those supported-but-different combinations remain callable. Exact error classes, messages, and the complete initial unsupported list remain implementation choices. Unsupported input must not be silently ignored or converted into a result with semantics the package cannot defend.
+**Limits:** A restriction is statically expressible when unsupported status depends only on that call's argument and the supported values form a finite union. A variable or generic whose type still permits any unsupported member must be narrowed before the call; this compile error is intentional migration feedback, not a defect in drop-in replacement. Use simple named unions rather than conditional types designed to special-case the exact broad upstream enum; named type-only aliases may expose those unions as migration aids without changing the runtime surface. Do not narrow an API merely because its result is Different, and do not try to encode combinations across multiple setters, tree state, or layout output. Exact error classes, messages, and the complete initial unsupported list remain implementation choices. Unsupported input must not be silently ignored or converted into a result with semantics the package cannot defend.
 
-**Why:** Yunfei accepted explicit runtime failure for unsupported options and stated that catching an unsupported use during type checking is preferable whenever possible.
+**Why:** Compile-time rejection helps migration find a potentially unsupported path before that path happens to execute. Preserving a broad upstream declaration would instead allow unsupported members to compile and leave discovery to runtime coverage. Simple finite unions keep the restriction predictable and maintainable, while runtime validation still protects untyped and dynamic calls.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-14; explicitly selected type-level rejection plus runtime checking and vouched the consolidated policy.
+**Source:** Yunfei (`@hyfdev`), 2026-08-14, 2026-08-15, and 2026-08-16; selected type-level rejection plus runtime checking, clarified that a broad Align variable or generic must be treated as a migration issue when it may carry an unsupported property value, accepted named type-only aliases as the friendlier migration path, and explicitly vouched this distilled rule.
 
 ### PositionType public shape
 
@@ -181,6 +181,30 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 **Why:** Yunfei made clear documentation the condition for accepting behavioral differences and approved differential verification rather than hiding or overclaiming compatibility.
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-14; required differences to be documented, accepted explicit unsupported behavior, vouched the original consolidated verification rules, and later clarified that the base design must not preselect Ink or another external consumer.
+
+### Upstream work and current compatibility
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** Published compatibility classifications must describe only the behavior available through the Taffy version actually pinned by `@taffyjs/yoga`; relevant upstream implementation work must be shown separately as work in progress without changing the current Compatible, Different, or Unsupported classification.
+
+**Limits:** An upstream issue or pull request is evidence of active work, not shipped support, a delivery promise, or an ETA. Reclassification requires the upstream capability to land in a released Taffy version, the required native API to be adopted and exposed by `@taffyjs/node`, and the affected Yoga behavior to pass differential verification with updated documentation and regression fixtures. Current upstream-work entries and statuses live only in the [public compatibility document](../../packages/taffyjs-yoga/COMPATIBILITY.md#upstream-work-in-progress) and must be refreshed when work merges, closes, or is replaced.
+
+**Why:** Yunfei required active support work to appear in the compatibility documentation; no additional rationale was stated.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required relevant work in progress to appear in the compatibility documentation, used [DioxusLabs/taffy#1009](https://github.com/DioxusLabs/taffy/pull/1009) as the concrete example, and instructed that direction to be recorded as vouched.
+
+### Pre-1.0 versioning
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** `@taffyjs/yoga` will remain on the `0.x` version line for the foreseeable future; before 1.0, every public breaking change, including a Yoga-alignment fix that changes supported observable behavior, must bump the minor version, while a fix that preserves the public behavior contract bumps the patch version.
+
+**Limits:** This policy governs only pre-1.0 releases and does not promise that 1.0 will retain the same versioning convention or set a timetable for 1.0. The required bump follows the observable effect of `@taffyjs/yoga`, not whether Taffy or Yoga labels an upstream change as a fix. Internal implementation, performance, cache, recomputation, exact error wording, and callback-trace changes may remain patch-level when they stay outside the compatibility contract and preserve supported results. The versioning of additive features is not decided by this ruling. A release containing both patch-level fixes and any breaking behavior change requires a minor bump.
+
+**Why:** Correcting a Yoga mismatch is necessary, but consumers may depend on the package's previous layout or API behavior even when that behavior was a bug; a minor release makes that change explicit while keeping contract-preserving fixes available through patch upgrades.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly chose a long-lived `0.x` line, minor bumps for behavior-changing compatibility fixes and other breaking changes, patch bumps for other fixes, and deferred any guarantee about post-1.0 policy.
 
 ### Integration-test placement
 
