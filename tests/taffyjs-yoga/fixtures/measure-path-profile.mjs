@@ -1,5 +1,7 @@
-import { TaffyTree } from "@taffyjs/node";
-import Yoga from "yoga-layout";
+const testEntry = process.env.TAFFYJS_TEST_ENTRY ?? "@taffyjs/node";
+const yogaTestEntry = process.env.TAFFYJS_YOGA_TEST_ENTRY ?? "yoga-layout";
+const { TaffyTree } = await import(testEntry);
+const { default: Yoga } = await import(yogaTestEntry);
 
 const ordinaryCompute = Object.getOwnPropertyDescriptor(TaffyTree.prototype, "computeLayout").value;
 const measuredCompute = Object.getOwnPropertyDescriptor(

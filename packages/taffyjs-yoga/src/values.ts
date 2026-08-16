@@ -12,7 +12,8 @@ export interface YogaValue {
   readonly value: number;
 }
 
-const percentPattern = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?%$/i;
+const percentPattern =
+  /^\s*(?:[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|0x[\da-f]+|0b[01]+|0o[0-7]+)\s*%$/i;
 
 function float32(value: number): number {
   if (!Number.isFinite(value)) return value;
@@ -79,9 +80,13 @@ export function normalizeLength(
       `${name} must be a number, percentage,${allowAuto ? " auto," : ""} or undefined`,
     );
   }
-  const numeric = Number(value.slice(0, -1));
-  if (!Number.isFinite(numeric)) {
+  const numericSource = value.slice(0, -1);
+  if (!Number.isFinite(Number(numericSource))) {
     throw new TypeError(`${name} percentage must be finite`);
+  }
+  const numeric = Number.parseFloat(numericSource);
+  if (Number.isNaN(numeric)) {
+    throw new TypeError(`${name} percentage must be numeric`);
   }
   const normalized = finiteFloat32(numeric);
   return normalized === undefined ? undefinedValue() : percentValue(normalized);

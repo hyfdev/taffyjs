@@ -4,6 +4,18 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### Third-party license filename
+
+[VOUCHED @hyfdev 2026-08-16]
+
+**Ruling:** A package or distributable artifact that ships third-party license text must collect it in a root-level file named exactly `THIRD-PARTY-LICENSES`, without a filename extension. Do not use `THIRD_PARTY_NOTICES.md` or another naming variant.
+
+**Limits:** This establishes the repository filename and consolidation convention. It does not decide whether a particular dependency or derived implementation requires attribution, alter the required license text, or replace package-specific verification that the file is included in the published artifact.
+
+**Why:** Yunfei selected one explicit filename for this repository's third-party license bundles; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required `THIRD-PARTY-LICENSES` instead of `THIRD_PARTY_NOTICES.md`, extended the convention to future analogous cases, and asked to vouch it.
+
 ### @taffyjs scope boundary
 
 **Ruling:** A package name may use the `@taffyjs` npm scope only when that package is intended to be published separately under the organization, with one explicit build-only exception: the napi-rs generated Wasm target used to assemble inline `@taffyjs/wasm` output also retains the scope. Other repository-only workspaces and generated or staged packages must use unscoped names.

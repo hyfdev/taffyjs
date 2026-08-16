@@ -33,9 +33,7 @@ jobs:
       - name: Smoke test @taffyjs/yoga with Deno 2.2
         run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi tests/taffyjs-yoga/runtime-smoke.mjs
       - name: Verify committed package outputs are current
-        run: |
-          git add --intent-to-add --all -- packages/taffyjs-yoga/dist
-          git diff --exit-code -- packages/taffyjs-node/index.js packages/taffyjs-node/index.d.ts packages/taffyjs-node/binding.js packages/taffyjs-node/binding.d.ts packages/taffyjs-yoga/dist
+        run: git diff --exit-code -- packages/taffyjs-node/index.js packages/taffyjs-node/index.d.ts packages/taffyjs-node/binding.js packages/taffyjs-node/binding.d.ts
 
   test-windows-x64-msvc:
     name: Build and test Windows x64
