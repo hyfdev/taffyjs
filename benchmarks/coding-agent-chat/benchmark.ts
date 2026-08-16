@@ -7,8 +7,8 @@ type TextContext = {
   readonly lineHeight: number;
 };
 
-const sessionCount = 10;
-const messageCount = 5;
+const sessionCount = 18;
+const messageCount = 32;
 
 export const codingAgentChatScenario: TaffyBenchmarkScenario = {
   id: "coding-agent-chat-initial-layout",
