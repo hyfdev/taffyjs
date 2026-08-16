@@ -1,5 +1,5 @@
 {
-  "name": "@taffyjs/yoga-integration-tests",
+  "name": "tests-taffy-yoga",
   "version": "0.0.0",
   "private": true,
   "type": "module",

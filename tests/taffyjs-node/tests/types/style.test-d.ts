@@ -9,6 +9,7 @@ import {
   TrackSizingFunction,
   type NodeId,
   type StyleInput,
+  type StyleUpdate,
 } from "@taffyjs/node";
 
 declare const node: NodeId;
@@ -43,6 +44,13 @@ const reusable: StyleInput = {
   gridRow: output.gridRow,
 };
 tree.setStyle(node, reusable);
+const update: StyleUpdate = {
+  display: undefined,
+  size: { width: 200 },
+  gridAutoRows: [track],
+};
+tree.updateStyle(node, update);
+tree.updateStyle(node, output);
 
 // @ts-expect-error Unknown Style fields are rejected.
 tree.newLeaf({ unknownField: true });
@@ -64,5 +72,9 @@ output.size.width.value = 10;
 output.gridTemplateRows.push(GridTemplateComponent.Single(track));
 // @ts-expect-error Nested output arrays are readonly.
 output.gridTemplateRowNames[0][0] = "changed";
+// @ts-expect-error Tagged values remain complete inside a Style update.
+tree.updateStyle(node, { flexBasis: { unit: 0 } });
+// @ts-expect-error Complete records do not become recursively partial in a Style update.
+tree.updateStyle(node, { gridTemplateAreas: { areas: [] } });
 
 void [absentAspect];

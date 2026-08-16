@@ -25,6 +25,10 @@ const documentationSidebar = [
       { text: "Overview", link: "/node/" },
       { text: "Nodes and Topology", link: "/node/nodes-and-topology" },
       { text: "Styles and Context", link: "/node/styles-and-context" },
+      {
+        text: "setStyle vs updateStyle",
+        link: "/node/set-style-vs-update-style",
+      },
       { text: "Computing Layout", link: "/node/computing-layout" },
       { text: "Layout Results", link: "/node/layout-results" },
       { text: "Style", link: "/node/style" },

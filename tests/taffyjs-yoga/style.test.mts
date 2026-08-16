@@ -220,7 +220,18 @@ test("declared numeric boundary inputs normalize like Yoga", () => {
     -1e39,
     1e-50,
   ] as const;
-  const lengths = [...numbers, "25%", "-0%", "1e2%", "1e39%", "-1e39%"] as const;
+  const lengths = [
+    ...numbers,
+    "25%",
+    "-0%",
+    "1e2%",
+    " 1%",
+    "0x10%",
+    "0b10%",
+    "0o10%",
+    "1e39%",
+    "-1e39%",
+  ] as const;
   const autoLengths = [...lengths, "auto"] as const;
 
   for (const [setter, getter, values] of [

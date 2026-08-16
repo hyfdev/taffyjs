@@ -1,0 +1,52 @@
+# @taffyjs/yoga-wasm
+
+`@taffyjs/yoga-wasm` is an ESM Yoga 3.2.1 compatibility facade backed by `@taffyjs/wasm`. It uses the same TypeScript facade, public entries, declarations, and compatibility classifications as `@taffyjs/yoga`; only the TaffyJS runtime backend changes.
+
+The package supports Node.js `>=22.18` and modern bundled browsers within the [documented `@taffyjs/wasm` runtime boundary](https://github.com/hyfdev/taffyjs/blob/main/packages/taffyjs-wasm/README.md). Browser consumers need a bundler that honors package export conditions and top-level await. Direct CDN scripts, legacy browsers, and non-browser edge runtimes are not currently supported.
+
+This package is still private and unpublished. The installation form below describes the intended registry substitution after publication.
+
+## Substitute it for yoga-layout
+
+Use a package-manager alias so application source can keep importing `yoga-layout` unchanged:
+
+```json
+{
+  "dependencies": {
+    "yoga-layout": "npm:@taffyjs/yoga-wasm@<published-version>"
+  }
+}
+```
+
+The eager root entry keeps Yoga's normal import shape:
+
+```ts
+import Yoga from "yoga-layout";
+
+const node = Yoga.Node.create();
+node.setWidth(100);
+node.calculateLayout(undefined, undefined);
+console.log(node.getComputedWidth());
+node.free();
+```
+
+The `/load` entry defers loading and compiling the WebAssembly backend until `loadYoga()` is called:
+
+```ts
+import { loadYoga } from "yoga-layout/load";
+
+const Yoga = await loadYoga();
+const node = Yoga.Node.create();
+node.calculateLayout(undefined, undefined);
+node.free();
+```
+
+Each `loadYoga()` call creates an isolated Yoga facade and hidden Taffy tree. Facades share the package's loaded WebAssembly module and memory, but Nodes and Configs cannot cross facade boundaries.
+
+## Compatibility boundary
+
+The supported Yoga surface and known layout differences are exactly those documented for [`@taffyjs/yoga`](https://github.com/hyfdev/taffyjs/blob/main/packages/taffyjs-yoga/COMPATIBILITY.md). In particular, `PositionType.Static` remains unsupported because changing the transport to WebAssembly does not add a Taffy representation for Yoga's static-positioning semantics.
+
+Expected validation and callback failures remain recoverable. An unexpected Rust panic follows the `@taffyjs/wasm` abort boundary and can terminate the current WebAssembly module or worker rather than unwinding like the native Node backend.
+
+[THIRD-PARTY-LICENSES](THIRD-PARTY-LICENSES) contains the required third-party license for the Yoga PixelGrid logic shared by both compatibility packages.

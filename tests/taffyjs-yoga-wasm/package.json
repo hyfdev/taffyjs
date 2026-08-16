@@ -1,0 +1,23 @@
+{
+  "name": "tests-taffy-yoga-wasm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:package": "node tests/package-contents.ts",
+    "check:types": "tsc --project tsconfig.public-api.json",
+    "test:api": "vp test --run --config vite.config.ts",
+    "test:packed": "node tests/packed-consumer.ts"
+  },
+  "dependencies": {
+    "@taffyjs/wasm": "workspace:*",
+    "@taffyjs/yoga-wasm": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "playwright": "1.62.1",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

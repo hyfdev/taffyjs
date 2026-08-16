@@ -446,6 +446,22 @@ impl BindingTaffyTree {
         )
     }
 
+    #[napi(js_name = "rawUpdateStyle")]
+    pub fn update_style(&self, env: Env, node: BigInt, update: Unknown<'_>) -> napi::Result<()> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        let update = into_napi(env, style::patch(update))?;
+        into_napi(
+            env,
+            self.owner.access("updateStyle", |tree| {
+                let current = tree.style(node).map_err(|_| internal_error())?;
+                let Some(updated) = style::apply_patch(current, update)? else {
+                    return Ok(());
+                };
+                tree.set_style(node, updated).map_err(|_| internal_error())
+            }),
+        )
+    }
+
     #[napi(js_name = "rawSetNodeContext")]
     pub fn set_node_context(&self, env: Env, node: BigInt, has_context: bool) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;

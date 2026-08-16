@@ -49,6 +49,26 @@ style.flexGrow === 0; // true: Taffy's default
 
 Keep a shared base object in your own code when several replacements should preserve the same fields.
 
+## `updateStyle` preserves omitted values
+
+Use `updateStyle` when only part of the current style should change. Omitted fields and explicit `undefined` preserve their stored values. The same rule applies to omitted components of the partial `Point`, `Size`, `Rect`, and `Line` records:
+
+```ts
+tree.updateStyle(node, {
+  flexGrow: 3,
+  size: { width: 320 },
+  margin: { left: 20 },
+});
+```
+
+Here the current height and the other three margins remain unchanged. A single shorthand value still supplies every component, so `padding: 12` replaces all four padding sides.
+
+Arrays, tagged values, and other complete records are replaced as complete values rather than merged recursively. For example, `gridAutoRows: []` clears all automatic row tracks, and `flexBasis: Dimension.Auto` replaces the complete tagged basis value. `null` clears only a field whose public type permits it.
+
+The prospective merged style is validated before it is stored. A failed update changes neither style nor dirty state. An empty update or one that supplies only already-stored values also leaves dirty state unchanged.
+
+Unless you intentionally want a complete replacement, prefer `updateStyle` when changing an existing node. [setStyle vs updateStyle](../node/set-style-vs-update-style.md) explains the semantic and performance tradeoff in detail.
+
 ## Named constants and tagged values
 
 Closed choices use frozen numeric families such as `Display`, `Overflow`, `FlexDirection`, and `AlignItems`:
@@ -78,4 +98,4 @@ const reusableInput: StyleInput = snapshot;
 tree.setStyle(otherNode, reusableInput);
 ```
 
-Changing `snapshot` would not update `node`; call `setStyle` to make a real change. The generated declarations remain the exhaustive field reference. The Guide pages focus on the groups of fields that work together.
+Changing `snapshot` would not update `node`; call `setStyle` or `updateStyle` to make a real change. The generated declarations remain the exhaustive field reference. The Guide pages focus on the groups of fields that work together.

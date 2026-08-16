@@ -29,9 +29,9 @@ export type {
   Yoga,
 } from "./types.js";
 
-import { createYoga } from "./facade.js";
 import type { Yoga } from "./types.js";
 
 export async function loadYoga(): Promise<Yoga> {
+  const { createYoga } = await import("./facade.js");
   return createYoga();
 }
