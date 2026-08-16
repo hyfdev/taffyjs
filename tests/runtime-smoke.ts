@@ -4,6 +4,18 @@ interface RuntimeSmokeTree<TNode> {
   getLayout(node: TNode): { size: { width: number; height: number } };
 }
 
+interface YogaRuntimeSmokeNode {
+  setWidth(width: number): void;
+  setHeight(height: number): void;
+  calculateLayout(width: number | undefined, height: number | undefined): void;
+  getComputedLayout(): { width: number; height: number };
+  free(): void;
+}
+
+interface YogaRuntimeSmokeFacade {
+  Node: { create(): YogaRuntimeSmokeNode };
+}
+
 function runtimeLabel(): string {
   const bun = Reflect.get(globalThis, "Bun");
   if (typeof bun?.version === "string") return `Bun ${bun.version}`;
@@ -24,4 +36,23 @@ export function runRuntimeSmoke<TNode>(packageName: string, tree: RuntimeSmokeTr
   }
 
   console.log(`${packageName} smoke passed on ${runtimeLabel()}`);
+}
+
+export function runYogaRuntimeSmoke(packageName: string, yoga: YogaRuntimeSmokeFacade): void {
+  const node = yoga.Node.create();
+
+  try {
+    node.setWidth(120);
+    node.setHeight(80);
+    node.calculateLayout(undefined, undefined);
+
+    const { width, height } = node.getComputedLayout();
+    if (width !== 120 || height !== 80) {
+      throw new Error(`${packageName} produced an unexpected layout: ${width}x${height}`);
+    }
+
+    console.log(`${packageName} smoke passed on ${runtimeLabel()}`);
+  } finally {
+    node.free();
+  }
 }
