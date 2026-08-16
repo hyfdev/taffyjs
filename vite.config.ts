@@ -92,8 +92,21 @@ export default defineConfig({
         command:
           "node tools/api-codegen/src/generate.ts && git add --intent-to-add --all && git diff --exit-code",
       },
-      "build:binding": {
-        command: "vp run @taffyjs/node#build",
+      "build:node:binding": {
+        command:
+          "vp exec --filter @taffyjs/node -- napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js binding.js --dts binding.d.ts --esm --release -- --locked",
+      },
+      "build:node:format": {
+        command: "vp exec --filter @taffyjs/node -- vp fmt binding.js binding.d.ts package.json",
+        dependsOn: ["build:node:binding"],
+      },
+      "build:node:platform-artifact": {
+        command: "node tools/sync-platform-artifact.ts",
+        dependsOn: ["build:node:format"],
+      },
+      "build:node:entries": {
+        command: "vp exec --filter @taffyjs/node -- vp pack",
+        dependsOn: ["build:node:format"],
       },
       "build:wasm:binding": {
         command:
@@ -109,7 +122,7 @@ export default defineConfig({
       },
       build: {
         command: "echo build ok",
-        dependsOn: ["build:binding"],
+        dependsOn: ["build:node:platform-artifact", "build:node:entries"],
       },
       "check:format": {
         command: "vp fmt --check",
