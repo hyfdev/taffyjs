@@ -13,6 +13,8 @@ The package requires Node.js 22.18.0 or newer and currently provides native bina
 | Linux            | x64          | `x86_64-unknown-linux-gnu` |
 | Windows          | x64          | `x86_64-pc-windows-msvc`   |
 
+Bun 1.2+ within major 1 and Deno 2.2+ within major 2 are also supported on these native targets. CI smoke-tests Bun 1.2.0 and Deno 2.2.0 through the public package entry. Support does not span runtime majors. Deno requires a local `node_modules` directory and the `--allow-env`, `--allow-read`, and `--allow-ffi` permissions.
+
 The package is ESM-only. Application code imports the public package entry:
 
 ```ts
