@@ -24,7 +24,7 @@ No planned package receives empty reference pages or documentation navigation th
 
 ## Documentation structure
 
-The documentation is arranged in three layers: Guide, Essentials, and package sections. Guide contains the Introduction and Getting Started. Essentials teaches the shared layout-engine model in learning order. Package sections hold complete runtime and platform support, initialization, binding-specific behavior, compatibility, migration, and exact public API details. The top navigation links to Guide and a package menu containing the implemented Node and Wasm packages. Empty package sections are not reserved in advance.
+The documentation is arranged in three layers: Guide, Essentials, and package sections. Guide contains the Introduction and Getting Started. Essentials teaches the shared layout-engine model in learning order. Package sections hold complete runtime and platform support, initialization, binding-specific behavior, compatibility, migration, and exact public API details. One documentation sidebar lists Guide, Essentials, and every implemented package with its articles, so readers can see the complete documentation structure from any documentation page. The top navigation links to that documentation once as Guide rather than repeating packages in a separate menu. Empty package sections are not reserved in advance.
 
 Getting Started and Essentials use `@taffyjs/node` code by default. At points where runtime choice matters, a short callout sends browser or WebAssembly users to `@taffyjs/wasm` and users seeking Yoga compatibility to `@taffyjs/yoga`. Shared teaching is not repeated once per package.
 
@@ -46,7 +46,7 @@ The target page groups are:
 - `@taffyjs/wasm`: package overview and setup, supported environments, initialization and deployment, observable differences from Node, and a link to the shared direct API reference.
 - `@taffyjs/yoga`: package overview and installation, compatibility scope, migration from Yoga, Yoga-facing API reference, and documented differences from the direct Taffy API.
 
-The global site navigation and the documentation sidebar serve different purposes. The landing page and later real Blog or Showcase sections are site-level content; Guide and package sections are documentation. Do not create empty Blog, Showcase, version switcher or package pages merely to make the site appear complete.
+The global site navigation and the documentation sidebar serve different purposes. The landing page and later real Blog or Showcase sections are site-level content; Guide, Essentials, and package sections all belong to the same documentation sidebar. Do not create empty Blog, Showcase, version switcher or package pages merely to make the site appear complete.
 
 ## Content ownership
 

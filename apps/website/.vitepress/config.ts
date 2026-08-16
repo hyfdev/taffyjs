@@ -1,65 +1,59 @@
 import { defineConfig } from "vitepress";
 
+const documentationSidebar = [
+  {
+    text: "Guide",
+    items: [
+      { text: "Introduction", link: "/guide/" },
+      { text: "Getting Started", link: "/guide/getting-started" },
+    ],
+  },
+  {
+    text: "Essentials",
+    items: [
+      { text: "Tree, Compute, and Read", link: "/guide/tree-compute-read" },
+      { text: "Styles and Values", link: "/guide/styles-and-values" },
+      { text: "Block", link: "/guide/block" },
+      { text: "Flexbox", link: "/guide/flexbox" },
+      { text: "Grid", link: "/guide/grid" },
+      { text: "Measuring Text and Images", link: "/guide/measuring-content" },
+    ],
+  },
+  {
+    text: "@taffyjs/node",
+    items: [
+      { text: "Overview", link: "/node/" },
+      { text: "Nodes and Topology", link: "/node/nodes-and-topology" },
+      { text: "Styles and Context", link: "/node/styles-and-context" },
+      { text: "Computing Layout", link: "/node/computing-layout" },
+      { text: "Layout Results", link: "/node/layout-results" },
+      { text: "Style", link: "/node/style" },
+      { text: "Value Helpers", link: "/node/value-helpers" },
+      { text: "Errors", link: "/node/errors" },
+    ],
+  },
+  {
+    text: "@taffyjs/wasm",
+    items: [{ text: "Overview", link: "/wasm/" }],
+  },
+];
+
 export default defineConfig({
   lang: "en-US",
   title: "TaffyJS",
   description: "High-performance layout for JavaScript, powered by Taffy and Rust.",
   themeConfig: {
     nav: [
-      { text: "Guide", link: "/guide/getting-started", activeMatch: "^/guide/" },
       {
-        text: "Packages",
-        items: [
-          { text: "@taffyjs/node", link: "/node/" },
-          { text: "@taffyjs/wasm", link: "/wasm/" },
-        ],
+        text: "Guide",
+        link: "/guide/getting-started",
+        activeMatch: "^/(guide|node|wasm)/",
       },
     ],
     sidebar: {
-      "/guide/": [
-        {
-          text: "Guide",
-          items: [
-            { text: "Introduction", link: "/guide/" },
-            { text: "Getting Started", link: "/guide/getting-started" },
-          ],
-        },
-        {
-          text: "Essentials",
-          items: [
-            { text: "Tree, Compute, and Read", link: "/guide/tree-compute-read" },
-            { text: "Styles and Values", link: "/guide/styles-and-values" },
-            { text: "Block", link: "/guide/block" },
-            { text: "Flexbox", link: "/guide/flexbox" },
-            { text: "Grid", link: "/guide/grid" },
-            { text: "Measuring Text and Images", link: "/guide/measuring-content" },
-          ],
-        },
-      ],
-      "/node/": [
-        {
-          text: "@taffyjs/node",
-          items: [{ text: "Overview", link: "/node/" }],
-        },
-        {
-          text: "TaffyTree",
-          items: [
-            { text: "Nodes and Topology", link: "/node/nodes-and-topology" },
-            { text: "Styles and Context", link: "/node/styles-and-context" },
-            { text: "Computing Layout", link: "/node/computing-layout" },
-            { text: "Layout Results", link: "/node/layout-results" },
-          ],
-        },
-        { text: "Style", link: "/node/style" },
-        { text: "Value Helpers", link: "/node/value-helpers" },
-        { text: "Errors", link: "/node/errors" },
-      ],
-      "/wasm/": [
-        {
-          text: "@taffyjs/wasm",
-          items: [{ text: "Overview", link: "/wasm/" }],
-        },
-      ],
+      "/guide/": documentationSidebar,
+      "/node/": documentationSidebar,
+      "/wasm/": documentationSidebar,
     },
     socialLinks: [{ icon: "github", link: "https://github.com/hyfdev/taffyjs" }],
     externalLinkIcon: true,
