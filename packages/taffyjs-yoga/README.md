@@ -77,3 +77,7 @@ A broad `Align` variable must be narrowed before being passed to one of these se
 The compatibility baseline is exactly Yoga 3.2.1. Config, Style, tree ownership and mutation, calculation on any live Node, computed output, dirty and new-layout state, and synchronous Measure callbacks are implemented. Taffy owns topology and Flex calculation; the facade retains only the Yoga declarations and public state needed to translate inputs and project Yoga-shaped outputs.
 
 This is core behavioral compatibility, not a claim that Taffy and Yoga produce identical geometry for every degenerate Flex combination or that their internal cache and callback traces are identical. [COMPATIBILITY.md](COMPATIBILITY.md) classifies the complete public surface and lists every known Difference and Unsupported trigger. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) contains the required third-party notice for the Yoga PixelGrid logic used by the facade.
+
+## Versioning before 1.0
+
+`@taffyjs/yoga` will remain on the `0.x` version line for the foreseeable future. During that period, any public breaking change uses a minor release, including a Yoga-alignment fix that changes a supported layout result or other observable behavior. Fixes that preserve the public behavior contract use patch releases. This contract applies only to `0.x` releases and makes no promise about 1.0.

@@ -34,6 +34,7 @@ import {
   toLengthPercentage,
   toLengthPercentageAuto,
   toMinDimension,
+  toSizeDimension,
   undefinedValue,
   resolvePercentage,
   type YogaValue,
@@ -251,8 +252,8 @@ export function translateStyle(
         : TaffyPosition.Relative,
     inset: position,
     size: {
-      width: toDimension(declarations.width),
-      height: toDimension(declarations.height),
+      width: toSizeDimension(declarations.width),
+      height: toSizeDimension(declarations.height),
     },
     minSize: {
       width: toMinDimension(declarations.minWidth),
@@ -350,6 +351,27 @@ function exactRootDimension(
   return Math.max(0, outerSize);
 }
 
+function rootMinimumOverride(
+  declared: YogaValue,
+  minimum: YogaValue,
+  maximum: YogaValue,
+  ownerSize: number | undefined,
+): DimensionInput | undefined {
+  const declaredLength = resolveLength(declared, ownerSize);
+  const minimumLength = resolveLength(minimum, ownerSize);
+  const maximumLength = resolveLength(maximum, ownerSize);
+  return declaredLength !== undefined &&
+    declaredLength >= 0 &&
+    minimumLength !== undefined &&
+    minimumLength >= 0 &&
+    maximumLength !== undefined &&
+    maximumLength >= 0 &&
+    minimumLength > maximumLength &&
+    declaredLength > maximumLength
+    ? toDimension(maximum)
+    : undefined;
+}
+
 export interface CalculationStylePlan {
   readonly style: StyleInput | null;
   readonly exactWidth: boolean;
@@ -379,7 +401,25 @@ export function translateCalculationStyle(
     resolvedDirection,
   );
   const forceFlexDisplay = declarations.display === Display.None;
-  if (width === undefined && height === undefined && !forceFlexDisplay) {
+  const minimumWidth = rootMinimumOverride(
+    declarations.width,
+    declarations.minWidth,
+    declarations.maxWidth,
+    ownerWidth,
+  );
+  const minimumHeight = rootMinimumOverride(
+    declarations.height,
+    declarations.minHeight,
+    declarations.maxHeight,
+    ownerHeight,
+  );
+  if (
+    width === undefined &&
+    height === undefined &&
+    minimumWidth === undefined &&
+    minimumHeight === undefined &&
+    !forceFlexDisplay
+  ) {
     return { style: null, exactWidth: false, exactHeight: false };
   }
 
@@ -389,9 +429,16 @@ export function translateCalculationStyle(
       ...ordinary,
       display: forceFlexDisplay ? TaffyDisplay.Flex : ordinary.display,
       size: {
-        width: width === undefined ? toDimension(declarations.width) : TaffyDimension.Length(width),
+        width:
+          width === undefined ? toSizeDimension(declarations.width) : TaffyDimension.Length(width),
         height:
-          height === undefined ? toDimension(declarations.height) : TaffyDimension.Length(height),
+          height === undefined
+            ? toSizeDimension(declarations.height)
+            : TaffyDimension.Length(height),
+      },
+      minSize: {
+        width: minimumWidth ?? toMinDimension(declarations.minWidth),
+        height: minimumHeight ?? toMinDimension(declarations.minHeight),
       },
     },
     exactWidth: width !== undefined,

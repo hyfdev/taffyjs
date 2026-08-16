@@ -289,6 +289,10 @@ function toDimension(value) {
 		case 0: return Dimension.Auto;
 	}
 }
+function toSizeDimension(value) {
+	if ((value.unit === 1 || value.unit === 2) && value.value < 0) return Dimension.Auto;
+	return toDimension(value);
+}
 function toMinDimension(value) {
 	return value.unit === 0 ? Dimension.Length(0) : toDimension(value);
 }
@@ -559,7 +563,7 @@ function absoluteAxisLocation(entry, parentEntry, horizontal) {
 	const selectedEdge = startPosition === void 0 ? end : start;
 	const selectedPosition = startPosition ?? endPosition;
 	if (selectedPosition === void 0) return void 0;
-	const selectedMargin = resolvePosition(physicalValue$1(entry.declarations.margin, selectedEdge, parentEntry.direction), containingWidth) ?? 0;
+	const selectedMargin = resolvePosition(physicalValue$1(entry.declarations.margin, selectedEdge, parentEntry.direction), positionBasis) ?? 0;
 	const selectedBorder = selectedEdge === 0 ? parentLayout.border.left : selectedEdge === 1 ? parentLayout.border.top : selectedEdge === 2 ? parentLayout.border.right : parentLayout.border.bottom;
 	const offset = floatAdd(floatAdd(selectedPosition, selectedMargin), selectedBorder);
 	if (!(selectedEdge === 2 || selectedEdge === 3)) return {
@@ -810,8 +814,8 @@ function translateStyle(declarations, config, resolvedDirection, ownerDirection)
 		position: declarations.positionType === 2 ? Position.Absolute : Position.Relative,
 		inset: position,
 		size: {
-			width: toDimension(declarations.width),
-			height: toDimension(declarations.height)
+			width: toSizeDimension(declarations.width),
+			height: toSizeDimension(declarations.height)
 		},
 		minSize: {
 			width: toMinDimension(declarations.minWidth),
@@ -869,11 +873,19 @@ function exactRootDimension(declarations, axis, ownerSize, ownerWidth, resolvedD
 	}
 	return Math.max(0, outerSize);
 }
+function rootMinimumOverride(declared, minimum, maximum, ownerSize) {
+	const declaredLength = resolveLength(declared, ownerSize);
+	const minimumLength = resolveLength(minimum, ownerSize);
+	const maximumLength = resolveLength(maximum, ownerSize);
+	return declaredLength !== void 0 && declaredLength >= 0 && minimumLength !== void 0 && minimumLength >= 0 && maximumLength !== void 0 && maximumLength >= 0 && minimumLength > maximumLength && declaredLength > maximumLength ? toDimension(maximum) : void 0;
+}
 function translateCalculationStyle(declarations, config, resolvedDirection, ownerDirection, ownerWidth, ownerHeight) {
 	const width = exactRootDimension(declarations, "width", ownerWidth, ownerWidth, resolvedDirection);
 	const height = exactRootDimension(declarations, "height", ownerHeight, ownerWidth, resolvedDirection);
 	const forceFlexDisplay = declarations.display === 1;
-	if (width === void 0 && height === void 0 && !forceFlexDisplay) return {
+	const minimumWidth = rootMinimumOverride(declarations.width, declarations.minWidth, declarations.maxWidth, ownerWidth);
+	const minimumHeight = rootMinimumOverride(declarations.height, declarations.minHeight, declarations.maxHeight, ownerHeight);
+	if (width === void 0 && height === void 0 && minimumWidth === void 0 && minimumHeight === void 0 && !forceFlexDisplay) return {
 		style: null,
 		exactWidth: false,
 		exactHeight: false
@@ -884,8 +896,12 @@ function translateCalculationStyle(declarations, config, resolvedDirection, owne
 			...ordinary,
 			display: forceFlexDisplay ? Display.Flex : ordinary.display,
 			size: {
-				width: width === void 0 ? toDimension(declarations.width) : Dimension.Length(width),
-				height: height === void 0 ? toDimension(declarations.height) : Dimension.Length(height)
+				width: width === void 0 ? toSizeDimension(declarations.width) : Dimension.Length(width),
+				height: height === void 0 ? toSizeDimension(declarations.height) : Dimension.Length(height)
+			},
+			minSize: {
+				width: minimumWidth ?? toMinDimension(declarations.minWidth),
+				height: minimumHeight ?? toMinDimension(declarations.minHeight)
 			}
 		},
 		exactWidth: width !== void 0,

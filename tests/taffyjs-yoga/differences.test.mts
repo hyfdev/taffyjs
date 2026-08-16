@@ -146,6 +146,48 @@ test("Different: max size combined with flex shrink keeps Taffy geometry", () =>
   }
 });
 
+test("Different: intrinsic selected roots keep Taffy's conflicting constraint order", () => {
+  for (const kind of ["child content", "measurement"] as const) {
+    const config = Yoga.Config.create();
+    const oracleConfig = OracleYoga.Config.create();
+    config.setPointScaleFactor(0);
+    oracleConfig.setPointScaleFactor(0);
+    const root = Yoga.Node.createWithConfig(config);
+    const oracleRoot = OracleYoga.Node.createWithConfig(oracleConfig);
+    try {
+      root.setHeight(10);
+      root.setMinWidth(100);
+      root.setMaxWidth(50);
+      oracleRoot.setHeight(10);
+      oracleRoot.setMinWidth(100);
+      oracleRoot.setMaxWidth(50);
+      if (kind === "child content") {
+        const child = Yoga.Node.createWithConfig(config);
+        const oracleChild = OracleYoga.Node.createWithConfig(oracleConfig);
+        child.setWidth(25);
+        child.setHeight(1);
+        oracleChild.setWidth(25);
+        oracleChild.setHeight(1);
+        root.insertChild(child, 0);
+        oracleRoot.insertChild(oracleChild, 0);
+      } else {
+        root.setMeasureFunc(() => ({ width: 75, height: 10 }));
+        oracleRoot.setMeasureFunc(() => ({ width: 75, height: 10 }));
+      }
+
+      root.calculateLayout(undefined, undefined);
+      oracleRoot.calculateLayout(undefined, undefined);
+      assert.equal(root.getComputedWidth(), 100, `${kind} Taffy`);
+      assert.equal(oracleRoot.getComputedWidth(), 50, `${kind} Yoga`);
+    } finally {
+      root.freeRecursive();
+      oracleRoot.freeRecursive();
+      config.free();
+      oracleConfig.free();
+    }
+  }
+});
+
 test("Different: overlapping physical and logical margins keep Taffy sizing", () => {
   const config = Yoga.Config.create();
   const oracleConfig = OracleYoga.Config.create();
