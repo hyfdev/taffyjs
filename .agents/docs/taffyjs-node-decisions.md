@@ -30,6 +30,8 @@ The private representation passed from JavaScript to Rust is a separate implemen
 
 ## On-demand Style in measure callbacks
 
+[VOUCHED @hyfdev 2026-08-17]
+
 **Ruling:** `MeasureArgs` must expose `getStyle(): Style` instead of an eager `style` field, and no complete JavaScript Style object may be created unless the callback calls that function.
 
 **Limits:** `knownDimensions`, `availableSpace`, `node`, and `context` remain eager callback arguments. The function returns a fresh complete normalized detached snapshot on every call, may safely escape the callback, observes the Style at the start of its compute, and must not re-enter the busy tree. The safe implementation may clone one Rust Style and create one provider per callback-reached node and compute; this ruling does not approve numeric slots, a compact constraints ABI, per-node measure callbacks, an upstream algorithm change, a JavaScript Style mirror, or unsafe callback-scope handles.
