@@ -6,7 +6,7 @@ Their purpose is to test and improve the design method, then provide worked reas
 
 The feedback loop is: apply the current rules to concrete upstream behavior; distinguish mechanical derivation from a genuine product choice; ask for human judgment only when evidence and existing rules cannot determine the public contract; incorporate the correction into both the case and the shared mapping reference; then stop when further detail would only repeat an established rule. Completing a case means that its practical test has produced all of its useful API-design reference, not that the project has moved to another delivery phase.
 
-Snapshot materialization is deliberately outside this case series. The [read boundary](architecture.md#read-boundary) retains complete eager snapshots, while the [performance TODO](api-alignment-todos.md#performance) preserves measured lazy and selective possibilities without turning them into an initial API or another alignment case.
+Direct reads still materialize complete snapshots. The measured callback path now preserves the same complete Style capability through on-demand `getStyle()` delivery as recorded in the [read boundary](architecture.md#read-boundary); selective reads remain separate work under the [performance TODO](api-alignment-todos.md#performance).
 
 The evidence baseline for this case is Taffy 0.13.0, napi 3.12.0, napi-derive 3.6.2, and @napi-rs/cli 3.8.2.
 
@@ -98,7 +98,7 @@ This case is closed as an API mapping exercise. It fixes the outer state owner, 
 
 ## Case 2: Style values and conversion boundaries
 
-This case maps the complete Style value that JavaScript supplies to node creation and replacement and the owned readonly Style value that a measure callback receives. It is intended to establish reusable value-mapping rules, not merely settle the spelling of one Style field.
+This case maps the complete Style value that JavaScript supplies to node creation and replacement and the owned readonly Style value returned by direct reads or a measure callback's `getStyle()`. It is intended to establish reusable value-mapping rules, not merely settle the spelling of one Style field.
 
 This case is complete as an API-alignment example. Its reference value is that the selected container and value-family rules are sufficient to classify every currently known Style field without reviewing all 41 fields individually. The exhaustive inventory is intentionally outside the example because repeating already covered categories would add no new alignment reasoning.
 
@@ -157,7 +157,7 @@ The reusable geometry declarations referenced here are selected below.
 
 The explicit `| undefined` members keep the declarations truthful for consumers that enable TypeScript's `exactOptionalPropertyTypes`: the runtime accepts both a missing property and an explicitly undefined property. Those forms use the field's default for construction and replacement and preserve the field for update, while `null` explicitly requests `None` for a publicly nullable field. Conversion stores only the resulting Rust value: when a default is `Some(value)`, omission or `undefined` and `null` remain observably different during replacement; when the default is already `None`, they converge. Every property where `null` and `undefined` differ must explain the operation-specific omission and explicit-null meanings in property-level JSDoc rather than relying only on an interface-level note. A complete `Style` keeps every field present and readonly, emits the concrete value for `Some(value)`, emits `null` for `None`, and never uses a missing or `undefined` field for nullable output.
 
-`StyleInput` properties remain mutable in TypeScript. Conversion uses ordinary property access and does not inspect, reject, copy, freeze, or repeat validation solely because an input may contain accessors or be a Proxy; the caller owns those behaviors and side effects. Every binding-produced `Style` record uses readonly TypeScript properties because it is a detached snapshot whose mutation cannot change native state. The direct runtime representation is a complete eagerly materialized ordinary plain object without runtime freezing, sealing, or a Proxy. No lazy or selective output facility belongs to the initial API.
+`StyleInput` properties remain mutable in TypeScript. Conversion uses ordinary property access and does not inspect, reject, copy, freeze, or repeat validation solely because an input may contain accessors or be a Proxy; the caller owns those behaviors and side effects. Every binding-produced `Style` record uses readonly TypeScript properties because it is a detached snapshot whose mutation cannot change native state. Direct `getStyle(node)` reads and each callback `getStyle()` call return a complete materialized ordinary plain object without runtime freezing, sealing, or a Proxy. The callback does not create that object unless the function is called; this changes delivery cost without changing the Style value mapping.
 
 The first checkpoint is demonstrated by ordinary integration cases: `{}` and explicit `undefined` produce Taffy defaults; `setStyle(node, {})` resets a previously nondefault Style instead of merging; a partial fixed-shape nested record fills each omitted component from the corresponding enclosing Style default rather than stored state; an unknown top-level or partial-record component and `null` for a required field throw without changing the stored Style; `null` succeeds only for a publicly nullable field; a complete output uses `null` rather than an omitted or undefined field for Rust `None`; and declarations accept explicit `undefined` under `exactOptionalPropertyTypes` and retain the required property-level JSDoc. Getter- or Proxy-driven tree mutation is deliberately not a baseline fixture.
 
@@ -533,7 +533,7 @@ The case reached closure through four layers, each reusing the previous rules:
 1. Fix the outer container, default, absence, unknown-field, replacement, and mutation-boundary semantics above.
 2. Map scalar, closed-enum, alignment, geometry, semantic-length, and grid families, including canonical input and output forms and numeric conversion.
 3. Confirm that every currently known Style type belongs to one of those families. The complete inventory belongs in maintained source and conversion code; behavior tests cover representative categories instead of copying the inventory. Only a value that does not fit an established family would add a new alignment question.
-4. Select the complete eager plain-object `Style` snapshot as the direct baseline. Later optimization research does not reopen this value-mapping case or add an initial implementation requirement.
+4. Select the complete plain-object `Style` snapshot as the value contract. Direct reads materialize it immediately; measured callback evidence may change when conversion happens without reopening its field mapping or detached-value semantics.
 
 ### Selected mapping categories
 
@@ -550,9 +550,9 @@ Representations follow semantic role rather than copy Rust declaration kinds mec
 
 ### Input and output are separate decisions
 
-`StyleInput` is a mutable input convenience around a complete Rust value and may omit defaulted fields. The baseline `getStyle(node)` method reads Taffy's complete stored Style and returns an owned readonly `Style` snapshot, and the measure callback receives the same complete readonly value semantics. The initial runtime representation for both outputs is a complete eagerly materialized ordinary plain object. It is not frozen, sealed, proxied, cached, or a mutable view of tree state. Input and output still have different declaration shapes and defaulting semantics even though both initially use ordinary objects.
+`StyleInput` is a mutable input convenience around a complete Rust value and may omit defaulted fields. The `getStyle(node)` method reads Taffy's complete stored Style and returns an owned readonly `Style` snapshot, and a measure callback's `getStyle()` function returns the same complete readonly value semantics. Each result is a newly materialized ordinary plain object. It is not frozen, sealed, proxied, cached, or a mutable view of tree state. Input and output still have different declaration shapes and defaulting semantics even though both use ordinary objects.
 
-Output cost must be evaluated in the concrete path that pays it. `getStyle(node)` and the existing `computeLayoutWithMeasure` callback keep complete eager Style snapshots. Changing callback delivery, selecting fields from direct reads, batching nodes, or introducing another representation would be separate optimizations that require a measured workload and a new decision. Runtime sealing and freezing are not part of the complete baseline, and the initial no-JavaScript-data-cache decision still applies.
+Output cost must be evaluated in the concrete path that pays it. Direct `getStyle(node)` remains eager, while `computeLayoutWithMeasure` creates the JavaScript Style only when the callback calls `getStyle()`. The provider owns a Rust Style snapshot so it can be retained safely, and every call returns a new detached result. Selecting fields from direct reads, batching nodes, or introducing another representation remain separate optimizations that require their own evidence. Runtime sealing, freezing, and a JavaScript Style cache are not part of this boundary.
 
 ### Closure and escalation rule
 
@@ -577,7 +577,7 @@ This case paid for several corrections that should prevent later mapping work fr
 
 ### Questions outside this example
 
-The shared definition and stable codes that this case originally left open are now owned by [API code generation](api-codegen.md). One question may still matter elsewhere in the API, but it does not keep this example open: whether another callback contract should request less data. That output optimization is deferred and does not change the complete direct measure callback.
+The shared definition and stable codes that this case originally left open are now owned by [API code generation](api-codegen.md). Whether another callback should expose a selective Style contract remains separate; the direct measure callback keeps complete Style capability through `getStyle()` without eagerly converting it.
 
 ### Evidence
 
@@ -654,7 +654,7 @@ Case 3 establishes that a callback boundary must be designed as a complete obser
 - How a successful return is converted and how a JavaScript failure crosses the upstream callback's actual return type.
 - Which JavaScript, binding-owned, cached, and upstream states remain observable or require invalidation after failure.
 
-For this direct synchronous Taffy path, those answers are: Taffy controls measurement scheduling; JavaScript owns the exact context while borrowed Rust inputs become owned values; same-tree native access is busy while independent JavaScript values and other trees remain usable; the callback returns one complete `SizeInput<number>`; and the first callback failure is preserved while Taffy's infallible stack drains, the attempted subtree's caches are invalidated, and arbitrary JavaScript side effects and stored Layout are not rolled back. Once these sequence boundaries are fixed, the record, scalar, enum, readonly-output, and ordinary-object rules from Case 2 apply mechanically to the callback payloads.
+For this direct synchronous Taffy path, those answers are: Taffy controls measurement scheduling; JavaScript owns the exact context while borrowed Rust inputs become owned values or, for Style, one provider-owned snapshot per callback-reached node and compute; same-tree native access is busy while independent JavaScript values, retained Style providers, and other trees remain usable; the callback returns one complete `SizeInput<number>`; and the first callback failure is preserved while Taffy's infallible stack drains, the attempted subtree's caches are invalidated, and arbitrary JavaScript side effects and stored Layout are not rolled back. Once these sequence boundaries are fixed, the record, scalar, enum, readonly-output, and ordinary-object rules from Case 2 apply mechanically to materialized callback payloads.
 
 ### Closure and escalation rule
 
@@ -679,7 +679,7 @@ This case produced several corrections that should guide later callback alignmen
 
 ### Outside this case
 
-Retained per-node callbacks, automatically observed or proxy-backed context conveniences, asynchronous or off-thread layout, cancellation, batching, and a callback-specific selective-data contract are separate contracts. Deferred snapshot and callback-delivery experiments remain in the [performance TODO](api-alignment-todos.md#performance) and do not change this case's callback sequence.
+Retained per-node measurement callbacks, automatically observed or proxy-backed context conveniences, asynchronous or off-thread layout, cancellation, batching, and a callback-specific selective-data contract are separate contracts. Retaining the current callback's owned `getStyle` provider is supported and does not retain the tree or a Rust borrow; it is part of the current snapshot-delivery lifetime rather than a retained measurement callback.
 
 ### Evidence
 

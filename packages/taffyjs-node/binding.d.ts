@@ -199,7 +199,7 @@ export interface MeasureArguments {
   knownDimensions: KnownDimensionsOutput;
   availableSpace: AvailableSpaceSizeOutput;
   node: bigint;
-  style: StyleOutput;
+  getStyle: () => StyleOutput;
 }
 
 export interface MeasureResultInput {

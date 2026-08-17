@@ -539,7 +539,7 @@ export interface DetailedGridItemInfo {
   /** Reports the column end value stored in DetailedGridItemInfo. */ readonly columnEnd: number;
 }
 
-/** Supplies dimensions, available space, identity, context, and style to measurement. */
+/** Supplies dimensions, available space, identity, context, and on-demand style access to measurement. */
 export type MeasureArgs<TContext> = Readonly<{
   /** Supplies the known dimensions value used by MeasureArgs. */ knownDimensions: Size<
     number | undefined
@@ -547,7 +547,8 @@ export type MeasureArgs<TContext> = Readonly<{
   /** Supplies the available space value used by MeasureArgs. */ availableSpace: Size<AvailableSpace>;
   /** Supplies the node value used by MeasureArgs. */ node: NodeId;
   /** Supplies the context value used by MeasureArgs. */ context: TContext | undefined;
-  /** Supplies the style value used by MeasureArgs. */ style: Style;
+  /** Returns a new detached snapshot of the measured node's complete normalized Style. */
+  getStyle(): Style;
 }>;
 
 /** Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying. */

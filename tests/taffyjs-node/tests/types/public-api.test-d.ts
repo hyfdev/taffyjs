@@ -93,8 +93,11 @@ tree.computeLayoutWithMeasure({
   measure(args) {
     const callbackContext: Context | undefined = args.context;
     const callbackNode: NodeId = args.node;
-    const callbackStyle: Style = args.style;
-    void [callbackContext, callbackNode, callbackStyle];
+    const callbackStyle: Style = args.getStyle();
+    const getStyle: () => Style = args.getStyle;
+    // @ts-expect-error MeasureArgs no longer eagerly contains Style.
+    void args.style;
+    void [callbackContext, callbackNode, callbackStyle, getStyle];
     return { width: 1, height: 2 };
   },
 });

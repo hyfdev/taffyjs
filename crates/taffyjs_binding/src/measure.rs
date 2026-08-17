@@ -1,10 +1,12 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::Entry};
 use std::marker::PhantomData;
 use std::ptr;
 use std::rc::Rc;
 
-use napi::bindgen_prelude::{BigInt, Either, Function, ToNapiValue, Undefined, Unknown};
-use napi::{JsValue, sys};
+use napi::bindgen_prelude::{
+    BigInt, Either, Function, FunctionRef, ToNapiValue, Undefined, Unknown,
+};
+use napi::{Env, JsValue, sys};
 use napi_derive::napi;
 use taffy::geometry::Size;
 use taffy::style::{AvailableSpace, Style};
@@ -26,11 +28,11 @@ pub struct AvailableSpaceSizeOutput {
 }
 
 #[napi(object, object_from_js = false)]
-pub struct MeasureArguments {
+pub struct MeasureArguments<'env> {
     pub known_dimensions: KnownDimensionsOutput,
     pub available_space: AvailableSpaceSizeOutput,
     pub node: BigInt,
-    pub style: style::StyleOutput,
+    pub get_style: Function<'env, (), style::StyleOutput>,
 }
 
 #[napi(object, object_to_js = false)]
@@ -87,17 +89,24 @@ pub(crate) enum MeasureFailure<'env> {
 }
 
 pub(crate) struct MeasureSession<'env> {
-    callback: Function<'env, MeasureArguments, Unknown<'env>>,
+    env: Env,
+    callback: Function<'env, MeasureArguments<'env>, Unknown<'env>>,
     cache: HashMap<MeasureCacheKey, Size<f32>>,
+    style_providers: HashMap<u64, FunctionRef<(), style::StyleOutput>>,
     failure: Option<MeasureFailure<'env>>,
     not_send: PhantomData<Rc<()>>,
 }
 
 impl<'env> MeasureSession<'env> {
-    pub(crate) fn new(callback: Function<'env, MeasureArguments, Unknown<'env>>) -> Self {
+    pub(crate) fn new(
+        env: Env,
+        callback: Function<'env, MeasureArguments<'env>, Unknown<'env>>,
+    ) -> Self {
         Self {
+            env,
             callback,
             cache: HashMap::new(),
+            style_providers: HashMap::new(),
             failure: None,
             not_send: PhantomData,
         }
@@ -119,10 +128,16 @@ impl<'env> MeasureSession<'env> {
             return *size;
         }
 
-        let result = call(
-            &self.callback,
-            self.arguments(known_dimensions, available_space, node, style),
+        let result = arguments(
+            &self.env,
+            &mut self.style_providers,
+            known_dimensions,
+            available_space,
+            node,
+            style,
         )
+        .map_err(MeasureFailure::Binding)
+        .and_then(|arguments| call(&self.callback, arguments))
         .and_then(|value| result_size(value).map_err(MeasureFailure::Binding));
         match result {
             Ok(size) => {
@@ -143,26 +158,51 @@ impl<'env> MeasureSession<'env> {
     pub(crate) fn has_failed(&self) -> bool {
         self.failure.is_some()
     }
+}
 
-    fn arguments(
-        &self,
-        known_dimensions: Size<Option<f32>>,
-        available_space: Size<AvailableSpace>,
-        node: NodeId,
-        style: &Style,
-    ) -> MeasureArguments {
-        MeasureArguments {
-            known_dimensions: known_dimensions_output(known_dimensions),
-            available_space: available_space_size_output(available_space),
-            node: BigInt::from(u64::from(node)),
-            style: style::output(style),
-        }
+fn arguments<'env>(
+    env: &'env Env,
+    style_providers: &mut HashMap<u64, FunctionRef<(), style::StyleOutput>>,
+    known_dimensions: Size<Option<f32>>,
+    available_space: Size<AvailableSpace>,
+    node: NodeId,
+    style: &Style,
+) -> BindingResult<MeasureArguments<'env>> {
+    Ok(MeasureArguments {
+        known_dimensions: known_dimensions_output(known_dimensions),
+        available_space: available_space_size_output(available_space),
+        node: BigInt::from(u64::from(node)),
+        get_style: style_provider(env, style_providers, node, style)?,
+    })
+}
+
+fn style_provider<'env>(
+    env: &'env Env,
+    style_providers: &mut HashMap<u64, FunctionRef<(), style::StyleOutput>>,
+    node: NodeId,
+    style: &Style,
+) -> BindingResult<Function<'env, (), style::StyleOutput>> {
+    let node = u64::from(node);
+    if let Entry::Vacant(entry) = style_providers.entry(node) {
+        // Taffy only lends Style for this measure call, but JavaScript may retain getStyle.
+        // Give one provider per node and compute an owned snapshot with an ordinary JS lifetime.
+        let snapshot = style.clone();
+        let provider = env
+            .create_function_from_closure("getStyle", move |_| Ok(style::output(&snapshot)))
+            .and_then(|function| function.create_ref())
+            .map_err(|_| internal_error())?;
+        entry.insert(provider);
     }
+    style_providers
+        .get(&node)
+        .ok_or_else(internal_error)?
+        .borrow_back(env)
+        .map_err(|_| internal_error())
 }
 
 fn call<'env>(
-    callback: &Function<'env, MeasureArguments, Unknown<'env>>,
-    arguments: MeasureArguments,
+    callback: &Function<'env, MeasureArguments<'env>, Unknown<'env>>,
+    arguments: MeasureArguments<'_>,
 ) -> Result<Unknown<'env>, MeasureFailure<'env>> {
     let env = callback.value().env;
     let mut receiver = ptr::null_mut();

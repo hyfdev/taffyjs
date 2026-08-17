@@ -183,7 +183,7 @@ test("callback-args", () => {
     "availableSpace",
     "node",
     "context",
-    "style",
+    "getStyle",
   ]);
   assert.deepEqual(saved.knownDimensions, { width: undefined, height: undefined });
   assert.deepEqual(saved.availableSpace, {
@@ -192,10 +192,57 @@ test("callback-args", () => {
   });
   assert.equal(saved.node, node);
   assert.equal(saved.context, context);
-  assert.deepEqual(saved.style, tree.getStyle(node));
+  assert.equal(typeof saved.getStyle, "function");
   assert.equal(Object.isFrozen(saved), false);
-  (saved.style as { flexGrow: number }).flexGrow = 99;
+
+  const firstStyle = saved.getStyle();
+  assert.deepEqual(firstStyle, tree.getStyle(node));
+  (firstStyle as { flexGrow: number }).flexGrow = 99;
   assert.equal(tree.getStyle(node).flexGrow, Math.fround(1.25));
+  const secondStyle = saved.getStyle();
+  assert.notEqual(secondStyle, firstStyle);
+  assert.equal(secondStyle.flexGrow, Math.fround(1.25));
+});
+
+test("getStyle provider is reused per node and refreshed for the next compute", () => {
+  const fixture = createNestedMeasureFixture(FlexDirection.Row);
+  const providers = new Map<NodeId, () => ReturnType<MeasureArgs<unknown>["getStyle"]>>();
+  let repeatedProvider = false;
+
+  fixture.tree.computeLayoutWithMeasure({
+    root: fixture.root,
+    availableSpace: { width: 1280, height: 800 },
+    measure(args) {
+      const previous = providers.get(args.node);
+      if (previous === undefined) providers.set(args.node, args.getStyle);
+      else {
+        repeatedProvider = true;
+        assert.equal(args.getStyle, previous);
+      }
+      return { width: 73, height: 19 };
+    },
+  });
+
+  assert.equal(repeatedProvider, true);
+  const previousProvider = providers.get(fixture.measured);
+  assert.ok(previousProvider);
+  assert.equal(previousProvider().flexGrow, 0);
+
+  fixture.tree.setStyle(fixture.measured, { flexGrow: 2 });
+  let nextProvider: MeasureArgs<unknown>["getStyle"] | undefined;
+  fixture.tree.computeLayoutWithMeasure({
+    root: fixture.root,
+    availableSpace: { width: 1280, height: 800 },
+    measure(args) {
+      if (args.node === fixture.measured) nextProvider ??= args.getStyle;
+      return { width: 73, height: 19 };
+    },
+  });
+
+  assert.ok(nextProvider);
+  assert.notEqual(nextProvider, previousProvider);
+  assert.equal(nextProvider().flexGrow, 2);
+  assert.equal(previousProvider().flexGrow, 0);
 });
 
 test("result-f32", () => {
@@ -439,8 +486,9 @@ test("throw-identity", () => {
     const node = tree.newLeafWithContext({}, true);
     let failedCalls = 0;
     const received = captureError(() =>
-      compute(tree, node, () => {
+      compute(tree, node, ({ getStyle }) => {
         failedCalls += 1;
+        assert.equal(getStyle().flexGrow, 0);
         throw thrown;
       }),
     );
