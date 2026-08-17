@@ -40,7 +40,7 @@ test("identity", () => {
     assert.equal(tree.getNodeContext(node), entries[index]);
   }
 
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root: nodes[0],
     availableSpace: availableSpace(),
     measure: ({ node }) => {

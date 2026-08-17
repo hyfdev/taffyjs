@@ -618,7 +618,7 @@ impl BindingTaffyTree {
             geometry::size(available_space, available_space::available_space),
         )?;
         let mut session = measure::MeasureSession::new(env, measure);
-        let result = self.owner.access("computeLayoutWithMeasure", |tree| {
+        let result = self.owner.access("computeLayout", |tree| {
             tree.compute_layout_with_measure(
                 node,
                 available_space,

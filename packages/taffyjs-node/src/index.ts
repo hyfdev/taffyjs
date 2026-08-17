@@ -31,7 +31,6 @@ export type { NodeId } from "./node-id.js";
 export type {
   ChildRangeInput,
   ComputeLayoutOptions,
-  ComputeLayoutWithMeasureOptions,
   DetailedGridInfo,
   DetailedGridItemInfo,
   DetailedGridTracksInfo,

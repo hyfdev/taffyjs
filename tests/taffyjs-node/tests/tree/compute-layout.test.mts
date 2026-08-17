@@ -123,7 +123,7 @@ test("cache", () => {
   const root = tree.newLeafWithContext({}, true);
   const availableSpace = maxContentSpace();
   let calls = 0;
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root,
     availableSpace,
     measure() {
@@ -202,7 +202,7 @@ test("no-measure", () => {
   const tree = new TaffyTree();
   const node = tree.newLeafWithContext({}, { measured: true });
   let calls = 0;
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root: node,
     availableSpace: maxContentSpace(),
     measure() {

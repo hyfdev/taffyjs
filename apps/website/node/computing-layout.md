@@ -22,13 +22,15 @@ Each axis has one of three meanings:
 - `AvailableSpace.MinContent` requests minimum-content sizing.
 - `AvailableSpace.MaxContent` requests maximum-content sizing.
 
-`computeLayout` automatically invokes a measure function only for a leaf configured with `setMeasure`. Every other leaf stays in Rust and uses ordinary Taffy leaf sizing. When the whole tree has no configured measure function, the wrapper keeps the direct native `computeLayout` fast path.
+`computeLayout` automatically invokes a measure function only for a leaf configured with `setMeasure`, unless the options also provide a global `measure` fallback. Without a fallback, every unconfigured leaf stays in Rust and uses ordinary Taffy leaf sizing. When the whole tree has no configured measure function and the call has no fallback, the wrapper keeps the direct native `computeLayout` fast path.
 
 ## Dirty state and caching
 
 New nodes start dirty. A successful compute normally leaves the computed state clean. `isDirty(node)` reports Taffy's cache state, and `markDirty(node)` explicitly invalidates that node and the necessary ancestor path.
 
-Style replacement, context replacement, topology changes, and every `setMeasure` call normally dirty the affected path. Setting the same per-node callback again still dirties the node because the call explicitly resets its measurement behavior. External mutations are not observable, so changing a context object or data captured by a callback requires an explicit `markDirty`. Passing a different global fallback to a later `computeLayoutWithMeasure` call does not invalidate an existing cached measurement.
+Style replacement, context replacement, topology changes, and every `setMeasure` call normally dirty the affected path. Setting the same per-node callback again still dirties the node because the call explicitly resets its measurement behavior. External mutations are not observable, so changing a context object or data captured by a callback requires an explicit `markDirty`.
+
+The global fallback's identity and presence are not part of Taffy's cache key. Adding, removing, or changing the fallback or its captured data therefore requires marking every potentially affected leaf dirty before computing again. `markDirty(root)` is not enough: it clears that node and its ancestors, not cached descendants.
 
 A dirty node can still have a previously stored layout. Reading it returns that old snapshot until another successful compute stores a new result. As noted in [Nodes and Topology](./nodes-and-topology.md#remove-nodes), `remove(node)` does not dirty its former parent in the current Taffy version.
 
@@ -53,12 +55,12 @@ tree.computeLayout({
 
 `setMeasure(node, measure)` sets or replaces the callback. `setMeasure(node, undefined)` clears it. Context and measurement are independent: a node may have either, both, or neither. Setting, replacing, or clearing a callback marks that node dirty. If data captured by an unchanged callback changes without another setter call, use `markDirty(node)`.
 
-## Global fallback
+## Optional global fallback
 
-`computeLayoutWithMeasure` retains a global fallback for compatibility and advanced cases where any otherwise unconfigured leaf may need external measurement:
+Pass `measure` to `computeLayout` for compatibility and advanced cases where any otherwise unconfigured leaf may need external measurement:
 
 ```ts
-tree.computeLayoutWithMeasure({
+tree.computeLayout({
   root,
   availableSpace,
   measure({ knownDimensions, availableSpace, node, context, getStyle }) {
@@ -68,7 +70,7 @@ tree.computeLayoutWithMeasure({
 });
 ```
 
-Dispatch priority is the node's configured measure first, then the global fallback. With no callback from either source, a leaf stays in Rust. Existing code that only supplies the global fallback keeps its previous behavior: Taffy may ask it to measure any leaf that needs an intrinsic size. Context is optional, and `setNodeContext` changes or clears the value without enabling or disabling measurement.
+Dispatch priority is the node's configured measure first, then the current call's global fallback, then ordinary native leaf sizing without entering JavaScript. Existing code that only supplies the global fallback keeps its previous behavior: Taffy may ask it to measure any leaf that needs an intrinsic size. Context is optional, and `setNodeContext` changes or clears the value without enabling or disabling measurement.
 
 The callback is validated as a function before native computation, even when Taffy may satisfy the request from cache. Taffy controls whether it runs, how often it runs, and the order of calls.
 

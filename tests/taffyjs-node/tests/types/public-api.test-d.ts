@@ -1,5 +1,7 @@
 // @ts-expect-error The binding class is not a public export.
 import { BindingTaffyTree } from "@taffyjs/node";
+// @ts-expect-error The measured layout options were folded into ComputeLayoutOptions.
+import type { ComputeLayoutWithMeasureOptions } from "@taffyjs/node";
 import * as api from "@taffyjs/node";
 import {
   AvailableSpace,
@@ -7,7 +9,7 @@ import {
   RepetitionCount,
   TaffyTree,
   TrackSizingFunction,
-  type ComputeLayoutWithMeasureOptions,
+  type ComputeLayoutOptions,
   type Layout,
   type NodeId,
   type Style,
@@ -47,15 +49,13 @@ type ExpectedTree<TContext> = {
   getDetailedLayoutInfo(node: NodeId): api.DetailedLayoutInfo;
   markDirty(node: NodeId): void;
   isDirty(node: NodeId): boolean;
-  computeLayout(options: {
-    root: NodeId;
-    availableSpace: api.SizeInput<api.AvailableSpaceInput>;
-  }): void;
-  computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
+  computeLayout(options: ComputeLayoutOptions<TContext>): void;
 };
 
 declare const node: NodeId;
 const tree = new TaffyTree<Context>();
+declare const removedOptions: ComputeLayoutWithMeasureOptions;
+void removedOptions;
 const expectedFromActual: ExpectedTree<Context> = tree;
 const constructor: new <TContext = unknown>() => TaffyTree<TContext> = TaffyTree;
 const prototype: TaffyTree<Context> = TaffyTree.prototype;
@@ -98,7 +98,7 @@ tree.setMeasure(node, undefined);
 // @ts-expect-error null does not clear a per-node measure.
 tree.setMeasure(node, null);
 
-tree.computeLayoutWithMeasure({
+tree.computeLayout({
   root: node,
   availableSpace: { width: AvailableSpace.MinContent, height: AvailableSpace.MaxContent },
   measure(args) {
@@ -112,6 +112,8 @@ tree.computeLayoutWithMeasure({
     return { width: 1, height: 2 };
   },
 });
+// @ts-expect-error The public measured-layout method was folded into computeLayout.
+void tree.computeLayoutWithMeasure;
 
 const primitive: bigint = node;
 const nodeMap = new Map<NodeId, string>([[node, "node"]]);

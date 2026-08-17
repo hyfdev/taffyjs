@@ -3,7 +3,6 @@ import { NodeIdRegistry, type NodeId } from "./node-id.js";
 import type {
   ChildRangeInput,
   ComputeLayoutOptions,
-  ComputeLayoutWithMeasureOptions,
   DetailedLayoutInfo,
   Layout,
   MeasureFunction,
@@ -240,27 +239,23 @@ export class TaffyTree<TContext = unknown> {
     this.#measures.clear();
   }
 
-  /** Computes and stores layout synchronously, invoking only configured per-node measures. */
-  computeLayout(options: ComputeLayoutOptions): void {
+  /** Computes and stores layout synchronously with configured per-node measures and an optional global fallback. */
+  computeLayout(options: ComputeLayoutOptions<TContext>): void {
     const root = this.#nodes.resolve(options.root);
-    if (this.#measures.size === 0) {
+    const measure = options.measure;
+    if (measure !== undefined && typeof measure !== "function") {
+      throw new TypeError("measure must be a function or undefined");
+    }
+    if (this.#measures.size === 0 && measure === undefined) {
       this.#inner.rawComputeLayout(root, options.availableSpace);
       return;
     }
-    this.#computeLayoutWithMeasure(root, options.availableSpace, undefined);
+    this.#computeMeasuredLayout(root, options.availableSpace, measure);
   }
 
-  /** Computes synchronously with a global fallback for nodes without a per-node measure. */
-  computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void {
-    const root = this.#nodes.resolve(options.root);
-    const measure = options.measure;
-    if (typeof measure !== "function") throw new TypeError("measure must be a function");
-    this.#computeLayoutWithMeasure(root, options.availableSpace, measure);
-  }
-
-  #computeLayoutWithMeasure(
+  #computeMeasuredLayout(
     root: bigint,
-    availableSpace: ComputeLayoutOptions["availableSpace"],
+    availableSpace: ComputeLayoutOptions<TContext>["availableSpace"],
     fallback: MeasureFunction<TContext> | undefined,
   ): void {
     this.#inner.rawComputeLayoutWithMeasure(

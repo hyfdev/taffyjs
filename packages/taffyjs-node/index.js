@@ -1182,23 +1182,18 @@ var TaffyTree = class {
 		this.#contexts.clear();
 		this.#measures.clear();
 	}
-	/** Computes and stores layout synchronously, invoking only configured per-node measures. */
+	/** Computes and stores layout synchronously with configured per-node measures and an optional global fallback. */
 	computeLayout(options) {
 		const root = this.#nodes.resolve(options.root);
-		if (this.#measures.size === 0) {
+		const measure = options.measure;
+		if (measure !== void 0 && typeof measure !== "function") throw new TypeError("measure must be a function or undefined");
+		if (this.#measures.size === 0 && measure === void 0) {
 			this.#inner.rawComputeLayout(root, options.availableSpace);
 			return;
 		}
-		this.#computeLayoutWithMeasure(root, options.availableSpace, void 0);
+		this.#computeMeasuredLayout(root, options.availableSpace, measure);
 	}
-	/** Computes synchronously with a global fallback for nodes without a per-node measure. */
-	computeLayoutWithMeasure(options) {
-		const root = this.#nodes.resolve(options.root);
-		const measure = options.measure;
-		if (typeof measure !== "function") throw new TypeError("measure must be a function");
-		this.#computeLayoutWithMeasure(root, options.availableSpace, measure);
-	}
-	#computeLayoutWithMeasure(root, availableSpace, fallback) {
+	#computeMeasuredLayout(root, availableSpace, fallback) {
 		this.#inner.rawComputeLayoutWithMeasure(root, availableSpace, (value) => {
 			const args = value;
 			const node = this.#nodes.fromRaw(args.node);

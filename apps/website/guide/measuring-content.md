@@ -100,7 +100,9 @@ Calling `setMeasure` sets, replaces, or clears a per-node callback and marks the
 
 ## Use a global fallback when every leaf is eligible
 
-`computeLayoutWithMeasure({ root, availableSpace, measure })` remains available as an escape hatch. Its `measure` function is the fallback for any leaf without a per-node callback. A callback configured with `setMeasure` takes priority. Code that only uses this global fallback keeps the previous behavior, but ordinary applications should register the nodes that actually own externally measured content and use `computeLayout`.
+`computeLayout({ root, availableSpace, measure })` accepts an optional escape-hatch fallback for any leaf without a per-node callback. A callback configured with `setMeasure` takes priority. Code that only uses this global fallback keeps the previous behavior, but ordinary applications should register the nodes that actually own externally measured content.
+
+Fallback identity and presence are not part of Taffy's cache key. When you add, remove, or change a fallback or its captured data, call `markDirty` on every leaf that may be affected. Marking only the compute root does not clear cached descendant measurements.
 
 ## Measurement runs during layout
 

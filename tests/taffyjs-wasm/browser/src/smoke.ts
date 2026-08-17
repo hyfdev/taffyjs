@@ -16,7 +16,7 @@ export function runBrowserSmoke(): BrowserSmokeResult {
   const root = tree.newLeafWithContext({}, { label: "wasm-browser" });
   let measureCalls = 0;
 
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root,
     availableSpace: { width: 800, height: 600 },
     measure(args) {
@@ -40,7 +40,7 @@ export function runBrowserSmoke(): BrowserSmokeResult {
   let callbackError: unknown;
   tree.markDirty(root);
   try {
-    tree.computeLayoutWithMeasure({
+    tree.computeLayout({
       root,
       availableSpace: { width: 800, height: 600 },
       measure: () => {
@@ -53,7 +53,7 @@ export function runBrowserSmoke(): BrowserSmokeResult {
   if (callbackError !== thrown) throw new Error("Measure callback error identity changed");
 
   tree.markDirty(root);
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root,
     availableSpace: { width: 800, height: 600 },
     measure: () => ({ width: 41, height: 19 }),

@@ -705,23 +705,18 @@ type MeasureArgs<TContext> = Readonly<{
   /** Returns a new detached snapshot of the measured node's complete normalized Style. */
   getStyle(): Style;
 }>;
-/** Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying. The same type is used for per-node measures and a computeLayoutWithMeasure fallback. */
+/** Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying. The same type is used for per-node measures and a computeLayout fallback. */
 type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInput<number>;
 /** Supplies a half-open child index range to removeChildrenRange. */
 interface ChildRangeInput {
   /** Supplies the start value used by ChildRangeInput. */ start: number;
   /** Supplies the end value used by ChildRangeInput. */ end: number;
 }
-/** Supplies a root, available space, and synchronous fallback for leaves without a per-node measure. */
-interface ComputeLayoutWithMeasureOptions<TContext> {
-  /** Supplies the root value used by ComputeLayoutWithMeasureOptions. */ root: NodeId;
-  /** Supplies the available space value used by ComputeLayoutWithMeasureOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
-  /** Supplies the global fallback used after any configured per-node measure. */ measure: MeasureFunction<TContext>;
-}
-/** Supplies a root and available space for layout using configured per-node measures. */
-interface ComputeLayoutOptions {
+/** Supplies a root, available space, and an optional synchronous fallback for layout. */
+interface ComputeLayoutOptions<TContext = unknown> {
   /** Supplies the root value used by ComputeLayoutOptions. */ root: NodeId;
   /** Supplies the available space value used by ComputeLayoutOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
+  /** Supplies the optional global fallback used after any configured per-node measure. */ measure?: MeasureFunction<TContext>;
 }
 //#endregion
 //#region src/grid.d.ts
@@ -867,10 +862,8 @@ declare class TaffyTree<TContext = unknown> {
   isDirty(node: NodeId): boolean;
   /** Removes every node, context value, and per-node measure function from this tree. */
   clear(): void;
-  /** Computes and stores layout synchronously, invoking only configured per-node measures. */
-  computeLayout(options: ComputeLayoutOptions): void;
-  /** Computes synchronously with a global fallback for nodes without a per-node measure. */
-  computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
+  /** Computes and stores layout synchronously with configured per-node measures and an optional global fallback. */
+  computeLayout(options: ComputeLayoutOptions<TContext>): void;
 }
 //#endregion
-export { AlignContent, AlignItems, type AutoInput, AvailableSpace, type AvailableSpaceInput, AvailableSpaceKind, BoxSizing, type ChildRangeInput, Clear, type ComputeLayoutOptions, type ComputeLayoutWithMeasureOptions, type DetailedGridInfo, type DetailedGridItemInfo, type DetailedGridTracksInfo, type DetailedLayoutInfo, DetailedLayoutInfoKind, Dimension, type DimensionInput, Direction, Display, type EnumValue, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, type GridPlacementInput, GridPlacementKind, type GridTemplateArea, type GridTemplateAreaInput, type GridTemplateAreas, type GridTemplateAreasInput, GridTemplateComponent, type GridTemplateComponentInput, GridTemplateComponentKind, type GridTemplateRepetition, type GridTemplateRepetitionInput, type Layout, type LengthInput, type LengthPercentage, type LengthPercentageAuto, type LengthPercentageAutoInput, type LengthPercentageInput, LengthUnit, type Line, type LineInput, type MaxTrackSizingFunction, type MaxTrackSizingFunctionInput, type MeasureArgs, type MeasureFunction, type MinTrackSizingFunction, type MinTrackSizingFunctionInput, type NodeId, Overflow, type PartialLineInput, type PartialPointInput, type PartialRectInput, type PartialSizeInput, type PercentInput, type Point, type PointInput, Position, type Rect, type RectInput, RepetitionCount, type RepetitionCountInput, RepetitionCountKind, type Size, type SizeInput, type Style, type StyleInput, type StyleUpdate, TaffyTree, TextAlign, TrackSizingFunction, type TrackSizingFunctionInput, TrackSizingKind };
+export { AlignContent, AlignItems, type AutoInput, AvailableSpace, type AvailableSpaceInput, AvailableSpaceKind, BoxSizing, type ChildRangeInput, Clear, type ComputeLayoutOptions, type DetailedGridInfo, type DetailedGridItemInfo, type DetailedGridTracksInfo, type DetailedLayoutInfo, DetailedLayoutInfoKind, Dimension, type DimensionInput, Direction, Display, type EnumValue, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, type GridPlacementInput, GridPlacementKind, type GridTemplateArea, type GridTemplateAreaInput, type GridTemplateAreas, type GridTemplateAreasInput, GridTemplateComponent, type GridTemplateComponentInput, GridTemplateComponentKind, type GridTemplateRepetition, type GridTemplateRepetitionInput, type Layout, type LengthInput, type LengthPercentage, type LengthPercentageAuto, type LengthPercentageAutoInput, type LengthPercentageInput, LengthUnit, type Line, type LineInput, type MaxTrackSizingFunction, type MaxTrackSizingFunctionInput, type MeasureArgs, type MeasureFunction, type MinTrackSizingFunction, type MinTrackSizingFunctionInput, type NodeId, Overflow, type PartialLineInput, type PartialPointInput, type PartialRectInput, type PartialSizeInput, type PercentInput, type Point, type PointInput, Position, type Rect, type RectInput, RepetitionCount, type RepetitionCountInput, RepetitionCountKind, type Size, type SizeInput, type Style, type StyleInput, type StyleUpdate, TaffyTree, TextAlign, TrackSizingFunction, type TrackSizingFunctionInput, TrackSizingKind };

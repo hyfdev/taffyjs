@@ -43,9 +43,9 @@ const operations: readonly Operation[] = [
   ["isDirty", () => tree.isDirty(measured)],
   ["computeLayout", () => tree.computeLayout({ root, availableSpace: space })],
   [
-    "computeLayoutWithMeasure",
+    "computeLayout",
     () =>
-      tree.computeLayoutWithMeasure({
+      tree.computeLayout({
         root,
         availableSpace: space,
         measure: () => ({ width: 0, height: 0 }),
@@ -55,7 +55,7 @@ const operations: readonly Operation[] = [
 
 let callbackRan = false;
 const results: OperationResult[] = [];
-tree.computeLayoutWithMeasure({
+tree.computeLayout({
   root,
   availableSpace: space,
   measure() {

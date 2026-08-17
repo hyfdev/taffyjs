@@ -20,7 +20,7 @@ function captureError(body: () => unknown): CodedError {
 }
 
 function computeWithMeasure(tree: TaffyTree, root: NodeId, measure: (args: MeasureArgs) => void) {
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root,
     availableSpace: availableSpace(),
     measure(args) {

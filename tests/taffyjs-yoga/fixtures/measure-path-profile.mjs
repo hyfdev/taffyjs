@@ -3,21 +3,14 @@ const yogaTestEntry = process.env.TAFFYJS_YOGA_TEST_ENTRY ?? "yoga-layout";
 const { TaffyTree } = await import(testEntry);
 const { default: Yoga } = await import(yogaTestEntry);
 
-const ordinaryCompute = Object.getOwnPropertyDescriptor(TaffyTree.prototype, "computeLayout").value;
-const measuredCompute = Object.getOwnPropertyDescriptor(
-  TaffyTree.prototype,
-  "computeLayoutWithMeasure",
-).value;
+const computeLayout = Object.getOwnPropertyDescriptor(TaffyTree.prototype, "computeLayout").value;
 const setMeasure = Object.getOwnPropertyDescriptor(TaffyTree.prototype, "setMeasure").value;
-const calls = { ordinary: 0, measured: 0, configured: 0 };
+const calls = { compute: 0, fallback: 0, configured: 0 };
 
 TaffyTree.prototype.computeLayout = function (...args) {
-  calls.ordinary += 1;
-  return ordinaryCompute.apply(this, args);
-};
-TaffyTree.prototype.computeLayoutWithMeasure = function (...args) {
-  calls.measured += 1;
-  return measuredCompute.apply(this, args);
+  calls.compute += 1;
+  if (args[0]?.measure !== undefined) calls.fallback += 1;
+  return computeLayout.apply(this, args);
 };
 TaffyTree.prototype.setMeasure = function (...args) {
   calls.configured += 1;
@@ -41,7 +34,6 @@ try {
 
   process.stdout.write(JSON.stringify({ afterPlain, afterMeasured, afterUnset }));
 } finally {
-  TaffyTree.prototype.computeLayout = ordinaryCompute;
-  TaffyTree.prototype.computeLayoutWithMeasure = measuredCompute;
+  TaffyTree.prototype.computeLayout = computeLayout;
   TaffyTree.prototype.setMeasure = setMeasure;
 }

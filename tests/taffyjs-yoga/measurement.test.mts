@@ -428,8 +428,8 @@ test("Yoga registers per-node measures and always uses the public computeLayout 
   assert.equal(result.signal, null);
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout), {
-    afterPlain: { ordinary: 1, measured: 0, configured: 0 },
-    afterMeasured: { ordinary: 2, measured: 0, configured: 1 },
-    afterUnset: { ordinary: 3, measured: 0, configured: 2 },
+    afterPlain: { compute: 1, fallback: 0, configured: 0 },
+    afterMeasured: { compute: 2, fallback: 0, configured: 1 },
+    afterUnset: { compute: 3, fallback: 0, configured: 2 },
   });
 });

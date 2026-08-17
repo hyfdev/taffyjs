@@ -48,7 +48,7 @@ const tree = new TaffyTree<TextContext>();
 const label = tree.newLeafWithContext({}, { text: "Hello", fontSize: 16 });
 ```
 
-Context is optional measurement data, not a switch that makes a node measurable. Use `setMeasure(node, callback)` to configure per-node measurement independently. A configured node without context receives `context === undefined`; a node with context but no per-node measure remains an ordinary leaf unless a `computeLayoutWithMeasure` global fallback is active.
+Context is optional measurement data, not a switch that makes a node measurable. Use `setMeasure(node, callback)` to configure per-node measurement independently. A configured node without context receives `context === undefined`; a node with context but no per-node measure remains an ordinary leaf unless the current `computeLayout` call supplies a global fallback.
 
 `getNodeContext(node)` returns the exact JavaScript value by identity, or `undefined` when no value is attached. `setNodeContext(node, value)` replaces the value. Passing `undefined` clears it; `null` is an ordinary present value when `TContext` includes `null`.
 
