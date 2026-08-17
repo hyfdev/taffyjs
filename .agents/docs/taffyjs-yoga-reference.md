@@ -51,7 +51,7 @@ API shape, accepted input, stored getter value, state transition, error behavior
 
 ## Package entries and exports
 
-The decided package is ESM-only, follows @taffyjs/node's supported Node.js version (currently Node.js >=22.18) and alternate-runtime floors and constraints, and mirrors both Yoga entry shapes at @taffyjs/yoga and @taffyjs/yoga/load. It never provides a browser or WASM backend.
+The decided package is ESM-only, follows @taffyjs/node's supported Node.js version (currently Node.js >=22.20) and alternate-runtime floors and constraints, and mirrors both Yoga entry shapes at @taffyjs/yoga and @taffyjs/yoga/load. It never provides a browser or WASM backend.
 
 Yoga 3.2.1 is ESM and publishes two package entries.
 

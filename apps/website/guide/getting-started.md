@@ -14,7 +14,7 @@ Install `@taffyjs/node` with npm:
 npm install @taffyjs/node
 ```
 
-`@taffyjs/node` requires Node.js 22.18 or newer.
+`@taffyjs/node` requires Node.js 22.20 or newer.
 
 ## Start from CSS
 

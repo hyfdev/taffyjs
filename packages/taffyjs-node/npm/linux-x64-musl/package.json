@@ -23,6 +23,6 @@
   ],
   "main": "taffyjs.linux-x64-musl.node",
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=22.20.0"
   }
 }

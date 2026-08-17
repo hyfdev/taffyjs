@@ -32,7 +32,7 @@ The [Guide](../guide/getting-started.md) and [`TaffyTree` reference](../node/nod
 
 | Environment | Support                                                                                       |
 | ----------- | --------------------------------------------------------------------------------------------- |
-| Node.js     | Node.js 22.18 or newer                                                                        |
+| Node.js     | Node.js 22.20 or newer                                                                        |
 | Bun         | Version 1.2 or newer within the Bun 1 major                                                   |
 | Deno        | Version 2.2 or newer within the Deno 2 major, without permission flags                        |
 | Browser     | Applications built with a bundler that supports package export conditions and top-level await |

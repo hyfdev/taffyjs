@@ -220,6 +220,16 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 ## Decided
 
+### Node runtime baseline
+
+**Ruling:** TaffyJS must use a suitable maintained Node.js baseline rather than preserving Node 22.18 merely because it was the repository's original minimum.
+
+**Limits:** This direction does not itself choose an exact replacement version or change the separately decided native target set. The current baseline belongs in package metadata, build targets, CI, and public support documentation rather than in this ledger.
+
+**Why:** No additional rationale was stated.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-17; explicitly directed the repository not to preserve Node 22.18 for its own sake and to choose a suitable version.
+
 ### Native distribution targets
 
 **Ruling:** `@taffyjs/node` must provide native packages for the 13 native targets carried by napi-rs's maintained package templates: macOS x64 and arm64; Windows x86, x64, and arm64 MSVC; Linux x64 and arm64 with GNU or musl plus armv7 GNU; Android armv7 and arm64; and FreeBSD x64.

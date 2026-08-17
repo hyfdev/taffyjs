@@ -7,6 +7,9 @@ import { platformForHost, platforms } from "./platforms.ts";
 
 interface RootPackageJson {
   readonly version: string;
+  readonly engines: {
+    readonly node: string;
+  };
   readonly optionalDependencies: Readonly<Record<string, string>>;
   readonly napi: {
     readonly targets: readonly string[];
@@ -17,6 +20,9 @@ interface PlatformPackageJson {
   readonly name: string;
   readonly version: string;
   readonly private: boolean;
+  readonly engines: {
+    readonly node: string;
+  };
   readonly os: readonly string[];
   readonly cpu: readonly string[];
   readonly libc?: readonly string[];
@@ -63,6 +69,7 @@ for (const platform of platforms) {
   assert.equal(packageJson.name, platform.packageName);
   assert.equal(packageJson.version, rootPackage.version);
   assert.equal(packageJson.private, true);
+  assert.deepEqual(packageJson.engines, rootPackage.engines);
   assert.deepEqual(packageJson.os, [platform.os]);
   assert.deepEqual(packageJson.cpu, [platform.cpu]);
   assert.deepEqual(packageJson.libc, platform.libc ? [platform.libc] : undefined);

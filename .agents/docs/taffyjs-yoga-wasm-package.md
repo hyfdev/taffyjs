@@ -5,7 +5,7 @@
 ## Public contract
 
 - The package is ESM-only and exposes the same root and `/load` shapes, declarations, constants, and Yoga compatibility classifications as `@taffyjs/yoga`.
-- The package supports Node.js `>=22.18`, Bun 1.2+ within major 1, Deno 2.2+ within major 2, and modern bundled browsers within the existing `@taffyjs/wasm` contract. Deno requires no permission flags. It does not claim direct CDN, legacy-browser, workerd, or other edge-runtime support without separate evidence.
+- The package supports Node.js `>=22.20`, Bun 1.2+ within major 1, Deno 2.2+ within major 2, and modern bundled browsers within the existing `@taffyjs/wasm` contract. Deno requires no permission flags. It does not claim direct CDN, legacy-browser, workerd, or other edge-runtime support without separate evidence.
 - Consumers may install it under Yoga's original name with the registry alias `"yoga-layout": "npm:@taffyjs/yoga-wasm@<version>"`; supported application imports remain unchanged.
 - `PositionType.Static` and every other Unsupported capability stay unsupported. Replacing the runtime transport does not create missing Taffy layout semantics.
 

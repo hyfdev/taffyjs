@@ -8,7 +8,7 @@ Read the [Design Philosophy](./design-philosophy.md) to understand why the API f
 
 ## Runtime support
 
-The package requires Node.js 22.18.0 or newer. Its native package metadata and distribution build matrix cover these targets:
+The package requires Node.js 22.20.0 or newer. Its native package metadata and distribution build matrix cover these targets:
 
 | Operating system | Architecture | Native target                   |
 | ---------------- | ------------ | ------------------------------- |
