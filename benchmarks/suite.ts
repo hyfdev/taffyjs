@@ -1,15 +1,7 @@
-import { codingAgentChatScenario } from "./coding-agent-chat/benchmark.ts";
-import { deepTreeScenarios } from "./deep-tree/benchmark.ts";
-import type {
-  BenchmarkComparisonGroup,
-  BenchmarkProfile,
-  TaffyBenchmarkComparisonGroup,
-  YogaBenchmarkComparisonGroup,
-} from "./scenario.ts";
-import { wideTreeScenarios } from "./wide-tree/benchmark.ts";
-import { yogaCodingAgentChatScenario } from "./yoga-coding-agent-chat/benchmark.ts";
-import { yogaDeepTreeScenarios } from "./yoga-deep-tree/benchmark.ts";
-import { yogaWideTreeScenarios } from "./yoga-wide-tree/benchmark.ts";
+import { codingAgentChatScenarios } from "./coding-agent-chat/benchmark.ts";
+import { nestedUiScenarios } from "./nested-ui/benchmark.ts";
+import type { BenchmarkProfile, BenchmarkScenario, BenchmarkTarget } from "./scenario.ts";
+import { wideWrappingCollectionScenario } from "./wide-wrapping-collection/benchmark.ts";
 
 export const benchmarkProfiles: readonly BenchmarkProfile[] = [
   {
@@ -38,48 +30,48 @@ export const benchmarkProfiles: readonly BenchmarkProfile[] = [
   },
 ];
 
-export const taffyComparisonGroup: TaffyBenchmarkComparisonGroup = {
-  id: "taffy-api",
-  name: "Taffy API",
-  scenarios: [codingAgentChatScenario, ...wideTreeScenarios, ...deepTreeScenarios],
-  targets: [
-    {
-      id: "node",
-      label: "Native Node",
-      packageName: "@taffyjs/node",
-    },
-    {
-      id: "wasm",
-      label: "WASI Wasm",
-      packageName: "@taffyjs/wasm",
-    },
-  ],
-};
+export const benchmarkTargets: readonly BenchmarkTarget[] = [
+  {
+    id: "node",
+    packageName: "@taffyjs/node",
+    apiKind: "taffy",
+    apiLabel: "TaffyTree",
+    runtimeLabel: "Native Node-API",
+  },
+  {
+    id: "wasm",
+    packageName: "@taffyjs/wasm",
+    apiKind: "taffy",
+    apiLabel: "TaffyTree",
+    runtimeLabel: "WASI Wasm",
+  },
+  {
+    id: "taffy-yoga",
+    packageName: "@taffyjs/yoga",
+    apiKind: "yoga",
+    apiLabel: "Yoga Node",
+    runtimeLabel: "Native Taffy",
+  },
+  {
+    id: "taffy-yoga-wasm",
+    packageName: "@taffyjs/yoga-wasm",
+    apiKind: "yoga",
+    apiLabel: "Yoga Node",
+    runtimeLabel: "WASI Taffy",
+  },
+  {
+    id: "yoga-layout",
+    packageName: "yoga-layout",
+    apiKind: "yoga",
+    apiLabel: "Yoga Node",
+    runtimeLabel: "Yoga Wasm",
+  },
+];
 
-export const yogaComparisonGroup: YogaBenchmarkComparisonGroup = {
-  id: "yoga-api",
-  name: "Yoga API",
-  scenarios: [yogaCodingAgentChatScenario, ...yogaWideTreeScenarios, ...yogaDeepTreeScenarios],
-  targets: [
-    {
-      id: "taffy-yoga",
-      label: "Taffy Yoga",
-      packageName: "@taffyjs/yoga",
-    },
-    {
-      id: "yoga-layout",
-      label: "Yoga 3.2.1",
-      packageName: "yoga-layout",
-    },
-    {
-      id: "taffy-yoga-wasm",
-      label: "Taffy Yoga Wasm",
-      packageName: "@taffyjs/yoga-wasm",
-    },
-  ],
-};
+export const benchmarkBaselineTargetId = "yoga-layout";
 
-export const benchmarkComparisonGroups: readonly BenchmarkComparisonGroup[] = [
-  taffyComparisonGroup,
-  yogaComparisonGroup,
+export const benchmarkScenarios: readonly BenchmarkScenario[] = [
+  ...nestedUiScenarios,
+  wideWrappingCollectionScenario,
+  ...codingAgentChatScenarios,
 ];

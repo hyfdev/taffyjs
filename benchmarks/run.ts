@@ -6,18 +6,24 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type {
-  BenchmarkComparisonGroup,
   BenchmarkProfile,
   BenchmarkScenarioMetadata,
   BenchmarkTarget,
   BenchmarkWorkerResult,
   SampledBenchmarkResult,
 } from "./scenario.ts";
-import { benchmarkComparisonGroups, benchmarkProfiles } from "./suite.ts";
+import {
+  benchmarkBaselineTargetId,
+  benchmarkProfiles,
+  benchmarkScenarios,
+  benchmarkTargets,
+} from "./suite.ts";
 
 const benchmarkDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = resolve(benchmarkDirectory, "..");
 const workerPath = resolve(benchmarkDirectory, "worker.ts");
+const layoutValueNames = ["left", "top", "width", "height"] as const;
+const layoutTolerance = 1e-3;
 
 const arguments_ = process.argv.slice(2);
 const requestedScenarioIds: string[] = [];
@@ -35,16 +41,16 @@ if (updateWebsite && requestedScenarioIds.length > 0) {
   throw new Error("benchmark:update-website requires the complete scenario suite");
 }
 const requestedScenarioSet = new Set(requestedScenarioIds);
-const knownScenarioIds = new Set<string>();
-for (const group of benchmarkComparisonGroups) {
-  for (const scenario of group.scenarios) knownScenarioIds.add(scenario.id);
-}
+const knownScenarioIds = new Set(benchmarkScenarios.map(({ id }) => id));
 for (const requestedScenarioId of requestedScenarioSet) {
   assert.ok(
     knownScenarioIds.has(requestedScenarioId),
     `Unknown benchmark scenario ${requestedScenarioId}`,
   );
 }
+const selectedScenarios = benchmarkScenarios.filter(
+  ({ id }) => requestedScenarioSet.size === 0 || requestedScenarioSet.has(id),
+);
 const profileId = updateWebsite ? "publication" : "local";
 const profile = benchmarkProfiles.find(({ id }) => id === profileId);
 assert.ok(profile, `Missing benchmark profile ${profileId}`);
@@ -57,14 +63,13 @@ function repositoryOutput(args: readonly string[]): string {
 }
 
 function runWorker(
-  group: BenchmarkComparisonGroup,
   target: BenchmarkTarget,
   scenario: BenchmarkScenarioMetadata,
   profile: BenchmarkProfile,
 ): BenchmarkWorkerResult {
   const output = execFileSync(
     process.execPath,
-    ["--expose-gc", workerPath, group.id, target.id, scenario.id, profile.id],
+    ["--expose-gc", workerPath, target.id, scenario.id, profile.id],
     {
       cwd: benchmarkDirectory,
       encoding: "utf8",
@@ -75,18 +80,25 @@ function runWorker(
 }
 
 function assertWorkerResult(
-  group: BenchmarkComparisonGroup,
   target: BenchmarkTarget,
   scenario: BenchmarkScenarioMetadata,
   worker: BenchmarkWorkerResult,
 ): void {
-  assert.equal(worker.groupId, group.id, `${scenario.id} returned the wrong comparison group`);
   assert.equal(worker.targetId, target.id, `${scenario.id} returned the wrong target`);
   assert.equal(worker.scenarioId, scenario.id, `${target.id} returned the wrong scenario`);
-  assert.ok(
-    Number.isFinite(worker.checksum),
-    `${scenario.id}/${target.id} returned a non-finite checksum`,
-  );
+  assert.ok(worker.observations.length > 0, `${scenario.id}/${target.id} returned no observations`);
+  for (const [runIndex, observation] of worker.observations.entries()) {
+    assert.ok(
+      observation.length > 0 && observation.length % 4 === 0,
+      `${scenario.id}/${target.id} validation run ${runIndex + 1} returned malformed layout data`,
+    );
+    for (const value of observation) {
+      assert.ok(
+        Number.isFinite(value),
+        `${scenario.id}/${target.id} validation run ${runIndex + 1} returned an invalid layout value`,
+      );
+    }
+  }
   assert.ok(worker.result.sampleCount > 0, `${scenario.id}/${target.id} produced no samples`);
   assert.equal(
     worker.result.sampleCount,
@@ -105,18 +117,34 @@ function assertWorkerResult(
   }
 }
 
-function assertEquivalentChecksums(
+function assertEquivalentObservations(
   scenario: BenchmarkScenarioMetadata,
   workers: readonly BenchmarkWorkerResult[],
 ): void {
-  const expected = workers[0]?.checksum;
-  assert.notEqual(expected, undefined, `${scenario.id} produced no target results`);
-  for (const worker of workers.slice(1)) {
+  const baseline = workers.find(({ targetId }) => targetId === benchmarkBaselineTargetId);
+  assert.ok(baseline, `${scenario.id} is missing ${benchmarkBaselineTargetId} validation output`);
+
+  for (const worker of workers) {
     assert.equal(
-      worker.checksum,
-      expected,
-      `${scenario.id}/${worker.targetId} produced ${worker.checksum}, expected ${expected}`,
+      worker.observations.length,
+      baseline.observations.length,
+      `${scenario.id}/${worker.targetId} returned the wrong validation run count`,
     );
+    for (const [runIndex, actual] of worker.observations.entries()) {
+      const expected: readonly number[] = baseline.observations[runIndex];
+      assert.equal(
+        actual.length,
+        expected.length,
+        `${scenario.id}/${worker.targetId} returned the wrong layout value count`,
+      );
+      for (let valueIndex = 0; valueIndex < expected.length; valueIndex += 1) {
+        const difference = Math.abs(actual[valueIndex] - expected[valueIndex]);
+        assert.ok(
+          difference <= layoutTolerance,
+          `${scenario.id}/${worker.targetId} validation run ${runIndex + 1}, node ${Math.floor(valueIndex / 4)}, ${layoutValueNames[valueIndex % 4]}=${actual[valueIndex]}, expected ${expected[valueIndex]}`,
+        );
+      }
+    }
   }
 }
 
@@ -173,24 +201,28 @@ function assertPublicationStability(
 }
 
 function printScenario(
-  group: BenchmarkComparisonGroup,
   scenario: BenchmarkScenarioMetadata,
   results: readonly ReturnType<typeof summarizeTarget>[],
 ): void {
-  const baselineHz = results[0]?.hz;
-  assert.ok(baselineHz, `${scenario.id} is missing the baseline result`);
-  console.log(`\n${group.name} · ${scenario.name}\n${scenario.question}`);
+  const baseline = results.find(({ targetId }) => targetId === benchmarkBaselineTargetId);
+  assert.ok(baseline, `${scenario.id} is missing the baseline result`);
+  console.log(`\n${scenario.name}\n${scenario.question}`);
   console.table(
-    results.map((result) => ({
-      target: result.packageName,
-      "ops/s": Math.round(result.hz).toLocaleString("en-US"),
-      "mean (ms)": result.meanMs.toFixed(4),
-      "median (ms)": result.medianMs.toFixed(4),
-      relative: `${(result.hz / baselineHz).toFixed(2)}x`,
-      rounds: result.roundCount,
-      samples: result.sampleCount,
-      "max rme": `${result.maxRelativeMarginOfError.toFixed(2)}%`,
-    })),
+    results.map((result) => {
+      const target = benchmarkTargets.find(({ id }) => id === result.targetId);
+      assert.ok(target, `Unknown target ${result.targetId}`);
+      return {
+        package: result.packageName,
+        API: target.apiLabel,
+        runtime: target.runtimeLabel,
+        "ops/s": Math.round(result.hz).toLocaleString("en-US"),
+        "median (ms)": result.medianMs.toFixed(4),
+        "vs yoga-layout": `${(result.hz / baseline.hz).toFixed(2)}x`,
+        rounds: result.roundCount,
+        samples: result.sampleCount,
+        "max rme": `${result.maxRelativeMarginOfError.toFixed(2)}%`,
+      };
+    }),
   );
 }
 
@@ -202,55 +234,40 @@ if (updateWebsite && source.dirty) {
   throw new Error("benchmark:update-website requires a clean worktree");
 }
 
-const comparisonGroupResults = [];
-for (const group of benchmarkComparisonGroups) {
-  const selectedScenarios = group.scenarios.filter(
-    ({ id }) => requestedScenarioSet.size === 0 || requestedScenarioSet.has(id),
-  );
-  if (selectedScenarios.length === 0) continue;
-
-  const scenarioResults = [];
-  for (const scenario of selectedScenarios) {
-    const workers: BenchmarkWorkerResult[] = [];
-    for (let round = 0; round < profile.rounds; round += 1) {
-      const targets = round % 2 === 0 ? group.targets : [...group.targets].reverse();
-      for (const target of targets) {
-        const worker = runWorker(group, target, scenario, profile);
-        assertWorkerResult(group, target, scenario, worker);
-        workers.push(worker);
-      }
+const scenarioResults = [];
+for (const scenario of selectedScenarios) {
+  const workers: BenchmarkWorkerResult[] = [];
+  for (let round = 0; round < profile.rounds; round += 1) {
+    const targets = round % 2 === 0 ? benchmarkTargets : [...benchmarkTargets].reverse();
+    for (const target of targets) {
+      const worker = runWorker(target, scenario, profile);
+      assertWorkerResult(target, scenario, worker);
+      workers.push(worker);
     }
-    assertEquivalentChecksums(scenario, workers);
-    const results = group.targets.map((target) => {
-      const rounds = workers
-        .filter(({ targetId }) => targetId === target.id)
-        .map(({ result }) => result);
-      assert.equal(rounds.length, profile.rounds, `${scenario.id}/${target.id} missed a round`);
-      assertPublicationStability(scenario, target, profile, rounds);
-      return summarizeTarget(target, rounds);
-    });
-    printScenario(group, scenario, results);
-    scenarioResults.push({
-      id: scenario.id,
-      name: scenario.name,
-      question: scenario.question,
-      description: scenario.description,
-      transaction: scenario.transaction,
-      parameters: scenario.parameters,
-      results,
-    });
   }
-
-  comparisonGroupResults.push({
-    id: group.id,
-    name: group.name,
-    targets: group.targets.map(({ id, label, packageName }) => ({ id, label, packageName })),
-    scenarios: scenarioResults,
+  assertEquivalentObservations(scenario, workers);
+  const results = benchmarkTargets.map((target) => {
+    const rounds = workers
+      .filter(({ targetId }) => target.id === targetId)
+      .map(({ result }) => result);
+    assert.equal(rounds.length, profile.rounds, `${scenario.id}/${target.id} missed a round`);
+    assertPublicationStability(scenario, target, profile, rounds);
+    return summarizeTarget(target, rounds);
+  });
+  printScenario(scenario, results);
+  scenarioResults.push({
+    id: scenario.id,
+    name: scenario.name,
+    question: scenario.question,
+    description: scenario.description,
+    transaction: scenario.transaction,
+    parameters: scenario.parameters,
+    results,
   });
 }
 
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   generatedAt: new Date().toISOString(),
   source,
   environment: {
@@ -261,7 +278,9 @@ const report = {
     cpu: cpus()[0]?.model ?? "unknown",
   },
   profile,
-  comparisonGroups: comparisonGroupResults,
+  baselineTargetId: benchmarkBaselineTargetId,
+  targets: benchmarkTargets,
+  scenarios: scenarioResults,
 };
 
 const outputPath = updateWebsite

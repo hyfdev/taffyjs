@@ -6,8 +6,8 @@ import BenchmarkResults from "../.vitepress/components/BenchmarkResults.vue";
 
 These measurements describe the current implementations, not their final performance potential; several known optimization opportunities have not yet been implemented.
 
-These results compare complete public JavaScript transactions in Node.js. The Taffy API group compares `@taffyjs/node` with `@taffyjs/wasm`. The Yoga API group compares packages through the same Yoga-shaped API. Each transaction starts after package import and includes public tree construction, data conversion, layout computation, reading the requested layout results, and any lifecycle work required by that API.
+These results compare complete public JavaScript layout transactions in Node.js. Every scenario runs through `@taffyjs/node`, `@taffyjs/wasm`, `@taffyjs/yoga`, `@taffyjs/yoga-wasm`, and `yoga-layout`. The two public API shapes use explicit implementations of the same semantic workload, including their real tree construction, conversion, layout, output-read, callback, and lifecycle costs.
 
-Each scenario asks a different question and stands on its own. Relative throughput uses the first target as the `1.00×` reference within its own API group. Results from different APIs or scenarios are not combined into an overall score or winner.
+Each scenario asks a different question and stands on its own. Relative throughput uses `yoga-layout` as the `1.00×` reference. Results from different scenarios are not combined into an overall score or winner.
 
 <BenchmarkResults />

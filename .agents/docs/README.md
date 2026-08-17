@@ -2,7 +2,7 @@
 
 - [Intent](intent.md) — the package family, its intended users, and the questions deliberately left open during bootstrap.
 - [Public website](website.md) — the family-level product story, Guide and per-package documentation structure, and ownership of public content.
-- [Benchmark design](benchmark.md) — the Node-only public-API measurement boundary, scenario ownership, comparison groups, commands, retained results, and website presentation.
+- [Benchmark design](benchmark.md) — the Node-only public-API measurement boundary, scenario ownership, package/API/runtime comparisons, commands, retained results, and website presentation.
 - [Architecture](architecture.md) — ownership, package boundaries, test placement and selection, and the complete-snapshot boundary.
 - [Taffy-to-Node binding mapping](binding-mapping.md) — the repeatable rules for selecting Taffy's high-level Rust surface, mapping it through napi-rs, and preserving safety at the JavaScript boundary.
 - [Selective query design notes](query-api-design.md) — the agreed high-level model for reading only selected Style, Layout, or DetailedLayoutInfo values without turning the API into a general query language.
