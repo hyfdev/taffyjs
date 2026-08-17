@@ -422,13 +422,14 @@ test("same-facade native reentrancy fails before mutation while JavaScript gette
   node.free();
 });
 
-test("unmeasured calculations stay on the ordinary backend path", () => {
+test("Yoga registers per-node measures and always uses the public computeLayout API", () => {
   const fixture = fileURLToPath(new URL("./fixtures/measure-path-profile.mjs", import.meta.url));
   const result = spawnSync(process.execPath, [fixture], { encoding: "utf8", timeout: 20_000 });
   assert.equal(result.signal, null);
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout), {
-    afterPlain: { ordinary: 1, measured: 0 },
-    afterMeasured: { ordinary: 1, measured: 1 },
+    afterPlain: { ordinary: 1, measured: 0, configured: 0 },
+    afterMeasured: { ordinary: 2, measured: 0, configured: 1 },
+    afterUnset: { ordinary: 3, measured: 0, configured: 2 },
   });
 });

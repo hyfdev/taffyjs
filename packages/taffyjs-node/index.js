@@ -1019,6 +1019,7 @@ var TaffyTree = class {
 	#inner;
 	#nodes = new NodeIdRegistry();
 	#contexts = /* @__PURE__ */ new Map();
+	#measures = /* @__PURE__ */ new Map();
 	/** Creates an independent Taffy tree with its own NodeId namespace. */
 	constructor() {
 		this.#inner = new BindingTaffyTree();
@@ -1114,12 +1115,13 @@ var TaffyTree = class {
 		const serial = this.#nodes.reserveSerial();
 		return this.#nodes.register(this.#inner.rawNewWithChildren(style, rawChildren), serial);
 	}
-	/** Removes one node and invalidates its public NodeId. */
+	/** Removes one node, its context and measure function, and invalidates its public NodeId. */
 	remove(node) {
 		const raw = this.#nodes.resolve(node);
 		this.#inner.rawRemove(raw);
 		this.#nodes.unregister(node, raw);
 		this.#contexts.delete(node);
+		this.#measures.delete(node);
 	}
 	/** Returns the JavaScript context currently associated with one node. */
 	getNodeContext(node) {
@@ -1132,6 +1134,14 @@ var TaffyTree = class {
 		this.#inner.rawSetNodeContext(raw, context !== void 0);
 		if (context === void 0) this.#contexts.delete(node);
 		else this.#contexts.set(node, context);
+	}
+	/** Sets or clears this node's synchronous measure function; every call marks it dirty, including when the function identity is unchanged. */
+	setMeasure(node, measure) {
+		const raw = this.#nodes.resolve(node);
+		if (measure !== void 0 && typeof measure !== "function") throw new TypeError("measure must be a function or undefined");
+		this.#inner.rawSetMeasure(raw, measure !== void 0);
+		if (measure === void 0) this.#measures.delete(node);
+		else this.#measures.set(node, measure);
 	}
 	/** Replaces a node style and marks affected layout state dirty. */
 	setStyle(node, style) {
@@ -1165,24 +1175,35 @@ var TaffyTree = class {
 	isDirty(node) {
 		return this.#inner.rawIsDirty(this.#nodes.resolve(node));
 	}
-	/** Removes every node and context value from this tree. */
+	/** Removes every node, context value, and per-node measure function from this tree. */
 	clear() {
 		this.#inner.rawClear();
 		this.#nodes.clear();
 		this.#contexts.clear();
+		this.#measures.clear();
 	}
-	/** Computes and stores layout for a tree root synchronously. */
+	/** Computes and stores layout synchronously, invoking only configured per-node measures. */
 	computeLayout(options) {
-		this.#inner.rawComputeLayout(this.#nodes.resolve(options.root), options.availableSpace);
+		const root = this.#nodes.resolve(options.root);
+		if (this.#measures.size === 0) {
+			this.#inner.rawComputeLayout(root, options.availableSpace);
+			return;
+		}
+		this.#computeLayoutWithMeasure(root, options.availableSpace, void 0);
 	}
-	/** Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying. */
+	/** Computes synchronously with a global fallback for nodes without a per-node measure. */
 	computeLayoutWithMeasure(options) {
 		const root = this.#nodes.resolve(options.root);
 		const measure = options.measure;
 		if (typeof measure !== "function") throw new TypeError("measure must be a function");
-		this.#inner.rawComputeLayoutWithMeasure(root, options.availableSpace, (value) => {
+		this.#computeLayoutWithMeasure(root, options.availableSpace, measure);
+	}
+	#computeLayoutWithMeasure(root, availableSpace, fallback) {
+		this.#inner.rawComputeLayoutWithMeasure(root, availableSpace, (value) => {
 			const args = value;
 			const node = this.#nodes.fromRaw(args.node);
+			const measure = this.#measures.get(node) ?? fallback;
+			if (measure === void 0) throw new Error("Native measure marker has no JavaScript measure function");
 			return measure({
 				knownDimensions: args.knownDimensions,
 				availableSpace: args.availableSpace,
@@ -1190,7 +1211,7 @@ var TaffyTree = class {
 				context: this.#contexts.get(node),
 				getStyle: args.getStyle
 			});
-		});
+		}, fallback !== void 0);
 	}
 };
 //#endregion

@@ -20,6 +20,7 @@ const operations: readonly Operation[] = [
   ["clear", () => tree.clear()],
   ["remove", () => tree.remove(measured)],
   ["setNodeContext", () => tree.setNodeContext(measured, true)],
+  ["setMeasure", () => tree.setMeasure(measured, () => ({ width: 1, height: 1 }))],
   ["addChild", () => tree.addChild(root, spare)],
   ["insertChildAtIndex", () => tree.insertChildAtIndex(root, 0, spare)],
   ["setChildren", () => tree.setChildren(root, [measured, sibling])],

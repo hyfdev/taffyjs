@@ -705,20 +705,20 @@ type MeasureArgs<TContext> = Readonly<{
   /** Returns a new detached snapshot of the measured node's complete normalized Style. */
   getStyle(): Style;
 }>;
-/** Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying. */
+/** Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying. The same type is used for per-node measures and a computeLayoutWithMeasure fallback. */
 type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInput<number>;
 /** Supplies a half-open child index range to removeChildrenRange. */
 interface ChildRangeInput {
   /** Supplies the start value used by ChildRangeInput. */ start: number;
   /** Supplies the end value used by ChildRangeInput. */ end: number;
 }
-/** Supplies a root, available space, and synchronous measurement callback. */
+/** Supplies a root, available space, and synchronous fallback for leaves without a per-node measure. */
 interface ComputeLayoutWithMeasureOptions<TContext> {
   /** Supplies the root value used by ComputeLayoutWithMeasureOptions. */ root: NodeId;
   /** Supplies the available space value used by ComputeLayoutWithMeasureOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
-  /** Supplies the measure value used by ComputeLayoutWithMeasureOptions. */ measure: MeasureFunction<TContext>;
+  /** Supplies the global fallback used after any configured per-node measure. */ measure: MeasureFunction<TContext>;
 }
-/** Supplies a root and available space for ordinary layout computation. */
+/** Supplies a root and available space for layout using configured per-node measures. */
 interface ComputeLayoutOptions {
   /** Supplies the root value used by ComputeLayoutOptions. */ root: NodeId;
   /** Supplies the available space value used by ComputeLayoutOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
@@ -841,12 +841,14 @@ declare class TaffyTree<TContext = unknown> {
   newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId;
   /** Creates a parent node with the supplied ordered children. */
   newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
-  /** Removes one node and invalidates its public NodeId. */
+  /** Removes one node, its context and measure function, and invalidates its public NodeId. */
   remove(node: NodeId): void;
   /** Returns the JavaScript context currently associated with one node. */
   getNodeContext(node: NodeId): TContext | undefined;
   /** Replaces or clears the JavaScript context for one node. */
   setNodeContext(node: NodeId, context: TContext | undefined): void;
+  /** Sets or clears this node's synchronous measure function; every call marks it dirty, including when the function identity is unchanged. */
+  setMeasure(node: NodeId, measure: MeasureFunction<TContext> | undefined): void;
   /** Replaces a node style and marks affected layout state dirty. */
   setStyle(node: NodeId, style: StyleInput): void;
   /** Updates supplied style fields and geometry components, preserving omitted values. */
@@ -863,11 +865,11 @@ declare class TaffyTree<TContext = unknown> {
   markDirty(node: NodeId): void;
   /** Reports whether a node currently needs layout recomputation. */
   isDirty(node: NodeId): boolean;
-  /** Removes every node and context value from this tree. */
+  /** Removes every node, context value, and per-node measure function from this tree. */
   clear(): void;
-  /** Computes and stores layout for a tree root synchronously. */
+  /** Computes and stores layout synchronously, invoking only configured per-node measures. */
   computeLayout(options: ComputeLayoutOptions): void;
-  /** Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying. */
+  /** Computes synchronously with a global fallback for nodes without a per-node measure. */
   computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void;
 }
 //#endregion

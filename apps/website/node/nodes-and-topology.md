@@ -14,8 +14,8 @@ Three methods create nodes:
 
 ```ts
 const leaf = tree.newLeaf(style);
-const measuredLeaf = tree.newLeafWithContext(style, context);
-const parent = tree.newWithChildren(style, [leaf, measuredLeaf]);
+const contextualLeaf = tree.newLeafWithContext(style, context);
+const parent = tree.newWithChildren(style, [leaf, contextualLeaf]);
 ```
 
 `newLeaf(style)` creates a node without children or context. `newLeafWithContext(style, context)` also associates a JavaScript value; `undefined` means that no context is present. `newWithChildren(style, children)` creates a node and attaches the supplied live, currently unattached children in order.
@@ -54,11 +54,11 @@ Indices and range endpoints must be non-negative integers within the relevant bo
 
 ## Remove nodes
 
-`remove(node)` deletes one node, invalidates its `NodeId`, detaches it from its parent, and leaves its children alive as roots. It also releases the removed node's JavaScript context.
+`remove(node)` deletes one node, invalidates its `NodeId`, detaches it from its parent, and leaves its children alive as roots. It also releases the removed node's JavaScript context and per-node measure function.
 
 In Taffy 0.13, removing the node itself does not mark its former parent or ancestors dirty. Call `markDirty(formerParent)` before the next compute when their layout must account for the removal. The child-detachment methods in the previous section do mark the affected parent path dirty.
 
-`clear()` removes every node and context value. All IDs previously created by the tree become stale. The tree itself remains reusable, and its rounding mode is retained.
+`clear()` removes every node, context value, and per-node measure function. All IDs previously created by the tree become stale. The tree itself remains reusable, and its rounding mode is retained.
 
 ## `NodeId` lifetime
 

@@ -8,7 +8,8 @@ const measuredCompute = Object.getOwnPropertyDescriptor(
   TaffyTree.prototype,
   "computeLayoutWithMeasure",
 ).value;
-const calls = { ordinary: 0, measured: 0 };
+const setMeasure = Object.getOwnPropertyDescriptor(TaffyTree.prototype, "setMeasure").value;
+const calls = { ordinary: 0, measured: 0, configured: 0 };
 
 TaffyTree.prototype.computeLayout = function (...args) {
   calls.ordinary += 1;
@@ -17,6 +18,10 @@ TaffyTree.prototype.computeLayout = function (...args) {
 TaffyTree.prototype.computeLayoutWithMeasure = function (...args) {
   calls.measured += 1;
   return measuredCompute.apply(this, args);
+};
+TaffyTree.prototype.setMeasure = function (...args) {
+  calls.configured += 1;
+  return setMeasure.apply(this, args);
 };
 
 try {
@@ -29,10 +34,14 @@ try {
   measured.setMeasureFunc(() => ({ width: 8, height: 4 }));
   measured.calculateLayout(undefined, undefined);
   const afterMeasured = { ...calls };
+  measured.unsetMeasureFunc();
+  measured.calculateLayout(undefined, undefined);
+  const afterUnset = { ...calls };
   measured.free();
 
-  process.stdout.write(JSON.stringify({ afterPlain, afterMeasured }));
+  process.stdout.write(JSON.stringify({ afterPlain, afterMeasured, afterUnset }));
 } finally {
   TaffyTree.prototype.computeLayout = ordinaryCompute;
   TaffyTree.prototype.computeLayoutWithMeasure = measuredCompute;
+  TaffyTree.prototype.setMeasure = setMeasure;
 }

@@ -26,6 +26,7 @@ type ExpectedTree<TContext> = {
   remove(node: NodeId): void;
   setNodeContext(node: NodeId, context: TContext | undefined): void;
   getNodeContext(node: NodeId): TContext | undefined;
+  setMeasure(node: NodeId, measure: api.MeasureFunction<TContext> | undefined): void;
   addChild(parent: NodeId, child: NodeId): void;
   insertChildAtIndex(parent: NodeId, index: number, child: NodeId): void;
   setChildren(parent: NodeId, children: readonly NodeId[]): void;
@@ -86,6 +87,16 @@ const readonlyStyleUpdate: StyleUpdate = {
 tree.setStyle(node, reusableStyleInput);
 tree.updateStyle(node, readonlyStyleUpdate);
 tree.newLeaf(readonlyStyleInput);
+
+const perNodeMeasure: api.MeasureFunction<Context> = ({ context: callbackContext }) => {
+  const label: string | undefined = callbackContext?.label;
+  void label;
+  return { width: 1, height: 2 };
+};
+tree.setMeasure(node, perNodeMeasure);
+tree.setMeasure(node, undefined);
+// @ts-expect-error null does not clear a per-node measure.
+tree.setMeasure(node, null);
 
 tree.computeLayoutWithMeasure({
   root: node,

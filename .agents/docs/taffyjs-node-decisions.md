@@ -50,31 +50,37 @@ The public wrapper keeps one current-node registry and validates owner, creation
 
 ## Explicit layout and JavaScript context
 
-[VOUCHED @hyfdev 2026-08-14]
+Layout computation stays explicit through separate `computeLayout` and `computeLayoutWithMeasure` methods. `computeLayout` automatically uses configured per-node measures, while `computeLayoutWithMeasure` additionally supplies a global fallback. Layout getters return Taffy's stored value without computing, and `isDirty` keeps Taffy's cache-state meaning rather than promising current output.
 
-Layout computation stays explicit through separate `computeLayout` and `computeLayoutWithMeasure` methods. Layout getters return Taffy's stored value without computing, and `isDirty` keeps Taffy's cache-state meaning rather than promising current output.
-
-Arbitrary node context remains owned by JavaScript; native `TaffyTree<()>` stores only presence. `undefined` means absence, `setNodeContext` marks the node dirty, and in-place context or captured-data changes require caller-managed `markDirty` when they affect measurement. The initial implementation has no JavaScript cache of Taffy-owned data.
+Arbitrary node context remains owned by JavaScript; native context metadata stores only context and measure presence as independent booleans. `undefined` means context absence, `setNodeContext` marks the node dirty, and in-place context or captured-data changes require caller-managed `markDirty` when they affect measurement. The implementation has no JavaScript cache of Taffy-owned data.
 
 ## Measurement boundary
 
-[VOUCHED @hyfdev 2026-08-14]
-
-The direct measure callback is synchronous, scoped to one compute, and receives owned boundary values. Taffy and its cache control invocation count, ordering, and constraints. Same-tree native access while it runs fails with `ERR_TAFFY_TREE_BUSY`; an independent tree remains usable.
+Every measure callback invocation is synchronous and receives owned boundary values. Per-node callbacks are retained by the JavaScript wrapper until replaced, cleared, removed with their node, or cleared with the tree; a `computeLayoutWithMeasure` global fallback remains scoped to one call. Taffy and its cache control invocation count, ordering, and constraints. Same-tree native access while a callback runs fails with `ERR_TAFFY_TREE_BUSY`; an independent tree remains usable.
 
 The callback returns a complete numeric size. The first thrown value or invalid result stops later JavaScript callbacks, lets Taffy's infallible stack finish, invalidates the requested subtree, and is thrown synchronously. The tree remains reusable, but JavaScript side effects and Layout work completed before failure are not rolled back.
 
-Retained, asynchronous, off-thread, cancellable, or transactionally rolled-back measurement would be a different API with its own ownership and failure contract.
+Asynchronous, off-thread, cancellable, or transactionally rolled-back measurement would be a different API with its own ownership and failure contract.
 
 ## Exact measure request reuse within one compute
 
-**Ruling:** During one `computeLayoutWithMeasure` call, the Rust binding must invoke the public JavaScript measure callback at most once for an exact combination of raw NodeId, both optional known dimensions, and both available-space variants and definite values. Floating-point equality must use the exact `f32` bit representation. Only a callback result that successfully converts to `Size<f32>` may be reused.
+**Ruling:** During one native measured layout call initiated by `computeLayout` or `computeLayoutWithMeasure`, the Rust binding must invoke the selected public JavaScript measure callback at most once for an exact combination of raw NodeId, both optional known dimensions, and both available-space variants and definite values. Floating-point equality must use the exact `f32` bit representation. Only a callback result that successfully converts to `Size<f32>` may be reused.
 
-**Limits:** Reuse ends with the current compute and adds no persistent tree, Style, context, or JavaScript cache. Style and context are not key inputs because the public tree API cannot mutate either for the same node while its measure callback is running. This does not add a per-node measure API, reuse Style snapshots, or change Taffy's layout or measurement phases. The existing first-failure behavior, subtree invalidation, thrown-value identity, and later retry behavior remain unchanged.
+**Limits:** Reuse ends with the current compute and adds no persistent tree, Style, context, or JavaScript result cache. Style, context, and callback identity are not key inputs because the public tree API cannot mutate them for the same node while its measure callback is running, and NodeId already keeps different per-node callbacks separate. This does not reuse Style snapshots or change Taffy's layout or measurement phases. The existing first-failure behavior, subtree invalidation, thrown-value identity, and later retry behavior remain unchanged.
 
 **Why:** The coding-agent chat initial-layout workload showed that Taffy issued 3,420 measure requests but only 1,262 exact argument combinations. Reusing those successful results before Style conversion and the Node-API or WASI boundary removes repeated boundary work without changing a caller-visible input, broadening cache invalidation, or retaining results after the synchronous operation.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-17; specified the exact key, lifetime, success-only insertion, failure semantics, non-goals, Native/WASI coverage, and benchmark acceptance criteria in [issue #38](https://github.com/hyfdev/taffyjs/issues/38).
+**Source:** Yunfei (`@hyfdev`), 2026-08-17; specified the exact key, lifetime, success-only insertion, failure semantics, non-goals, Native/WASI coverage, and benchmark acceptance criteria in [issue #38](https://github.com/hyfdev/taffyjs/issues/38), then required the same session behavior for per-node dispatch in [issue #44](https://github.com/hyfdev/taffyjs/issues/44).
+
+## Per-node measurement and global fallback
+
+**Ruling:** `TaffyTree.setMeasure(node, callback | undefined)` must retain each function in a wrapper-owned JavaScript map and store only an independent native presence marker. `computeLayout` invokes configured per-node callbacks and otherwise keeps leaves in Rust; `computeLayoutWithMeasure` dispatches first to the per-node callback, then to its call-scoped global fallback, then to ordinary native leaf sizing. Rust must reject an unmarked leaf before callback argument, Style snapshot, or `getStyle` provider construction and before Node-API or WASI entry.
+
+**Limits:** Context presence and measure presence are independent. The implementation has no public slot, token, second NodeId, callback-table index, generation scheme, callback getter, measured-leaf constructor, or topology mirror. When the whole wrapper map is empty, `computeLayout` keeps its direct raw fast path. The global fallback remains compatible with existing all-eligible-leaf code but is an escape hatch rather than the ordinary per-node path. Invocation count and ordering remain Taffy-controlled and are not public guarantees.
+
+**Why:** The coding-agent chat workload has 51 externally measured text nodes and 115 fixed leaves. Global dispatch made the fixed leaves cross JavaScript 230 times despite requiring no external measurement. Per-node marking removes those crossings, gives Yoga's `setMeasureFunc` a direct mapping, and separates callback ownership from context without the complexity of a slot allocator or shadow topology. The expected value is the correct boundary and lower callback noise, not a claim of a large speedup.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-17; specified the API, dispatch order, ownership, invalidation, lifecycle, failure atomicity, Yoga migration, benchmark, documentation, and verification constraints in [issue #44](https://github.com/hyfdev/taffyjs/issues/44) and the implementation request based on it.
 
 ## Selective query
 

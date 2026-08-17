@@ -270,7 +270,10 @@ fn result_size(value: Unknown<'_>) -> BindingResult<Size<f32>> {
     })
 }
 
-pub(crate) fn invalidate_subtree(tree: &mut TaffyTree<()>, root: NodeId) -> BindingResult<()> {
+pub(crate) fn invalidate_subtree<NodeContext>(
+    tree: &mut TaffyTree<NodeContext>,
+    root: NodeId,
+) -> BindingResult<()> {
     let mut pending = vec![root];
     while let Some(node) = pending.pop() {
         tree.mark_dirty(node).map_err(|_| internal_error())?;
@@ -361,7 +364,7 @@ mod tests {
 
     #[test]
     fn invalidate_subtree_handles_deep_trees() {
-        let mut tree = TaffyTree::new();
+        let mut tree: TaffyTree<()> = TaffyTree::new();
         let mut root = tree.new_leaf(Style::default()).unwrap();
         for _ in 0..16_384 {
             root = tree.new_with_children(Style::default(), &[root]).unwrap();
