@@ -56,6 +56,16 @@ The callback returns a complete numeric size. The first thrown value or invalid 
 
 Retained, asynchronous, off-thread, cancellable, or transactionally rolled-back measurement would be a different API with its own ownership and failure contract.
 
+## Exact measure request reuse within one compute
+
+**Ruling:** During one `computeLayoutWithMeasure` call, the Rust binding must invoke the public JavaScript measure callback at most once for an exact combination of raw NodeId, both optional known dimensions, and both available-space variants and definite values. Floating-point equality must use the exact `f32` bit representation. Only a callback result that successfully converts to `Size<f32>` may be reused.
+
+**Limits:** Reuse ends with the current compute and adds no persistent tree, Style, context, or JavaScript cache. Style and context are not key inputs because the public tree API cannot mutate either for the same node while its measure callback is running. This does not add a per-node measure API, reuse Style snapshots, or change Taffy's layout or measurement phases. The existing first-failure behavior, subtree invalidation, thrown-value identity, and later retry behavior remain unchanged.
+
+**Why:** The coding-agent chat initial-layout workload showed that Taffy issued 3,420 measure requests but only 1,262 exact argument combinations. Reusing those successful results before Style conversion and the Node-API or WASI boundary removes repeated boundary work without changing a caller-visible input, broadening cache invalidation, or retaining results after the synchronous operation.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-17; specified the exact key, lifetime, success-only insertion, failure semantics, non-goals, Native/WASI coverage, and benchmark acceptance criteria in [issue #38](https://github.com/hyfdev/taffyjs/issues/38).
+
 ## Selective query
 
 ### Complete bounded per-node selective reads

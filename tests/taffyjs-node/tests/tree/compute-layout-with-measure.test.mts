@@ -5,6 +5,8 @@ import {
   AvailableSpace,
   AvailableSpaceKind,
   Dimension,
+  Display,
+  FlexDirection,
   GridPlacement,
   GridPlacementKind,
   LengthUnit,
@@ -37,6 +39,127 @@ function captureError(body: () => unknown): unknown {
 
 function compute(tree: TaffyTree, root: NodeId, measure: MeasureFunction<unknown>): void {
   tree.computeLayoutWithMeasure({ root, availableSpace: minContentSpace(), measure });
+}
+
+type MeasureRequestKey = readonly [
+  node: string,
+  knownWidth: string,
+  knownHeight: string,
+  availableWidth: string,
+  availableHeight: string,
+];
+
+interface NestedMeasureFixture {
+  readonly tree: TaffyTree;
+  readonly measured: NodeId;
+  readonly root: NodeId;
+}
+
+function f32Bits(value: number): string {
+  const float = new Float32Array([value]);
+  return new Uint32Array(float.buffer)[0].toString(16);
+}
+
+function knownDimensionKey(value: number | undefined): string {
+  return value === undefined ? "undefined" : f32Bits(value);
+}
+
+function availableSpaceKey(value: MeasureArgs<unknown>["availableSpace"]["width"]): string {
+  if (value.kind === AvailableSpaceKind.Definite) {
+    return `definite:${f32Bits(value.value)}`;
+  }
+  return value.kind === AvailableSpaceKind.MinContent ? "min-content" : "max-content";
+}
+
+function measureRequestKey(args: MeasureArgs<unknown>): MeasureRequestKey {
+  return [
+    String(args.node),
+    knownDimensionKey(args.knownDimensions.width),
+    knownDimensionKey(args.knownDimensions.height),
+    availableSpaceKey(args.availableSpace.width),
+    availableSpaceKey(args.availableSpace.height),
+  ];
+}
+
+function hasPairDifferingOnlyAt(
+  requests: readonly MeasureRequestKey[],
+  component: number,
+  acceptsDifference: (left: string, right: string) => boolean = () => true,
+): boolean {
+  for (const [leftIndex, left] of requests.entries()) {
+    for (const right of requests.slice(leftIndex + 1)) {
+      if (
+        left[component] !== right[component] &&
+        acceptsDifference(left[component], right[component]) &&
+        left.every((value, index) => index === component || value === right[index])
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function assertNoDuplicateMeasureRequests(requests: readonly MeasureRequestKey[]): void {
+  const uniqueRequests = new Set(requests.map((request) => JSON.stringify(request)));
+  assert.equal(
+    uniqueRequests.size,
+    requests.length,
+    "one compute must enter JavaScript once for each exact measure request",
+  );
+}
+
+function createNestedMeasureFixture(
+  firstDirection: typeof FlexDirection.Row | typeof FlexDirection.Column,
+): NestedMeasureFixture {
+  const tree = new TaffyTree();
+  tree.disableRounding();
+  const measured = tree.newLeafWithContext(
+    { flexShrink: 1, minSize: { width: 0, height: 0 } },
+    true,
+  );
+  let nested = measured;
+  for (let depth = 0; depth < 4; depth += 1) {
+    const otherDirection =
+      firstDirection === FlexDirection.Row ? FlexDirection.Column : FlexDirection.Row;
+    const flexDirection = depth % 2 === 0 ? firstDirection : otherDirection;
+    nested = tree.newWithChildren(
+      {
+        display: Display.Flex,
+        flexDirection,
+        flexGrow: depth === 3 ? 1 : 0,
+        flexShrink: 1,
+        minSize: { width: 0, height: 0 },
+        padding: 3,
+        gap: 2,
+      },
+      [nested],
+    );
+  }
+  const fixed = tree.newLeaf({ size: { width: 264, height: 100 } });
+  const root = tree.newWithChildren(
+    {
+      display: Display.Flex,
+      flexDirection: FlexDirection.Row,
+      size: { width: 1280, height: 800 },
+      padding: 16,
+    },
+    [fixed, nested],
+  );
+  return { tree, measured, root };
+}
+
+function collectMeasureRequests(fixture: NestedMeasureFixture): MeasureRequestKey[] {
+  const requests: MeasureRequestKey[] = [];
+  fixture.tree.computeLayoutWithMeasure({
+    root: fixture.root,
+    availableSpace: { width: 1280, height: 800 },
+    measure(args) {
+      requests.push(measureRequestKey(args));
+      return { width: 73, height: 19 };
+    },
+  });
+  return requests;
 }
 
 test("callback-args", () => {
@@ -99,6 +222,105 @@ test("result-f32", () => {
   const nan = nanTree.newLeafWithContext({}, true);
   compute(nanTree, nan, () => ({ width: Number.NaN, height: Number.NaN }));
   assert.deepEqual(nanTree.getUnroundedLayout(nan).size, { width: 0, height: 0 });
+});
+
+test("identical requests reuse one callback result without merging constraints", () => {
+  const rowFirst = collectMeasureRequests(createNestedMeasureFixture(FlexDirection.Row));
+  const columnFirst = collectMeasureRequests(createNestedMeasureFixture(FlexDirection.Column));
+  assertNoDuplicateMeasureRequests(rowFirst);
+  assertNoDuplicateMeasureRequests(columnFirst);
+
+  assert.equal(
+    hasPairDifferingOnlyAt(rowFirst, 1),
+    true,
+    "known width remains part of the request key",
+  );
+  assert.equal(
+    hasPairDifferingOnlyAt(columnFirst, 2),
+    true,
+    "known height remains part of the request key",
+  );
+
+  const kind = (value: string) => (value.startsWith("definite:") ? "definite" : value);
+  const kindsDiffer = (left: string, right: string) => kind(left) !== kind(right);
+  const definiteValuesDiffer = (left: string, right: string) =>
+    left.startsWith("definite:") && right.startsWith("definite:");
+  assert.equal(
+    hasPairDifferingOnlyAt(columnFirst, 3, kindsDiffer),
+    true,
+    "available width kind remains part of the request key",
+  );
+  assert.equal(
+    hasPairDifferingOnlyAt(columnFirst, 3, definiteValuesDiffer),
+    true,
+    "definite available width remains part of the request key",
+  );
+  assert.equal(
+    hasPairDifferingOnlyAt(rowFirst, 4, kindsDiffer),
+    true,
+    "available height kind remains part of the request key",
+  );
+  assert.equal(
+    hasPairDifferingOnlyAt(rowFirst, 4, definiteValuesDiffer),
+    true,
+    "definite available height remains part of the request key",
+  );
+});
+
+test("identical constraints on different nodes remain separate requests", () => {
+  const tree = new TaffyTree();
+  const first = tree.newLeafWithContext(
+    { flexGrow: 1, flexShrink: 1, minSize: { width: 0 } },
+    "first",
+  );
+  const second = tree.newLeafWithContext(
+    { flexGrow: 1, flexShrink: 1, minSize: { width: 0 } },
+    "second",
+  );
+  const root = tree.newWithChildren(
+    {
+      display: Display.Flex,
+      flexDirection: FlexDirection.Row,
+      size: { width: 200, height: 100 },
+    },
+    [first, second],
+  );
+  const requests: MeasureRequestKey[] = [];
+  const measuredNodes = new Set<NodeId>();
+
+  tree.computeLayoutWithMeasure({
+    root,
+    availableSpace: { width: 200, height: 100 },
+    measure(args) {
+      requests.push(measureRequestKey(args));
+      measuredNodes.add(args.node);
+      return { width: 30, height: 10 };
+    },
+  });
+
+  assert.equal(measuredNodes.has(first), true);
+  assert.equal(measuredNodes.has(second), true);
+  assert.equal(
+    hasPairDifferingOnlyAt(requests, 0),
+    true,
+    "node identity remains part of the request key",
+  );
+});
+
+test("measure request reuse ends when compute returns", () => {
+  const fixture = createNestedMeasureFixture(FlexDirection.Row);
+  const first = collectMeasureRequests(fixture);
+  assertNoDuplicateMeasureRequests(first);
+
+  fixture.tree.markDirty(fixture.measured);
+  const second = collectMeasureRequests(fixture);
+  assertNoDuplicateMeasureRequests(second);
+  const firstRequests = new Set(first.map((request) => JSON.stringify(request)));
+  assert.equal(
+    second.some((request) => firstRequests.has(JSON.stringify(request))),
+    true,
+    "a later compute must re-enter JavaScript for a repeated Taffy request",
+  );
 });
 
 test("cache-calls", () => {
@@ -215,12 +437,23 @@ test("throw-identity", () => {
   for (const thrown of [{ reason: "stop" }, "stop", 17, null]) {
     const tree = new TaffyTree();
     const node = tree.newLeafWithContext({}, true);
+    let failedCalls = 0;
     const received = captureError(() =>
       compute(tree, node, () => {
+        failedCalls += 1;
         throw thrown;
       }),
     );
     assert.equal(received, thrown);
+    assert.equal(failedCalls, 1);
+
+    let retryCalls = 0;
+    compute(tree, node, () => {
+      retryCalls += 1;
+      return { width: 30, height: 10 };
+    });
+    assert.equal(retryCalls > 0, true, "a thrown callback result must not be cached");
+    assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 30, height: 10 });
   }
 });
 

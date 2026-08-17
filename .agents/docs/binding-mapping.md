@@ -92,11 +92,13 @@ Arbitrary context stays in a JavaScript map keyed by current public NodeId. Nati
 
 `setNodeContext` updates native presence and the JavaScript map and marks the node dirty. In-place context changes and callback-captured data cannot be observed automatically; callers use `markDirty` when those changes affect later measurement. Supplying a different callback does not invalidate Taffy's cache by itself.
 
-The measure callback runs synchronously and receives owned `knownDimensions`, `availableSpace`, public NodeId, the original JavaScript context, and a detached Style snapshot. Taffy controls whether, when, and how often it runs. It must return a complete `{ width, height }` number record; Promises, missing axes, and invalid values throw `TypeError`.
+The measure callback runs synchronously and receives owned `knownDimensions`, `availableSpace`, public NodeId, the original JavaScript context, and a detached Style snapshot. Taffy controls the requested nodes, constraints, and ordering, subject to the exact-repeat reuse below. The callback must return a complete `{ width, height }` number record; Promises, missing axes, and invalid values throw `TypeError`.
 
 The native owner uses checked `RefCell` access. A native-backed call on the same tree during measurement throws `ERR_TAFFY_TREE_BUSY`; JavaScript-only value operations and another tree remain usable.
 
 On the first callback throw or invalid result, the bridge retains that failure, stops further JavaScript callbacks, lets Taffy's infallible stack finish with internal zero sizes, invalidates the requested subtree, and throws synchronously. A thrown JavaScript value keeps its identity. The tree remains usable, but already completed JavaScript side effects and stored Layout work are not rolled back.
+
+Each `computeLayoutWithMeasure` creates one Rust `MeasureSession` that reuses a successful result when Taffy repeats the exact same request during that compute. The key contains the raw NodeId, both optional known dimensions, and both available-space variants and definite values; every `f32` uses its exact bit representation. Cache lookup happens before creating callback arguments or converting Style, and callback throws or binding conversion failures are never stored. The session and its cache are dropped when the compute returns, so caller-managed dirtying and Taffy's persistent cache semantics remain unchanged across computes.
 
 ## Mutation, errors, and panic containment
 

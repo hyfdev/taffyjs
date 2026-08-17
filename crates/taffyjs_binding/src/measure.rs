@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::ptr;
 use std::rc::Rc;
@@ -38,6 +39,48 @@ pub struct MeasureResultInput {
     pub height: f64,
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+enum AvailableSpaceCacheKey {
+    Definite(u32),
+    MinContent,
+    MaxContent,
+}
+
+impl From<AvailableSpace> for AvailableSpaceCacheKey {
+    fn from(value: AvailableSpace) -> Self {
+        match value {
+            AvailableSpace::Definite(value) => Self::Definite(value.to_bits()),
+            AvailableSpace::MinContent => Self::MinContent,
+            AvailableSpace::MaxContent => Self::MaxContent,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+struct MeasureCacheKey {
+    node: u64,
+    known_width: Option<u32>,
+    known_height: Option<u32>,
+    available_width: AvailableSpaceCacheKey,
+    available_height: AvailableSpaceCacheKey,
+}
+
+impl MeasureCacheKey {
+    fn new(
+        node: NodeId,
+        known_dimensions: Size<Option<f32>>,
+        available_space: Size<AvailableSpace>,
+    ) -> Self {
+        Self {
+            node: u64::from(node),
+            known_width: known_dimensions.width.map(f32::to_bits),
+            known_height: known_dimensions.height.map(f32::to_bits),
+            available_width: available_space.width.into(),
+            available_height: available_space.height.into(),
+        }
+    }
+}
+
 pub(crate) enum MeasureFailure<'env> {
     Callback(Unknown<'env>),
     Binding(BindingError),
@@ -45,6 +88,7 @@ pub(crate) enum MeasureFailure<'env> {
 
 pub(crate) struct MeasureSession<'env> {
     callback: Function<'env, MeasureArguments, Unknown<'env>>,
+    cache: HashMap<MeasureCacheKey, Size<f32>>,
     failure: Option<MeasureFailure<'env>>,
     not_send: PhantomData<Rc<()>>,
 }
@@ -53,6 +97,7 @@ impl<'env> MeasureSession<'env> {
     pub(crate) fn new(callback: Function<'env, MeasureArguments, Unknown<'env>>) -> Self {
         Self {
             callback,
+            cache: HashMap::new(),
             failure: None,
             not_send: PhantomData,
         }
@@ -69,13 +114,21 @@ impl<'env> MeasureSession<'env> {
             return Size::ZERO;
         }
 
+        let cache_key = MeasureCacheKey::new(node, known_dimensions, available_space);
+        if let Some(size) = self.cache.get(&cache_key) {
+            return *size;
+        }
+
         let result = call(
             &self.callback,
             self.arguments(known_dimensions, available_space, node, style),
         )
         .and_then(|value| result_size(value).map_err(MeasureFailure::Binding));
         match result {
-            Ok(size) => size,
+            Ok(size) => {
+                self.cache.insert(cache_key, size);
+                size
+            }
             Err(failure) => {
                 self.failure = Some(failure);
                 Size::ZERO
@@ -190,10 +243,69 @@ pub(crate) fn invalidate_subtree(tree: &mut TaffyTree<()>, root: NodeId) -> Bind
 mod tests {
     use std::marker::PhantomData;
 
-    use taffy::TaffyTree;
-    use taffy::style::Style;
+    use taffy::geometry::Size;
+    use taffy::style::{AvailableSpace, Style};
+    use taffy::{NodeId, TaffyTree};
 
-    use super::{MeasureSession, invalidate_subtree};
+    use super::{AvailableSpaceCacheKey, MeasureCacheKey, MeasureSession, invalidate_subtree};
+
+    fn cache_key(
+        node: u64,
+        known_width: Option<f32>,
+        known_height: Option<f32>,
+        available_width: AvailableSpace,
+        available_height: AvailableSpace,
+    ) -> MeasureCacheKey {
+        MeasureCacheKey::new(
+            NodeId::from(node),
+            Size {
+                width: known_width,
+                height: known_height,
+            },
+            Size {
+                width: available_width,
+                height: available_height,
+            },
+        )
+    }
+
+    #[test]
+    fn measure_cache_key_preserves_every_exact_input() {
+        let first_nan = f32::from_bits(0x7fc0_0000);
+        let second_nan = f32::from_bits(0x7fc0_0001);
+        assert_eq!(
+            cache_key(
+                7,
+                Some(-0.0),
+                Some(first_nan),
+                AvailableSpace::Definite(-0.0),
+                AvailableSpace::Definite(second_nan),
+            ),
+            MeasureCacheKey {
+                node: 7,
+                known_width: Some((-0.0f32).to_bits()),
+                known_height: Some(first_nan.to_bits()),
+                available_width: AvailableSpaceCacheKey::Definite((-0.0f32).to_bits()),
+                available_height: AvailableSpaceCacheKey::Definite(second_nan.to_bits()),
+            }
+        );
+        assert_eq!(
+            cache_key(
+                8,
+                None,
+                None,
+                AvailableSpace::MinContent,
+                AvailableSpace::MaxContent,
+            ),
+            MeasureCacheKey {
+                node: 8,
+                known_width: None,
+                known_height: None,
+                available_width: AvailableSpaceCacheKey::MinContent,
+                available_height: AvailableSpaceCacheKey::MaxContent,
+            }
+        );
+    }
 
     #[test]
     fn measure_session_stays_on_the_javascript_thread() {
