@@ -3,58 +3,71 @@ import assert from "node:assert/strict";
 import { Bench } from "tinybench";
 
 import type {
-  BenchmarkScenarioMetadata,
+  BenchmarkScenario,
+  BenchmarkTransaction,
   BenchmarkWorkerResult,
   TaffyApi,
   YogaApi,
 } from "./scenario.ts";
-import { benchmarkComparisonGroups, benchmarkProfiles } from "./suite.ts";
+import { benchmarkProfiles, benchmarkScenarios, benchmarkTargets } from "./suite.ts";
 
-const [groupId, targetId, scenarioId, profileId] = process.argv.slice(2);
-const group = benchmarkComparisonGroups.find(({ id }) => id === groupId);
+const [targetId, scenarioId, profileId] = process.argv.slice(2);
+const target = benchmarkTargets.find(({ id }) => id === targetId);
+const scenario = benchmarkScenarios.find(({ id }) => id === scenarioId);
 const profile = benchmarkProfiles.find(({ id }) => id === profileId);
-assert.ok(group, `Unknown benchmark comparison group ${groupId ?? "<missing>"}`);
-const target = group.targets.find(({ id }) => id === targetId);
 assert.ok(target, `Unknown benchmark target ${targetId ?? "<missing>"}`);
+assert.ok(scenario, `Unknown benchmark scenario ${scenarioId ?? "<missing>"}`);
 assert.ok(profile, `Unknown benchmark profile ${profileId ?? "<missing>"}`);
 
 const importedApi: unknown = await import(target.packageName);
-let scenario: BenchmarkScenarioMetadata;
-let createTransaction: () => () => number;
-if (group.id === "taffy-api") {
-  const typedScenario = group.scenarios.find(({ id }) => id === scenarioId);
-  assert.ok(typedScenario, `Unknown benchmark scenario ${scenarioId ?? "<missing>"}`);
-  const api = importedApi as TaffyApi;
-  scenario = typedScenario;
-  createTransaction = () => typedScenario.createTransaction(api);
-} else {
-  const typedScenario = group.scenarios.find(({ id }) => id === scenarioId);
-  assert.ok(typedScenario, `Unknown benchmark scenario ${scenarioId ?? "<missing>"}`);
-  const api = importedApi as YogaApi;
-  scenario = typedScenario;
-  createTransaction = () => typedScenario.createTransaction(api);
+const targetApiKind = target.apiKind;
+
+function createTransaction(scenario: BenchmarkScenario): BenchmarkTransaction {
+  if (targetApiKind === "taffy") {
+    return scenario.createTaffyTransaction(importedApi as TaffyApi);
+  }
+  return scenario.createYogaTransaction(importedApi as YogaApi);
 }
 
-const checksum = createTransaction()();
-assert.ok(Number.isFinite(checksum), `${scenario.id}/${target.id} returned a non-finite checksum`);
+const validationTransaction = createTransaction(scenario);
+const observations: number[][] = [];
+try {
+  const validationRuns = scenario.validationRuns ?? 1;
+  for (let run = 0; run < validationRuns; run += 1) {
+    const observation = Array.from(validationTransaction.run());
+    assert.ok(observation.length > 0, `${scenario.id}/${target.id} returned no layout values`);
+    assert.ok(
+      observation.every(Number.isFinite),
+      `${scenario.id}/${target.id} returned a non-finite layout value`,
+    );
+    observations.push(observation);
+  }
+} finally {
+  validationTransaction.dispose?.();
+}
 
-const transaction = createTransaction();
+const transaction = createTransaction(scenario);
 const bench = new Bench({ ...profile.settings, throws: true });
 let blackhole = 0;
 bench.add(target.id, () => {
-  blackhole = transaction();
+  const observation = transaction.run();
+  blackhole = observation[0] + observation[observation.length - 1] + observation.length;
 });
 
-await bench.warmup();
-const garbageCollector = (
-  globalThis as typeof globalThis & {
-    gc?: () => void;
-  }
-).gc;
-assert.ok(garbageCollector, "Benchmark workers require --expose-gc");
-garbageCollector();
-await bench.run();
-assert.ok(Number.isFinite(blackhole), `${scenario.id}/${target.id} produced a non-finite checksum`);
+try {
+  await bench.warmup();
+  const garbageCollector = (
+    globalThis as typeof globalThis & {
+      gc?: () => void;
+    }
+  ).gc;
+  assert.ok(garbageCollector, "Benchmark workers require --expose-gc");
+  garbageCollector();
+  await bench.run();
+} finally {
+  transaction.dispose?.();
+}
+assert.ok(Number.isFinite(blackhole), `${scenario.id}/${target.id} produced invalid output`);
 
 const task = bench.tasks[0];
 assert.ok(task?.result, `${scenario.id}/${target.id} did not produce a result`);
@@ -68,10 +81,9 @@ const medianMs =
     ? (sortedSamples[middle - 1] + sortedSamples[middle]) / 2
     : sortedSamples[middle];
 const output: BenchmarkWorkerResult = {
-  groupId: group.id,
   targetId: target.id,
   scenarioId: scenario.id,
-  checksum,
+  observations,
   result: {
     hz: task.result.hz,
     meanMs: task.result.mean,

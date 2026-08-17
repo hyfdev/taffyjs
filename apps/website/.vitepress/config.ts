@@ -60,7 +60,7 @@ const documentationSidebar = [
   },
   {
     text: "Benchmarks",
-    items: [{ text: "Node vs. Wasm", link: "/benchmarks/" }],
+    items: [{ text: "Performance", link: "/benchmarks/" }],
   },
 ];
 

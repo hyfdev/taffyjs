@@ -5,8 +5,10 @@ type ParameterValue = string | number | boolean;
 
 interface BenchmarkTarget {
   readonly id: string;
-  readonly label: string;
   readonly packageName: string;
+  readonly apiKind: "taffy" | "yoga";
+  readonly apiLabel: string;
+  readonly runtimeLabel: string;
 }
 
 interface BenchmarkResult {
@@ -25,13 +27,6 @@ interface BenchmarkScenario {
   readonly transaction: string;
   readonly parameters: Readonly<Record<string, ParameterValue>>;
   readonly results: readonly BenchmarkResult[];
-}
-
-interface BenchmarkComparisonGroup {
-  readonly id: string;
-  readonly name: string;
-  readonly targets: readonly BenchmarkTarget[];
-  readonly scenarios: readonly BenchmarkScenario[];
 }
 
 interface BenchmarkReport {
@@ -53,51 +48,44 @@ interface BenchmarkReport {
     readonly maxRelativeMarginOfError: number | null;
     readonly maxRoundMedianSpread: number | null;
   };
-  readonly comparisonGroups: readonly BenchmarkComparisonGroup[];
+  readonly baselineTargetId: string;
+  readonly targets: readonly BenchmarkTarget[];
+  readonly scenarios: readonly BenchmarkScenario[];
 }
 
 const report = publishedResult as BenchmarkReport;
-if (report.schemaVersion !== 1) {
+if (report.schemaVersion !== 2) {
   throw new Error(`Unsupported benchmark result schema ${report.schemaVersion}`);
 }
 if (report.source.dirty) {
   throw new Error("Published benchmark results must come from a clean worktree");
 }
 
-if (report.comparisonGroups.length === 0) {
-  throw new Error("Published benchmark results contain no comparison groups");
+if (report.scenarios.length === 0) {
+  throw new Error("Published benchmark results contain no scenarios");
 }
 
-const comparisonGroups = report.comparisonGroups.map((group) => {
-  const baselineTarget = group.targets[0];
-  if (!baselineTarget) {
-    throw new Error(`${group.id} contains no benchmark targets`);
+const baselineTarget = report.targets.find(({ id }) => id === report.baselineTargetId);
+if (!baselineTarget) {
+  throw new Error(`Published benchmark results are missing target ${report.baselineTargetId}`);
+}
+
+const scenarios = report.scenarios.map((scenario) => {
+  const baselineResult = scenario.results.find(({ targetId }) => targetId === baselineTarget.id);
+  if (!baselineResult) {
+    throw new Error(`${scenario.id} is missing its ${baselineTarget.packageName} result`);
   }
-
   return {
-    ...group,
-    baselineTarget,
-    scenarios: group.scenarios.map((scenario) => {
-      const baselineResult = scenario.results.find(
-        ({ targetId }) => targetId === baselineTarget.id,
-      );
-      if (!baselineResult) {
-        throw new Error(`${scenario.id} is missing its ${baselineTarget.packageName} result`);
+    ...scenario,
+    rows: report.targets.map((target) => {
+      const result = scenario.results.find(({ targetId }) => targetId === target.id);
+      if (!result) {
+        throw new Error(`${scenario.id} is missing its ${target.packageName} result`);
       }
-
       return {
-        ...scenario,
-        rows: group.targets.map((target) => {
-          const result = scenario.results.find(({ targetId }) => targetId === target.id);
-          if (!result) {
-            throw new Error(`${scenario.id} is missing its ${target.packageName} result`);
-          }
-          return {
-            target,
-            result,
-            relativeThroughput: result.hz / baselineResult.hz,
-          };
-        }),
+        target,
+        result,
+        relativeThroughput: result.hz / baselineResult.hz,
       };
     }),
   };
@@ -111,6 +99,10 @@ const durationFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 3,
   maximumFractionDigits: 3,
 });
+const relativeFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 3,
+});
 const parameterFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 3,
 });
@@ -121,10 +113,6 @@ function formatParameterName(name: string): string {
 
 function formatParameterValue(value: ParameterValue): string {
   return typeof value === "number" ? parameterFormatter.format(value) : String(value);
-}
-
-function formatGeneratedAt(value: string): string {
-  return value.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
 }
 
 const operatingSystem =
@@ -146,81 +134,71 @@ const operatingSystem =
     </p>
 
     <section
-      v-for="group in comparisonGroups"
-      :key="group.id"
-      class="benchmark-group"
-      :aria-labelledby="`${group.id}-heading`"
+      v-for="scenario in scenarios"
+      :key="scenario.id"
+      class="benchmark-scenario"
+      :aria-labelledby="`${scenario.id}-heading`"
     >
-      <h2 :id="`${group.id}-heading`">{{ group.name }}</h2>
+      <h2 :id="`${scenario.id}-heading`">{{ scenario.name }}</h2>
+      <p class="benchmark-question">{{ scenario.question }}</p>
+      <p class="benchmark-description">{{ scenario.description }}</p>
 
-      <section
-        v-for="scenario in group.scenarios"
-        :key="scenario.id"
-        class="benchmark-scenario"
-        :aria-labelledby="`${scenario.id}-heading`"
+      <div class="benchmark-boundary">
+        <div class="benchmark-boundary-item">
+          <h4>Timed transaction</h4>
+          <p>{{ scenario.transaction }}</p>
+        </div>
+        <div class="benchmark-boundary-item">
+          <h4>Scale</h4>
+          <dl class="benchmark-parameters">
+            <div v-for="(value, name) in scenario.parameters" :key="name">
+              <dt>{{ formatParameterName(name) }}</dt>
+              <dd>{{ formatParameterValue(value) }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div
+        class="benchmark-table-region"
+        role="region"
+        :aria-label="`${scenario.name} results`"
+        tabindex="0"
       >
-        <h3 :id="`${scenario.id}-heading`">{{ scenario.name }}</h3>
-        <p class="benchmark-question">{{ scenario.question }}</p>
-        <p class="benchmark-description">{{ scenario.description }}</p>
-
-        <div class="benchmark-boundary">
-          <div class="benchmark-boundary-item">
-            <h4>Timed transaction</h4>
-            <p>{{ scenario.transaction }}</p>
-          </div>
-          <div class="benchmark-boundary-item">
-            <h4>Scale</h4>
-            <dl class="benchmark-parameters">
-              <div v-for="(value, name) in scenario.parameters" :key="name">
-                <dt>{{ formatParameterName(name) }}</dt>
-                <dd>{{ formatParameterValue(value) }}</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-
-        <div
-          class="benchmark-table-region"
-          role="region"
-          :aria-label="`${group.name} ${scenario.name} results`"
-          tabindex="0"
-        >
-          <table>
-            <caption>
-              {{
-                group.name
-              }}
-              {{
-                scenario.name
-              }}
-              throughput and latency by package
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Package</th>
-                <th scope="col">ops/s</th>
-                <th scope="col">Mean (ms)</th>
-                <th scope="col">Median (ms)</th>
-                <th scope="col">
-                  Relative throughput
-                  <span>{{ group.baselineTarget.label }} = 1.00×</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in scenario.rows" :key="row.target.id">
-                <th scope="row">
-                  <code>{{ row.target.packageName }}</code>
-                </th>
-                <td>{{ throughputFormatter.format(row.result.hz) }}</td>
-                <td>{{ durationFormatter.format(row.result.meanMs) }}</td>
-                <td>{{ durationFormatter.format(row.result.medianMs) }}</td>
-                <td>{{ throughputFormatter.format(row.relativeThroughput) }}×</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+        <table>
+          <caption>
+            {{
+              scenario.name
+            }}
+            throughput and latency by package
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Package</th>
+              <th scope="col">API</th>
+              <th scope="col">Runtime</th>
+              <th scope="col">ops/s</th>
+              <th scope="col">Median</th>
+              <th scope="col">
+                vs yoga-layout
+                <span>yoga-layout = 1.00×</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in scenario.rows" :key="row.target.id">
+              <th scope="row">
+                <code>{{ row.target.packageName }}</code>
+              </th>
+              <td class="benchmark-label">{{ row.target.apiLabel }}</td>
+              <td class="benchmark-label">{{ row.target.runtimeLabel }}</td>
+              <td>{{ throughputFormatter.format(row.result.hz) }}</td>
+              <td>{{ durationFormatter.format(row.result.medianMs) }} ms</td>
+              <td>{{ relativeFormatter.format(row.relativeThroughput) }}×</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="benchmark-run" aria-labelledby="benchmark-run-heading">
@@ -244,12 +222,6 @@ const operatingSystem =
             <code>{{ report.source.commit }}</code>
           </dd>
         </div>
-        <div>
-          <dt>Generated</dt>
-          <dd>
-            <time :datetime="report.generatedAt">{{ formatGeneratedAt(report.generatedAt) }}</time>
-          </dd>
-        </div>
       </dl>
     </section>
   </div>
@@ -264,21 +236,13 @@ const operatingSystem =
   color: var(--vp-c-text-2);
 }
 
-.benchmark-group {
-  margin-top: 44px;
-}
-
-.benchmark-group > h2 {
-  margin: 0;
-}
-
 .benchmark-scenario {
   margin-top: 28px;
   padding-top: 34px;
   border-top: 1px solid var(--vp-c-divider);
 }
 
-.benchmark-scenario > h3 {
+.benchmark-scenario > h2 {
   margin: 0;
   padding: 0;
   border: 0;
@@ -362,7 +326,7 @@ const operatingSystem =
 .benchmark-table-region table {
   display: table;
   width: 100%;
-  min-width: 680px;
+  min-width: 900px;
   margin: 0;
   border-collapse: collapse;
 }
@@ -385,6 +349,10 @@ const operatingSystem =
   border-bottom: 1px solid var(--vp-c-divider);
   text-align: right;
   white-space: nowrap;
+}
+
+.benchmark-table-region .benchmark-label {
+  text-align: left;
 }
 
 .benchmark-table-region thead th {
@@ -473,7 +441,7 @@ const operatingSystem =
   }
 
   .benchmark-table-region table {
-    min-width: 640px;
+    min-width: 900px;
   }
 
   .benchmark-run dl {
