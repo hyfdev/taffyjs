@@ -149,16 +149,28 @@ function createNestedMeasureFixture(
   return { tree, measured, root };
 }
 
-function collectMeasureRequests(fixture: NestedMeasureFixture): MeasureRequestKey[] {
+function collectMeasureRequests(
+  fixture: NestedMeasureFixture,
+  source: "global" | "per-node" = "global",
+): MeasureRequestKey[] {
   const requests: MeasureRequestKey[] = [];
-  fixture.tree.computeLayout({
-    root: fixture.root,
-    availableSpace: { width: 1280, height: 800 },
-    measure(args) {
-      requests.push(measureRequestKey(args));
-      return { width: 73, height: 19 };
-    },
-  });
+  const measure: MeasureFunction<unknown> = (args) => {
+    requests.push(measureRequestKey(args));
+    return { width: 73, height: 19 };
+  };
+  if (source === "per-node") {
+    fixture.tree.setMeasure(fixture.measured, measure);
+    fixture.tree.computeLayout({
+      root: fixture.root,
+      availableSpace: { width: 1280, height: 800 },
+    });
+  } else {
+    fixture.tree.computeLayout({
+      root: fixture.root,
+      availableSpace: { width: 1280, height: 800 },
+      measure,
+    });
+  }
   return requests;
 }
 
@@ -492,8 +504,18 @@ test("result-f32", () => {
 test("identical requests reuse one callback result without merging constraints", () => {
   const rowFirst = collectMeasureRequests(createNestedMeasureFixture(FlexDirection.Row));
   const columnFirst = collectMeasureRequests(createNestedMeasureFixture(FlexDirection.Column));
+  const perNodeRowFirst = collectMeasureRequests(
+    createNestedMeasureFixture(FlexDirection.Row),
+    "per-node",
+  );
+  const perNodeColumnFirst = collectMeasureRequests(
+    createNestedMeasureFixture(FlexDirection.Column),
+    "per-node",
+  );
   assertNoDuplicateMeasureRequests(rowFirst);
   assertNoDuplicateMeasureRequests(columnFirst);
+  assertNoDuplicateMeasureRequests(perNodeRowFirst);
+  assertNoDuplicateMeasureRequests(perNodeColumnFirst);
 
   assert.equal(
     hasPairDifferingOnlyAt(rowFirst, 1),

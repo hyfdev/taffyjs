@@ -8,7 +8,7 @@ Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScri
 
 `@taffyjs/node` exposes Taffy's high-level `TaffyTree` workflow: create nodes, mutate topology and style, attach JavaScript context, compute layout, and read stored results. Low-level custom-tree traits, cache internals, CSS parsing, Yoga compatibility, and Rust implementation helpers are outside this package.
 
-Taffy remains the only owner of topology, Style, Layout, cache, and computation state. The authored JavaScript wrapper owns only data that Taffy cannot represent safely for JavaScript: public NodeId validity metadata and arbitrary JavaScript context values. There is no JavaScript shadow tree or cache of Taffy-owned data.
+Taffy remains the only owner of topology, Style, Layout, cache, and computation state. The authored JavaScript wrapper owns only data that Taffy cannot represent safely for JavaScript: public NodeId validity metadata, arbitrary JavaScript context values, and per-node JavaScript measure functions. There is no JavaScript shadow tree or cache of Taffy-owned data.
 
 The napi-rs class and generated loader are private implementation modules. `packages/taffyjs-node/src/binding.ts` is the only maintained TypeScript file that imports the generated loader; the wrapper and private native tests use that entry. Public consumers import only `@taffyjs/node`; direct platform-package access bypasses the wrapper's guarantees.
 
