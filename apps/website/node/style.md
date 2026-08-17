@@ -1,6 +1,6 @@
 # Style
 
-`StyleInput` is the partial object accepted when a node is created or passed to `setStyle`; omitted fields and explicit `undefined` use Taffy's defaults. `StyleUpdate` has the same accepted field shapes for `updateStyle`, but omitted fields and explicit `undefined` preserve stored values. `Style` is the complete detached object returned by `getStyle` and supplied to measure callbacks.
+`StyleInput` is the partial object accepted when a node is created or passed to `setStyle`; omitted fields and explicit `undefined` use Taffy's defaults. `StyleUpdate` has the same accepted field shapes for `updateStyle`, but omitted fields and explicit `undefined` preserve stored values. `Style` is the complete detached object returned by `TaffyTree.getStyle(node)` or by a measure callback's on-demand `getStyle()` function.
 
 Concrete lengths can usually be written as numbers. For example, `size: { width: 200 }` is the concise form of `size: { width: Dimension.Length(200) }`. Percentage, automatic, intrinsic, and Grid-specific values remain explicit. [Styles and Values](../guide/styles-and-values.md) explains these input forms in context.
 

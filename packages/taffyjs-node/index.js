@@ -1188,7 +1188,7 @@ var TaffyTree = class {
 				availableSpace: args.availableSpace,
 				node,
 				context: this.#contexts.get(node),
-				style: args.style
+				getStyle: args.getStyle
 			});
 		});
 	}

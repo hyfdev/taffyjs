@@ -20,15 +20,25 @@ After the binding has produced a complete representable Rust value and satisfied
 
 ## Public data model
 
-[VOUCHED @hyfdev 2026-08-15]
-
 Readable ordinary JavaScript values are the public contract. Inputs are designed to be natural to write, while outputs are designed to make their complete meaning visible. Input and output do not need to use the same runtime representation. Input records remain mutable. Collection-valued inputs accept readonly arrays because the binding only reads them; ordinary mutable arrays remain valid inputs. Binding-produced snapshots are detached and recursively readonly in TypeScript, but runtime objects are not frozen, sealed, proxied, cached, or backed by a live Rust borrow.
 
 Closed choices without associated data use singular PascalCase frozen objects with stable numeric literal members, such as `Display.Flex`. When a numeric input has one clear common meaning, callers may use a number as an additive shorthand: a length number means an absolute length, and an available-space number means `Definite`. The complete forms remain supported, including `Dimension.Length(20)` and `AvailableSpace.Definite(640)`; the shorthand does not replace them. Other meanings remain explicit through values such as `Dimension.Percent(50)`, `Dimension.Auto`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent`. Values returned by the binding keep complete numeric-tagged records, and those returned values remain valid as later inputs. Other values that carry data, including Grid values, continue to use ordinary tagged records. Public values do not use CSS strings, packed numbers, buffers, or native owner objects.
 
 The private representation passed from JavaScript to Rust is a separate implementation choice. Small fixed values may use primitive parameters, and larger values may use a compact buffer when measurements show that it is beneficial. Changing this private representation must not change the public input or output API.
 
-`StyleInput` uses defaults for missing or `undefined` fields, explicit `null` only for publicly nullable fields, strict top-level and partial-geometry field names, and complete replacement in `setStyle`. `getStyle` and measure callbacks receive complete eager snapshots. A measured future optimization may be additive; no selector, query, lazy object, or output cache belongs to the baseline.
+`StyleInput` uses defaults for missing or `undefined` fields, explicit `null` only for publicly nullable fields, strict top-level and partial-geometry field names, and complete replacement in `setStyle`. Direct `getStyle(node)` reads return complete eager snapshots. Measure callbacks preserve that complete snapshot capability through an on-demand `getStyle()` function rather than receiving an eager `style` field. No selector, query, lazy proxy, or output cache belongs to the baseline.
+
+## On-demand Style in measure callbacks
+
+[VOUCHED @hyfdev 2026-08-17]
+
+**Ruling:** `MeasureArgs` must expose `getStyle(): Style` instead of an eager `style` field, and no complete JavaScript Style object may be created unless the callback calls that function.
+
+**Limits:** `knownDimensions`, `availableSpace`, `node`, and `context` remain eager callback arguments. The function returns a fresh complete normalized detached snapshot on every call, may safely escape the callback, observes the Style at the start of its compute, and must not re-enter the busy tree. The safe implementation may clone one Rust Style and create one provider per callback-reached node and compute; this ruling does not approve numeric slots, a compact constraints ABI, per-node measure callbacks, an upstream algorithm change, a JavaScript Style mirror, or unsafe callback-scope handles.
+
+**Why:** Complete Style conversion is large and uncommon measurement data, and the direct eager Rust-to-JavaScript mapping paid that boundary cost even when callbacks only needed constraints or context. Yunfei required the public semantic capability to remain while materialization moves behind an explicit call, with separate measurements for the unused and used paths so the performance cause remains attributable.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-17; explicitly replaced issue #39's earlier eager-Style direction with on-demand `getStyle()`, fixed the public signature and lifetime and isolation requirements, and constrained the accepted implementation and performance experiments in the implementation request for issue #39.
 
 ## Value-based NodeId
 

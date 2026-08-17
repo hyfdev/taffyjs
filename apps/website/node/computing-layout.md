@@ -46,7 +46,8 @@ Use `enableRounding()` or `disableRounding()` to change the mode. Compute again 
 tree.computeLayoutWithMeasure({
   root,
   availableSpace,
-  measure({ knownDimensions, availableSpace, node, context, style }) {
+  measure({ knownDimensions, availableSpace, node, context, getStyle }) {
+    const style = needsStyle(context) ? getStyle() : undefined;
     return measureContent({ knownDimensions, availableSpace, node, context, style });
   },
 });
@@ -56,8 +57,10 @@ Taffy may ask the callback to measure any leaf that needs an intrinsic size. Con
 
 The callback is validated as a function before native computation, even when Taffy may satisfy the request from cache. Taffy controls whether it runs, how often it runs, and the order of calls.
 
-`knownDimensions` contains a number for an axis already fixed by layout and `undefined` otherwise. Callback `availableSpace` uses the same three tagged forms described above. `node` is the public ID, `context` is the exact JavaScript value stored for it, and `style` is a detached complete snapshot. The callback must return a complete `{ width, height }` record synchronously.
+`knownDimensions` contains a number for an axis already fixed by layout and `undefined` otherwise. Callback `availableSpace` uses the same three tagged forms described above. `node` is the public ID, and `context` is the exact JavaScript value stored for it. Call `getStyle()` only when measurement needs the node's style; each call returns a fresh, complete, normalized, detached `Style` snapshot. If the callback never calls it, taffyjs does not create a JavaScript `Style` object. The callback must return a complete `{ width, height }` record synchronously.
 
-During the callback, native-backed methods on the same tree fail with `ERR_TAFFY_TREE_BUSY`. `getNodeContext`, public value helpers, callback arguments, and operations on another tree remain usable.
+This is a breaking change from the earlier callback shape: destructure `getStyle` and call it where needed instead of destructuring an eager `style` value.
+
+During the callback, native-backed methods on the same tree fail with `ERR_TAFFY_TREE_BUSY`. `getStyle()` is the callback-safe way to read the measured node's style; retained `getStyle` functions also remain safe to call after the callback returns. `getNodeContext`, public value helpers, callback arguments, and operations on another tree remain usable.
 
 A thrown callback value or invalid result stops the computation. See [Errors](./errors.md#measurement-failures) for the exact rethrow behavior and the state that remains afterward.

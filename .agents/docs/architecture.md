@@ -40,6 +40,8 @@ Separate-process fixtures are justified only when the process mode or containmen
 
 ## Read boundary
 
-Style, Layout, detailed Grid data, child arrays, and measure arguments cross the boundary as complete detached values. Binding-produced records are recursively readonly in TypeScript but remain ordinary mutable objects at runtime. No live Rust borrow, native-backed view, cache, lazy property, selector, prepared query, or batch snapshot is part of the current API.
+Direct reads of Style, Layout, detailed Grid data, and child arrays cross the boundary as complete detached values. Binding-produced records are recursively readonly in TypeScript but remain ordinary mutable objects at runtime. No live Rust borrow, native-backed view, JavaScript data cache, lazy property, selector, prepared query, or batch snapshot is part of the current direct-read API.
 
-Only a real consumer workload and complete measurements can justify another read path; that work is tracked in [API alignment TODOs](api-alignment-todos.md).
+Measure arguments eagerly carry the small, commonly used constraints, node identity, and context. The complete Style capability remains available through `getStyle()`, but its large JavaScript value is created only when the callback calls that function. Each compute owns one Rust Style snapshot and one native provider for every node that reaches the callback, reuses that provider across the node's requests, and returns a fresh detached complete Style object on every call. A retained provider remains safe after the callback and compute return because it owns the Rust snapshot rather than borrowing or re-entering the busy tree.
+
+Large, rarely used callback data should be generated on demand when measurements show that eager delivery dominates the boundary. Preserve the public semantic capability and ordinary detached output without mechanically copying Rust's eager callback argument conversion. Any additional read path still requires a real consumer workload and complete measurements as tracked in [API alignment TODOs](api-alignment-todos.md).

@@ -80,9 +80,9 @@ Simple scalar and fixed-object fields use concrete napi-rs types. Local `#[napi(
 
 ## Output conversion
 
-Borrowed Rust values never escape. Style, Layout, child arrays, detailed Grid data, available space, and nested records are copied into complete detached JavaScript values.
+Borrowed Rust values never escape. Direct Style reads, Layout, child arrays, detailed Grid data, available space, and nested records are copied into complete detached JavaScript values. A measure callback's Style is first cloned into an owned Rust snapshot and is converted into a complete detached JavaScript value only when its `getStyle()` function is called.
 
-Binding-produced records and arrays are recursively readonly in TypeScript because mutation cannot update Taffy. Runtime objects remain ordinary mutable, unfrozen objects, and each read returns an independent snapshot. There are no live native views, output caches, lazy properties, selectors, prepared queries, or batch snapshots.
+Binding-produced records and arrays are recursively readonly in TypeScript because mutation cannot update Taffy. Runtime objects remain ordinary mutable, unfrozen objects, and each read or callback `getStyle()` call returns an independent snapshot. There are no live native views, output caches, lazy properties, selectors, prepared queries, or batch snapshots; the callback function is an explicit on-demand operation rather than a property that hides an already materialized object.
 
 Public TypeScript declarations and JSDoc live in `packages/taffyjs-node/src` and are emitted by `vp pack` into `index.d.ts`. The private native declarations remain napi-rs-generated.
 
@@ -92,13 +92,15 @@ Arbitrary context stays in a JavaScript map keyed by current public NodeId. Nati
 
 `setNodeContext` updates native presence and the JavaScript map and marks the node dirty. In-place context changes and callback-captured data cannot be observed automatically; callers use `markDirty` when those changes affect later measurement. Supplying a different callback does not invalidate Taffy's cache by itself.
 
-The measure callback runs synchronously and receives owned `knownDimensions`, `availableSpace`, public NodeId, the original JavaScript context, and a detached Style snapshot. Taffy controls the requested nodes, constraints, and ordering, subject to the exact-repeat reuse below. The callback must return a complete `{ width, height }` number record; Promises, missing axes, and invalid values throw `TypeError`.
+The measure callback runs synchronously and receives owned `knownDimensions`, `availableSpace`, public NodeId, the original JavaScript context, and `getStyle()`. Calling `getStyle()` returns a fresh complete normalized detached Style snapshot; not calling it performs no `style::output` conversion and creates no JavaScript Style object. Taffy controls the requested nodes, constraints, and ordering, subject to the exact-repeat reuse below. The callback must return a complete `{ width, height }` number record; Promises, missing axes, and invalid values throw `TypeError`.
+
+The tree is busy while the callback runs, so `getStyle()` does not re-enter `TaffyTree::style`. On the first callback request for a node in one compute, `MeasureSession` clones the borrowed Rust Style into an owned snapshot and creates one native function that captures it. Later requests for that node reuse the same function. The native reference is released when the compute returns, while JavaScript retention keeps the function and its captured snapshot alive until ordinary garbage collection. Every call converts the owned snapshot again, so mutating one returned object cannot change the tree or a later result. A new compute creates a new provider from the Style visible at that compute, including completed prior updates. This safe lifetime costs one Rust Style clone and one provider per callback-reached node per compute; it deliberately avoids callback-scoped pointers or borrows.
 
 The native owner uses checked `RefCell` access. A native-backed call on the same tree during measurement throws `ERR_TAFFY_TREE_BUSY`; JavaScript-only value operations and another tree remain usable.
 
 On the first callback throw or invalid result, the bridge retains that failure, stops further JavaScript callbacks, lets Taffy's infallible stack finish with internal zero sizes, invalidates the requested subtree, and throws synchronously. A thrown JavaScript value keeps its identity. The tree remains usable, but already completed JavaScript side effects and stored Layout work are not rolled back.
 
-Each `computeLayoutWithMeasure` creates one Rust `MeasureSession` that reuses a successful result when Taffy repeats the exact same request during that compute. The key contains the raw NodeId, both optional known dimensions, and both available-space variants and definite values; every `f32` uses its exact bit representation. Cache lookup happens before creating callback arguments or converting Style, and callback throws or binding conversion failures are never stored. The session and its cache are dropped when the compute returns, so caller-managed dirtying and Taffy's persistent cache semantics remain unchanged across computes.
+Each `computeLayoutWithMeasure` creates one Rust `MeasureSession` that reuses a successful result when Taffy repeats the exact same request during that compute. The key contains the raw NodeId, both optional known dimensions, and both available-space variants and definite values; every `f32` uses its exact bit representation. Cache lookup happens before creating callback arguments or creating a Style provider, and callback throws or binding conversion failures are never stored. The session, exact-result cache, and native provider references are dropped when the compute returns, so caller-managed dirtying and Taffy's persistent cache semantics remain unchanged across computes.
 
 ## Mutation, errors, and panic containment
 

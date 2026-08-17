@@ -17,7 +17,7 @@ type RawMeasureArgs = {
   knownDimensions: Size<number | undefined>;
   availableSpace: Size<AvailableSpace>;
   node: bigint;
-  style: Style;
+  getStyle: () => Style;
 };
 
 function checkedChildIndex(index: number): number {
@@ -243,7 +243,7 @@ export class TaffyTree<TContext = unknown> {
         availableSpace: args.availableSpace,
         node,
         context: this.#contexts.get(node),
-        style: args.style,
+        getStyle: args.getStyle,
       });
     });
   }

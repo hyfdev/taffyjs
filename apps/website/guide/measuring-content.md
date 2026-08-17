@@ -72,9 +72,11 @@ The callback receives five values:
 - `availableSpace` contains `AvailableSpace.Definite(value)`, `AvailableSpace.MinContent`, or `AvailableSpace.MaxContent` for each axis.
 - `node` identifies the leaf being measured.
 - `context` is the exact JavaScript value stored for that node, or `undefined` when absent.
-- `style` is a detached, complete style snapshot.
+- `getStyle()` creates and returns a fresh, complete, normalized, detached style snapshot when style affects the measurement. Leave it uncalled when the content measurement does not need style.
 
 Return a complete `{ width, height }` record. The callback is synchronous; returning a Promise or an incomplete record throws `TypeError`.
+
+`getStyle()` replaces the earlier eager `style` callback field. The change is breaking, but avoids constructing a large JavaScript `Style` object for callbacks that only need constraints or context.
 
 ## Taffy may ask more than once
 
