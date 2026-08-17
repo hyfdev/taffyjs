@@ -17,7 +17,7 @@ function creationSerial(node: NodeId) {
 }
 
 function measure(tree: TaffyTree, root: NodeId, callback: (args: MeasureArgs) => void) {
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root,
     availableSpace: availableSpace(),
     measure(args) {

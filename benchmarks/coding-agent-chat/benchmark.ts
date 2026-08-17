@@ -1,4 +1,4 @@
-import type { NodeId, StyleInput, TaffyTree } from "@taffyjs/node";
+import type { MeasureFunction, NodeId, StyleInput, TaffyTree } from "@taffyjs/node";
 import type { Config, Node } from "@taffyjs/yoga";
 
 import {
@@ -173,6 +173,12 @@ function buildTaffyChat(api: TaffyApi): TaffyChatFixture {
   const tree = new api.TaffyTree<TextContext>();
   tree.disableRounding();
   const nodes: NodeId[] = [];
+  const measure: MeasureFunction<TextContext> = ({ knownDimensions, availableSpace, context }) =>
+    measureText(
+      context ?? { characters: 1, lineHeight: 16 },
+      mapTaffyConstraint(api, knownDimensions.width, availableSpace.width),
+      mapTaffyConstraint(api, knownDimensions.height, availableSpace.height),
+    );
   const fixedLeaf = (width: number, height: number): NodeId => {
     const node = tree.newLeaf({
       display: api.Display.Flex,
@@ -184,6 +190,7 @@ function buildTaffyChat(api: TaffyApi): TaffyChatFixture {
   };
   const measuredLeaf = (context: TextContext): NodeId => {
     const node = tree.newLeafWithContext(textStyle, context);
+    tree.setMeasure(node, measure);
     nodes.push(node);
     return node;
   };
@@ -218,16 +225,9 @@ function buildTaffyChat(api: TaffyApi): TaffyChatFixture {
     nodes,
     root,
     compute(width, height) {
-      tree.computeLayoutWithMeasure({
+      tree.computeLayout({
         root,
         availableSpace: { width, height },
-        measure({ knownDimensions, availableSpace, context }) {
-          return measureText(
-            context ?? { characters: 1, lineHeight: 16 },
-            mapTaffyConstraint(api, knownDimensions.width, availableSpace.width),
-            mapTaffyConstraint(api, knownDimensions.height, availableSpace.height),
-          );
-        },
       });
     },
   };

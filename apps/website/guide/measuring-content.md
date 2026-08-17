@@ -35,13 +35,14 @@ const measureImage: MeasureFunction<ImageContext> = ({ knownDimensions, context 
   return { width: intrinsicWidth, height: intrinsicHeight };
 };
 
-tree.computeLayoutWithMeasure({
+tree.setMeasure(image, measureImage);
+
+tree.computeLayout({
   root: image,
   availableSpace: {
     width: AvailableSpace.MaxContent,
     height: AvailableSpace.MaxContent,
   },
-  measure: measureImage,
 });
 
 console.log(tree.getUnroundedLayout(image).size); // { width: 80, height: 45 }
@@ -49,7 +50,9 @@ console.log(tree.getUnroundedLayout(image).size); // { width: 80, height: 45 }
 
 The image file is not itself a box size. The decoder supplies the intrinsic dimensions, the callback adapts them to Taffy's current constraints, and Taffy decides where the resulting box belongs.
 
-Context is a convenient place to keep per-node measurement data, but it is not what makes a leaf measurable. Taffy may ask the callback to measure any leaf that needs an intrinsic size. A leaf created with `newLeaf` has `context === undefined`; the callback can instead use its `node` ID to look up data held elsewhere in your application.
+Context is a convenient place to keep per-node measurement data, but it is not what makes a leaf measurable. `setMeasure` does that independently. A measured leaf created with `newLeaf` has `context === undefined`; its callback can instead use the `node` ID to look up data held elsewhere in your application. Conversely, a leaf can have context without a measure function and remain entirely in native layout.
+
+Use `setMeasure(node, undefined)` to restore ordinary leaf sizing. `remove(node)` releases that node's callback, and `clear()` releases all callbacks in the tree.
 
 ## Text follows the same boundary
 
@@ -93,7 +96,13 @@ if (imageData) {
 }
 ```
 
-Passing a different callback does not invalidate cached measurement results by itself.
+Calling `setMeasure` sets, replaces, or clears a per-node callback and marks the node dirty, even if the same function is supplied again. If only the callback's captured data changes, call `markDirty` yourself.
+
+## Use a global fallback when every leaf is eligible
+
+`computeLayout({ root, availableSpace, measure })` accepts an optional escape-hatch fallback for any leaf without a per-node callback. A callback configured with `setMeasure` takes priority. Code that only uses this global fallback keeps the previous behavior, but ordinary applications should register the nodes that actually own externally measured content.
+
+Fallback identity and presence are not part of Taffy's cache key. When you add, remove, or change a fallback or its captured data, call `markDirty` on every leaf that may be affected. Marking only the compute root does not clear cached descendant measurements.
 
 ## Measurement runs during layout
 

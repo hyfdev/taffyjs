@@ -64,7 +64,7 @@ function completedMeasureCallback() {
     return { width: 31, height: 17 };
   };
   const weak = new WeakRef(callback);
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root: node,
     availableSpace: {
       width: AvailableSpace.MinContent,

@@ -20,6 +20,7 @@ const operations: readonly Operation[] = [
   ["clear", () => tree.clear()],
   ["remove", () => tree.remove(measured)],
   ["setNodeContext", () => tree.setNodeContext(measured, true)],
+  ["setMeasure", () => tree.setMeasure(measured, () => ({ width: 1, height: 1 }))],
   ["addChild", () => tree.addChild(root, spare)],
   ["insertChildAtIndex", () => tree.insertChildAtIndex(root, 0, spare)],
   ["setChildren", () => tree.setChildren(root, [measured, sibling])],
@@ -42,9 +43,9 @@ const operations: readonly Operation[] = [
   ["isDirty", () => tree.isDirty(measured)],
   ["computeLayout", () => tree.computeLayout({ root, availableSpace: space })],
   [
-    "computeLayoutWithMeasure",
+    "computeLayout",
     () =>
-      tree.computeLayoutWithMeasure({
+      tree.computeLayout({
         root,
         availableSpace: space,
         measure: () => ({ width: 0, height: 0 }),
@@ -54,7 +55,7 @@ const operations: readonly Operation[] = [
 
 let callbackRan = false;
 const results: OperationResult[] = [];
-tree.computeLayoutWithMeasure({
+tree.computeLayout({
   root,
   availableSpace: space,
   measure() {

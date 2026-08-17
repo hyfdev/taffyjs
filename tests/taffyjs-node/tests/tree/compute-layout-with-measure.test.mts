@@ -38,7 +38,7 @@ function captureError(body: () => unknown): unknown {
 }
 
 function compute(tree: TaffyTree, root: NodeId, measure: MeasureFunction<unknown>): void {
-  tree.computeLayoutWithMeasure({ root, availableSpace: minContentSpace(), measure });
+  tree.computeLayout({ root, availableSpace: minContentSpace(), measure });
 }
 
 type MeasureRequestKey = readonly [
@@ -149,16 +149,28 @@ function createNestedMeasureFixture(
   return { tree, measured, root };
 }
 
-function collectMeasureRequests(fixture: NestedMeasureFixture): MeasureRequestKey[] {
+function collectMeasureRequests(
+  fixture: NestedMeasureFixture,
+  source: "global" | "per-node" = "global",
+): MeasureRequestKey[] {
   const requests: MeasureRequestKey[] = [];
-  fixture.tree.computeLayoutWithMeasure({
-    root: fixture.root,
-    availableSpace: { width: 1280, height: 800 },
-    measure(args) {
-      requests.push(measureRequestKey(args));
-      return { width: 73, height: 19 };
-    },
-  });
+  const measure: MeasureFunction<unknown> = (args) => {
+    requests.push(measureRequestKey(args));
+    return { width: 73, height: 19 };
+  };
+  if (source === "per-node") {
+    fixture.tree.setMeasure(fixture.measured, measure);
+    fixture.tree.computeLayout({
+      root: fixture.root,
+      availableSpace: { width: 1280, height: 800 },
+    });
+  } else {
+    fixture.tree.computeLayout({
+      root: fixture.root,
+      availableSpace: { width: 1280, height: 800 },
+      measure,
+    });
+  }
   return requests;
 }
 
@@ -168,7 +180,7 @@ test("callback-args", () => {
   const node = tree.newLeafWithContext({ flexGrow: 1.25 }, context);
   let saved: MeasureArgs<unknown> | undefined;
 
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root: node,
     availableSpace: availableSpace(),
     measure(args) {
@@ -209,7 +221,7 @@ test("getStyle provider is reused per node and refreshed for the next compute", 
   const providers = new Map<NodeId, () => ReturnType<MeasureArgs<unknown>["getStyle"]>>();
   let repeatedProvider = false;
 
-  fixture.tree.computeLayoutWithMeasure({
+  fixture.tree.computeLayout({
     root: fixture.root,
     availableSpace: { width: 1280, height: 800 },
     measure(args) {
@@ -230,7 +242,7 @@ test("getStyle provider is reused per node and refreshed for the next compute", 
 
   fixture.tree.setStyle(fixture.measured, { flexGrow: 2 });
   let nextProvider: MeasureArgs<unknown>["getStyle"] | undefined;
-  fixture.tree.computeLayoutWithMeasure({
+  fixture.tree.computeLayout({
     root: fixture.root,
     availableSpace: { width: 1280, height: 800 },
     measure(args) {
@@ -243,6 +255,224 @@ test("getStyle provider is reused per node and refreshed for the next compute", 
   assert.notEqual(nextProvider, previousProvider);
   assert.equal(nextProvider().flexGrow, 2);
   assert.equal(previousProvider().flexGrow, 0);
+});
+
+test("computeLayout keeps ordinary leaves native when no measure is configured", () => {
+  const tree = new TaffyTree<{ label: string }>();
+  const fixed = tree.newLeafWithContext(
+    { size: { width: 40, height: 12 } },
+    { label: "context does not enable measurement" },
+  );
+
+  tree.computeLayout({ root: fixed, availableSpace: minContentSpace(), measure: undefined });
+
+  assert.deepEqual(tree.getUnroundedLayout(fixed).size, { width: 40, height: 12 });
+});
+
+test("computeLayout invokes only configured measures independently of context", () => {
+  const tree = new TaffyTree<string>();
+  const contextOnly = tree.newLeafWithContext({}, "context only");
+  const measureOnly = tree.newLeaf({});
+  const fixed = tree.newLeafWithContext({ size: { width: 40, height: 12 } }, "fixed context");
+  const root = tree.newWithChildren({}, [contextOnly, measureOnly, fixed]);
+  const receivedContexts: Array<string | undefined> = [];
+  const measuredNodes = new Set<NodeId>();
+  tree.setMeasure(measureOnly, (args) => {
+    measuredNodes.add(args.node);
+    receivedContexts.push(args.context);
+    return { width: 30, height: 10 };
+  });
+
+  tree.computeLayout({ root, availableSpace: minContentSpace() });
+  assert.deepEqual([...measuredNodes], [measureOnly]);
+  assert.equal(receivedContexts.length > 0, true);
+  assert.equal(
+    receivedContexts.every((context) => context === undefined),
+    true,
+  );
+  assert.deepEqual(tree.getUnroundedLayout(fixed).size, { width: 40, height: 12 });
+
+  tree.setNodeContext(measureOnly, "added later");
+  tree.computeLayout({ root, availableSpace: minContentSpace() });
+  assert.equal(receivedContexts.at(-1), "added later");
+
+  tree.setNodeContext(measureOnly, undefined);
+  tree.computeLayout({ root, availableSpace: minContentSpace() });
+  assert.equal(receivedContexts.at(-1), undefined);
+});
+
+test("nodes select their own measures and may share one callback", () => {
+  const tree = new TaffyTree();
+  const first = tree.newLeaf({});
+  const second = tree.newLeaf({});
+  const third = tree.newLeaf({});
+  const root = tree.newWithChildren({}, [first, second, third]);
+  const firstNodes = new Set<NodeId>();
+  const sharedNodes = new Set<NodeId>();
+  tree.setMeasure(first, ({ node }) => {
+    firstNodes.add(node);
+    return { width: 10, height: 5 };
+  });
+  const shared: MeasureFunction<unknown> = ({ node }) => {
+    sharedNodes.add(node);
+    return { width: 20, height: 6 };
+  };
+  tree.setMeasure(second, shared);
+  tree.setMeasure(third, shared);
+
+  tree.computeLayout({ root, availableSpace: minContentSpace() });
+
+  assert.deepEqual([...firstNodes], [first]);
+  assert.deepEqual(sharedNodes, new Set([second, third]));
+});
+
+test("per-node measures take priority over the global fallback", () => {
+  const tree = new TaffyTree();
+  const configured = tree.newLeaf({});
+  const fallback = tree.newLeaf({});
+  const root = tree.newWithChildren({}, [configured, fallback]);
+  const configuredNodes = new Set<NodeId>();
+  const fallbackNodes = new Set<NodeId>();
+  tree.setMeasure(configured, ({ node }) => {
+    configuredNodes.add(node);
+    return { width: 30, height: 10 };
+  });
+
+  tree.computeLayout({
+    root,
+    availableSpace: minContentSpace(),
+    measure({ node }) {
+      fallbackNodes.add(node);
+      return { width: 40, height: 12 };
+    },
+  });
+
+  assert.deepEqual([...configuredNodes], [configured]);
+  assert.deepEqual([...fallbackNodes], [fallback]);
+});
+
+test("setMeasure always invalidates cached measurement and clearing restores fallback", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeaf({});
+  let measuredWidth = 10;
+  let calls = 0;
+  const measure: MeasureFunction<unknown> = () => {
+    calls += 1;
+    return { width: measuredWidth, height: 5 };
+  };
+
+  tree.setMeasure(node, measure);
+  tree.computeLayout({ root: node, availableSpace: minContentSpace() });
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 10, height: 5 });
+  const firstCalls = calls;
+
+  measuredWidth = 20;
+  tree.setMeasure(node, measure);
+  tree.computeLayout({ root: node, availableSpace: minContentSpace() });
+  assert.equal(calls > firstCalls, true, "setting the same callback identity dirties the node");
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 20, height: 5 });
+
+  tree.setMeasure(node, () => ({ width: 30, height: 6 }));
+  tree.computeLayout({ root: node, availableSpace: minContentSpace() });
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 30, height: 6 });
+
+  tree.setMeasure(node, undefined);
+  tree.computeLayout({ root: node, availableSpace: minContentSpace() });
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 0, height: 0 });
+
+  let fallbackCalls = 0;
+  tree.markDirty(node);
+  tree.computeLayout({
+    root: node,
+    availableSpace: minContentSpace(),
+    measure() {
+      fallbackCalls += 1;
+      return { width: 40, height: 7 };
+    },
+  });
+  assert.equal(fallbackCalls > 0, true);
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 40, height: 7 });
+});
+
+test("remove and clear release per-node measure state", () => {
+  const tree = new TaffyTree();
+  let calls = 0;
+  const removed = tree.newLeaf({});
+  tree.setMeasure(removed, () => {
+    calls += 1;
+    return { width: 10, height: 5 };
+  });
+  tree.remove(removed);
+
+  const replacement = tree.newLeaf({});
+  tree.computeLayout({ root: replacement, availableSpace: minContentSpace() });
+  assert.equal(calls, 0);
+
+  tree.setMeasure(replacement, () => {
+    calls += 1;
+    return { width: 20, height: 6 };
+  });
+  tree.clear();
+
+  const afterClear = tree.newLeaf({});
+  tree.computeLayout({ root: afterClear, availableSpace: minContentSpace() });
+  assert.equal(calls, 0);
+});
+
+test("failed setMeasure calls leave native and JavaScript state aligned", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeaf({});
+  let originalCalls = 0;
+  let replacementCalls = 0;
+  let busyError: unknown;
+  let attempted = false;
+  const replacement = () => {
+    replacementCalls += 1;
+    return { width: 99, height: 9 };
+  };
+  tree.setMeasure(node, () => {
+    originalCalls += 1;
+    if (!attempted) {
+      attempted = true;
+      busyError = captureError(() => tree.setMeasure(node, replacement));
+    }
+    return { width: 20, height: 5 };
+  });
+
+  tree.computeLayout({ root: node, availableSpace: minContentSpace() });
+  assert.equal((busyError as { code?: string }).code, "ERR_TAFFY_TREE_BUSY");
+  assert.throws(() => tree.setMeasure(node, null as never), TypeError);
+  assert.equal(tree.isDirty(node), false);
+
+  tree.markDirty(node);
+  tree.computeLayout({ root: node, availableSpace: minContentSpace() });
+  assert.equal(originalCalls > 1, true);
+  assert.equal(replacementCalls, 0);
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 20, height: 5 });
+});
+
+test("per-node callback failures preserve thrown identity and retry", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeaf({});
+  const thrown = { reason: "retry per-node measurement" };
+  let shouldThrow = true;
+  let calls = 0;
+  tree.setMeasure(node, () => {
+    calls += 1;
+    if (shouldThrow) throw thrown;
+    return { width: 30, height: 10 };
+  });
+
+  assert.equal(
+    captureError(() => tree.computeLayout({ root: node, availableSpace: minContentSpace() })),
+    thrown,
+  );
+  assert.equal(calls, 1);
+
+  shouldThrow = false;
+  tree.computeLayout({ root: node, availableSpace: minContentSpace() });
+  assert.equal(calls > 1, true);
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 30, height: 10 });
 });
 
 test("result-f32", () => {
@@ -274,8 +504,18 @@ test("result-f32", () => {
 test("identical requests reuse one callback result without merging constraints", () => {
   const rowFirst = collectMeasureRequests(createNestedMeasureFixture(FlexDirection.Row));
   const columnFirst = collectMeasureRequests(createNestedMeasureFixture(FlexDirection.Column));
+  const perNodeRowFirst = collectMeasureRequests(
+    createNestedMeasureFixture(FlexDirection.Row),
+    "per-node",
+  );
+  const perNodeColumnFirst = collectMeasureRequests(
+    createNestedMeasureFixture(FlexDirection.Column),
+    "per-node",
+  );
   assertNoDuplicateMeasureRequests(rowFirst);
   assertNoDuplicateMeasureRequests(columnFirst);
+  assertNoDuplicateMeasureRequests(perNodeRowFirst);
+  assertNoDuplicateMeasureRequests(perNodeColumnFirst);
 
   assert.equal(
     hasPairDifferingOnlyAt(rowFirst, 1),
@@ -335,7 +575,7 @@ test("identical constraints on different nodes remain separate requests", () => 
   const requests: MeasureRequestKey[] = [];
   const measuredNodes = new Set<NodeId>();
 
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root,
     availableSpace: { width: 200, height: 100 },
     measure(args) {
@@ -383,15 +623,58 @@ test("cache-calls", () => {
   };
   let calls = 0;
 
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   const firstCalls = calls;
   assert.equal(firstCalls > 0, true);
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   assert.equal(calls, firstCalls, "unchanged input may use the cached result without a callback");
 
   tree.setStyle(node, { flexGrow: 1 });
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   assert.equal(calls > firstCalls, true, "dirty input asks Taffy to measure again");
+});
+
+test("changing the global fallback requires dirtying each affected leaf", () => {
+  const tree = new TaffyTree();
+  const leaf = tree.newLeaf({});
+  const root = tree.newWithChildren({}, [leaf]);
+  let firstCalls = 0;
+  let secondCalls = 0;
+
+  tree.computeLayout({
+    root,
+    availableSpace: minContentSpace(),
+    measure() {
+      firstCalls += 1;
+      return { width: 10, height: 5 };
+    },
+  });
+  assert.equal(firstCalls > 0, true);
+  assert.deepEqual(tree.getUnroundedLayout(leaf).size, { width: 10, height: 5 });
+
+  tree.markDirty(root);
+  tree.computeLayout({
+    root,
+    availableSpace: minContentSpace(),
+    measure() {
+      secondCalls += 1;
+      return { width: 20, height: 6 };
+    },
+  });
+  assert.equal(secondCalls, 0, "markDirty(root) does not clear a descendant leaf's cache");
+  assert.deepEqual(tree.getUnroundedLayout(leaf).size, { width: 10, height: 5 });
+
+  tree.markDirty(leaf);
+  tree.computeLayout({
+    root,
+    availableSpace: minContentSpace(),
+    measure() {
+      secondCalls += 1;
+      return { width: 20, height: 6 };
+    },
+  });
+  assert.equal(secondCalls > 0, true);
+  assert.deepEqual(tree.getUnroundedLayout(leaf).size, { width: 20, height: 6 });
 });
 
 test("callback-type-before-cache", () => {
@@ -403,20 +686,15 @@ test("callback-type-before-cache", () => {
     measure: () => ({ width: 30, height: 10 }),
   };
 
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   assert.equal(tree.isDirty(node), false);
 
-  assert.throws(
-    () => tree.computeLayoutWithMeasure({ ...options, measure: 42 as never }),
-    TypeError,
-  );
+  assert.throws(() => tree.computeLayout({ ...options, measure: 42 as never }), TypeError);
+  assert.throws(() => tree.computeLayout({ ...options, measure: null as never }), TypeError);
   assert.equal(tree.isDirty(node), false, "a cached tree is untouched by callback validation");
 
   tree.markDirty(node);
-  assert.throws(
-    () => tree.computeLayoutWithMeasure({ ...options, measure: 42 as never }),
-    TypeError,
-  );
+  assert.throws(() => tree.computeLayout({ ...options, measure: 42 as never }), TypeError);
   assert.equal(tree.isDirty(node), true, "a dirty tree is untouched by callback validation");
 });
 
@@ -430,7 +708,7 @@ test("same-tree-busy", () => {
     results: { method: string; code?: string; message: string }[];
   };
   assert.equal(results.callbackRan, true);
-  assert.equal(results.results.length, 30);
+  assert.equal(results.results.length, 31);
   for (const result of results.results) {
     assert.equal(result.code, "ERR_TAFFY_TREE_BUSY", result.method);
     assert.equal(

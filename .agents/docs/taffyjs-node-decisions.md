@@ -10,6 +10,18 @@ This ledger keeps only judgments Yunfei explicitly expressed; an implementation,
 
 Additive convenience or measured performance APIs may coexist with the direct methods, but they must not replace them or require callers to adopt a higher-level JavaScript abstraction.
 
+## Direct semantics with an optimized boundary
+
+[VOUCHED @hyfdev 2026-08-18]
+
+**Ruling:** Direct binding means that Taffy remains the sole owner of tree topology, Style, Layout, cache, and layout behavior; the public API continues to expose Taffy's high-level concepts and complete direct operations on the same `TaffyTree`. It does not require a mechanical ABI translation, eager construction of every JavaScript value, or one JavaScript-to-Rust crossing for every underlying Rust operation. The binding may optimize private transport without observable semantic change and may add benchmark-supported operations that let callers explicitly request a partial read, partial update, batch, or external-measurement behavior.
+
+**Limits:** Complete direct operations remain available and must not be renamed as slow paths, replaced by a performance-specific abstraction, or require callers to maintain another model. An extension must express a real caller intent that the direct operation cannot represent cheaply, have retained end-to-end evidence that includes JavaScript conversion cost, and leave Taffy as the only owner of layout state and semantics. It must not introduce a JavaScript shadow tree, reimplement layout, add Yoga or CSS policy, or create a second stateful API. Name extensions by the operation they perform, such as `update`, `query`, `batch`, or `measure`, rather than by labels such as fast or optimized. Reopen the package's direct-binding identity only if representative applications show that acceptable performance requires rewriting most ordinary operations into a second usage model.
+
+**Why:** Rust borrows and internal calls do not have the same cost as owned JavaScript objects and Node-API or WASI crossings. Eagerly converting a borrowed Style or repeatedly crossing the boundary is an implementation choice rather than part of Taffy's semantics. The current benchmark evidence identifies localized boundary costs in measurement callbacks, Style materialization, and repeated requests, so transparent boundary work and a small number of explicit intent operations address the demonstrated problem without abandoning the direct model. `getStyle` and `getLayout` therefore remain complete baseline reads, while selective queries remain additive; on-demand measure Style access is a boundary adaptation because the same complete Style capability remains available.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-17; explicitly accepted this definition of direct binding and required it to become a vouched design principle after comparing direct getters, selective queries, on-demand callback data, batching, and per-node measurement.
+
 ## Safe boundary with Taffy-owned semantics
 
 [VOUCHED @hyfdev 2026-08-14]
@@ -50,27 +62,41 @@ The public wrapper keeps one current-node registry and validates owner, creation
 
 ## Explicit layout and JavaScript context
 
-[VOUCHED @hyfdev 2026-08-14]
+[VOUCHED @hyfdev 2026-08-18]
 
-Layout computation stays explicit through separate `computeLayout` and `computeLayoutWithMeasure` methods. Layout getters return Taffy's stored value without computing, and `isDirty` keeps Taffy's cache-state meaning rather than promising current output.
+Layout computation stays explicit through one `computeLayout` method. Its options may carry a call-scoped global measure fallback, while configured per-node measures remain part of the receiving tree. A call synchronously executes user JavaScript, may throw its value, and enters the busy-tree state when either source is selected by Taffy; with neither source, it retains the native no-callback path. Layout getters return Taffy's stored value without computing, and `isDirty` keeps Taffy's cache-state meaning rather than promising current output.
 
-Arbitrary node context remains owned by JavaScript; native `TaffyTree<()>` stores only presence. `undefined` means absence, `setNodeContext` marks the node dirty, and in-place context or captured-data changes require caller-managed `markDirty` when they affect measurement. The initial implementation has no JavaScript cache of Taffy-owned data.
+Arbitrary node context values and per-node measure functions remain owned by JavaScript; native `TaffyTree<NodeMetadata>` stores only their independent `has_context` and `has_measure` presence markers. `undefined` means absence for the corresponding value or function, `setNodeContext` marks the node dirty, and in-place context or captured-data changes require caller-managed `markDirty` when they affect measurement. The initial implementation has no JavaScript cache of Taffy-owned data.
 
 ## Measurement boundary
 
-[VOUCHED @hyfdev 2026-08-14]
+[VOUCHED @hyfdev 2026-08-18]
 
-The direct measure callback is synchronous, scoped to one compute, and receives owned boundary values. Taffy and its cache control invocation count, ordering, and constraints. Same-tree native access while it runs fails with `ERR_TAFFY_TREE_BUSY`; an independent tree remains usable.
+Every measure callback invocation is synchronous and receives owned boundary values. Per-node callbacks are retained by the JavaScript wrapper until replaced, cleared, or removed with their node or tree; the optional global fallback is scoped to one `computeLayout` call. Taffy and its cache control invocation count, ordering, and constraints. Same-tree native access while a callback runs fails with `ERR_TAFFY_TREE_BUSY`; an independent tree remains usable.
 
 The callback returns a complete numeric size. The first thrown value or invalid result stops later JavaScript callbacks, lets Taffy's infallible stack finish, invalidates the requested subtree, and is thrown synchronously. The tree remains reusable, but JavaScript side effects and Layout work completed before failure are not rolled back.
 
-Retained, asynchronous, off-thread, cancellable, or transactionally rolled-back measurement would be a different API with its own ownership and failure contract.
+Asynchronous, off-thread, cancellable, or transactionally rolled-back measurement would be a different API with its own ownership and failure contract.
+
+## Unified layout measurement entry point
+
+[VOUCHED @hyfdev 2026-08-18]
+
+**Ruling:** `TaffyTree` must expose one layout action, `computeLayout(options)`, and remove `computeLayoutWithMeasure`. `ComputeLayoutOptions` accepts an optional call-scoped `measure` function. When Taffy requests external measurement, dispatch order is the callback configured for that node, the current call's optional global fallback, then ordinary native leaf behavior without entering JavaScript. `computeLayout` automatically honors configured per-node callbacks; when neither per-node nor global measurement exists, it retains the current raw native fast path.
+
+**Limits:** This unifies two JavaScript method names rather than removing either Taffy capability: a call without `measure` maps to layout with configured per-node measurement and native behavior for other leaves, while a call with `measure` additionally supplies Taffy's generic per-compute closure. The optional fallback does not replace per-node callbacks. Taffy's cache keys do not include callback identity or fallback presence. Changing data captured by one per-node callback therefore requires the caller to mark that node dirty. Adding, removing, or changing the meaning or captured data of a global fallback requires the caller to mark every potentially affected leaf dirty; marking only the compute root is insufficient because Taffy's `markDirty(root)` clears that node and its ancestors, not its descendants. Setting, replacing, or clearing a per-node callback performs its own node invalidation. The binding must not introduce automatic measurement-regime tracking, broad cache invalidation, a JavaScript shadow tree, or a second layout abstraction.
+
+**Why:** Taffy's two Rust methods use the same layout pipeline; the no-measure method calls the generic method with a zero-returning closure. Their split makes an optional generic Rust closure convenient, but it does not represent two layout concepts that JavaScript must copy mechanically. One JavaScript options object exposes both direct capabilities more clearly. Registering a per-node callback explicitly authorizes that node to enter JavaScript during layout, and the optional global fallback remains available without forcing unrelated leaves through it.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-17; after tracing Taffy's no-measure method to the same measured pipeline, explicitly chose one overloaded `computeLayout` entry, removal of `computeLayoutWithMeasure`, automatic use of configured per-node callbacks, an optional global fallback, and the per-node/global/native dispatch order.
 
 ## Exact measure request reuse within one compute
 
-**Ruling:** During one `computeLayoutWithMeasure` call, the Rust binding must invoke the public JavaScript measure callback at most once for an exact combination of raw NodeId, both optional known dimensions, and both available-space variants and definite values. Floating-point equality must use the exact `f32` bit representation. Only a callback result that successfully converts to `Size<f32>` may be reused.
+[VOUCHED @hyfdev 2026-08-18]
 
-**Limits:** Reuse ends with the current compute and adds no persistent tree, Style, context, or JavaScript cache. Style and context are not key inputs because the public tree API cannot mutate either for the same node while its measure callback is running. This does not add a per-node measure API, reuse Style snapshots, or change Taffy's layout or measurement phases. The existing first-failure behavior, subtree invalidation, thrown-value identity, and later retry behavior remain unchanged.
+**Ruling:** During one `computeLayout` call, the Rust binding must invoke the selected public JavaScript measure callback at most once for an exact combination of raw NodeId, both optional known dimensions, and both available-space variants and definite values. Floating-point equality must use the exact `f32` bit representation. Only a callback result that successfully converts to `Size<f32>` may be reused.
+
+**Limits:** Reuse ends with the current compute and adds no persistent tree, Style, context, or JavaScript result cache. Style, context, and callback identity are not key inputs because the public tree API cannot mutate them for the same node while its measure callback is running, and raw NodeId distinguishes per-node callback selection. This does not reuse Style snapshots or change Taffy's layout or measurement phases. The existing first-failure behavior, subtree invalidation, thrown-value identity, and later retry behavior remain unchanged.
 
 **Why:** The coding-agent chat initial-layout workload showed that Taffy issued 3,420 measure requests but only 1,262 exact argument combinations. Reusing those successful results before Style conversion and the Node-API or WASI boundary removes repeated boundary work without changing a caller-visible input, broadening cache invalidation, or retaining results after the synchronous operation.
 

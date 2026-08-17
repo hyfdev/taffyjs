@@ -551,7 +551,7 @@ export type MeasureArgs<TContext> = Readonly<{
   getStyle(): Style;
 }>;
 
-/** Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying. */
+/** Measures synchronously when Taffy requests it; invocation count and order are unspecified, and changed external data requires explicit dirtying. The same type is used for per-node measures and a computeLayout fallback. */
 export type MeasureFunction<TContext> = (args: MeasureArgs<TContext>) => SizeInput<number>;
 
 /** Supplies a half-open child index range to removeChildrenRange. */
@@ -560,15 +560,9 @@ export interface ChildRangeInput {
   /** Supplies the end value used by ChildRangeInput. */ end: number;
 }
 
-/** Supplies a root, available space, and synchronous measurement callback. */
-export interface ComputeLayoutWithMeasureOptions<TContext> {
-  /** Supplies the root value used by ComputeLayoutWithMeasureOptions. */ root: NodeId;
-  /** Supplies the available space value used by ComputeLayoutWithMeasureOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
-  /** Supplies the measure value used by ComputeLayoutWithMeasureOptions. */ measure: MeasureFunction<TContext>;
-}
-
-/** Supplies a root and available space for ordinary layout computation. */
-export interface ComputeLayoutOptions {
+/** Supplies a root, available space, and an optional synchronous fallback for layout. */
+export interface ComputeLayoutOptions<TContext = unknown> {
   /** Supplies the root value used by ComputeLayoutOptions. */ root: NodeId;
   /** Supplies the available space value used by ComputeLayoutOptions. */ availableSpace: SizeInput<AvailableSpaceInput>;
+  /** Supplies the optional global fallback used after any configured per-node measure. */ measure?: MeasureFunction<TContext>;
 }

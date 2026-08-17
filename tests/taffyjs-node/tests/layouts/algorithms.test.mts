@@ -213,7 +213,7 @@ test("measure-context", () => {
     },
   };
 
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   assert.equal(calls, 1);
   assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 20, height: 10 });
   assert.equal(tree.isDirty(node), false);
@@ -221,7 +221,7 @@ test("measure-context", () => {
   context.width = 35;
   tree.markDirty(node);
   assert.equal(tree.isDirty(node), true);
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   assert.equal(calls, 2);
   assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 35, height: 10 });
   assert.equal(tree.getNodeContext(node), context);
@@ -244,10 +244,10 @@ test("topology-cache", () => {
     },
   };
 
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   const firstCalls = calls;
   assert.equal(firstCalls > 0, true);
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   assert.equal(calls, firstCalls, "an unchanged tree reuses its cached measurements");
 
   const second = tree.newLeafWithContext({}, { width: 20, height: 10 });
@@ -255,7 +255,7 @@ test("topology-cache", () => {
   tree.addChild(root, second);
   assert.equal(tree.getNodeCount(), 3);
   assert.equal(tree.isDirty(root), true);
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   assert.equal(calls > firstCalls, true, "a new child is measured");
   assert.deepEqual(tree.getChildren(root), [first, second]);
   assert.deepEqual(tree.getUnroundedLayout(root).contentSize, { width: 30, height: 10 });
@@ -263,7 +263,7 @@ test("topology-cache", () => {
   tree.removeChild(root, first);
   assert.equal(tree.getNodeCount(), 3);
   assert.equal(tree.isDirty(root), true);
-  tree.computeLayoutWithMeasure(options);
+  tree.computeLayout(options);
   assert.equal(tree.isDirty(root), false);
   assert.deepEqual(tree.getChildren(root), [second]);
   assert.deepEqual(tree.getUnroundedLayout(root).contentSize, { width: 20, height: 10 });

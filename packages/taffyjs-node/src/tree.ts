@@ -3,9 +3,9 @@ import { NodeIdRegistry, type NodeId } from "./node-id.js";
 import type {
   ChildRangeInput,
   ComputeLayoutOptions,
-  ComputeLayoutWithMeasureOptions,
   DetailedLayoutInfo,
   Layout,
+  MeasureFunction,
   Size,
   Style,
   StyleInput,
@@ -30,6 +30,7 @@ export class TaffyTree<TContext = unknown> {
   readonly #inner: BindingTaffyTree;
   readonly #nodes = new NodeIdRegistry();
   readonly #contexts = new Map<NodeId, TContext>();
+  readonly #measures = new Map<NodeId, MeasureFunction<TContext>>();
 
   /** Creates an independent Taffy tree with its own NodeId namespace. */
   constructor() {
@@ -156,12 +157,13 @@ export class TaffyTree<TContext = unknown> {
     return this.#nodes.register(this.#inner.rawNewWithChildren(style, rawChildren), serial);
   }
 
-  /** Removes one node and invalidates its public NodeId. */
+  /** Removes one node, its context and measure function, and invalidates its public NodeId. */
   remove(node: NodeId): void {
     const raw = this.#nodes.resolve(node);
     this.#inner.rawRemove(raw);
     this.#nodes.unregister(node, raw);
     this.#contexts.delete(node);
+    this.#measures.delete(node);
   }
 
   /** Returns the JavaScript context currently associated with one node. */
@@ -176,6 +178,17 @@ export class TaffyTree<TContext = unknown> {
     this.#inner.rawSetNodeContext(raw, context !== undefined);
     if (context === undefined) this.#contexts.delete(node);
     else this.#contexts.set(node, context);
+  }
+
+  /** Sets or clears this node's synchronous measure function; every call marks it dirty, including when the function identity is unchanged. */
+  setMeasure(node: NodeId, measure: MeasureFunction<TContext> | undefined): void {
+    const raw = this.#nodes.resolve(node);
+    if (measure !== undefined && typeof measure !== "function") {
+      throw new TypeError("measure must be a function or undefined");
+    }
+    this.#inner.rawSetMeasure(raw, measure !== undefined);
+    if (measure === undefined) this.#measures.delete(node);
+    else this.#measures.set(node, measure);
   }
 
   /** Replaces a node style and marks affected layout state dirty. */
@@ -218,33 +231,52 @@ export class TaffyTree<TContext = unknown> {
     return this.#inner.rawIsDirty(this.#nodes.resolve(node));
   }
 
-  /** Removes every node and context value from this tree. */
+  /** Removes every node, context value, and per-node measure function from this tree. */
   clear(): void {
     this.#inner.rawClear();
     this.#nodes.clear();
     this.#contexts.clear();
+    this.#measures.clear();
   }
 
-  /** Computes and stores layout for a tree root synchronously. */
-  computeLayout(options: ComputeLayoutOptions): void {
-    this.#inner.rawComputeLayout(this.#nodes.resolve(options.root), options.availableSpace);
-  }
-
-  /** Computes synchronously with Taffy-controlled measurement caching; changed external data or a different callback requires explicit dirtying. */
-  computeLayoutWithMeasure(options: ComputeLayoutWithMeasureOptions<TContext>): void {
+  /** Computes and stores layout synchronously with configured per-node measures and an optional global fallback. */
+  computeLayout(options: ComputeLayoutOptions<TContext>): void {
     const root = this.#nodes.resolve(options.root);
     const measure = options.measure;
-    if (typeof measure !== "function") throw new TypeError("measure must be a function");
-    this.#inner.rawComputeLayoutWithMeasure(root, options.availableSpace, (value) => {
-      const args = value as RawMeasureArgs;
-      const node = this.#nodes.fromRaw(args.node);
-      return measure({
-        knownDimensions: args.knownDimensions,
-        availableSpace: args.availableSpace,
-        node,
-        context: this.#contexts.get(node),
-        getStyle: args.getStyle,
-      });
-    });
+    if (measure !== undefined && typeof measure !== "function") {
+      throw new TypeError("measure must be a function or undefined");
+    }
+    if (this.#measures.size === 0 && measure === undefined) {
+      this.#inner.rawComputeLayout(root, options.availableSpace);
+      return;
+    }
+    this.#computeMeasuredLayout(root, options.availableSpace, measure);
+  }
+
+  #computeMeasuredLayout(
+    root: bigint,
+    availableSpace: ComputeLayoutOptions<TContext>["availableSpace"],
+    fallback: MeasureFunction<TContext> | undefined,
+  ): void {
+    this.#inner.rawComputeLayoutWithMeasure(
+      root,
+      availableSpace,
+      (value) => {
+        const args = value as RawMeasureArgs;
+        const node = this.#nodes.fromRaw(args.node);
+        const measure = this.#measures.get(node) ?? fallback;
+        if (measure === undefined) {
+          throw new Error("Native measure marker has no JavaScript measure function");
+        }
+        return measure({
+          knownDimensions: args.knownDimensions,
+          availableSpace: args.availableSpace,
+          node,
+          context: this.#contexts.get(node),
+          getStyle: args.getStyle,
+        });
+      },
+      fallback !== undefined,
+    );
   }
 }

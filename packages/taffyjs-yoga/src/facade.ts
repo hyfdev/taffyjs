@@ -82,7 +82,9 @@ class FacadeRuntime {
   readonly defaultConfig = new ConfigState();
   readonly measure = (args: NativeMeasureArgs<unknown>) => {
     const callback = recordForId(this, args.node).measureFunction;
-    if (callback === null) return { width: 0, height: 0 };
+    if (callback === null) {
+      throw poisonRuntime(this, new Error("Native measure marker has no Yoga measure function"));
+    }
     const context = this.activeMeasureContext;
     const isSelectedRoot = context?.root === args.node;
     return invokeYogaMeasure(args, callback, {
@@ -630,6 +632,7 @@ class YogaNode implements Node {
     record.hasNewLayout = true;
     record.dirtiedFunction = null;
     if (record.measureFunction !== null) {
+      record.runtime.tree.setMeasure(record.nodeId, undefined);
       record.runtime.measurementRevision += 1;
       record.measurementRevision = record.runtime.measurementRevision;
     }
@@ -668,7 +671,10 @@ class YogaNode implements Node {
       throw new Error("Measured Yoga nodes cannot have children");
     }
     if (record.measureFunction === measureFunc) return;
-    record.runtime.tree.markDirty(record.nodeId);
+    record.runtime.tree.setMeasure(
+      record.nodeId,
+      measureFunc === null ? undefined : record.runtime.measure,
+    );
     record.measureFunction = measureFunc;
     record.runtime.measurementRevision += 1;
     record.measurementRevision = record.runtime.measurementRevision;
@@ -1217,22 +1223,15 @@ class YogaNode implements Node {
           height: availableHeight,
         },
       };
-      if (subtree.some((current) => current.measureFunction !== null)) {
-        record.runtime.activeMeasureContext = {
-          root: record.nodeId,
-          exactWidth: calculationStyle.exactWidth,
-          exactHeight: calculationStyle.exactHeight,
-        };
-        try {
-          record.runtime.tree.computeLayoutWithMeasure({
-            ...options,
-            measure: record.runtime.measure,
-          });
-        } finally {
-          record.runtime.activeMeasureContext = null;
-        }
-      } else {
+      record.runtime.activeMeasureContext = {
+        root: record.nodeId,
+        exactWidth: calculationStyle.exactWidth,
+        exactHeight: calculationStyle.exactHeight,
+      };
+      try {
         record.runtime.tree.computeLayout(options);
+      } finally {
+        record.runtime.activeMeasureContext = null;
       }
     } catch (error) {
       calculationFailed = true;
@@ -1364,6 +1363,7 @@ function freeNode(record: NodeRecord): void {
     .map((nodeId) => recordForId(record.runtime, nodeId));
   record.runtime.tree.remove(record.nodeId);
   record.runtime.nodes.delete(record.nodeId);
+  record.measureFunction = null;
   record.alive = false;
   for (const child of directChildren) child.lastCalculation = undefined;
   try {
@@ -1388,6 +1388,7 @@ function freeRecursiveNode(record: NodeRecord): void {
       throw error;
     }
     record.runtime.nodes.delete(current.nodeId);
+    current.measureFunction = null;
     current.alive = false;
     removed += 1;
   }

@@ -24,6 +24,7 @@ export declare class BindingTaffyTree {
   rawSetStyle(node: bigint, style: unknown): void;
   rawUpdateStyle(node: bigint, update: unknown): void;
   rawSetNodeContext(node: bigint, hasContext: boolean): void;
+  rawSetMeasure(node: bigint, hasMeasure: boolean): void;
   rawGetStyle(node: bigint): StyleOutput;
   rawComputeLayout(node: bigint, availableSpace: unknown): void;
   rawGetLayout(node: bigint): LayoutOutput;
@@ -35,6 +36,7 @@ export declare class BindingTaffyTree {
     node: bigint,
     availableSpace: unknown,
     measure: (arg: MeasureArguments) => unknown,
+    hasGlobalMeasure: boolean,
   ): void;
 }
 

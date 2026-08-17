@@ -9,7 +9,7 @@ function availableSpace() {
 }
 
 function computeMeasured(tree: TaffyTree, root: NodeId, calls: Map<NodeId, number>) {
-  tree.computeLayoutWithMeasure({
+  tree.computeLayout({
     root,
     availableSpace: availableSpace(),
     measure: ({ node }) => {

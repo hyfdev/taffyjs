@@ -28,6 +28,18 @@ use taffy::{NodeId, TraversePartialTree};
 
 const JS_MAX_SAFE_INTEGER: u64 = (1u64 << 53) - 1;
 
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct NodeMetadata {
+    has_context: bool,
+    has_measure: bool,
+}
+
+impl NodeMetadata {
+    fn is_empty(self) -> bool {
+        !self.has_context && !self.has_measure
+    }
+}
+
 #[napi]
 pub struct BindingTaffyTree {
     owner: TreeOwner,
@@ -386,7 +398,13 @@ impl BindingTaffyTree {
             env,
             self.owner.access("newLeafWithContext", |tree| {
                 let node = if has_context {
-                    tree.new_leaf_with_context(style, ())
+                    tree.new_leaf_with_context(
+                        style,
+                        NodeMetadata {
+                            has_context: true,
+                            has_measure: false,
+                        },
+                    )
                 } else {
                     tree.new_leaf(style)
                 };
@@ -468,8 +486,22 @@ impl BindingTaffyTree {
         into_napi(
             env,
             self.owner.access("setNodeContext", |tree| {
-                tree.set_node_context(node, has_context.then_some(()))
-                    .map_err(|_| internal_error())
+                set_node_metadata(tree, node, |metadata| {
+                    metadata.has_context = has_context;
+                })
+            }),
+        )
+    }
+
+    #[napi(js_name = "rawSetMeasure")]
+    pub fn set_measure(&self, env: Env, node: BigInt, has_measure: bool) -> napi::Result<()> {
+        let node = into_napi(env, raw_node_id(&node))?;
+        into_napi(
+            env,
+            self.owner.access("setMeasure", |tree| {
+                set_node_metadata(tree, node, |metadata| {
+                    metadata.has_measure = has_measure;
+                })
             }),
         )
     }
@@ -578,6 +610,7 @@ impl BindingTaffyTree {
         node: BigInt,
         available_space: Unknown<'env>,
         measure: Function<'env, measure::MeasureArguments<'env>, Unknown<'env>>,
+        has_global_measure: bool,
     ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
         let available_space = into_napi(
@@ -585,12 +618,17 @@ impl BindingTaffyTree {
             geometry::size(available_space, available_space::available_space),
         )?;
         let mut session = measure::MeasureSession::new(env, measure);
-        let result = self.owner.access("computeLayoutWithMeasure", |tree| {
+        let result = self.owner.access("computeLayout", |tree| {
             tree.compute_layout_with_measure(
                 node,
                 available_space,
-                |known_dimensions, available_space, node, _context, style| {
-                    session.invoke(known_dimensions, available_space, node, style)
+                |known_dimensions, available_space, node, metadata, style| {
+                    let has_node_measure = metadata.is_some_and(|metadata| metadata.has_measure);
+                    if has_node_measure || has_global_measure {
+                        session.invoke(known_dimensions, available_space, node, style)
+                    } else {
+                        taffy::geometry::Size::ZERO
+                    }
                 },
             )
             .map_err(|_| internal_error())?;
@@ -614,6 +652,17 @@ impl BindingTaffyTree {
     }
 }
 
+fn set_node_metadata(
+    tree: &mut taffy::TaffyTree<NodeMetadata>,
+    node: NodeId,
+    update: impl FnOnce(&mut NodeMetadata),
+) -> BindingResult<()> {
+    let mut metadata = tree.get_node_context(node).copied().unwrap_or_default();
+    update(&mut metadata);
+    tree.set_node_context(node, (!metadata.is_empty()).then_some(metadata))
+        .map_err(|_| internal_error())
+}
+
 fn raw_node_id(value: &BigInt) -> BindingResult<NodeId> {
     let (negative, value, lossless) = value.get_u64();
     if negative || !lossless {
@@ -630,7 +679,7 @@ fn child_range(input: ChildRangeInput) -> BindingResult<(u64, u64)> {
 }
 
 fn validate_unattached_child(
-    tree: &taffy::TaffyTree<()>,
+    tree: &taffy::TaffyTree<NodeMetadata>,
     parent: NodeId,
     child: NodeId,
 ) -> BindingResult<()> {
@@ -651,7 +700,11 @@ fn validate_unattached_child(
     Ok(())
 }
 
-fn would_create_cycle(tree: &taffy::TaffyTree<()>, parent: NodeId, child: NodeId) -> bool {
+fn would_create_cycle(
+    tree: &taffy::TaffyTree<NodeMetadata>,
+    parent: NodeId,
+    child: NodeId,
+) -> bool {
     let mut ancestor = Some(parent);
     while let Some(node) = ancestor {
         if node == child {
@@ -665,5 +718,40 @@ fn would_create_cycle(tree: &taffy::TaffyTree<()>, parent: NodeId, child: NodeId
 impl Default for BindingTaffyTree {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use taffy::TaffyTree;
+    use taffy::style::Style;
+
+    use super::{NodeMetadata, set_node_metadata};
+
+    #[test]
+    fn context_and_measure_metadata_are_independent() {
+        let mut tree = TaffyTree::new();
+        let node = tree
+            .new_leaf_with_context(
+                Style::default(),
+                NodeMetadata {
+                    has_context: true,
+                    has_measure: false,
+                },
+            )
+            .unwrap();
+
+        set_node_metadata(&mut tree, node, |metadata| metadata.has_measure = true).unwrap();
+        let metadata = tree.get_node_context(node).unwrap();
+        assert!(metadata.has_context);
+        assert!(metadata.has_measure);
+
+        set_node_metadata(&mut tree, node, |metadata| metadata.has_context = false).unwrap();
+        let metadata = tree.get_node_context(node).unwrap();
+        assert!(!metadata.has_context);
+        assert!(metadata.has_measure);
+
+        set_node_metadata(&mut tree, node, |metadata| metadata.has_measure = false).unwrap();
+        assert!(tree.get_node_context(node).is_none());
     }
 }

@@ -28,7 +28,7 @@ Do not import `native.js`, a `.node` file, or one of the platform packages direc
 
 ## What the package provides
 
-Each `TaffyTree<TContext>` owns its native tree, public node IDs, JavaScript context values, styles, cached computation state, and stored layout results. Work is synchronous and explicit: create or update nodes, call a compute method, and then read detached snapshots.
+Each `TaffyTree<TContext>` owns its native tree, public node IDs, JavaScript context values and per-node measure functions, styles, cached computation state, and stored layout results. Work is synchronous and explicit: create or update nodes, call a compute method, and then read detached snapshots.
 
 The package does not parse CSS, create DOM elements, or render output. It also does not provide Yoga compatibility or asynchronous computation. Higher layers can build those behaviors on the layout tree without changing the direct API.
 
