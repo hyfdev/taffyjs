@@ -65,6 +65,7 @@ const documentationSidebar = [
 ];
 
 export default defineConfig({
+  base: "/taffyjs/",
   lang: "en-US",
   title: "TaffyJS",
   description: "High-performance layout for JavaScript, powered by Taffy and Rust.",
