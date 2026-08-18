@@ -59,50 +59,6 @@ jobs:
       - name: Smoke test @taffyjs/yoga with Deno 2.2
         run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual --allow-env --allow-read --allow-ffi tests/taffyjs-yoga/runtime-smoke.mjs
 
-  test-macos-arm64:
-    name: Build and test macOS arm64
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/setup@v2
-        with:
-          version: 11.20.0
-          runtime: node@22.20.0
-          cache: true
-          install: false
-      - uses: dtolnay/rust-toolchain@stable
-      - run: pnpm install --frozen-lockfile
-      - name: Build and run all tests
-        run: pnpm exec vp run check:test
-
-  test-wasm:
-    name: Build and test WASIP
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/setup@v2
-        with:
-          version: 11.20.0
-          runtime: node@22.20.0
-          cache: true
-          install: false
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-wasip1
-      - run: pnpm install --frozen-lockfile
-      - name: Install the browser used by the Wasm runtime test
-        run: pnpm --filter tests-taffy-wasm exec playwright install --with-deps chromium
-      - name: Build and test the Wasm package
-        run: pnpm exec vp run check:wasm
-      - name: Smoke test @taffyjs/wasm with Bun 1.2
-        run: pnpm dlx bun@1.2.0 packages/taffyjs-wasm/tests/runtime-smoke.mjs
-      - name: Smoke test @taffyjs/wasm with Deno 2.2
-        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual packages/taffyjs-wasm/tests/runtime-smoke.mjs
-      - name: Smoke test @taffyjs/yoga-wasm with Bun 1.2
-        run: pnpm dlx bun@1.2.0 tests/taffyjs-yoga-wasm/runtime-smoke.mjs
-      - name: Smoke test @taffyjs/yoga-wasm with Deno 2.2
-        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual tests/taffyjs-yoga-wasm/runtime-smoke.mjs
-
   check-node:
     name: Node checks
     runs-on: ubuntu-24.04

@@ -28,6 +28,16 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly selected one-action publication with automatically generated release notes and no further human intervention.
 
+### Ordinary CI platform boundary
+
+**Ruling:** Ordinary pull-request and `main` CI runs the full native test graph only on Linux x64 GNU and Windows x64 MSVC. macOS, Wasm-specific verification, and every build whose purpose is to produce a publication artifact run only inside the manually dispatched publication workflows.
+
+**Limits:** The Ubuntu Node and Rust static-check jobs remain ordinary CI, and developers may still run every graph locally. This boundary does not reduce the 13-target published native set: targets other than Linux x64 GNU and Windows x64 MSVC remain build-covered during Core publication rather than runtime-tested on every change. Both publication workflows must run the complete Wasm verification graph before publishing their package group.
+
+**Why:** Yunfei does not want ordinary changes to pay for distribution builds that are needed only when a release is actually authorized.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly required ordinary CI to test only Windows and Linux and moved publication builds to publication time.
+
 ### Initial public versions
 
 **Ruling:** Core and Yoga each begin their independent stable publication history at `0.0.1`; the registry-only trusted-publishing bootstrap uses `0.0.0-bootstrap.0` and never receives the `latest` tag.

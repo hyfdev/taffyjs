@@ -70,6 +70,10 @@ for (const group of Object.values(releaseGroups)) {
   );
   assert(workflow.includes("RELEASE_BUMP: ${{ inputs.bump }}"));
   assert(workflow.includes('--bump "$RELEASE_BUMP"'));
+  assert(
+    workflow.includes("pnpm exec vp run check:wasm"),
+    `${group.workflow} must run the Wasm release checks before publication`,
+  );
   assert.equal(workflow.includes("NODE_AUTH_TOKEN"), false);
   assert.equal(workflow.includes("cache: true"), false);
   for (const match of workflow.matchAll(/^\s*- uses: (?<action>[^\s#]+).*$/gm)) {
@@ -88,8 +92,16 @@ for (const platform of platforms) {
 }
 
 const ordinaryCi = await readFile(resolve(root, ".github/workflows/ci.yml"), "utf8");
+assert.deepEqual(
+  [...ordinaryCi.matchAll(/^  (?<job>test-[a-z0-9-]+):$/gm)].map((match) => match.groups?.job),
+  ["test-ubuntu-x64-gnu", "test-windows-x64-msvc"],
+  "Ordinary CI must keep only the Linux and Windows runtime test jobs",
+);
 assert.equal(ordinaryCi.includes("matrix.settings.target"), false);
 assert.equal(ordinaryCi.includes("x86_64-unknown-freebsd"), false);
+assert.equal(ordinaryCi.includes("macos-"), false);
+assert.equal(ordinaryCi.includes("wasm32-wasip1"), false);
+assert.equal(ordinaryCi.includes("check:wasm"), false);
 assert(ordinaryCi.includes("pnpm exec vp run check:release"));
 
 const rootManifest = await readJson<PackageJson>(resolve(root, "package.json"));

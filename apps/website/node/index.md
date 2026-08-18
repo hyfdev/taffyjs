@@ -26,7 +26,7 @@ The package requires Node.js 22.20.0 or newer. Its native package metadata and d
 | Windows          | x86 MSVC     | `i686-pc-windows-msvc`          |
 | Windows          | x64 MSVC     | `x86_64-pc-windows-msvc`        |
 
-This matches the complete native target set carried by napi-rs's maintained package templates. CI compiles every row and retains each binary as a build artifact. The current blocking runtime suite loads the Linux x64 GNU, Windows x64 MSVC, and macOS ARM64 binaries; the other ten rows have build coverage but are not yet runtime-tested or published by this repository, so the table does not claim a broader tested runtime matrix. TaffyJS keeps WebAssembly explicit: the separate [`@taffyjs/wasm`](../wasm/index.md) package provides the threadless Wasm build instead of making `@taffyjs/node` silently fall back to napi-rs's threaded WASI target.
+This matches the complete native target set carried by napi-rs's maintained package templates. The Core publication workflow compiles every row and retains each binary as a build artifact. Ordinary CI loads the Linux x64 GNU and Windows x64 MSVC binaries; the other eleven rows are build-covered during publication but are not runtime-tested, so the table does not claim a broader tested runtime matrix. TaffyJS keeps WebAssembly explicit: the separate [`@taffyjs/wasm`](../wasm/index.md) package provides the threadless Wasm build instead of making `@taffyjs/node` silently fall back to napi-rs's threaded WASI target.
 
 Bun 1.2+ within major 1 and Deno 2.2+ within major 2 are smoke-tested on Linux x64 GNU and Windows x64 MSVC. Support does not span runtime majors. Deno requires a local `node_modules` directory and the `--allow-env`, `--allow-read`, and `--allow-ffi` permissions.
 

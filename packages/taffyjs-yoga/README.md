@@ -4,7 +4,7 @@
 
 The [design philosophy](../../apps/website/yoga/design-philosophy.md) explains which parts of Yoga the facade preserves, which parts stay owned by Taffy, and how unsupported behavior is reported.
 
-The package is ESM-only, requires Node.js `>=22.20`, and does not provide a browser or WASM backend. Its native package metadata and distribution builds follow the complete `@taffyjs/node` target matrix; the current blocking runtime suite covers Linux x64 GNU, Windows x64 MSVC, and macOS ARM64. Bun 1.2+ within the Bun 1 major and Deno 2.2+ within the Deno 2 major are smoke-tested on the Linux and Windows targets. Deno requires local `node_modules` plus `--allow-env`, `--allow-read`, and `--allow-ffi`.
+The package is ESM-only, requires Node.js `>=22.20`, and does not provide a browser or WASM backend. Its native package metadata and distribution builds follow the complete `@taffyjs/node` target matrix; the blocking runtime suite covers Linux x64 GNU and Windows x64 MSVC, while the other native targets are build-covered during publication. Bun 1.2+ within the Bun 1 major and Deno 2.2+ within the Deno 2 major are smoke-tested on the Linux and Windows targets. Deno requires local `node_modules` plus `--allow-env`, `--allow-read`, and `--allow-ffi`.
 
 Install this package under Yoga's original package name with a package-manager alias.
 

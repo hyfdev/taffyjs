@@ -202,7 +202,14 @@ jobs:
         with:
           targets: wasm32-wasip1
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vp run build:wasm
+      - name: Install the browser used by the Wasm runtime tests
+        run: pnpm --filter tests-taffy-wasm exec playwright install --with-deps chromium
+      - name: Build and test the Wasm packages
+        run: pnpm exec vp run check:wasm
+      - name: Smoke test @taffyjs/wasm with Bun 1.2
+        run: pnpm dlx bun@1.2.0 packages/taffyjs-wasm/tests/runtime-smoke.mjs
+      - name: Smoke test @taffyjs/wasm with Deno 2.2
+        run: pnpm dlx deno@2.2.0 run --node-modules-dir=manual packages/taffyjs-wasm/tests/runtime-smoke.mjs
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: core-wasm-package
