@@ -52,6 +52,16 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required `THIRD-PARTY-LICENSES` instead of `THIRD_PARTY_NOTICES.md`, extended the convention to future analogous cases, and asked to vouch it.
 
+### MIT distribution license
+
+**Ruling:** Repository-owned code and every public TaffyJS package are distributed under the MIT License, with the SPDX identifier `MIT` in package metadata and the license text retained in the published artifacts.
+
+**Limits:** This does not relicense third-party code or remove any third-party attribution and license obligations; those remain governed by their own terms and the repository's `THIRD-PARTY-LICENSES` convention.
+
+**Why:** Yunfei selected MIT for the public release; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly chose MIT while settling the first-publication prerequisites.
+
 ### @taffyjs scope boundary
 
 **Ruling:** A package name may use the `@taffyjs` npm scope only when that package is intended to be published separately under the organization, with one explicit build-only exception: the napi-rs generated Wasm target used to assemble inline `@taffyjs/wasm` output also retains the scope. Other repository-only workspaces and generated or staged packages must use unscoped names.
