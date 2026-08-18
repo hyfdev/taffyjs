@@ -10,6 +10,7 @@
 - [Binding mapping cases](binding-cases.md) — worked examples that preserve the evidence, alternatives, corrections, and reusable conclusions behind the binding rules.
 - [@taffyjs/node API alignment TODOs](api-alignment-todos.md) — performance and optional API questions that still require evidence.
 - [Technology stack](technology-stack.md) — why napi-rs and Vite+ own different build stages and how repository tasks are composed.
+- [Release](release.md) — the two version groups, one-dispatch workflows, verified-tarball boundary, retry behavior, and one-time npm bootstrap.
 - [API code generation](api-codegen.md) — repository-wide rules for maintained inputs, generated tagged-input mappings, shared compilation, deterministic Rust and TypeScript output, repository commands, and independent verification.
 - [API query code generation](api-codegen-query.md) — query-specific generation guidance for the agreed selective-query API shape; implementation and release remain performance-gated.
 - [@taffyjs/node decisions](taffyjs-node-decisions.md) — vouched choices for the Node binding's role, API priorities, module format, distribution, and testing strategy.
@@ -17,4 +18,4 @@
 - [@taffyjs/yoga decisions](taffyjs-yoga-decisions.md) — compatibility decisions for replacing yoga-layout through the TaffyJS Yoga layer.
 - [@taffyjs/yoga implementation reference](taffyjs-yoga-reference.md) — the audited Yoga 3.2.1 public API inventory, implemented compatibility boundary, evidence, and ongoing maintenance constraints.
 - [@taffyjs/yoga-wasm package design](taffyjs-yoga-wasm-package.md) — the shared-source Wasm transport, package boundary, loading behavior, and verification contract for the Yoga facade.
-- [Tooling decisions](tooling-decisions.md) — rulings for main-branch commits and pull request integration, third-party license filenames, npm scope and test workspace package naming, the repository-wide TypeScript default, JavaScript package builds, repository command orchestration, tool ownership, and demand-driven API code generation.
+- [Tooling decisions](tooling-decisions.md) — rulings for release version groups and one-dispatch publication, MIT distribution and third-party license filenames, main-branch commits and pull request integration, npm scope and test workspace package naming, the repository-wide TypeScript default, JavaScript package builds, repository command orchestration, tool ownership, and demand-driven API code generation.

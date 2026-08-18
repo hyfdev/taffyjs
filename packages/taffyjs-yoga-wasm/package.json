@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Yoga-compatible facade backed by TaffyJS WebAssembly.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hyfdev/taffyjs.git",
@@ -42,6 +42,6 @@
     "vite-plus": "catalog:"
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=22.20.0"
   }
 }

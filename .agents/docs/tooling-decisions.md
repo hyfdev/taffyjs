@@ -4,6 +4,50 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### Public release version groups
+
+[VOUCHED @hyfdev 2026-08-18]
+
+**Ruling:** Published packages use two independent version groups: the Core group keeps `@taffyjs/node`, `@taffyjs/wasm`, and every native platform binding package on one exact version, while the Yoga group keeps `@taffyjs/yoga` and `@taffyjs/yoga-wasm` on one exact version. Native platform bindings never own independent versions.
+
+**Limits:** The two groups may release and advance independently. A Core release does not by itself require a Yoga release, and a Yoga release does not republish Core packages. This grouping does not choose the first public version, decide the semantic version bump for a particular change, or set either group's release timing.
+
+**Why:** Node and Wasm expose the same Core API through different runtimes, and the native packages are implementation artifacts that must remain exactly coupled to the Node loader. The two Yoga packages likewise expose one compatibility facade through different runtimes, but Yoga has a separate public contract and release cadence. Two groups avoid both seventeen independently managed versions and unrelated Yoga version churn.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly accepted and asked to vouch the reviewed two-group release model.
+
+### One-dispatch unattended releases
+
+[VOUCHED @hyfdev 2026-08-18]
+
+**Ruling:** Core and Yoga each have one manually dispatched GitHub Actions publication workflow; after Yunfei starts the corresponding workflow, its normal successful path must build, assemble, verify, publish, and create release notes without another approval or other human step.
+
+**Limits:** The dispatch itself is the release authorization. This does not make releases scheduled or automatic from ordinary pushes, require a release pull request or a committed changelog, or remove one-time registry and repository setup. Exceptional failures may still require a retry after the workflow has preserved enough identity and evidence to resume safely.
+
+**Why:** Yunfei wants the ordinary release operation to be one explicit action with no intermediate version-editing, release-note-writing, or approval ceremony.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly selected one-action publication with automatically generated release notes and no further human intervention.
+
+### Ordinary CI platform boundary
+
+**Ruling:** Ordinary pull-request and `main` CI runs the full native test graph only on Linux x64 GNU and Windows x64 MSVC. macOS, Wasm-specific verification, and every build whose purpose is to produce a publication artifact run only inside the manually dispatched publication workflows.
+
+**Limits:** The Ubuntu Node and Rust static-check jobs remain ordinary CI, and developers may still run every graph locally. This boundary does not reduce the 13-target published native set: targets other than Linux x64 GNU and Windows x64 MSVC remain build-covered during Core publication rather than runtime-tested on every change. Both publication workflows must run the complete Wasm verification graph before publishing their package group.
+
+**Why:** Yunfei does not want ordinary changes to pay for distribution builds that are needed only when a release is actually authorized.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly required ordinary CI to test only Windows and Linux and moved publication builds to publication time.
+
+### Initial public versions
+
+**Ruling:** Core and Yoga each begin their independent stable publication history at `0.0.1`; the registry-only trusted-publishing bootstrap uses `0.0.0-bootstrap.0` and never receives the `latest` tag.
+
+**Limits:** Either group may make its first stable release later than the other. This does not require both groups to remain on matching versions after their independent `0.0.1` releases or change the separate pre-1.0 compatibility policy.
+
+**Why:** Yunfei selected `0.0.1` as the first public release version; the lower prerelease keeps the one-time registry bootstrap distinct from an installable stable release.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly chose to begin publication at `0.0.1`.
+
 ### Main branch commit and merge convention
 
 [VOUCHED @hyfdev 2026-08-17]
@@ -27,6 +71,16 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 **Why:** Yunfei selected one explicit filename for this repository's third-party license bundles; no additional rationale was given.
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly required `THIRD-PARTY-LICENSES` instead of `THIRD_PARTY_NOTICES.md`, extended the convention to future analogous cases, and asked to vouch it.
+
+### MIT distribution license
+
+**Ruling:** Repository-owned code and every public TaffyJS package are distributed under the MIT License, with the SPDX identifier `MIT` in package metadata and the license text retained in the published artifacts.
+
+**Limits:** This does not relicense third-party code or remove any third-party attribution and license obligations; those remain governed by their own terms and the repository's `THIRD-PARTY-LICENSES` convention.
+
+**Why:** Yunfei selected MIT for the public release; no additional rationale was given.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly chose MIT while settling the first-publication prerequisites.
 
 ### @taffyjs scope boundary
 

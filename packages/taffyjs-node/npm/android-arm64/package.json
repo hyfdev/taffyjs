@@ -1,0 +1,25 @@
+{
+  "name": "@taffyjs/binding-android-arm64",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Native Node-API bindings for the Taffy layout engine.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyfdev/taffyjs.git",
+    "directory": "packages/taffyjs-node"
+  },
+  "files": [
+    "taffyjs.android-arm64.node"
+  ],
+  "os": [
+    "android"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "taffyjs.android-arm64.node",
+  "engines": {
+    "node": ">=22.20.0"
+  }
+}

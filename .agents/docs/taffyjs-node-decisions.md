@@ -220,15 +220,25 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 ## Decided
 
+### Node runtime baseline
+
+**Ruling:** TaffyJS must use a suitable maintained Node.js baseline rather than preserving Node 22.18 merely because it was the repository's original minimum.
+
+**Limits:** This direction does not itself choose an exact replacement version or change the separately decided native target set. The current baseline belongs in package metadata, build targets, CI, and public support documentation rather than in this ledger.
+
+**Why:** No additional rationale was stated.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-17; explicitly directed the repository not to preserve Node 22.18 for its own sake and to choose a suitable version.
+
 ### Native distribution targets
 
-**Ruling:** `@taffyjs/node` must provide native packages for macOS arm64, Linux x64 GNU, and Windows x64 MSVC.
+**Ruling:** `@taffyjs/node` must provide native packages for the 13 native targets carried by napi-rs's maintained package templates: macOS x64 and arm64; Windows x86, x64, and arm64 MSVC; Linux x64 and arm64 with GNU or musl plus armv7 GNU; Android armv7 and arm64; and FreeBSD x64.
 
-**Limits:** This adds `aarch64-apple-darwin` to the existing distribution model. It does not add macOS x64, Linux arm64, Linux musl, or another target. Each additional target still requires its own package metadata, artifact synchronization, public support documentation, and CI coverage.
+**Limits:** This governs native package metadata, artifact synchronization, public support documentation, and CI build coverage. It does not treat every target triple recognized by the napi-rs CLI as supported, extend runtime-tested claims beyond targets that execute the blocking suite, change the public JavaScript or runtime-version policy, or replace the explicit threadless `@taffyjs/wasm` package with the templates' threaded WASI target. Changes to the maintained template baseline require fresh upstream evidence.
 
-**Why:** Yunfei required the Apple M3 Pro benchmark host to be supported as a real native target rather than bypassing the platform-package build step.
+**Why:** Yunfei chose the complete maintained napi-rs template set as the official, reproducible baseline instead of either a small hand-selected subset or the broader set of targets that the CLI and napi-rs core can build with unequal test and packaging coverage.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly asked to support the current `darwin/arm64` host before continuing the benchmark website work.
+**Source:** Yunfei (`@hyfdev`), 2026-08-16 and 2026-08-17; first required the Apple arm64 benchmark host and broader napi-rs parity, then explicitly chose the maintained templates' 13 native targets after comparing that baseline with napi-rs core and Rolldown coverage.
 
 ### Generated numeric input shorthand
 

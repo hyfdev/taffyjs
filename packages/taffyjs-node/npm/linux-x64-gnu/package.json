@@ -2,7 +2,13 @@
   "name": "@taffyjs/binding-linux-x64-gnu",
   "version": "0.0.0",
   "private": true,
-  "license": "UNLICENSED",
+  "description": "Native Node-API bindings for the Taffy layout engine.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyfdev/taffyjs.git",
+    "directory": "packages/taffyjs-node"
+  },
   "files": [
     "taffyjs.linux-x64-gnu.node"
   ],
@@ -15,5 +21,8 @@
   "libc": [
     "glibc"
   ],
-  "main": "taffyjs.linux-x64-gnu.node"
+  "main": "taffyjs.linux-x64-gnu.node",
+  "engines": {
+    "node": ">=22.20.0"
+  }
 }

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "WebAssembly bindings for the Taffy layout engine in Node.js and bundled browsers.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hyfdev/taffyjs.git",
@@ -57,6 +57,6 @@
     }
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=22.20.0"
   }
 }

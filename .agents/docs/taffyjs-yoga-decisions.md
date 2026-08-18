@@ -40,15 +40,13 @@ This ledger records only judgments that Yunfei explicitly expressed about `@taff
 
 ### Node runtime and package entries
 
-[VOUCHED @hyfdev 2026-08-15]
-
-**Ruling:** `@taffyjs/yoga` is permanently the Node.js compatibility package built over `@taffyjs/node`; it does not provide a browser or WASM backend. Its supported Node.js version follows `@taffyjs/node`, currently Node.js `>=22.18`. The package is ESM-only and reproduces both Yoga 3.2.1 public entry shapes at `@taffyjs/yoga` and `@taffyjs/yoga/load`.
+**Ruling:** `@taffyjs/yoga` is permanently the Node.js compatibility package built over `@taffyjs/node`; it does not provide a browser or WASM backend. Its supported Node.js version follows `@taffyjs/node`. The package is ESM-only and reproduces both Yoga 3.2.1 public entry shapes at `@taffyjs/yoga` and `@taffyjs/yoga/load`.
 
 **Limits:** The root entry provides the default Yoga facade plus the supported named enums and types; the `/load` entry provides `loadYoga()` plus the corresponding supported named enums and types. Exact unsupported exports remain governed by the compatibility classification. A possible future `@taffyjs/yoga-wasm` would be a separate package and is not promised or designed by this decision. The package-manager alias or dependency-substitution instructions remain to be verified.
 
 **Why:** The implementation is intentionally a JavaScript compatibility layer over the native `@taffyjs/node` backend, while Yoga 3.2.1 itself is ESM and exposes both eager root and asynchronous `/load` entries. Keeping any future WASM backend under a distinct package avoids pretending that one package has interchangeable runtime implementations.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-15; vouched Node-only support, the inherited Node.js version, ESM-only publication, and both public entries, and explicitly ruled out ever adding browser or WASM support to `@taffyjs/yoga` itself.
+**Source:** Yunfei (`@hyfdev`), 2026-08-15 and 2026-08-17; vouched Node-only support, an inherited Node.js version, ESM-only publication, and both public entries, explicitly ruled out ever adding browser or WASM support to `@taffyjs/yoga` itself, and later directed the repository not to preserve Node 22.18 merely as a historical floor.
 
 ### Bun and Deno platform smoke coverage
 

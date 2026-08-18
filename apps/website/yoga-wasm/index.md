@@ -6,12 +6,12 @@ Read the [Design Philosophy](./design-philosophy.md) to see why the Yoga model a
 
 ## Install as `yoga-layout`
 
-The package is not published yet. Once it is available, install it under Yoga's original package name:
+Install the package under Yoga's original package name:
 
 ```json
 {
   "dependencies": {
-    "yoga-layout": "npm:@taffyjs/yoga-wasm@<published-version>"
+    "yoga-layout": "npm:@taffyjs/yoga-wasm@<version>"
   }
 }
 ```
@@ -37,6 +37,6 @@ const Yoga = await loadYoga();
 
 ## Runtime and compatibility
 
-The package supports Node.js 22.18 or newer, Bun 1.2+ within the Bun 1 major, Deno 2.2+ within the Deno 2 major without permission flags, and modern bundled browsers within the [`@taffyjs/wasm` runtime boundary](../wasm/index.md). Direct CDN imports, legacy browsers, and non-browser edge runtimes are not currently supported.
+The package supports Node.js 22.20 or newer, Bun 1.2+ within the Bun 1 major, Deno 2.2+ within the Deno 2 major without permission flags, and modern bundled browsers within the [`@taffyjs/wasm` runtime boundary](../wasm/index.md). Direct CDN imports, legacy browsers, and non-browser edge runtimes are not currently supported.
 
 Its public API, declarations, and compatibility classifications come from the same source as `@taffyjs/yoga`. Changing to WebAssembly does not add missing Yoga semantics; consult the same [Yoga 3.2.1 compatibility guide](https://github.com/hyfdev/taffyjs/blob/main/packages/taffyjs-yoga/COMPATIBILITY.md).

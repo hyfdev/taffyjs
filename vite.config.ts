@@ -127,6 +127,18 @@ export default defineConfig({
         command:
           "node tools/api-codegen/src/generate.ts && git add --intent-to-add --all && git diff --exit-code",
       },
+      "check:platforms": {
+        command: "node tools/check-platforms.ts",
+      },
+      "check:release": {
+        command: "node --test tools/release/release.test.ts && node tools/release/check-config.ts",
+      },
+      "release:bootstrap-npm:dry-run": {
+        command: "node tools/release/bootstrap-npm.ts",
+      },
+      "release:bootstrap-npm": {
+        command: "node tools/release/bootstrap-npm.ts --publish",
+      },
       "build:node:binding": {
         command:
           "vp exec --filter @taffyjs/node -- napi build --manifest-path ../../crates/taffyjs_binding/Cargo.toml --package-json-path package.json --output-dir . --platform --js binding.js --dts binding.d.ts --esm --release -- --locked",
@@ -209,7 +221,13 @@ export default defineConfig({
       },
       check: {
         command: "echo check ok",
-        dependsOn: ["check:lint", "check:rust", "check:test:after-format"],
+        dependsOn: [
+          "check:lint",
+          "check:platforms",
+          "check:release",
+          "check:rust",
+          "check:test:after-format",
+        ],
       },
       "check:wasm": {
         command: "echo wasm checks passed",

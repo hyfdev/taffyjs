@@ -1,0 +1,28 @@
+{
+  "name": "@taffyjs/binding-linux-arm64-musl",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Native Node-API bindings for the Taffy layout engine.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyfdev/taffyjs.git",
+    "directory": "packages/taffyjs-node"
+  },
+  "files": [
+    "taffyjs.linux-arm64-musl.node"
+  ],
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "libc": [
+    "musl"
+  ],
+  "main": "taffyjs.linux-arm64-musl.node",
+  "engines": {
+    "node": ">=22.20.0"
+  }
+}

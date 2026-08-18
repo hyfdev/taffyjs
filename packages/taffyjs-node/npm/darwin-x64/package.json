@@ -1,0 +1,25 @@
+{
+  "name": "@taffyjs/binding-darwin-x64",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Native Node-API bindings for the Taffy layout engine.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyfdev/taffyjs.git",
+    "directory": "packages/taffyjs-node"
+  },
+  "files": [
+    "taffyjs.darwin-x64.node"
+  ],
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "taffyjs.darwin-x64.node",
+  "engines": {
+    "node": ">=22.20.0"
+  }
+}

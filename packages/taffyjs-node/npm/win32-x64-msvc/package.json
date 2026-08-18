@@ -2,7 +2,13 @@
   "name": "@taffyjs/binding-win32-x64-msvc",
   "version": "0.0.0",
   "private": true,
-  "license": "UNLICENSED",
+  "description": "Native Node-API bindings for the Taffy layout engine.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyfdev/taffyjs.git",
+    "directory": "packages/taffyjs-node"
+  },
   "files": [
     "taffyjs.win32-x64-msvc.node"
   ],
@@ -12,5 +18,8 @@
   "cpu": [
     "x64"
   ],
-  "main": "taffyjs.win32-x64-msvc.node"
+  "main": "taffyjs.win32-x64-msvc.node",
+  "engines": {
+    "node": ">=22.20.0"
+  }
 }

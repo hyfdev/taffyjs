@@ -38,7 +38,7 @@ export default defineConfig({
       clean: true,
       dts: true,
       platform: "node",
-      target: "node22.18",
+      target: "node22.20",
       fixedExtension: false,
       plugins: [resolveInlineWasiBinding("./taffyjs.node.js")],
     },

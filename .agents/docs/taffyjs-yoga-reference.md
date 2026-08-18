@@ -51,7 +51,7 @@ API shape, accepted input, stored getter value, state transition, error behavior
 
 ## Package entries and exports
 
-The decided package is ESM-only, follows @taffyjs/node's supported Node.js version (currently Node.js >=22.18) and alternate-runtime floors and constraints, and mirrors both Yoga entry shapes at @taffyjs/yoga and @taffyjs/yoga/load. It never provides a browser or WASM backend.
+The decided package is ESM-only, follows @taffyjs/node's supported Node.js version (currently Node.js >=22.20) and alternate-runtime floors and constraints, and mirrors both Yoga entry shapes at @taffyjs/yoga and @taffyjs/yoga/load. It never provides a browser or WASM backend.
 
 Yoga 3.2.1 is ESM and publishes two package entries.
 
@@ -70,7 +70,7 @@ A runtime reflection check against the published 3.2.1 package found the same ei
 
 The unchanged-import mechanism is a standard package-manager alias. A published consumer can retain `import Yoga from "yoga-layout"` and `import { loadYoga } from "yoga-layout/load"` while declaring `"yoga-layout": "npm:@taffyjs/yoga@<version>"`. [npm package aliases](https://docs.npmjs.com/cli/using-npm/package-spec#aliases) install one registry package under another local dependency name, and [pnpm aliases](https://pnpm.io/aliases) document the same no-source-change replacement behavior.
 
-The repository consumer fixture exercises the local package before publication with `"yoga-layout": "workspace:@taffyjs/yoga@*"`; [pnpm documents this exact workspace-alias form](https://pnpm.io/workspaces#referencing-workspace-packages-through-aliases) and rewrites it to a normal npm alias when a package is packed. The official Yoga oracle therefore uses the separate test-only alias `"yoga-layout-oracle": "npm:yoga-layout@3.2.1"`. Committed fixtures prove unchanged root and `/load` imports through the built workspace package. An actual registry-alias installation remains a post-publication smoke test; the repository does not add a tarball-install test path for this package.
+The repository consumer fixture exercises the local package with `"yoga-layout": "workspace:@taffyjs/yoga@*"`; [pnpm documents this exact workspace-alias form](https://pnpm.io/workspaces#referencing-workspace-packages-through-aliases) and rewrites it to a normal npm alias when a package is packed. The official Yoga oracle therefore uses the separate test-only alias `"yoga-layout-oracle": "npm:yoga-layout@3.2.1"`. Committed fixtures prove unchanged root and `/load` imports through the built workspace package. The Yoga publication workflow additionally installs and runs the final tarballs before publication, then verifies the actual registry alias after publication and before creating the GitHub Release.
 
 ## Factory and callback inventory
 
@@ -465,5 +465,5 @@ Cases covered by a published Different or Unsupported classification are explici
 
 - Re-audit the complete capability matrix before deliberately adopting a Yoga version newer than 3.2.1; no supported release may contain an unclassified method, value, or result trigger.
 - Follow the [public upstream-work tracker](../../packages/taffyjs-yoga/COMPATIBILITY.md#upstream-work-in-progress) and its [adoption decision](taffyjs-yoga-decisions.md#upstream-work-and-current-compatibility).
-- Run one actual `yoga-layout` registry-alias installation smoke test after @taffyjs/yoga is published. This cannot be completed against the current private, unpublished package and does not justify a separate tarball-install harness.
+- Keep the publication workflow's final-tarball and post-publication `yoga-layout` registry-alias smoke checks passing for both Yoga backends.
 - Treat cache, batch, selective-query, compact-transport, and mixed measured-tree overhead as later performance work that requires a representative consumer workload and retained end-to-end measurements.
