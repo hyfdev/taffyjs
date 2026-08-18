@@ -87,29 +87,37 @@ try {
       }
     }
 
+    const workflows = new Map<string, string>();
     for (const group of Object.values(releaseGroups)) {
       for (const packageDefinition of group.packages) {
         const { name } = packageDefinition;
+        workflows.set(name, group.workflow);
         if (states.get(name) === "ready") {
           console.log(`Skipping existing ${name}@${bootstrapVersion}`);
-        } else {
-          const tarball = tarballs.get(name);
-          assert(tarball, `Missing bootstrap tarball for ${name}`);
-          await run(pnpmCommand, [
-            "publish",
-            tarball,
-            "--access",
-            "public",
-            "--tag",
-            "bootstrap",
-            "--no-git-checks",
-            "--ignore-scripts",
-            "--registry",
-            npmRegistry,
-          ]);
+          continue;
         }
-        await trustReleaseWorkflow(name, group.workflow);
+        const tarball = tarballs.get(name);
+        assert(tarball, `Missing bootstrap tarball for ${name}`);
+        await run(pnpmCommand, [
+          "publish",
+          tarball,
+          "--access",
+          "public",
+          "--tag",
+          "bootstrap",
+          "--no-git-checks",
+          "--ignore-scripts",
+          "--registry",
+          npmRegistry,
+        ]);
       }
+    }
+
+    // npm challenges one operation at a time and then suppresses further
+    // challenges for a few minutes, so every publication runs before the
+    // bindings instead of alternating between the two kinds of request.
+    for (const [name, workflow] of workflows) {
+      await trustReleaseWorkflow(name, workflow);
     }
 
     console.log("Bootstrap complete. Release workflows now use OIDC instead of an npm token.");
