@@ -11,7 +11,7 @@ import {
   repository,
   type ReleasePackage,
 } from "./config.ts";
-import { capture, pnpmCommand, root, run, wait, writeJson } from "./lib.ts";
+import { capture, pnpmCommand, root, run, writeJson } from "./lib.ts";
 import {
   ensureRegistryAuthentication,
   npmTrustArguments,
@@ -92,6 +92,10 @@ try {
         const { name } = packageDefinition;
         if (states.get(name) === "ready") {
           console.log(`Skipping existing ${name}@${bootstrapVersion}`);
+          if (await hasExpectedTrust(name, group.workflow)) {
+            console.log(`Skipping existing trust for ${name}`);
+            continue;
+          }
         } else {
           const tarball = tarballs.get(name);
           assert(tarball, `Missing bootstrap tarball for ${name}`);
@@ -108,11 +112,6 @@ try {
             npmRegistry,
           ]);
         }
-
-        if (await hasExpectedTrust(packageDefinition.name, group.workflow)) {
-          console.log(`Skipping existing trust for ${packageDefinition.name}`);
-          continue;
-        }
         await run(
           pnpmCommand,
           npmTrustArguments([
@@ -128,7 +127,6 @@ try {
           ]),
           { cwd: stageRoot },
         );
-        await wait(2_000);
       }
     }
 
@@ -197,26 +195,19 @@ async function verifyPublishCheckout(): Promise<void> {
 }
 
 async function hasExpectedTrust(name: string, workflow: string): Promise<boolean> {
-  try {
-    const output = await capture(
-      pnpmCommand,
-      npmTrustArguments(["trust", "list", name, "--json"]),
-      { cwd: stageRoot },
-    );
-    const config = JSON.parse(output) as {
-      readonly type?: unknown;
-      readonly repository?: unknown;
-      readonly file?: unknown;
-      readonly permissions?: unknown;
-    };
-    return (
-      config.type === "github" &&
-      config.repository === repository &&
-      config.file === workflow &&
-      Array.isArray(config.permissions) &&
-      config.permissions.includes("createPackage")
-    );
-  } catch {
-    return false;
-  }
+  const output = await capture(pnpmCommand, npmTrustArguments(["trust", "list", name, "--json"]), {
+    cwd: stageRoot,
+  });
+  if (output === "") return false;
+  const config = JSON.parse(output) as {
+    readonly type?: unknown;
+    readonly repository?: unknown;
+    readonly file?: unknown;
+  };
+  assert.deepEqual(
+    { type: config.type, repository: config.repository, file: config.file },
+    { type: "github", repository, file: workflow },
+    `${name} already has a different npm trust configuration`,
+  );
+  return true;
 }
