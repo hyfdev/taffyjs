@@ -4,6 +4,30 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ## Decided
 
+### Public release version groups
+
+[VOUCHED @hyfdev 2026-08-18]
+
+**Ruling:** Published packages use two independent version groups: the Core group keeps `@taffyjs/node`, `@taffyjs/wasm`, and every native platform binding package on one exact version, while the Yoga group keeps `@taffyjs/yoga` and `@taffyjs/yoga-wasm` on one exact version. Native platform bindings never own independent versions.
+
+**Limits:** The two groups may release and advance independently. A Core release does not by itself require a Yoga release, and a Yoga release does not republish Core packages. This grouping does not choose the first public version, decide the semantic version bump for a particular change, or set either group's release timing.
+
+**Why:** Node and Wasm expose the same Core API through different runtimes, and the native packages are implementation artifacts that must remain exactly coupled to the Node loader. The two Yoga packages likewise expose one compatibility facade through different runtimes, but Yoga has a separate public contract and release cadence. Two groups avoid both seventeen independently managed versions and unrelated Yoga version churn.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly accepted and asked to vouch the reviewed two-group release model.
+
+### One-dispatch unattended releases
+
+[VOUCHED @hyfdev 2026-08-18]
+
+**Ruling:** Core and Yoga each have one manually dispatched GitHub Actions publication workflow; after Yunfei starts the corresponding workflow, its normal successful path must build, assemble, verify, publish, and create release notes without another approval or other human step.
+
+**Limits:** The dispatch itself is the release authorization. This does not make releases scheduled or automatic from ordinary pushes, require a release pull request or a committed changelog, or remove one-time registry and repository setup. Exceptional failures may still require a retry after the workflow has preserved enough identity and evidence to resume safely.
+
+**Why:** Yunfei wants the ordinary release operation to be one explicit action with no intermediate version-editing, release-note-writing, or approval ceremony.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly selected one-action publication with automatically generated release notes and no further human intervention.
+
 ### Main branch commit and merge convention
 
 [VOUCHED @hyfdev 2026-08-17]
