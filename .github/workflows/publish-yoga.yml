@@ -148,7 +148,5 @@ jobs:
         with:
           name: yoga-release-bundle
           path: release-bundle
-      - name: Publish npm packages and GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Publish npm packages and tag the release
         run: node tools/release/publish.ts --bundle release-bundle --publish

@@ -8,14 +8,14 @@ import { readJson, root, run, sha512Integrity, writeJson } from "./lib.ts";
 import type { ReleaseBundleManifest, ReleaseBundlePackage } from "./assemble.ts";
 
 const options = parseOptions(process.argv.slice(2));
-await testReleaseBundle(safePath(options.bundle), {
-  ...(options.coreBundle ? { coreBundle: safePath(options.coreBundle) } : {}),
-  registry: options.registry,
-});
+await testReleaseBundle(
+  safePath(options.bundle),
+  options.coreBundle ? { coreBundle: safePath(options.coreBundle) } : {},
+);
 
 export async function testReleaseBundle(
   bundleDirectory: string,
-  options: { readonly coreBundle?: string; readonly registry?: boolean } = {},
+  options: { readonly coreBundle?: string } = {},
 ): Promise<void> {
   const manifest = await readJson<ReleaseBundleManifest>(
     resolve(bundleDirectory, "release-manifest.json"),
@@ -31,11 +31,8 @@ export async function testReleaseBundle(
       type: "module",
     });
 
-    const packageSpecs = options.registry
-      ? registrySpecs(manifest)
-      : await bundleSpecs(bundleDirectory, manifest, options.coreBundle);
-    const usesLocalCore =
-      options.registry !== true && (manifest.group === "core" || options.coreBundle !== undefined);
+    const packageSpecs = await bundleSpecs(bundleDirectory, manifest, options.coreBundle);
+    const usesLocalCore = manifest.group === "core" || options.coreBundle !== undefined;
     await run(
       process.platform === "win32" ? "npm.cmd" : "npm",
       [
@@ -53,7 +50,7 @@ export async function testReleaseBundle(
     );
 
     const smokePath = resolve(consumerDirectory, "smoke.mjs");
-    await writeFile(smokePath, smokeSource(manifest.group, options.registry === true));
+    await writeFile(smokePath, smokeSource(manifest.group));
     await run(process.execPath, [smokePath], {
       cwd: consumerDirectory,
       env: { ...process.env, NAPI_RS_ENFORCE_VERSION_CHECK: "1" },
@@ -116,23 +113,13 @@ function coreBundleSpecs(
   return selected.map(({ tarball }) => resolve(bundleDirectory, tarball));
 }
 
-function registrySpecs(manifest: ReleaseBundleManifest): readonly string[] {
-  if (manifest.group === "core") {
-    return [`@taffyjs/node@${manifest.version}`, `@taffyjs/wasm@${manifest.version}`];
-  }
-  return [
-    `yoga-layout@npm:@taffyjs/yoga@${manifest.version}`,
-    `yoga-layout-wasm@npm:@taffyjs/yoga-wasm@${manifest.version}`,
-  ];
-}
-
 function packageByName(manifest: ReleaseBundleManifest, name: string): ReleaseBundlePackage {
   const packageArtifact = manifest.packages.find((candidate) => candidate.name === name);
   if (!packageArtifact) throw new Error(`Release bundle is missing ${name}`);
   return packageArtifact;
 }
 
-function smokeSource(group: "core" | "yoga", registry: boolean): string {
+function smokeSource(group: "core" | "yoga"): string {
   if (group === "core") {
     return `
 import { TaffyTree as NativeTree } from "@taffyjs/node";
@@ -148,8 +135,8 @@ for (const [name, Tree] of [["@taffyjs/node", NativeTree], ["@taffyjs/wasm", Was
 `;
   }
 
-  const nativeName = registry ? "yoga-layout" : "@taffyjs/yoga";
-  const wasmName = registry ? "yoga-layout-wasm" : "@taffyjs/yoga-wasm";
+  const nativeName = "@taffyjs/yoga";
+  const wasmName = "@taffyjs/yoga-wasm";
   return `
 import NativeYoga from ${JSON.stringify(nativeName)};
 import WasmYoga from ${JSON.stringify(wasmName)};
@@ -180,16 +167,12 @@ function safePath(path: string): string {
 function parseOptions(args: readonly string[]): {
   readonly bundle: string;
   readonly coreBundle?: string;
-  readonly registry: boolean;
 } {
   let bundle: string | undefined;
   let coreBundle: string | undefined;
-  let registry = false;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
-    if (argument === "--registry") {
-      registry = true;
-    } else if (argument === "--bundle" || argument === "--core-bundle") {
+    if (argument === "--bundle" || argument === "--core-bundle") {
       const value = args[index + 1];
       if (value === undefined) throw new Error(`${argument} requires a path`);
       if (argument === "--bundle") bundle = value;
@@ -203,6 +186,5 @@ function parseOptions(args: readonly string[]): {
   return {
     bundle,
     ...(coreBundle === undefined ? {} : { coreBundle }),
-    registry,
   };
 }

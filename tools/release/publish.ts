@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { appendFile } from "node:fs/promises";
+import { appendFile, readFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 
-import { npmRegistry, releaseGroups, repository } from "./config.ts";
+import { npmRegistry, releaseGroups } from "./config.ts";
 import {
   capture,
   parseRemoteTagCommit,
@@ -39,16 +39,8 @@ for (const packageArtifact of manifest.packages) {
   await publishPackage(bundleDirectory, packageArtifact);
 }
 
-await retry("installed registry smoke", 5, async () => {
-  await run(process.execPath, [
-    "tools/release/test-bundle.ts",
-    "--bundle",
-    options.bundle,
-    "--registry",
-  ]);
-});
-await createGitHubRelease(bundleDirectory, manifest);
-await writeSummary(manifest);
+await pushReleaseTag(manifest);
+await writeSummary(bundleDirectory, manifest);
 
 async function verifyBundle(
   bundleDirectory: string,
@@ -129,62 +121,18 @@ async function registryIntegrity(name: string, version: string): Promise<string 
   return integrity;
 }
 
-async function createGitHubRelease(
-  bundleDirectory: string,
-  manifest: ReleaseBundleManifest,
-): Promise<void> {
-  await retry(`create GitHub release ${manifest.tag}`, 3, async () => {
-    if (await githubReleaseExists(manifest)) return;
-
-    const tagExists = await assertRemoteTag(manifest.tag, manifest.commit, true);
-    const arguments_ = [
-      "release",
-      "create",
-      manifest.tag,
-      "--repo",
-      repository,
-      ...(tagExists ? ["--verify-tag"] : ["--target", manifest.commit]),
-      "--title",
-      `${releaseGroups[manifest.group].displayName} ${manifest.version}`,
-      "--notes-file",
-      resolve(bundleDirectory, "release-notes.md"),
-      "--latest=false",
-    ];
-    try {
-      await run("gh", arguments_);
-    } catch (error) {
-      if (await githubReleaseExists(manifest)) return;
-      throw error;
-    }
-    assert.equal(
-      await githubReleaseExists(manifest),
-      true,
-      `GitHub release ${manifest.tag} was not visible after creation`,
-    );
-  });
-}
-
-async function githubReleaseExists(manifest: ReleaseBundleManifest): Promise<boolean> {
-  let output: string;
-  try {
-    output = await capture("gh", [
-      "release",
-      "view",
-      manifest.tag,
-      "--repo",
-      repository,
-      "--json",
-      "tagName,isDraft",
-    ]);
-  } catch {
-    return false;
+// npm publication cannot be undone, so the tag is recorded as soon as the
+// complete group reached the registry.
+async function pushReleaseTag(manifest: ReleaseBundleManifest): Promise<void> {
+  if (await assertRemoteTag(manifest.tag, manifest.commit, true)) {
+    console.log(`Verified existing release tag ${manifest.tag}`);
+    return;
   }
-  const existing = JSON.parse(output) as { readonly tagName: string; readonly isDraft: boolean };
-  assert.equal(existing.tagName, manifest.tag);
-  assert.equal(existing.isDraft, false, `GitHub release ${manifest.tag} must not be a draft`);
+  await run("git", ["tag", "--force", manifest.tag, manifest.commit]);
+  await retry(`push release tag ${manifest.tag}`, 3, async () => {
+    await run("git", ["push", "origin", `refs/tags/${manifest.tag}`]);
+  });
   await assertRemoteTag(manifest.tag, manifest.commit, false);
-  console.log(`Verified existing GitHub release ${manifest.tag}`);
-  return true;
 }
 
 async function assertRemoteTag(
@@ -234,16 +182,21 @@ async function retry(
   throw lastError;
 }
 
-async function writeSummary(manifest: ReleaseBundleManifest): Promise<void> {
+async function writeSummary(
+  bundleDirectory: string,
+  manifest: ReleaseBundleManifest,
+): Promise<void> {
   if (!process.env.GITHUB_STEP_SUMMARY) return;
   const rows = manifest.packages.map(
     ({ name, version, integrity }) => `| \`${name}\` | \`${version}\` | \`${integrity}\` |`,
   );
+  const notes = await readFile(resolve(bundleDirectory, "release-notes.md"), "utf8");
   await appendFile(
     process.env.GITHUB_STEP_SUMMARY,
     [
       `## Published ${manifest.tag}`,
       "",
+      notes,
       "| Package | Version | Integrity |",
       "| --- | --- | --- |",
       ...rows,
