@@ -203,7 +203,15 @@ void test("bootstrap registry reads abort instead of hanging", async () => {
     await new Promise<Response>((_resolvePromise, reject) => {
       const signal = init?.signal;
       assert(signal);
-      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+      const keepAlive = setInterval(() => {}, 1_000);
+      signal.addEventListener(
+        "abort",
+        () => {
+          clearInterval(keepAlive);
+          reject(signal.reason);
+        },
+        { once: true },
+      );
     });
 
   await assert.rejects(
