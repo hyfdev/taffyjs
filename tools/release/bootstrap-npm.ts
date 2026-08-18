@@ -17,12 +17,7 @@ import {
   npmTrustArguments,
   revokeTemporaryAuthentication,
 } from "./npm-trust.ts";
-import {
-  bootstrapState,
-  npmReadTimeoutMs,
-  publishBootstrapPackage,
-  verifyEventually,
-} from "./bootstrap-registry.ts";
+import { bootstrapState } from "./bootstrap-registry.ts";
 
 const publish = process.argv.slice(2).includes("--publish");
 if (process.argv.length > (publish ? 3 : 2)) {
@@ -100,20 +95,18 @@ try {
         } else {
           const tarball = tarballs.get(name);
           assert(tarball, `Missing bootstrap tarball for ${name}`);
-          await publishBootstrapPackage(name, () =>
-            run(pnpmCommand, [
-              "publish",
-              tarball,
-              "--access",
-              "public",
-              "--tag",
-              "bootstrap",
-              "--no-git-checks",
-              "--ignore-scripts",
-              "--registry",
-              npmRegistry,
-            ]),
-          );
+          await run(pnpmCommand, [
+            "publish",
+            tarball,
+            "--access",
+            "public",
+            "--tag",
+            "bootstrap",
+            "--no-git-checks",
+            "--ignore-scripts",
+            "--registry",
+            npmRegistry,
+          ]);
         }
 
         if (await hasExpectedTrust(packageDefinition.name, group.workflow)) {
@@ -134,9 +127,6 @@ try {
             "--yes",
           ]),
           { cwd: stageRoot },
-        );
-        await verifyEventually(`${packageDefinition.name} trusted publisher`, () =>
-          hasExpectedTrust(packageDefinition.name, group.workflow),
         );
         await wait(2_000);
       }
@@ -207,12 +197,11 @@ async function verifyPublishCheckout(): Promise<void> {
 }
 
 async function hasExpectedTrust(name: string, workflow: string): Promise<boolean> {
-  const signal = AbortSignal.timeout(npmReadTimeoutMs);
   try {
     const output = await capture(
       pnpmCommand,
       npmTrustArguments(["trust", "list", name, "--json"]),
-      { cwd: stageRoot, signal },
+      { cwd: stageRoot },
     );
     const config = JSON.parse(output) as {
       readonly type?: unknown;
@@ -227,8 +216,7 @@ async function hasExpectedTrust(name: string, workflow: string): Promise<boolean
       Array.isArray(config.permissions) &&
       config.permissions.includes("createPackage")
     );
-  } catch (error) {
-    if (signal.aborted) throw error;
+  } catch {
     return false;
   }
 }
