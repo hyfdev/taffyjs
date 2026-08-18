@@ -63,6 +63,13 @@ for (const group of Object.values(releaseGroups)) {
   assert(workflow.includes("id-token: write"));
   assert.equal(workflow.match(/id-token: write/g)?.length, 1);
   assert(workflow.includes(`tools/release/plan.ts --group ${group.name}`));
+  assert.equal(
+    /^\s*run:.*\$\{\{\s*inputs\./m.test(workflow),
+    false,
+    `${group.workflow} must pass dispatch inputs through step environment variables`,
+  );
+  assert(workflow.includes("RELEASE_BUMP: ${{ inputs.bump }}"));
+  assert(workflow.includes('--bump "$RELEASE_BUMP"'));
   assert.equal(workflow.includes("NODE_AUTH_TOKEN"), false);
   assert.equal(workflow.includes("cache: true"), false);
   for (const match of workflow.matchAll(/^\s*- uses: (?<action>[^\s#]+).*$/gm)) {

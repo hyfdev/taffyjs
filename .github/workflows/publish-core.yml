@@ -41,7 +41,9 @@ jobs:
           cache: false
           install: false
       - name: Create release plan
-        run: node tools/release/plan.ts --group core --bump "${{ inputs.bump }}" --output release-plan.json
+        env:
+          RELEASE_BUMP: ${{ inputs.bump }}
+        run: node tools/release/plan.ts --group core --bump "$RELEASE_BUMP" --output release-plan.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: core-release-plan
