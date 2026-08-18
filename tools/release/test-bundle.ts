@@ -3,6 +3,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 
 import { platformForHost } from "../platforms.ts";
+import { npmRegistry } from "./config.ts";
 import { readJson, root, run, sha512Integrity, writeJson } from "./lib.ts";
 import type { ReleaseBundleManifest, ReleaseBundlePackage } from "./assemble.ts";
 
@@ -43,6 +44,8 @@ export async function testReleaseBundle(
         "--no-audit",
         "--no-fund",
         "--package-lock=false",
+        "--registry",
+        npmRegistry,
         ...(usesLocalCore ? ["--omit=optional"] : []),
         ...packageSpecs,
       ],

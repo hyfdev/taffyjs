@@ -9,6 +9,7 @@ import {
   bootstrapVersion,
   corePackages,
   firstReleaseVersion,
+  npmRegistry,
   releaseGroups,
   yogaPackages,
 } from "./config.ts";
@@ -29,6 +30,7 @@ assert.equal(yogaPackages.length, 2);
 assert.equal(new Set(allPublishedPackages.map(({ name }) => name)).size, 17);
 assert.equal(bootstrapVersion, "0.0.0-bootstrap.0");
 assert.equal(firstReleaseVersion, "0.0.1");
+assert.equal(npmRegistry, "https://registry.npmjs.org");
 
 const license = await readFile(resolve(root, "LICENSE"), "utf8");
 assert(license.startsWith("MIT License\n"));
@@ -71,6 +73,11 @@ for (const group of Object.values(releaseGroups)) {
   assert(workflow.includes("RELEASE_BUMP: ${{ inputs.bump }}"));
   assert(workflow.includes('--bump "$RELEASE_BUMP"'));
   assert.equal(workflow.includes("NODE_AUTH_TOKEN"), false);
+  assert.equal(
+    workflow.includes("npm install --global"),
+    false,
+    `${group.workflow} must use the repository's pinned pnpm for publication`,
+  );
   assert.equal(workflow.includes("cache: true"), false);
   for (const match of workflow.matchAll(/^\s*- uses: (?<action>[^\s#]+).*$/gm)) {
     const action = match.groups?.action;
@@ -136,6 +143,33 @@ assert.equal(ordinaryCi.includes("macos-"), false);
 assert.equal(ordinaryCi.includes("wasm32-wasip1"), false);
 assert.equal(ordinaryCi.includes("check:wasm"), false);
 assert(ordinaryCi.includes("pnpm exec vp run check:release"));
+
+const releaseDocumentation = await readFile(resolve(root, ".agents/docs/release.md"), "utf8");
+assert.equal(
+  releaseDocumentation.includes("npm login"),
+  false,
+  "Bootstrap must not require an npm command from the pnpm-only repository root",
+);
+
+for (const tool of ["assemble.ts", "publish.ts"]) {
+  const source = await readFile(resolve(root, "tools/release", tool), "utf8");
+  assert(source.includes("pnpmCommand"), `${tool} must use the pinned pnpm executable`);
+  assert.equal(/\bnpmCommand\b/.test(source), false, `${tool} must not use the npm executable`);
+  assert.equal(source.includes('"npm"'), false, `${tool} must not hard-code the npm executable`);
+  assert.equal(source.includes('"npm.cmd"'), false, `${tool} must not hard-code npm.cmd`);
+}
+
+const npmTrustTool = await readFile(resolve(root, "tools/release/npm-trust.ts"), "utf8");
+assert(npmTrustTool.includes('npmTrustPackage = "npm@11.18.0"'));
+assert(npmTrustTool.includes('"dlx",'));
+assert(npmTrustTool.includes("--config.registry="));
+assert.equal(
+  /\bnpmCommand\b/.test(npmTrustTool),
+  false,
+  "Bootstrap must invoke its isolated npm trust helper through pnpm",
+);
+const bootstrapTool = await readFile(resolve(root, "tools/release/bootstrap-npm.ts"), "utf8");
+assert(bootstrapTool.includes("revokeTemporaryAuthentication(stageRoot, authenticationState)"));
 
 const rootManifest = await readJson<PackageJson>(resolve(root, "package.json"));
 assert.equal(rootManifest.license, "MIT");

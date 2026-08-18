@@ -4,12 +4,21 @@ import { basename, relative, resolve, sep } from "node:path";
 
 import { platforms } from "../platforms.ts";
 import {
+  npmRegistry,
   releaseGroups,
   type ReleaseGroupName,
   type ReleasePackage,
   type ReleasePackageKind,
 } from "./config.ts";
-import { capture, isMainModule, readJson, root, sha512Integrity, writeJson } from "./lib.ts";
+import {
+  capture,
+  isMainModule,
+  pnpmCommand,
+  readJson,
+  root,
+  sha512Integrity,
+  writeJson,
+} from "./lib.ts";
 import type { ReleasePlan } from "./plan.ts";
 import { parseStableVersion } from "./version.ts";
 
@@ -23,9 +32,8 @@ interface PackageJson extends Record<string, unknown> {
   optionalDependencies?: Record<string, string>;
 }
 
-interface PackResult {
+interface PnpmPackResult {
   readonly filename: string;
-  readonly integrity: string;
   readonly files: readonly { readonly path: string }[];
 }
 
@@ -116,13 +124,13 @@ export async function assemble(
         packageDefinition.kind,
         pack.files.map(({ path }) => path),
       );
-      const tarballPath = resolve(outputDirectory, pack.filename);
-      const integrity = await sha512Integrity(tarballPath);
+      const tarballPath = resolve(pack.filename);
       assert.equal(
-        integrity,
-        pack.integrity,
-        `${packageDefinition.name} tarball integrity drifted`,
+        tarballPath,
+        resolve(outputDirectory, basename(pack.filename)),
+        `${packageDefinition.name} tarball escaped the release bundle`,
       );
+      const integrity = await sha512Integrity(tarballPath);
       packages.push({
         name: packageDefinition.name,
         kind: packageDefinition.kind,
@@ -158,7 +166,7 @@ function prepareManifest(
   manifest.version = version;
   manifest.license = "MIT";
   delete manifest.private;
-  manifest.publishConfig = { access: "public" };
+  manifest.publishConfig = { access: "public", registry: npmRegistry };
 
   if (packageDefinition.kind === "node") {
     manifest.optionalDependencies = Object.fromEntries(
@@ -181,18 +189,24 @@ function prepareManifest(
   );
 }
 
-async function packPackage(packageDirectory: string, outputDirectory: string): Promise<PackResult> {
+async function packPackage(
+  packageDirectory: string,
+  outputDirectory: string,
+): Promise<PnpmPackResult> {
   const output = await capture(
-    process.platform === "win32" ? "npm.cmd" : "npm",
-    ["pack", "--json", "--ignore-scripts", "--pack-destination", outputDirectory],
+    pnpmCommand,
+    ["--config.ignore-scripts=true", "pack", "--json", "--pack-destination", outputDirectory],
     { cwd: packageDirectory },
   );
-  const results = JSON.parse(output) as readonly PackResult[];
-  const result = results[0];
-  if (results.length !== 1 || result === undefined) {
+  const result = JSON.parse(output) as Partial<PnpmPackResult>;
+  if (
+    typeof result.filename !== "string" ||
+    !Array.isArray(result.files) ||
+    result.files.some(({ path }) => typeof path !== "string")
+  ) {
     throw new Error(`Expected one packed tarball from ${packageDirectory}`);
   }
-  return result;
+  return result as PnpmPackResult;
 }
 
 async function verifyNativeArtifacts(artifactDirectory: string): Promise<void> {
@@ -262,7 +276,7 @@ async function resolveCoreVersion(requestedVersion: string | undefined): Promise
 
 async function latestVersion(packageName: string): Promise<string> {
   const response = await fetch(
-    `https://registry.npmjs.org/${encodeURIComponent(packageName).replaceAll("%2F", "%2f")}/latest`,
+    `${npmRegistry}/${encodeURIComponent(packageName).replaceAll("%2F", "%2f")}/latest`,
   );
   if (!response.ok) {
     throw new Error(`Cannot resolve ${packageName}@latest: registry returned ${response.status}`);

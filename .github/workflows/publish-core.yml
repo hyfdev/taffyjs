@@ -230,9 +230,6 @@ jobs:
           runtime: node@22.20.0
           cache: false
           install: false
-      - name: Install trusted-publishing npm
-        working-directory: ${{ runner.temp }}
-        run: npm install --global npm@11.18.0
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: core-release-plan
@@ -275,9 +272,6 @@ jobs:
           runtime: node@22.20.0
           cache: false
           install: false
-      - name: Install trusted-publishing npm
-        working-directory: ${{ runner.temp }}
-        run: npm install --global npm@11.18.0
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: core-release-bundle
