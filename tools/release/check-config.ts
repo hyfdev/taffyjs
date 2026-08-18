@@ -83,6 +83,7 @@ for (const platform of platforms) {
 const ordinaryCi = await readFile(resolve(root, ".github/workflows/ci.yml"), "utf8");
 assert.equal(ordinaryCi.includes("matrix.settings.target"), false);
 assert.equal(ordinaryCi.includes("x86_64-unknown-freebsd"), false);
+assert(ordinaryCi.includes("pnpm exec vp run check:release"));
 
 const rootManifest = await readJson<PackageJson>(resolve(root, "package.json"));
 assert.equal(rootManifest.license, "MIT");

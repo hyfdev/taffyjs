@@ -4,7 +4,16 @@ import { tmpdir } from "node:os";
 import { resolve, sep } from "node:path";
 
 import { releaseGroups, repository } from "./config.ts";
-import { capture, readJson, root, run, sha512Integrity, wait, writeJson } from "./lib.ts";
+import {
+  capture,
+  parseRemoteTagCommit,
+  readJson,
+  root,
+  run,
+  sha512Integrity,
+  wait,
+  writeJson,
+} from "./lib.ts";
 import type { ReleaseBundleManifest, ReleaseBundlePackage } from "./assemble.ts";
 
 const options = parseOptions(process.argv.slice(2));
@@ -25,6 +34,7 @@ const githubSha = process.env.GITHUB_SHA;
 if (!githubSha) throw new Error("Publishing requires GITHUB_SHA");
 assert.equal(githubSha, manifest.commit, "The release bundle must belong to the workflow commit");
 assert.equal(process.env.GITHUB_REF, "refs/heads/main", "Publishing is restricted to main");
+await assertRemoteTag(manifest.tag, manifest.commit, true);
 
 const npmWorkingDirectory = await mkdtemp(resolve(tmpdir(), "taffyjs-release-publish-"));
 try {
@@ -128,43 +138,84 @@ async function createGitHubRelease(
   bundleDirectory: string,
   manifest: ReleaseBundleManifest,
 ): Promise<void> {
-  try {
-    const existing = JSON.parse(
-      await capture("gh", [
-        "release",
-        "view",
-        manifest.tag,
-        "--repo",
-        repository,
-        "--json",
-        "tagName,isDraft",
-      ]),
-    ) as { readonly tagName: string; readonly isDraft: boolean };
-    assert.equal(existing.tagName, manifest.tag);
-    assert.equal(existing.isDraft, false);
-    console.log(`Skipping existing GitHub release ${manifest.tag}`);
-    return;
-  } catch {
-    // `gh release create` can attach a release to an existing tag, so this also
-    // recovers if a previous attempt created only the tag.
-  }
-
   await retry(`create GitHub release ${manifest.tag}`, 3, async () => {
-    await run("gh", [
+    if (await githubReleaseExists(manifest)) return;
+
+    const tagExists = await assertRemoteTag(manifest.tag, manifest.commit, true);
+    const arguments_ = [
       "release",
       "create",
       manifest.tag,
       "--repo",
       repository,
-      "--target",
-      manifest.commit,
+      ...(tagExists ? ["--verify-tag"] : ["--target", manifest.commit]),
       "--title",
       `${releaseGroups[manifest.group].displayName} ${manifest.version}`,
       "--notes-file",
       resolve(bundleDirectory, "release-notes.md"),
       "--latest=false",
-    ]);
+    ];
+    try {
+      await run("gh", arguments_);
+    } catch (error) {
+      if (await githubReleaseExists(manifest)) return;
+      throw error;
+    }
+    assert.equal(
+      await githubReleaseExists(manifest),
+      true,
+      `GitHub release ${manifest.tag} was not visible after creation`,
+    );
   });
+}
+
+async function githubReleaseExists(manifest: ReleaseBundleManifest): Promise<boolean> {
+  let output: string;
+  try {
+    output = await capture("gh", [
+      "release",
+      "view",
+      manifest.tag,
+      "--repo",
+      repository,
+      "--json",
+      "tagName,isDraft",
+    ]);
+  } catch {
+    return false;
+  }
+  const existing = JSON.parse(output) as { readonly tagName: string; readonly isDraft: boolean };
+  assert.equal(existing.tagName, manifest.tag);
+  assert.equal(existing.isDraft, false, `GitHub release ${manifest.tag} must not be a draft`);
+  await assertRemoteTag(manifest.tag, manifest.commit, false);
+  console.log(`Verified existing GitHub release ${manifest.tag}`);
+  return true;
+}
+
+async function assertRemoteTag(
+  tag: string,
+  expectedCommit: string,
+  allowMissing: boolean,
+): Promise<boolean> {
+  const actualCommit = await remoteTagCommit(tag);
+  if (actualCommit === null) {
+    assert.equal(allowMissing, true, `Remote tag ${tag} is missing`);
+    return false;
+  }
+  assert.equal(actualCommit, expectedCommit, `Remote tag ${tag} points to an unexpected commit`);
+  return true;
+}
+
+async function remoteTagCommit(tag: string): Promise<string | null> {
+  const reference = `refs/tags/${tag}`;
+  const output = await capture("git", [
+    "ls-remote",
+    "--tags",
+    "origin",
+    reference,
+    `${reference}^{}`,
+  ]);
+  return parseRemoteTagCommit(output, tag);
 }
 
 async function retry(

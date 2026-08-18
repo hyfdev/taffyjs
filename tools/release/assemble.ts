@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cp, mkdtemp, mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, relative, resolve, sep } from "node:path";
 
 import { platforms } from "../platforms.ts";
@@ -90,8 +90,15 @@ export async function assemble(
 
       const manifestPath = resolve(packageDirectory, "package.json");
       const manifest = await readJson<PackageJson>(manifestPath);
+      const sourceVersion = manifest.version;
       prepareManifest(manifest, packageDefinition, plan.version, coreVersion);
       await writeJson(manifestPath, manifest);
+
+      if (packageDefinition.kind === "node") {
+        const entryPath = resolve(packageDirectory, "index.js");
+        const entry = await readFile(entryPath, "utf8");
+        await writeFile(entryPath, rewriteNodeLoaderVersion(entry, sourceVersion, plan.version));
+      }
 
       if (packageDefinition.kind === "binding") {
         const platform = platforms.find(
@@ -272,6 +279,28 @@ export function shouldCopyStagePath(source: string): boolean {
     !segments.includes(".napi-build") &&
     !segments.some((segment) => segment.startsWith(".napi-rs-filesystem-transaction"))
   );
+}
+
+export function rewriteNodeLoaderVersion(
+  contents: string,
+  sourceVersion: string,
+  releaseVersion: string,
+): string {
+  const comparison = `bindingPackageVersion !== "${sourceVersion}"`;
+  const message = `expected ${sourceVersion} but got`;
+  const comparisonCount = contents.split(comparison).length - 1;
+  const messageCount = contents.split(message).length - 1;
+  const sourceVersionCount = contents.split(sourceVersion).length - 1;
+  assert(comparisonCount > 0, "Node loader has no native package version checks");
+  assert.equal(messageCount, comparisonCount, "Node loader version messages drifted");
+  assert.equal(
+    sourceVersionCount,
+    comparisonCount + messageCount,
+    "Node loader contains an unclassified source-version literal",
+  );
+  return contents
+    .replaceAll(comparison, `bindingPackageVersion !== "${releaseVersion}"`)
+    .replaceAll(message, `expected ${releaseVersion} but got`);
 }
 
 function safePath(path: string): string {

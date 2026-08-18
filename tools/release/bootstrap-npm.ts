@@ -60,8 +60,10 @@ try {
       "Run the repository task release:bootstrap-npm only after its workflows are on main.",
     );
   } else {
-    const states = await Promise.all(
-      allPublishedPackages.map(async ({ name }) => [name, await bootstrapState(name)] as const),
+    const states = new Map(
+      await Promise.all(
+        allPublishedPackages.map(async ({ name }) => [name, await bootstrapState(name)] as const),
+      ),
     );
     for (const [name, state] of states) {
       if (state === "unexpected") {
@@ -71,23 +73,26 @@ try {
       }
     }
 
-    for (const [name, state] of states) {
-      if (state === "ready") {
-        console.log(`Skipping existing ${name}@${bootstrapVersion}`);
-        continue;
-      }
-      const tarball = tarballs.get(name);
-      assert(tarball, `Missing bootstrap tarball for ${name}`);
-      await run(
-        process.platform === "win32" ? "npm.cmd" : "npm",
-        ["publish", tarball, "--access", "public", "--tag", "bootstrap"],
-        { cwd: stageRoot },
-      );
-      assert.equal(await bootstrapState(name), "ready", `${name} bootstrap verification failed`);
-    }
-
     for (const group of Object.values(releaseGroups)) {
       for (const packageDefinition of group.packages) {
+        const { name } = packageDefinition;
+        if (states.get(name) === "ready") {
+          console.log(`Skipping existing ${name}@${bootstrapVersion}`);
+        } else {
+          const tarball = tarballs.get(name);
+          assert(tarball, `Missing bootstrap tarball for ${name}`);
+          await run(
+            process.platform === "win32" ? "npm.cmd" : "npm",
+            ["publish", tarball, "--access", "public", "--tag", "bootstrap"],
+            { cwd: stageRoot },
+          );
+          assert.equal(
+            await bootstrapState(name),
+            "ready",
+            `${name} bootstrap verification failed`,
+          );
+        }
+
         if (await hasExpectedTrust(packageDefinition.name, group.workflow)) {
           console.log(`Skipping existing trust for ${packageDefinition.name}`);
           continue;
@@ -116,9 +121,7 @@ try {
       }
     }
 
-    console.log(
-      "Bootstrap complete. Remove any temporary npm token before running a release workflow.",
-    );
+    console.log("Bootstrap complete. Release workflows now use OIDC instead of an npm token.");
   }
 } finally {
   await rm(stageRoot, { recursive: true, force: true });

@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { shouldCopyStagePath } from "./assemble.ts";
+import { rewriteNodeLoaderVersion, shouldCopyStagePath } from "./assemble.ts";
 import { isReleasePath } from "./config.ts";
-import { root } from "./lib.ts";
+import { parseRemoteTagCommit, root } from "./lib.ts";
 import {
   automaticBump,
   incrementVersion,
@@ -34,6 +34,33 @@ void test("release staging keeps sources and excludes generated dependency trees
     shouldCopyStagePath(resolve(root, "packages/taffyjs-node/.napi-rs-filesystem-transaction-123")),
     false,
   );
+});
+
+void test("release staging rewrites every generated native loader version check", () => {
+  const source = [
+    'if (bindingPackageVersion !== "0.0.0") throw new Error(`expected 0.0.0 but got ${bindingPackageVersion}`);',
+    'if (bindingPackageVersion !== "0.0.0") throw new Error(`expected 0.0.0 but got ${bindingPackageVersion}`);',
+  ].join("\n");
+  const rewritten = rewriteNodeLoaderVersion(source, "0.0.0", "0.0.1");
+  assert.equal(rewritten.includes("0.0.0"), false);
+  assert.equal(rewritten.match(/0\.0\.1/g)?.length, 4);
+  assert.throws(() =>
+    rewriteNodeLoaderVersion(`${source}\nconst unrelated = "0.0.0";`, "0.0.0", "0.0.1"),
+  );
+});
+
+void test("remote release tags resolve lightweight and annotated commits", () => {
+  const commit = "1".repeat(40);
+  const tagObject = "2".repeat(40);
+  assert.equal(parseRemoteTagCommit(`${commit}\trefs/tags/core-v0.0.1`, "core-v0.0.1"), commit);
+  assert.equal(
+    parseRemoteTagCommit(
+      `${tagObject}\trefs/tags/core-v0.0.1\n${commit}\trefs/tags/core-v0.0.1^{}`,
+      "core-v0.0.1",
+    ),
+    commit,
+  );
+  assert.equal(parseRemoteTagCommit("", "core-v0.0.1"), null);
 });
 
 void test("stable versions begin at 0.0.1 and use patch or minor increments", () => {

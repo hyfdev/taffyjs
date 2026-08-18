@@ -51,7 +51,10 @@ export async function testReleaseBundle(
 
     const smokePath = resolve(consumerDirectory, "smoke.mjs");
     await writeFile(smokePath, smokeSource(manifest.group, options.registry === true));
-    await run(process.execPath, [smokePath], { cwd: consumerDirectory });
+    await run(process.execPath, [smokePath], {
+      cwd: consumerDirectory,
+      env: { ...process.env, NAPI_RS_ENFORCE_VERSION_CHECK: "1" },
+    });
   } finally {
     await rm(consumerDirectory, { recursive: true, force: true });
   }

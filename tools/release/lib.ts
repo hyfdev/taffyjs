@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { execFile as execFileCallback, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
@@ -72,4 +73,20 @@ export function packageSlug(name: string): string {
 
 export function isMainModule(moduleUrl: string): boolean {
   return process.argv[1] !== undefined && fileURLToPath(moduleUrl) === resolve(process.argv[1]);
+}
+
+export function parseRemoteTagCommit(output: string, tag: string): string | null {
+  if (output === "") return null;
+  const reference = `refs/tags/${tag}`;
+  const entries = new Map(
+    output.split("\n").map((line) => {
+      const [hash, name] = line.split(/\s+/);
+      assert.match(hash ?? "", /^[0-9a-f]{40}$/);
+      assert(name, `Cannot parse remote tag line: ${line}`);
+      return [name, hash] as const;
+    }),
+  );
+  const commit = entries.get(`${reference}^{}`) ?? entries.get(reference);
+  assert(commit, `Cannot resolve remote tag ${tag}`);
+  return commit;
 }

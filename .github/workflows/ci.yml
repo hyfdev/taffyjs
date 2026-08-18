@@ -121,6 +121,8 @@ jobs:
         run: pnpm exec vp run check:lint
       - name: Verify native platform metadata
         run: pnpm exec vp run check:platforms
+      - name: Verify release configuration
+        run: pnpm exec vp run check:release
       - name: Verify generated sources are committed
         run: pnpm exec vp run check:codegen
 
