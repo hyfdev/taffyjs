@@ -1,18 +1,17 @@
 import assert from "node:assert/strict";
-import { appendFile, mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { appendFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 
-import { releaseGroups, repository } from "./config.ts";
+import { npmRegistry, releaseGroups, repository } from "./config.ts";
 import {
   capture,
   parseRemoteTagCommit,
+  pnpmCommand,
   readJson,
   root,
   run,
   sha512Integrity,
   wait,
-  writeJson,
 } from "./lib.ts";
 import type { ReleaseBundleManifest, ReleaseBundlePackage } from "./assemble.ts";
 
@@ -36,17 +35,8 @@ assert.equal(githubSha, manifest.commit, "The release bundle must belong to the 
 assert.equal(process.env.GITHUB_REF, "refs/heads/main", "Publishing is restricted to main");
 await assertRemoteTag(manifest.tag, manifest.commit, true);
 
-const npmWorkingDirectory = await mkdtemp(resolve(tmpdir(), "taffyjs-release-publish-"));
-try {
-  await writeJson(resolve(npmWorkingDirectory, "package.json"), {
-    name: "taffyjs-release-publisher",
-    private: true,
-  });
-  for (const packageArtifact of manifest.packages) {
-    await publishPackage(bundleDirectory, packageArtifact, npmWorkingDirectory);
-  }
-} finally {
-  await rm(npmWorkingDirectory, { recursive: true, force: true });
+for (const packageArtifact of manifest.packages) {
+  await publishPackage(bundleDirectory, packageArtifact);
 }
 
 await retry("installed registry smoke", 5, async () => {
@@ -85,7 +75,6 @@ async function verifyBundle(
 async function publishPackage(
   bundleDirectory: string,
   packageArtifact: ReleaseBundlePackage,
-  npmWorkingDirectory: string,
 ): Promise<void> {
   const existingIntegrity = await registryIntegrity(packageArtifact.name, packageArtifact.version);
   if (existingIntegrity !== null) {
@@ -100,11 +89,17 @@ async function publishPackage(
 
   await retry(`publish ${packageArtifact.name}@${packageArtifact.version}`, 3, async () => {
     try {
-      await run(
-        process.platform === "win32" ? "npm.cmd" : "npm",
-        ["publish", resolve(bundleDirectory, packageArtifact.tarball), "--access", "public"],
-        { cwd: npmWorkingDirectory },
-      );
+      await run(pnpmCommand, [
+        "publish",
+        resolve(bundleDirectory, packageArtifact.tarball),
+        "--access",
+        "public",
+        "--no-git-checks",
+        "--ignore-scripts",
+        "--provenance",
+        "--registry",
+        npmRegistry,
+      ]);
     } catch (error) {
       const integrity = await registryIntegrity(packageArtifact.name, packageArtifact.version);
       if (integrity === packageArtifact.integrity) return;
@@ -122,7 +117,7 @@ async function publishPackage(
 
 async function registryIntegrity(name: string, version: string): Promise<string | null> {
   const response = await fetch(
-    `https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`,
+    `${npmRegistry}/${encodeURIComponent(name)}/${encodeURIComponent(version)}`,
     { cache: "no-store" },
   );
   if (response.status === 404) return null;

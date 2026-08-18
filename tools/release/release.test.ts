@@ -6,6 +6,12 @@ import { rewriteNodeLoaderVersion, shouldCopyStagePath } from "./assemble.ts";
 import { isReleasePath } from "./config.ts";
 import { parseRemoteTagCommit, root } from "./lib.ts";
 import {
+  ensureRegistryAuthentication,
+  npmTrustArguments,
+  revokeTemporaryAuthentication,
+  type CommandRunner,
+} from "./npm-trust.ts";
+import {
   automaticBump,
   incrementVersion,
   parseConventionalCommit,
@@ -63,6 +69,85 @@ void test("remote release tags resolve lightweight and annotated commits", () =>
   assert.equal(parseRemoteTagCommit("", "core-v0.0.1"), null);
 });
 
+void test("bootstrap revokes only the npm login it creates", async () => {
+  const events: string[] = [];
+  let authenticated = false;
+  const runner = authenticationRunner(
+    () => authenticated,
+    (value) => {
+      authenticated = value;
+    },
+    events,
+  );
+  const state = { temporaryLogin: false };
+
+  await ensureRegistryAuthentication("/isolated", state, runner);
+  assert.equal(state.temporaryLogin, true);
+  await revokeTemporaryAuthentication("/isolated", state, runner);
+  assert.equal(state.temporaryLogin, false);
+  assert.deepEqual(events, ["login", "logout"]);
+
+  events.length = 0;
+  authenticated = true;
+  await ensureRegistryAuthentication("/isolated", state, runner);
+  await revokeTemporaryAuthentication("/isolated", state, runner);
+  assert.deepEqual(events, []);
+});
+
+void test("a post-login failure still leaves the temporary token revocable", async () => {
+  const events: string[] = [];
+  let trustWhoamiCalls = 0;
+  const runner: CommandRunner = {
+    capture: async (_command, arguments_) => {
+      if (arguments_.includes("dlx") && arguments_.includes("whoami")) {
+        trustWhoamiCalls += 1;
+        if (trustWhoamiCalls === 1) throw authenticationRequiredError();
+        throw new Error("verification failed");
+      }
+      throw new Error(`Unexpected capture ${arguments_.join(" ")}`);
+    },
+    run: async (_command, arguments_) => {
+      if (arguments_.includes("login")) events.push("login");
+      else if (arguments_.includes("logout")) events.push("logout");
+      else throw new Error(`Unexpected run ${arguments_.join(" ")}`);
+    },
+  };
+  const state = { temporaryLogin: false };
+
+  await assert.rejects(() => ensureRegistryAuthentication("/isolated", state, runner));
+  assert.equal(state.temporaryLogin, true);
+  await revokeTemporaryAuthentication("/isolated", state, runner);
+  assert.deepEqual(events, ["login", "logout"]);
+});
+
+void test("a registry failure does not replace or revoke an existing login", async () => {
+  const state = { temporaryLogin: false };
+  const runner: CommandRunner = {
+    capture: async () => {
+      throw Object.assign(new Error("registry unavailable"), { stderr: "ECONNREFUSED" });
+    },
+    run: async () => assert.fail("A network failure must not open or revoke a login"),
+  };
+
+  await assert.rejects(() => ensureRegistryAuthentication("/isolated", state, runner));
+  await revokeTemporaryAuthentication("/isolated", state, runner);
+  assert.equal(state.temporaryLogin, false);
+});
+
+void test("npm trust is an exact-version helper fetched through pnpm", () => {
+  assert.deepEqual(npmTrustArguments(["trust", "list", "@taffyjs/node", "--json"]), [
+    "--config.registry=https://registry.npmjs.org",
+    "dlx",
+    "npm@11.18.0",
+    "trust",
+    "list",
+    "@taffyjs/node",
+    "--json",
+    "--registry",
+    "https://registry.npmjs.org",
+  ]);
+});
+
 void test("stable versions begin at 0.0.1 and use patch or minor increments", () => {
   assert.equal(incrementVersion("0.0.1", "patch"), "0.0.2");
   assert.equal(incrementVersion("0.0.9", "minor"), "0.1.0");
@@ -106,4 +191,38 @@ function commit(subject: string, paths: readonly string[]): ConventionalCommit {
 
 function parsed(subject: string) {
   return parseConventionalCommit(commit(subject, ["packages/taffyjs-node/src/index.ts"]));
+}
+
+function authenticationRunner(
+  getAuthenticated: () => boolean,
+  setAuthenticated: (value: boolean) => void,
+  events: string[],
+): CommandRunner {
+  return {
+    capture: async (_command, arguments_) => {
+      if (arguments_.includes("dlx") && arguments_.includes("whoami")) {
+        if (!getAuthenticated()) throw authenticationRequiredError();
+        return "hyfdev";
+      }
+      if (arguments_[0] === "whoami") return "hyfdev";
+      throw new Error(`Unexpected capture ${arguments_.join(" ")}`);
+    },
+    run: async (_command, arguments_) => {
+      if (arguments_.includes("login")) {
+        events.push("login");
+        setAuthenticated(true);
+      } else if (arguments_.includes("logout")) {
+        events.push("logout");
+        setAuthenticated(false);
+      } else {
+        throw new Error(`Unexpected run ${arguments_.join(" ")}`);
+      }
+    },
+  };
+}
+
+function authenticationRequiredError(): Error {
+  return Object.assign(new Error("authentication required"), {
+    stderr: "npm error code ENEEDAUTH",
+  });
 }

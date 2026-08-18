@@ -1,16 +1,22 @@
 import assert from "node:assert/strict";
 import { cp, mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 
 import { platforms } from "../platforms.ts";
 import {
   allPublishedPackages,
   bootstrapVersion,
+  npmRegistry,
   releaseGroups,
   repository,
   type ReleasePackage,
 } from "./config.ts";
-import { capture, root, run, wait, writeJson } from "./lib.ts";
+import { capture, pnpmCommand, root, run, wait, writeJson } from "./lib.ts";
+import {
+  ensureRegistryAuthentication,
+  npmTrustArguments,
+  revokeTemporaryAuthentication,
+} from "./npm-trust.ts";
 
 const publish = process.argv.slice(2).includes("--publish");
 if (process.argv.length > (publish ? 3 : 2)) {
@@ -18,12 +24,13 @@ if (process.argv.length > (publish ? 3 : 2)) {
 }
 
 if (publish) await verifyPublishCheckout();
-await verifyNpmVersion(publish);
 const stageRoot = await mkdtemp(resolve(root, ".release-bootstrap-"));
+const authenticationState = { temporaryLogin: false };
+const failures: unknown[] = [];
 
 try {
-  // npm walks up to the repository's package.json and rejects non-pnpm commands
-  // because of devEngines. A local sentinel keeps npm scoped to this staging area.
+  // npm is used only for the trust API. This sentinel keeps that one command
+  // away from the repository's pnpm-only devEngines declaration.
   await writeJson(resolve(stageRoot, "package.json"), {
     name: "taffyjs-npm-bootstrap",
     private: true,
@@ -42,16 +49,21 @@ try {
       bootstrapManifest(packageDefinition),
     );
     const output = await capture(
-      process.platform === "win32" ? "npm.cmd" : "npm",
-      ["pack", "--json", "--ignore-scripts", "--pack-destination", stageRoot],
+      pnpmCommand,
+      ["--config.ignore-scripts=true", "pack", "--json", "--pack-destination", stageRoot],
       { cwd: packageDirectory },
     );
-    const results = JSON.parse(output) as readonly { readonly filename: string }[];
-    const filename = results[0]?.filename;
-    if (results.length !== 1 || filename === undefined) {
+    const result = JSON.parse(output) as { readonly filename?: unknown };
+    if (typeof result.filename !== "string") {
       throw new Error(`Failed to create one bootstrap tarball for ${packageDefinition.name}`);
     }
-    tarballs.set(packageDefinition.name, resolve(stageRoot, filename));
+    const tarball = resolve(result.filename);
+    assert.equal(
+      tarball,
+      resolve(stageRoot, basename(result.filename)),
+      `${packageDefinition.name} bootstrap tarball escaped its staging directory`,
+    );
+    tarballs.set(packageDefinition.name, tarball);
   }
 
   if (!publish) {
@@ -60,6 +72,7 @@ try {
       "Run the repository task release:bootstrap-npm only after its workflows are on main.",
     );
   } else {
+    await ensureRegistryAuthentication(stageRoot, authenticationState);
     const states = new Map(
       await Promise.all(
         allPublishedPackages.map(async ({ name }) => [name, await bootstrapState(name)] as const),
@@ -81,11 +94,18 @@ try {
         } else {
           const tarball = tarballs.get(name);
           assert(tarball, `Missing bootstrap tarball for ${name}`);
-          await run(
-            process.platform === "win32" ? "npm.cmd" : "npm",
-            ["publish", tarball, "--access", "public", "--tag", "bootstrap"],
-            { cwd: stageRoot },
-          );
+          await run(pnpmCommand, [
+            "publish",
+            tarball,
+            "--access",
+            "public",
+            "--tag",
+            "bootstrap",
+            "--no-git-checks",
+            "--ignore-scripts",
+            "--registry",
+            npmRegistry,
+          ]);
           assert.equal(
             await bootstrapState(name),
             "ready",
@@ -98,8 +118,8 @@ try {
           continue;
         }
         await run(
-          process.platform === "win32" ? "npm.cmd" : "npm",
-          [
+          pnpmCommand,
+          npmTrustArguments([
             "trust",
             "github",
             packageDefinition.name,
@@ -109,7 +129,7 @@ try {
             repository,
             "--allow-publish",
             "--yes",
-          ],
+          ]),
           { cwd: stageRoot },
         );
         assert.equal(
@@ -123,8 +143,24 @@ try {
 
     console.log("Bootstrap complete. Release workflows now use OIDC instead of an npm token.");
   }
-} finally {
+} catch (error) {
+  failures.push(error);
+}
+
+try {
+  await revokeTemporaryAuthentication(stageRoot, authenticationState);
+} catch (error) {
+  failures.push(error);
+}
+try {
   await rm(stageRoot, { recursive: true, force: true });
+} catch (error) {
+  failures.push(error);
+}
+
+if (failures.length === 1) throw failures[0];
+if (failures.length > 1) {
+  throw new AggregateError(failures, "Bootstrap and its cleanup both failed");
 }
 
 function bootstrapManifest(packageDefinition: ReleasePackage): Record<string, unknown> {
@@ -140,7 +176,7 @@ function bootstrapManifest(packageDefinition: ReleasePackage): Record<string, un
       directory: packageDefinition.sourceDirectory,
     },
     files: ["README.md", "LICENSE"],
-    publishConfig: { access: "public", tag: "bootstrap" },
+    publishConfig: { access: "public", tag: "bootstrap", registry: npmRegistry },
     ...(platform === undefined
       ? {}
       : {
@@ -169,16 +205,8 @@ async function verifyPublishCheckout(): Promise<void> {
   }
 }
 
-async function verifyNpmVersion(required: boolean): Promise<void> {
-  const version = await capture(process.platform === "win32" ? "npm.cmd" : "npm", ["--version"]);
-  const [major = 0, minor = 0] = version.split(".").map(Number);
-  if (required && (major < 11 || (major === 11 && minor < 15))) {
-    throw new Error(`npm trust requires npm >=11.15.0; found ${version}`);
-  }
-}
-
 async function bootstrapState(name: string): Promise<"missing" | "ready" | "unexpected"> {
-  const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name)}`, {
+  const response = await fetch(`${npmRegistry}/${encodeURIComponent(name)}`, {
     cache: "no-store",
   });
   if (response.status === 404) return "missing";
@@ -199,8 +227,8 @@ async function bootstrapState(name: string): Promise<"missing" | "ready" | "unex
 async function hasExpectedTrust(name: string, workflow: string): Promise<boolean> {
   try {
     const output = await capture(
-      process.platform === "win32" ? "npm.cmd" : "npm",
-      ["trust", "list", name, "--json"],
+      pnpmCommand,
+      npmTrustArguments(["trust", "list", name, "--json"]),
       { cwd: stageRoot },
     );
     const config = JSON.parse(output) as {

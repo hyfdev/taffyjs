@@ -9,11 +9,17 @@ import { fileURLToPath } from "node:url";
 const execFile = promisify(execFileCallback);
 
 export const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+export const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+
+export interface CommandOptions {
+  readonly cwd?: string;
+  readonly env?: NodeJS.ProcessEnv;
+}
 
 export async function capture(
   command: string,
   args: readonly string[],
-  options: { readonly cwd?: string; readonly env?: NodeJS.ProcessEnv } = {},
+  options: CommandOptions = {},
 ): Promise<string> {
   const { stdout } = await execFile(command, [...args], {
     cwd: options.cwd ?? root,
@@ -27,7 +33,7 @@ export async function capture(
 export async function run(
   command: string,
   args: readonly string[],
-  options: { readonly cwd?: string; readonly env?: NodeJS.ProcessEnv } = {},
+  options: CommandOptions = {},
 ): Promise<void> {
   await new Promise<void>((resolvePromise, reject) => {
     const child = spawn(command, [...args], {

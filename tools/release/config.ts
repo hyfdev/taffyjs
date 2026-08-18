@@ -11,6 +11,7 @@ export interface ReleasePackage {
 
 export const bootstrapVersion = "0.0.0-bootstrap.0";
 export const firstReleaseVersion = "0.0.1";
+export const npmRegistry = "https://registry.npmjs.org";
 export const repository = "hyfdev/taffyjs";
 
 export const bindingPackages: readonly ReleasePackage[] = platforms.map((platform) => ({
