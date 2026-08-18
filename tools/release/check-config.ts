@@ -70,10 +70,6 @@ for (const group of Object.values(releaseGroups)) {
   );
   assert(workflow.includes("RELEASE_BUMP: ${{ inputs.bump }}"));
   assert(workflow.includes('--bump "$RELEASE_BUMP"'));
-  assert(
-    workflow.includes("pnpm exec vp run check:wasm"),
-    `${group.workflow} must run the Wasm release checks before publication`,
-  );
   assert.equal(workflow.includes("NODE_AUTH_TOKEN"), false);
   assert.equal(workflow.includes("cache: true"), false);
   for (const match of workflow.matchAll(/^\s*- uses: (?<action>[^\s#]+).*$/gm)) {
@@ -87,9 +83,46 @@ const coreWorkflow = await readFile(
   resolve(root, ".github/workflows", releaseGroups.core.workflow),
   "utf8",
 );
+const coreWasmJob = workflowJob(coreWorkflow, "build-wasm");
+assertJobRun(coreWasmJob, "pnpm exec vp run check:wasm", "Core Wasm verification");
+assertJobRun(
+  coreWasmJob,
+  "pnpm dlx bun@1.2.0 packages/taffyjs-wasm/tests/runtime-smoke.mjs",
+  "Core Bun smoke",
+);
+assertJobRun(
+  coreWasmJob,
+  "pnpm dlx deno@2.2.0 run --node-modules-dir=manual packages/taffyjs-wasm/tests/runtime-smoke.mjs",
+  "Core Deno smoke",
+);
+assertJobNeeds(
+  workflowJob(coreWorkflow, "assemble"),
+  "[plan, build-native, build-freebsd, build-wasm]",
+  "Core assembly",
+);
+assertJobNeeds(workflowJob(coreWorkflow, "publish"), "assemble", "Core publication");
 for (const platform of platforms) {
   assert(coreWorkflow.includes(platform.target), `Core publication omits ${platform.target}`);
 }
+
+const yogaWorkflow = await readFile(
+  resolve(root, ".github/workflows", releaseGroups.yoga.workflow),
+  "utf8",
+);
+const yogaBuildJob = workflowJob(yogaWorkflow, "build");
+assertJobRun(yogaBuildJob, "pnpm exec vp run check:wasm", "Yoga Wasm verification");
+assertJobRun(
+  yogaBuildJob,
+  "pnpm dlx bun@1.2.0 tests/taffyjs-yoga-wasm/runtime-smoke.mjs",
+  "Yoga Wasm Bun smoke",
+);
+assertJobRun(
+  yogaBuildJob,
+  "pnpm dlx deno@2.2.0 run --node-modules-dir=manual tests/taffyjs-yoga-wasm/runtime-smoke.mjs",
+  "Yoga Wasm Deno smoke",
+);
+assertJobNeeds(workflowJob(yogaWorkflow, "assemble"), "[plan, build]", "Yoga assembly");
+assertJobNeeds(workflowJob(yogaWorkflow, "publish"), "assemble", "Yoga publication");
 
 const ordinaryCi = await readFile(resolve(root, ".github/workflows/ci.yml"), "utf8");
 assert.deepEqual(
@@ -106,3 +139,31 @@ assert(ordinaryCi.includes("pnpm exec vp run check:release"));
 
 const rootManifest = await readJson<PackageJson>(resolve(root, "package.json"));
 assert.equal(rootManifest.license, "MIT");
+
+function workflowJob(workflow: string, jobName: string): string {
+  const marker = `  ${jobName}:\n`;
+  assert.equal(
+    workflow.split(marker).length,
+    2,
+    `Expected exactly one ${jobName} job in the publication workflow`,
+  );
+  const remainder = workflow.slice(workflow.indexOf(marker) + marker.length);
+  const nextJob = remainder.search(/^  [A-Za-z_][A-Za-z0-9_-]*:\s*$/m);
+  return nextJob === -1 ? remainder : remainder.slice(0, nextJob);
+}
+
+function assertJobRun(job: string, command: string, label: string): void {
+  assert(
+    job
+      .split("\n")
+      .some((line) => line === `      - run: ${command}` || line === `        run: ${command}`),
+    `${label} must be an executable step in its required publication job`,
+  );
+}
+
+function assertJobNeeds(job: string, dependency: string, label: string): void {
+  assert(
+    job.split("\n").some((line) => line === `    needs: ${dependency}`),
+    `${label} must depend on ${dependency}`,
+  );
+}
