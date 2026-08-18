@@ -96,3 +96,27 @@ export function parseRemoteTagCommit(output: string, tag: string): string | null
   assert(commit, `Cannot resolve remote tag ${tag}`);
   return commit;
 }
+
+// npm asks for a one-time password on its first trust request, so its output
+// stays on the operator's terminal while stderr is also kept for inspection.
+export async function runReportingStderr(
+  command: string,
+  args: readonly string[],
+  options: CommandOptions = {},
+): Promise<{ readonly code: number | null; readonly stderr: string }> {
+  return await new Promise((resolvePromise, reject) => {
+    const child = spawn(command, [...args], {
+      cwd: options.cwd ?? root,
+      env: options.env,
+      stdio: ["inherit", "inherit", "pipe"],
+    });
+    let stderr = "";
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk: string) => {
+      stderr += chunk;
+      process.stderr.write(chunk);
+    });
+    child.once("error", reject);
+    child.once("close", (code) => resolvePromise({ code, stderr }));
+  });
+}

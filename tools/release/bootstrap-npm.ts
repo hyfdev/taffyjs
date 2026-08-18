@@ -11,7 +11,7 @@ import {
   repository,
   type ReleasePackage,
 } from "./config.ts";
-import { capture, pnpmCommand, root, run, writeJson } from "./lib.ts";
+import { capture, pnpmCommand, root, run, runReportingStderr, writeJson } from "./lib.ts";
 import {
   ensureRegistryAuthentication,
   npmTrustArguments,
@@ -92,10 +92,6 @@ try {
         const { name } = packageDefinition;
         if (states.get(name) === "ready") {
           console.log(`Skipping existing ${name}@${bootstrapVersion}`);
-          if (await hasExpectedTrust(name, group.workflow)) {
-            console.log(`Skipping existing trust for ${name}`);
-            continue;
-          }
         } else {
           const tarball = tarballs.get(name);
           assert(tarball, `Missing bootstrap tarball for ${name}`);
@@ -112,21 +108,7 @@ try {
             npmRegistry,
           ]);
         }
-        await run(
-          pnpmCommand,
-          npmTrustArguments([
-            "trust",
-            "github",
-            packageDefinition.name,
-            "--file",
-            group.workflow,
-            "--repository",
-            repository,
-            "--allow-publish",
-            "--yes",
-          ]),
-          { cwd: stageRoot },
-        );
+        await trustReleaseWorkflow(name, group.workflow);
       }
     }
 
@@ -194,20 +176,28 @@ async function verifyPublishCheckout(): Promise<void> {
   }
 }
 
-async function hasExpectedTrust(name: string, workflow: string): Promise<boolean> {
-  const output = await capture(pnpmCommand, npmTrustArguments(["trust", "list", name, "--json"]), {
-    cwd: stageRoot,
-  });
-  if (output === "") return false;
-  const config = JSON.parse(output) as {
-    readonly type?: unknown;
-    readonly repository?: unknown;
-    readonly file?: unknown;
-  };
-  assert.deepEqual(
-    { type: config.type, repository: config.repository, file: config.file },
-    { type: "github", repository, file: workflow },
-    `${name} already has a different npm trust configuration`,
+// npm can neither read nor replace a trust configuration without another
+// one-time password, so a package that is already bound keeps that binding.
+async function trustReleaseWorkflow(name: string, workflow: string): Promise<void> {
+  const { code, stderr } = await runReportingStderr(
+    pnpmCommand,
+    npmTrustArguments([
+      "trust",
+      "github",
+      name,
+      "--file",
+      workflow,
+      "--repository",
+      repository,
+      "--allow-publish",
+      "--yes",
+    ]),
+    { cwd: stageRoot },
   );
-  return true;
+  if (code === 0) return;
+  if (/\bE409\b|409 Conflict/.test(stderr)) {
+    console.log(`Keeping the trusted publisher ${name} already has`);
+    return;
+  }
+  throw new Error(`npm trust exited with code ${code ?? "unknown"} for ${name}`);
 }

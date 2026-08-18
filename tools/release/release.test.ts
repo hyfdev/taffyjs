@@ -136,14 +136,14 @@ void test("a registry failure does not replace or revoke an existing login", asy
 });
 
 void test("npm trust is an exact-version helper fetched through pnpm", () => {
-  assert.deepEqual(npmTrustArguments(["trust", "list", "@taffyjs/node", "--json"]), [
+  assert.deepEqual(npmTrustArguments(["trust", "github", "@taffyjs/node", "--yes"]), [
     "--config.registry=https://registry.npmjs.org",
     "dlx",
     "npm@11.18.0",
     "trust",
-    "list",
+    "github",
     "@taffyjs/node",
-    "--json",
+    "--yes",
     "--registry",
     "https://registry.npmjs.org",
   ]);
