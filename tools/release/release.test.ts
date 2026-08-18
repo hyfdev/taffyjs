@@ -3,8 +3,14 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 import { rewriteNodeLoaderVersion, shouldCopyStagePath } from "./assemble.ts";
+import {
+  bootstrapState,
+  publishBootstrapPackage,
+  verifyBootstrapReady,
+  type BootstrapState,
+} from "./bootstrap-registry.ts";
 import { isReleasePath } from "./config.ts";
-import { parseRemoteTagCommit, root } from "./lib.ts";
+import { capture, parseRemoteTagCommit, root } from "./lib.ts";
 import {
   ensureRegistryAuthentication,
   npmTrustArguments,
@@ -146,6 +152,74 @@ void test("npm trust is an exact-version helper fetched through pnpm", () => {
     "--registry",
     "https://registry.npmjs.org",
   ]);
+});
+
+void test("bootstrap waits for a newly published package to become visible", async () => {
+  const observedStates: BootstrapState[] = ["missing", "unexpected", "ready"];
+  let observations = 0;
+
+  await verifyBootstrapReady("@taffyjs/binding-darwin-x64", {
+    readState: async () => {
+      const state = observedStates[observations];
+      observations += 1;
+      assert(state);
+      return state;
+    },
+    retryDelays: [0, 0],
+    sleep: async () => {},
+    onRetry: () => {},
+  });
+
+  assert.equal(observations, 3);
+});
+
+void test("bootstrap recovers when a stale missing read causes a duplicate publish", async () => {
+  const observedStates: BootstrapState[] = ["missing", "ready"];
+  let observations = 0;
+
+  await publishBootstrapPackage(
+    "@taffyjs/binding-darwin-x64",
+    async () => {
+      throw new Error("npm rejected an already published version");
+    },
+    {
+      readState: async () => {
+        const state = observedStates[observations];
+        observations += 1;
+        assert(state);
+        return state;
+      },
+      retryDelays: [0],
+      sleep: async () => {},
+      onRetry: () => {},
+    },
+  );
+
+  assert.equal(observations, 2);
+});
+
+void test("bootstrap registry reads abort instead of hanging", async () => {
+  const request: typeof fetch = async (_input, init) =>
+    await new Promise<Response>((_resolvePromise, reject) => {
+      const signal = init?.signal;
+      assert(signal);
+      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+    });
+
+  await assert.rejects(
+    () => bootstrapState("@taffyjs/binding-darwin-x64", request, 5),
+    /timeout|aborted/i,
+  );
+});
+
+void test("command capture aborts a stuck npm trust read", async () => {
+  await assert.rejects(
+    () =>
+      capture(process.execPath, ["-e", "setInterval(() => {}, 1_000)"], {
+        signal: AbortSignal.timeout(20),
+      }),
+    /aborted/i,
+  );
 });
 
 void test("stable versions begin at 0.0.1 and use patch or minor increments", () => {

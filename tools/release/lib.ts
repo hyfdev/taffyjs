@@ -16,16 +16,21 @@ export interface CommandOptions {
   readonly env?: NodeJS.ProcessEnv;
 }
 
+export interface CaptureOptions extends CommandOptions {
+  readonly signal?: AbortSignal;
+}
+
 export async function capture(
   command: string,
   args: readonly string[],
-  options: CommandOptions = {},
+  options: CaptureOptions = {},
 ): Promise<string> {
   const { stdout } = await execFile(command, [...args], {
     cwd: options.cwd ?? root,
     env: options.env,
     encoding: "utf8",
     maxBuffer: 50 * 1024 * 1024,
+    signal: options.signal,
   });
   return stdout.trim();
 }

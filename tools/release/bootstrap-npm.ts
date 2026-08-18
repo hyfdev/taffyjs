@@ -17,6 +17,12 @@ import {
   npmTrustArguments,
   revokeTemporaryAuthentication,
 } from "./npm-trust.ts";
+import {
+  bootstrapState,
+  npmReadTimeoutMs,
+  publishBootstrapPackage,
+  verifyEventually,
+} from "./bootstrap-registry.ts";
 
 const publish = process.argv.slice(2).includes("--publish");
 if (process.argv.length > (publish ? 3 : 2)) {
@@ -94,22 +100,19 @@ try {
         } else {
           const tarball = tarballs.get(name);
           assert(tarball, `Missing bootstrap tarball for ${name}`);
-          await run(pnpmCommand, [
-            "publish",
-            tarball,
-            "--access",
-            "public",
-            "--tag",
-            "bootstrap",
-            "--no-git-checks",
-            "--ignore-scripts",
-            "--registry",
-            npmRegistry,
-          ]);
-          assert.equal(
-            await bootstrapState(name),
-            "ready",
-            `${name} bootstrap verification failed`,
+          await publishBootstrapPackage(name, () =>
+            run(pnpmCommand, [
+              "publish",
+              tarball,
+              "--access",
+              "public",
+              "--tag",
+              "bootstrap",
+              "--no-git-checks",
+              "--ignore-scripts",
+              "--registry",
+              npmRegistry,
+            ]),
           );
         }
 
@@ -132,10 +135,8 @@ try {
           ]),
           { cwd: stageRoot },
         );
-        assert.equal(
-          await hasExpectedTrust(packageDefinition.name, group.workflow),
-          true,
-          `${packageDefinition.name} trust verification failed`,
+        await verifyEventually(`${packageDefinition.name} trusted publisher`, () =>
+          hasExpectedTrust(packageDefinition.name, group.workflow),
         );
         await wait(2_000);
       }
@@ -205,31 +206,13 @@ async function verifyPublishCheckout(): Promise<void> {
   }
 }
 
-async function bootstrapState(name: string): Promise<"missing" | "ready" | "unexpected"> {
-  const response = await fetch(`${npmRegistry}/${encodeURIComponent(name)}`, {
-    cache: "no-store",
-  });
-  if (response.status === 404) return "missing";
-  if (!response.ok) throw new Error(`Registry returned ${response.status} for ${name}`);
-  const document = (await response.json()) as {
-    readonly versions?: Record<
-      string,
-      { readonly license?: unknown; readonly repository?: unknown }
-    >;
-    readonly "dist-tags"?: Record<string, unknown>;
-  };
-  const manifest = document.versions?.[bootstrapVersion];
-  const tag = document["dist-tags"]?.bootstrap;
-  if (manifest?.license !== "MIT" || tag !== bootstrapVersion) return "unexpected";
-  return "ready";
-}
-
 async function hasExpectedTrust(name: string, workflow: string): Promise<boolean> {
+  const signal = AbortSignal.timeout(npmReadTimeoutMs);
   try {
     const output = await capture(
       pnpmCommand,
       npmTrustArguments(["trust", "list", name, "--json"]),
-      { cwd: stageRoot },
+      { cwd: stageRoot, signal },
     );
     const config = JSON.parse(output) as {
       readonly type?: unknown;
@@ -244,7 +227,8 @@ async function hasExpectedTrust(name: string, workflow: string): Promise<boolean
       Array.isArray(config.permissions) &&
       config.permissions.includes("createPackage")
     );
-  } catch {
+  } catch (error) {
+    if (signal.aborted) throw error;
     return false;
   }
 }
