@@ -6,12 +6,12 @@ Read the [Design Philosophy](./design-philosophy.md) to see why the Yoga model a
 
 ## Install as `yoga-layout`
 
-The package is not published yet. Once it is available, install it under Yoga's original package name:
+Install the package under Yoga's original package name:
 
 ```json
 {
   "dependencies": {
-    "yoga-layout": "npm:@taffyjs/yoga-wasm@<published-version>"
+    "yoga-layout": "npm:@taffyjs/yoga-wasm@<version>"
   }
 }
 ```

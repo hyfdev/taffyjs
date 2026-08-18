@@ -21,3 +21,9 @@ apps/website/.vitepress/cache/
 apps/website/.vitepress/dist/
 benchmarks/results/local/
 benchmarks/results/*.next
+
+.release-*/
+release-plan.json
+release-plan/
+release-native/
+release-bundle/

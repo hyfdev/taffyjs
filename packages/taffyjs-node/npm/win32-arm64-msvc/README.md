@@ -1,3 +1,3 @@
 # @taffyjs/binding-win32-arm64-msvc
 
-Private platform package for the `@taffyjs/node` Windows ARM64 MSVC native artifact (`aarch64-pc-windows-msvc`). The package build adds the binary; publication is not configured.
+Published platform implementation for the `@taffyjs/node` Windows ARM64 MSVC native artifact (`aarch64-pc-windows-msvc`). Consumers install `@taffyjs/node`; do not import this package directly.

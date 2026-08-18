@@ -28,6 +28,16 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly selected one-action publication with automatically generated release notes and no further human intervention.
 
+### Initial public versions
+
+**Ruling:** Core and Yoga each begin their independent stable publication history at `0.0.1`; the registry-only trusted-publishing bootstrap uses `0.0.0-bootstrap.0` and never receives the `latest` tag.
+
+**Limits:** Either group may make its first stable release later than the other. This does not require both groups to remain on matching versions after their independent `0.0.1` releases or change the separate pre-1.0 compatibility policy.
+
+**Why:** Yunfei selected `0.0.1` as the first public release version; the lower prerelease keeps the one-time registry bootstrap distinct from an installable stable release.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly chose to begin publication at `0.0.1`.
+
 ### Main branch commit and merge convention
 
 [VOUCHED @hyfdev 2026-08-17]

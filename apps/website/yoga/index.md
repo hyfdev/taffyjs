@@ -6,12 +6,12 @@ Read the [Design Philosophy](./design-philosophy.md) to understand what the pack
 
 ## Install as `yoga-layout`
 
-The package is not published yet. Once it is available, install it under Yoga's original package name with a package-manager alias:
+Install the package under Yoga's original package name with a package-manager alias:
 
 ```json
 {
   "dependencies": {
-    "yoga-layout": "npm:@taffyjs/yoga@<published-version>"
+    "yoga-layout": "npm:@taffyjs/yoga@<version>"
   }
 }
 ```

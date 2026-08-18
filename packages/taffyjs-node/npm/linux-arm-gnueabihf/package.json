@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Native Node-API bindings for the Taffy layout engine.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hyfdev/taffyjs.git",

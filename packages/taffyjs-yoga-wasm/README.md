@@ -6,7 +6,7 @@ The [design philosophy](../../apps/website/yoga-wasm/design-philosophy.md) expla
 
 The package supports Node.js `>=22.20`, Bun 1.2+ within the Bun 1 major, Deno 2.2+ within the Deno 2 major, and modern bundled browsers within the [documented `@taffyjs/wasm` runtime boundary](https://github.com/hyfdev/taffyjs/blob/main/packages/taffyjs-wasm/README.md). Deno requires no permission flags. Browser consumers need a bundler that honors package export conditions and top-level await. Direct CDN scripts, legacy browsers, and non-browser edge runtimes are not currently supported.
 
-This package is still private and unpublished. The installation form below describes the intended registry substitution after publication.
+Install this package under Yoga's original package name with a package-manager alias.
 
 ## Substitute it for yoga-layout
 
@@ -15,7 +15,7 @@ Use a package-manager alias so application source can keep importing `yoga-layou
 ```json
 {
   "dependencies": {
-    "yoga-layout": "npm:@taffyjs/yoga-wasm@<published-version>"
+    "yoga-layout": "npm:@taffyjs/yoga-wasm@<version>"
   }
 }
 ```
