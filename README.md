@@ -19,12 +19,12 @@ npm install @taffyjs/node
 
 ## Packages
 
-| Package                                                                  | Description                                     | Version                                                                                                                                   |
-| ------------------------------------------------------------------------ | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| [`@taffyjs/node`](https://www.npmjs.com/package/@taffyjs/node)           | Native Node.js runtime for maximum performance. | [![npm version](https://img.shields.io/npm/v/@taffyjs/node?logo=npm&color=cb3837)](https://www.npmjs.com/package/@taffyjs/node)           |
-| [`@taffyjs/wasm`](https://www.npmjs.com/package/@taffyjs/wasm)           | WebAssembly runtime for flexible deployment.    | [![npm version](https://img.shields.io/npm/v/@taffyjs/wasm?logo=npm&color=cb3837)](https://www.npmjs.com/package/@taffyjs/wasm)           |
-| [`@taffyjs/yoga`](https://www.npmjs.com/package/@taffyjs/yoga)           | Yoga-compatible API backed by `@taffyjs/node`.  | [![npm version](https://img.shields.io/npm/v/@taffyjs/yoga?logo=npm&color=cb3837)](https://www.npmjs.com/package/@taffyjs/yoga)           |
-| [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | Yoga-compatible API backed by `@taffyjs/wasm`.  | [![npm version](https://img.shields.io/npm/v/@taffyjs/yoga-wasm?logo=npm&color=cb3837)](https://www.npmjs.com/package/@taffyjs/yoga-wasm) |
+| Package                                                                  | Description                                     | Version                                                                                                                                        |
+| ------------------------------------------------------------------------ | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@taffyjs/node`](https://www.npmjs.com/package/@taffyjs/node)           | Native Node.js runtime for maximum performance. | [![npm version](https://img.shields.io/npm/v/@taffyjs/node?logo=npm&color=brightgreen)](https://www.npmjs.com/package/@taffyjs/node)           |
+| [`@taffyjs/wasm`](https://www.npmjs.com/package/@taffyjs/wasm)           | WebAssembly runtime for flexible deployment.    | [![npm version](https://img.shields.io/npm/v/@taffyjs/wasm?logo=npm&color=brightgreen)](https://www.npmjs.com/package/@taffyjs/wasm)           |
+| [`@taffyjs/yoga`](https://www.npmjs.com/package/@taffyjs/yoga)           | Yoga-compatible API backed by `@taffyjs/node`.  | [![npm version](https://img.shields.io/npm/v/@taffyjs/yoga?logo=npm&color=brightgreen)](https://www.npmjs.com/package/@taffyjs/yoga)           |
+| [`@taffyjs/yoga-wasm`](https://www.npmjs.com/package/@taffyjs/yoga-wasm) | Yoga-compatible API backed by `@taffyjs/wasm`.  | [![npm version](https://img.shields.io/npm/v/@taffyjs/yoga-wasm?logo=npm&color=brightgreen)](https://www.npmjs.com/package/@taffyjs/yoga-wasm) |
 
 ## Runtime compatibility
 
