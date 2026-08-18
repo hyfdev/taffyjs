@@ -61,7 +61,7 @@ export const releaseGroups: Readonly<Record<ReleaseGroupName, ReleaseGroup>> = {
   core: {
     name: "core",
     displayName: "TaffyJS Core",
-    tagPrefix: "core-v",
+    tagPrefix: "v",
     workflow: "publish-core.yml",
     packages: corePackages,
   },

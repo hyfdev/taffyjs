@@ -1,6 +1,6 @@
 # Release
 
-TaffyJS has two independently dispatched release groups. Core publishes `@taffyjs/node`, `@taffyjs/wasm`, and all 13 exact-version native binding packages. Yoga publishes `@taffyjs/yoga` and `@taffyjs/yoga-wasm` at one version while retaining exact dependencies on the latest complete Core release. Source manifests stay private at `0.0.0`; release versions exist only in verified staging manifests, npm, and the group-specific `core-v*` or `yoga-v*` tag.
+TaffyJS has two independently dispatched release groups. Core publishes `@taffyjs/node`, `@taffyjs/wasm`, and all 13 exact-version native binding packages. Yoga publishes `@taffyjs/yoga` and `@taffyjs/yoga-wasm` at one version while retaining exact dependencies on the latest complete Core release. Source manifests stay private at `0.0.0`; release versions exist only in verified staging manifests, npm, and the group's own tag: `v*` for Core, `yoga-v*` for Yoga.
 
 ## Ordinary release
 

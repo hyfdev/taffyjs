@@ -94,7 +94,7 @@ async function latestTag(groupName: ReleaseGroupName): Promise<string | null> {
   const output = await capture("git", [
     "tag",
     "--list",
-    `${tagPrefix}*`,
+    `${tagPrefix}[0-9]*`,
     "--sort=-version:refname",
   ]);
   if (output === "") return null;

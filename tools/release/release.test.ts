@@ -59,15 +59,15 @@ void test("release staging rewrites every generated native loader version check"
 void test("remote release tags resolve lightweight and annotated commits", () => {
   const commit = "1".repeat(40);
   const tagObject = "2".repeat(40);
-  assert.equal(parseRemoteTagCommit(`${commit}\trefs/tags/core-v0.0.1`, "core-v0.0.1"), commit);
+  assert.equal(parseRemoteTagCommit(`${commit}\trefs/tags/v0.0.1`, "v0.0.1"), commit);
   assert.equal(
     parseRemoteTagCommit(
-      `${tagObject}\trefs/tags/core-v0.0.1\n${commit}\trefs/tags/core-v0.0.1^{}`,
-      "core-v0.0.1",
+      `${tagObject}\trefs/tags/v0.0.1\n${commit}\trefs/tags/v0.0.1^{}`,
+      "v0.0.1",
     ),
     commit,
   );
-  assert.equal(parseRemoteTagCommit("", "core-v0.0.1"), null);
+  assert.equal(parseRemoteTagCommit("", "v0.0.1"), null);
 });
 
 void test("bootstrap revokes only the npm login it creates", async () => {
