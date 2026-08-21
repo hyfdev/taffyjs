@@ -31,8 +31,8 @@ function topology(tree: TaffyTree, nodes: readonly NodeId[]) {
 
 test("replace-order", () => {
   const tree = new TaffyTree();
-  const [first, second, third] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, [first, second]);
+  const [first, second, third] = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren([first, second]);
 
   tree.setChildren(parent, [third, first]);
   assert.deepEqual(tree.getChildren(parent), [third, first]);
@@ -46,10 +46,10 @@ test("replace-order", () => {
 
 test("reparent", () => {
   const tree = new TaffyTree();
-  const [first, second, retained] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const firstParent = tree.newWithChildren({}, [retained, first]);
-  const secondParent = tree.newWithChildren({}, [second]);
-  const target = tree.newLeaf({});
+  const [first, second, retained] = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const firstParent = tree.newWithChildren([retained, first]);
+  const secondParent = tree.newWithChildren([second]);
+  const target = tree.newLeaf();
 
   tree.setChildren(target, [second, first]);
   assert.deepEqual(tree.getChildren(target), [second, first]);
@@ -62,8 +62,8 @@ test("reparent", () => {
 
 test("detach-omitted", () => {
   const tree = new TaffyTree();
-  const [first, second, third] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, [first, second, third]);
+  const [first, second, third] = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren([first, second, third]);
 
   tree.setChildren(parent, [second]);
   assert.deepEqual(tree.getChildren(parent), [second]);
@@ -74,12 +74,12 @@ test("detach-omitted", () => {
 
 test("dirty", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
-  const second = tree.newLeaf({});
-  const firstParent = tree.newWithChildren({}, [first]);
-  const secondParent = tree.newWithChildren({}, [second]);
-  const target = tree.newLeaf({});
-  const root = tree.newWithChildren({}, [firstParent, secondParent, target]);
+  const first = tree.newLeaf();
+  const second = tree.newLeaf();
+  const firstParent = tree.newWithChildren([first]);
+  const secondParent = tree.newWithChildren([second]);
+  const target = tree.newLeaf();
+  const root = tree.newWithChildren([firstParent, secondParent, target]);
   tree.computeLayout({ root, availableSpace: maxContentSpace() });
   for (const node of [firstParent, secondParent, target, root]) {
     assert.equal(tree.isDirty(node), false);
@@ -93,8 +93,8 @@ test("dirty", () => {
 
 test("topology-reject", () => {
   const tree = new TaffyTree();
-  const child = tree.newLeaf({});
-  const parent = tree.newWithChildren({}, [child]);
+  const child = tree.newLeaf();
+  const parent = tree.newWithChildren([child]);
 
   for (const children of [[child, child], [parent]]) {
     assert.equal(
@@ -103,9 +103,9 @@ test("topology-reject", () => {
     );
   }
 
-  const descendant = tree.newLeaf({});
-  const middle = tree.newWithChildren({}, [descendant]);
-  const root = tree.newWithChildren({}, [middle]);
+  const descendant = tree.newLeaf();
+  const middle = tree.newWithChildren([descendant]);
+  const root = tree.newWithChildren([middle]);
   assert.equal(
     captureError(() => tree.setChildren(descendant, [root])).code,
     "ERR_TAFFY_INVALID_TOPOLOGY",
@@ -114,10 +114,10 @@ test("topology-reject", () => {
 
 test("invalid-middle", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
-  const last = tree.newLeaf({});
-  const parent = tree.newWithChildren({}, [first]);
-  const foreign = new TaffyTree().newLeaf({});
+  const first = tree.newLeaf();
+  const last = tree.newLeaf();
+  const parent = tree.newWithChildren([first]);
+  const foreign = new TaffyTree().newLeaf();
   const before = topology(tree, [first, last, parent]);
 
   assert.equal(
@@ -129,8 +129,8 @@ test("invalid-middle", () => {
 
 test("failure-atomic", () => {
   const tree = new TaffyTree();
-  const [first, second, third] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, [first, second]);
+  const [first, second, third] = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren([first, second]);
   const nodes = [first, second, third, parent];
   const before = topology(tree, nodes);
 

@@ -18,8 +18,8 @@ function captureError(body: () => unknown): CodedError {
 
 test("js-identity", () => {
   const tree = new TaffyTree();
-  const child = tree.newLeaf({});
-  const parent = tree.newWithChildren({}, [child]);
+  const child = tree.newLeaf();
+  const parent = tree.newWithChildren([child]);
 
   assert.equal(typeof child, "bigint");
   assert.equal(tree.getChildAtIndex(parent, 0), child);
@@ -44,7 +44,7 @@ test("malformed", () => {
 test("foreign", () => {
   const first = new TaffyTree();
   const second = new TaffyTree();
-  const node = first.newLeaf({});
+  const node = first.newLeaf();
 
   const error = captureError(() => second.getStyle(node));
   assert.equal(error.constructor, Error);
@@ -54,7 +54,7 @@ test("foreign", () => {
 
 test("stale-clear", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   tree.clear();
 
   const error = captureError(() => tree.getStyle(node));
@@ -64,9 +64,9 @@ test("stale-clear", () => {
 
 test("slot-reuse", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
+  const first = tree.newLeaf();
   tree.clear();
-  const second = tree.newLeaf({});
+  const second = tree.newLeaf();
 
   assert.equal(first & SLOT_MASK, second & SLOT_MASK, "fixture reuses the native slot");
   assert.notEqual(first, second);

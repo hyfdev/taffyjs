@@ -25,6 +25,7 @@ export interface RawTaggedFamily {
   readonly name: string;
   readonly tagField: string;
   readonly numericFamily: string;
+  readonly emitRustParser?: boolean;
   readonly numberShorthand?: RawNumberShorthand;
   readonly branches: readonly RawTaggedBranch[];
   readonly publicAliases: readonly RawTaggedAlias[];
@@ -133,12 +134,17 @@ function family(sourcePath: string, fieldPath: string, value: unknown): RawTagge
     fieldPath,
     input,
     ["name", "tagField", "numericFamily", "branches", "publicAliases"],
-    ["numberShorthand"],
+    ["numberShorthand", "emitRustParser"],
   );
   return {
     name: string(sourcePath, `${fieldPath}.name`, input.name),
     tagField: string(sourcePath, `${fieldPath}.tagField`, input.tagField),
     numericFamily: string(sourcePath, `${fieldPath}.numericFamily`, input.numericFamily),
+    ...(Object.hasOwn(input, "emitRustParser")
+      ? {
+          emitRustParser: boolean(sourcePath, `${fieldPath}.emitRustParser`, input.emitRustParser),
+        }
+      : {}),
     ...(Object.hasOwn(input, "numberShorthand")
       ? {
           numberShorthand: numberShorthand(

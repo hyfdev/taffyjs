@@ -16,8 +16,8 @@ function captureError(body: () => unknown): CodedError {
 
 test("empty", () => {
   const tree = new TaffyTree();
-  const leaf = tree.newLeaf({});
-  const emptyParent = tree.newWithChildren({}, []);
+  const leaf = tree.newLeaf();
+  const emptyParent = tree.newWithChildren([]);
 
   assert.equal(tree.getChildCount(leaf), 0);
   assert.equal(tree.getChildCount(emptyParent), 0);
@@ -26,12 +26,12 @@ test("empty", () => {
 test("topology-sequence", () => {
   const tree = new TaffyTree();
   const [first, second, third, fourth] = [
-    tree.newLeaf({}),
-    tree.newLeaf({}),
-    tree.newLeaf({}),
-    tree.newLeaf({}),
+    tree.newLeaf(),
+    tree.newLeaf(),
+    tree.newLeaf(),
+    tree.newLeaf(),
   ];
-  const parent = tree.newWithChildren({}, [first, second]);
+  const parent = tree.newWithChildren([first, second]);
   assert.equal(tree.getChildCount(parent), 2);
 
   tree.addChild(parent, third);
@@ -51,14 +51,14 @@ test("topology-sequence", () => {
   assert.equal(tree.getChildCount(parent), 0);
 
   tree.clear();
-  const afterClear = tree.newLeaf({});
+  const afterClear = tree.newLeaf();
   assert.equal(tree.getChildCount(afterClear), 0);
 });
 
 test("number-result", () => {
   const tree = new TaffyTree();
-  const children = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, children);
+  const children = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren(children);
   const count = tree.getChildCount(parent);
 
   assert.equal(count, 3);
@@ -69,7 +69,7 @@ test("number-result", () => {
 
 test("invalid-parent", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.getChildCount(1 as never)).constructor, TypeError);
   assert.equal(
@@ -78,7 +78,7 @@ test("invalid-parent", () => {
   );
   assert.equal(captureError(() => tree.getChildCount(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.getChildCount(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

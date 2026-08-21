@@ -114,38 +114,32 @@ function createNestedMeasureFixture(
 ): NestedMeasureFixture {
   const tree = new TaffyTree();
   tree.disableRounding();
-  const measured = tree.newLeafWithContext(
-    { flexShrink: 1, minSize: { width: 0, height: 0 } },
-    true,
-  );
+  const measured = tree.newLeafWithContext(true, {
+    flexShrink: 1,
+    minSize: { width: 0, height: 0 },
+  });
   let nested = measured;
   for (let depth = 0; depth < 4; depth += 1) {
     const otherDirection =
       firstDirection === FlexDirection.Row ? FlexDirection.Column : FlexDirection.Row;
     const flexDirection = depth % 2 === 0 ? firstDirection : otherDirection;
-    nested = tree.newWithChildren(
-      {
-        display: Display.Flex,
-        flexDirection,
-        flexGrow: depth === 3 ? 1 : 0,
-        flexShrink: 1,
-        minSize: { width: 0, height: 0 },
-        padding: 3,
-        gap: 2,
-      },
-      [nested],
-    );
+    nested = tree.newWithChildren([nested], {
+      display: Display.Flex,
+      flexDirection,
+      flexGrow: depth === 3 ? 1 : 0,
+      flexShrink: 1,
+      minSize: { width: 0, height: 0 },
+      padding: 3,
+      gap: 2,
+    });
   }
   const fixed = tree.newLeaf({ size: { width: 264, height: 100 } });
-  const root = tree.newWithChildren(
-    {
-      display: Display.Flex,
-      flexDirection: FlexDirection.Row,
-      size: { width: 1280, height: 800 },
-      padding: 16,
-    },
-    [fixed, nested],
-  );
+  const root = tree.newWithChildren([fixed, nested], {
+    display: Display.Flex,
+    flexDirection: FlexDirection.Row,
+    size: { width: 1280, height: 800 },
+    padding: 16,
+  });
   return { tree, measured, root };
 }
 
@@ -177,7 +171,7 @@ function collectMeasureRequests(
 test("callback-args", () => {
   const tree = new TaffyTree();
   const context = { label: "callback" };
-  const node = tree.newLeafWithContext({ flexGrow: 1.25 }, context);
+  const node = tree.newLeafWithContext(context, { flexGrow: 1.25 });
   let saved: MeasureArgs<unknown> | undefined;
 
   tree.computeLayout({
@@ -260,8 +254,8 @@ test("getStyle provider is reused per node and refreshed for the next compute", 
 test("computeLayout keeps ordinary leaves native when no measure is configured", () => {
   const tree = new TaffyTree<{ label: string }>();
   const fixed = tree.newLeafWithContext(
-    { size: { width: 40, height: 12 } },
     { label: "context does not enable measurement" },
+    { size: { width: 40, height: 12 } },
   );
 
   tree.computeLayout({ root: fixed, availableSpace: minContentSpace(), measure: undefined });
@@ -271,10 +265,10 @@ test("computeLayout keeps ordinary leaves native when no measure is configured",
 
 test("computeLayout invokes only configured measures independently of context", () => {
   const tree = new TaffyTree<string>();
-  const contextOnly = tree.newLeafWithContext({}, "context only");
-  const measureOnly = tree.newLeaf({});
-  const fixed = tree.newLeafWithContext({ size: { width: 40, height: 12 } }, "fixed context");
-  const root = tree.newWithChildren({}, [contextOnly, measureOnly, fixed]);
+  const contextOnly = tree.newLeafWithContext("context only");
+  const measureOnly = tree.newLeaf();
+  const fixed = tree.newLeafWithContext("fixed context", { size: { width: 40, height: 12 } });
+  const root = tree.newWithChildren([contextOnly, measureOnly, fixed]);
   const receivedContexts: Array<string | undefined> = [];
   const measuredNodes = new Set<NodeId>();
   tree.setMeasure(measureOnly, (args) => {
@@ -303,10 +297,10 @@ test("computeLayout invokes only configured measures independently of context", 
 
 test("nodes select their own measures and may share one callback", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
-  const second = tree.newLeaf({});
-  const third = tree.newLeaf({});
-  const root = tree.newWithChildren({}, [first, second, third]);
+  const first = tree.newLeaf();
+  const second = tree.newLeaf();
+  const third = tree.newLeaf();
+  const root = tree.newWithChildren([first, second, third]);
   const firstNodes = new Set<NodeId>();
   const sharedNodes = new Set<NodeId>();
   tree.setMeasure(first, ({ node }) => {
@@ -328,9 +322,9 @@ test("nodes select their own measures and may share one callback", () => {
 
 test("per-node measures take priority over the global fallback", () => {
   const tree = new TaffyTree();
-  const configured = tree.newLeaf({});
-  const fallback = tree.newLeaf({});
-  const root = tree.newWithChildren({}, [configured, fallback]);
+  const configured = tree.newLeaf();
+  const fallback = tree.newLeaf();
+  const root = tree.newWithChildren([configured, fallback]);
   const configuredNodes = new Set<NodeId>();
   const fallbackNodes = new Set<NodeId>();
   tree.setMeasure(configured, ({ node }) => {
@@ -353,7 +347,7 @@ test("per-node measures take priority over the global fallback", () => {
 
 test("setMeasure always invalidates cached measurement and clearing restores fallback", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   let measuredWidth = 10;
   let calls = 0;
   const measure: MeasureFunction<unknown> = () => {
@@ -397,14 +391,14 @@ test("setMeasure always invalidates cached measurement and clearing restores fal
 test("remove and clear release per-node measure state", () => {
   const tree = new TaffyTree();
   let calls = 0;
-  const removed = tree.newLeaf({});
+  const removed = tree.newLeaf();
   tree.setMeasure(removed, () => {
     calls += 1;
     return { width: 10, height: 5 };
   });
   tree.remove(removed);
 
-  const replacement = tree.newLeaf({});
+  const replacement = tree.newLeaf();
   tree.computeLayout({ root: replacement, availableSpace: minContentSpace() });
   assert.equal(calls, 0);
 
@@ -414,14 +408,14 @@ test("remove and clear release per-node measure state", () => {
   });
   tree.clear();
 
-  const afterClear = tree.newLeaf({});
+  const afterClear = tree.newLeaf();
   tree.computeLayout({ root: afterClear, availableSpace: minContentSpace() });
   assert.equal(calls, 0);
 });
 
 test("failed setMeasure calls leave native and JavaScript state aligned", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   let originalCalls = 0;
   let replacementCalls = 0;
   let busyError: unknown;
@@ -453,7 +447,7 @@ test("failed setMeasure calls leave native and JavaScript state aligned", () => 
 
 test("per-node callback failures preserve thrown identity and retry", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   const thrown = { reason: "retry per-node measurement" };
   let shouldThrow = true;
   let calls = 0;
@@ -477,7 +471,7 @@ test("per-node callback failures preserve thrown identity and retry", () => {
 
 test("result-f32", () => {
   const finiteTree = new TaffyTree();
-  const finite = finiteTree.newLeafWithContext({}, true);
+  const finite = finiteTree.newLeafWithContext(true);
   compute(finiteTree, finite, () => ({ width: 12.2500001, height: 8.5000001 }));
   assert.deepEqual(finiteTree.getUnroundedLayout(finite).size, {
     width: Math.fround(12.2500001),
@@ -485,7 +479,7 @@ test("result-f32", () => {
   });
 
   const infinityTree = new TaffyTree();
-  const infinity = infinityTree.newLeafWithContext({}, true);
+  const infinity = infinityTree.newLeafWithContext(true);
   compute(infinityTree, infinity, () => ({
     width: Number.POSITIVE_INFINITY,
     height: Number.NEGATIVE_INFINITY,
@@ -496,7 +490,7 @@ test("result-f32", () => {
   });
 
   const nanTree = new TaffyTree();
-  const nan = nanTree.newLeafWithContext({}, true);
+  const nan = nanTree.newLeafWithContext(true);
   compute(nanTree, nan, () => ({ width: Number.NaN, height: Number.NaN }));
   assert.deepEqual(nanTree.getUnroundedLayout(nan).size, { width: 0, height: 0 });
 });
@@ -556,22 +550,21 @@ test("identical requests reuse one callback result without merging constraints",
 
 test("identical constraints on different nodes remain separate requests", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeafWithContext(
-    { flexGrow: 1, flexShrink: 1, minSize: { width: 0 } },
-    "first",
-  );
-  const second = tree.newLeafWithContext(
-    { flexGrow: 1, flexShrink: 1, minSize: { width: 0 } },
-    "second",
-  );
-  const root = tree.newWithChildren(
-    {
-      display: Display.Flex,
-      flexDirection: FlexDirection.Row,
-      size: { width: 200, height: 100 },
-    },
-    [first, second],
-  );
+  const first = tree.newLeafWithContext("first", {
+    flexGrow: 1,
+    flexShrink: 1,
+    minSize: { width: 0 },
+  });
+  const second = tree.newLeafWithContext("second", {
+    flexGrow: 1,
+    flexShrink: 1,
+    minSize: { width: 0 },
+  });
+  const root = tree.newWithChildren([first, second], {
+    display: Display.Flex,
+    flexDirection: FlexDirection.Row,
+    size: { width: 200, height: 100 },
+  });
   const requests: MeasureRequestKey[] = [];
   const measuredNodes = new Set<NodeId>();
 
@@ -612,7 +605,7 @@ test("measure request reuse ends when compute returns", () => {
 
 test("cache-calls", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeafWithContext({}, true);
+  const node = tree.newLeafWithContext(true);
   const options = {
     root: node,
     availableSpace: minContentSpace(),
@@ -636,8 +629,8 @@ test("cache-calls", () => {
 
 test("changing the global fallback requires dirtying each affected leaf", () => {
   const tree = new TaffyTree();
-  const leaf = tree.newLeaf({});
-  const root = tree.newWithChildren({}, [leaf]);
+  const leaf = tree.newLeaf();
+  const root = tree.newWithChildren([leaf]);
   let firstCalls = 0;
   let secondCalls = 0;
 
@@ -679,7 +672,7 @@ test("changing the global fallback requires dirtying each affected leaf", () => 
 
 test("callback-type-before-cache", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeafWithContext({}, true);
+  const node = tree.newLeafWithContext(true);
   const options = {
     root: node,
     availableSpace: minContentSpace(),
@@ -721,7 +714,7 @@ test("same-tree-busy", () => {
 test("js-only-reentry", () => {
   const tree = new TaffyTree();
   const context = { label: "available" };
-  const node = tree.newLeafWithContext({}, context);
+  const node = tree.newLeafWithContext(context);
 
   compute(tree, node, ({ node: measured }) => {
     assert.equal(tree.getNodeContext(measured), context);
@@ -743,7 +736,7 @@ test("js-only-reentry", () => {
 
 test("different-tree", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeafWithContext({}, true);
+  const node = tree.newLeafWithContext(true);
   const other = new TaffyTree();
   let otherNode: NodeId | undefined;
 
@@ -761,7 +754,7 @@ test("different-tree", () => {
 test("throw-identity", () => {
   for (const thrown of [{ reason: "stop" }, "stop", 17, null]) {
     const tree = new TaffyTree();
-    const node = tree.newLeafWithContext({}, true);
+    const node = tree.newLeafWithContext(true);
     let failedCalls = 0;
     const received = captureError(() =>
       compute(tree, node, ({ getStyle }) => {
@@ -792,7 +785,7 @@ test("malformed-result", () => {
     Promise.resolve({ width: 1, height: 2 }),
   ]) {
     const tree = new TaffyTree();
-    const node = tree.newLeafWithContext({}, true);
+    const node = tree.newLeafWithContext(true);
     const error = captureError(() => compute(tree, node, () => result as never));
     assert.equal((error as Error).constructor, TypeError);
   }
@@ -800,9 +793,9 @@ test("malformed-result", () => {
 
 test("zero-drain", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeafWithContext({}, "first");
-  const second = tree.newLeafWithContext({}, "second");
-  const root = tree.newWithChildren({}, [first, second]);
+  const first = tree.newLeafWithContext("first");
+  const second = tree.newLeafWithContext("second");
+  const root = tree.newWithChildren([first, second]);
   const thrown = new Error("first callback stops the session");
   let calls = 0;
 
@@ -822,9 +815,9 @@ test("layout-nontransactional", () => {
   const tree = new TaffyTree();
   const firstContext = { label: "first" };
   const secondContext = { label: "second" };
-  const first = tree.newLeafWithContext({ flexGrow: 1 }, firstContext);
-  const second = tree.newLeafWithContext({ flexGrow: 2 }, secondContext);
-  const root = tree.newWithChildren({}, [first, second]);
+  const first = tree.newLeafWithContext(firstContext, { flexGrow: 1 });
+  const second = tree.newLeafWithContext(secondContext, { flexGrow: 2 });
+  const root = tree.newWithChildren([first, second]);
   const thrown = { reason: "expected" };
   let calls = 0;
 
@@ -855,7 +848,7 @@ test("layout-nontransactional", () => {
 test("context-identity", () => {
   const tree = new TaffyTree();
   const context = { value: 1 };
-  const node = tree.newLeafWithContext({}, context);
+  const node = tree.newLeafWithContext(context);
 
   compute(tree, node, ({ context: received }) => {
     assert.equal(received, context);
@@ -869,7 +862,7 @@ test("context-identity", () => {
 
 test("recovery", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeafWithContext({}, true);
+  const node = tree.newLeafWithContext(true);
 
   assert.equal(
     (captureError(() => compute(tree, node, () => ({ width: 1 }) as never)) as Error).constructor,

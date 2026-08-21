@@ -27,7 +27,7 @@ function topology(tree: TaffyTree, nodes: readonly NodeId[]) {
 
 test("empty", () => {
   const tree = new TaffyTree();
-  const root = tree.newWithChildren({ flexGrow: 2 }, []);
+  const root = tree.newWithChildren([], { flexGrow: 2 });
 
   assert.equal(tree.getNodeCount(), 1);
   assert.equal(tree.getStyle(root).flexGrow, 2);
@@ -35,10 +35,20 @@ test("empty", () => {
   assert.deepEqual(tree.getChildren(root), []);
 });
 
+test("default-style", () => {
+  const tree = new TaffyTree();
+  const omitted = tree.newWithChildren([]);
+  const explicitUndefined = tree.newWithChildren([], undefined);
+
+  assert.deepEqual(tree.getStyle(explicitUndefined), tree.getStyle(omitted));
+  assert.deepEqual(tree.getChildren(omitted), []);
+  assert.deepEqual(tree.getChildren(explicitUndefined), []);
+});
+
 test("ordered-children", () => {
   const tree = new TaffyTree();
-  const children = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, children);
+  const children = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren(children);
 
   assert.equal(tree.getNodeCount(), 4);
   assert.deepEqual(tree.getChildren(parent), children);
@@ -49,22 +59,22 @@ test("duplicate", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf({ flexGrow: 1 });
 
-  const error = captureError(() => tree.newWithChildren({}, [child, child]));
+  const error = captureError(() => tree.newWithChildren([child, child]));
   assert.equal(error.code, "ERR_TAFFY_INVALID_TOPOLOGY");
   assert.equal(tree.getNodeCount(), 1);
   assert.equal(tree.getStyle(child).flexGrow, 1);
 
-  const parent = tree.newWithChildren({}, [child]);
+  const parent = tree.newWithChildren([child]);
   assert.equal(tree.getNodeCount(), 2);
   assert.equal(tree.getStyle(parent).display, Display.Flex);
 });
 
 test("attached", () => {
   const tree = new TaffyTree();
-  const child = tree.newLeaf({});
-  const firstParent = tree.newWithChildren({}, [child]);
+  const child = tree.newLeaf();
+  const firstParent = tree.newWithChildren([child]);
 
-  const error = captureError(() => tree.newWithChildren({}, [child]));
+  const error = captureError(() => tree.newWithChildren([child]));
   assert.equal(error.code, "ERR_TAFFY_INVALID_TOPOLOGY");
   assert.equal(tree.getNodeCount(), 2);
   assert.equal(tree.getParent(child), firstParent);
@@ -73,18 +83,18 @@ test("attached", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(
-    captureError(() => tree.newWithChildren({}, [foreign])).code,
+    captureError(() => tree.newWithChildren([foreign], { display: 999 } as never)).code,
     "ERR_TAFFY_FOREIGN_NODE_ID",
   );
   assert.equal(tree.getNodeCount(), 0);
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(
-    captureError(() => tree.newWithChildren({}, [stale])).code,
+    captureError(() => tree.newWithChildren([stale], { display: 999 } as never)).code,
     "ERR_TAFFY_STALE_NODE_ID",
   );
   assert.equal(tree.getNodeCount(), 0);
@@ -92,19 +102,19 @@ test("invalid-id", () => {
 
 test("failure-atomic", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
-  const second = tree.newLeaf({});
+  const first = tree.newLeaf();
+  const second = tree.newLeaf();
   const before = topology(tree, [first, second]);
 
-  assert.throws(() => tree.newWithChildren({ display: 999 } as never, [first, second]), RangeError);
+  assert.throws(() => tree.newWithChildren([first, second], { display: 999 } as never), RangeError);
   assert.deepEqual(topology(tree, [first, second]), before);
 
   assert.equal(
-    captureError(() => tree.newWithChildren({}, [first, first])).code,
+    captureError(() => tree.newWithChildren([first, first])).code,
     "ERR_TAFFY_INVALID_TOPOLOGY",
   );
   assert.deepEqual(topology(tree, [first, second]), before);
 
-  assert.throws(() => tree.newWithChildren({}, {} as unknown as readonly NodeId[]), TypeError);
+  assert.throws(() => tree.newWithChildren({} as unknown as readonly NodeId[]), TypeError);
   assert.deepEqual(topology(tree, [first, second]), before);
 });

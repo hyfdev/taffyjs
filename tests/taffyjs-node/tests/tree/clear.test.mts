@@ -26,8 +26,8 @@ test("empty-tree", () => {
 
 test("leaf-tree", () => {
   const tree = new TaffyTree();
-  tree.newLeaf({});
-  tree.newLeaf({});
+  tree.newLeaf();
+  tree.newLeaf();
   assert.equal(tree.getNodeCount(), 2);
   tree.clear();
   assert.equal(tree.getNodeCount(), 0);
@@ -35,7 +35,7 @@ test("leaf-tree", () => {
 
 test("ids-stale", () => {
   const tree = new TaffyTree();
-  const nodes = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
+  const nodes = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
   tree.clear();
 
   for (const node of nodes) {
@@ -45,9 +45,9 @@ test("ids-stale", () => {
 
 test("serial-monotonic", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
+  const first = tree.newLeaf();
   tree.clear();
-  const second = tree.newLeaf({});
+  const second = tree.newLeaf();
 
   assert.equal(first & U32_MASK, second & U32_MASK, "native slot is reused by the fixture");
   assert.equal((second >> 64n) & U64_MASK, ((first >> 64n) & U64_MASK) + 1n);

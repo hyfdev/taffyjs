@@ -16,8 +16,8 @@ function captureError(body: () => unknown): CodedError {
 
 test("positions", () => {
   const tree = new TaffyTree();
-  const children = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, children);
+  const children = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren(children);
 
   for (let index = 0; index < children.length; index += 1) {
     assert.equal(tree.getChildAtIndex(parent, index), children[index]);
@@ -26,9 +26,9 @@ test("positions", () => {
 
 test("bounds", () => {
   const tree = new TaffyTree();
-  const empty = tree.newLeaf({});
-  const child = tree.newLeaf({});
-  const parent = tree.newWithChildren({}, [child]);
+  const empty = tree.newLeaf();
+  const child = tree.newLeaf();
+  const parent = tree.newWithChildren([child]);
 
   for (const [target, index] of [
     [empty, 0],
@@ -43,7 +43,7 @@ test("bounds", () => {
 
 test("integer", () => {
   const tree = new TaffyTree();
-  const parent = tree.newLeaf({});
+  const parent = tree.newLeaf();
 
   for (const index of [-1, 0.5, Number.NaN, Number.POSITIVE_INFINITY, 2 ** 53]) {
     const error = captureError(() => tree.getChildAtIndex(parent, index));
@@ -58,7 +58,7 @@ test("integer", () => {
 
 test("invalid-parent", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.getChildAtIndex(1 as never, 0)).constructor, TypeError);
   assert.equal(
@@ -70,7 +70,7 @@ test("invalid-parent", () => {
     "ERR_TAFFY_FOREIGN_NODE_ID",
   );
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.getChildAtIndex(stale, 0)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

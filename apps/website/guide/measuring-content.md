@@ -20,7 +20,7 @@ import { AvailableSpace, TaffyTree, type MeasureFunction } from "@taffyjs/node";
 type ImageContext = { intrinsicWidth: number; intrinsicHeight: number };
 
 const tree = new TaffyTree<ImageContext>();
-const image = tree.newLeafWithContext({}, { intrinsicWidth: 80, intrinsicHeight: 45 });
+const image = tree.newLeafWithContext({ intrinsicWidth: 80, intrinsicHeight: 45 });
 
 const measureImage: MeasureFunction<ImageContext> = ({ knownDimensions, context }) => {
   if (!context) throw new Error("Missing image dimensions");

@@ -18,11 +18,11 @@ export declare class BindingTaffyTree {
   rawReplaceChildAtIndex(parent: bigint, index: number, newChild: bigint): bigint;
   rawRemove(node: bigint): void;
   rawClear(): void;
-  rawNewLeaf(style: unknown): bigint;
-  rawNewLeafWithContext(style: unknown, hasContext: boolean): bigint;
-  rawNewWithChildren(style: unknown, children: Array<bigint>): bigint;
-  rawSetStyle(node: bigint, style: unknown): void;
-  rawUpdateStyle(node: bigint, update: unknown): void;
+  rawNewLeaf(encoded: Uint8Array): bigint;
+  rawNewLeafWithContext(encoded: Uint8Array, hasContext: boolean): bigint;
+  rawNewWithChildren(encoded: Uint8Array, children: Array<bigint>): bigint;
+  rawSetStyle(node: bigint, encoded: Uint8Array): void;
+  rawUpdateStyle(node: bigint, encoded: Uint8Array): void;
   rawSetNodeContext(node: bigint, hasContext: boolean): void;
   rawSetMeasure(node: bigint, hasMeasure: boolean): void;
   rawGetStyle(node: bigint): StyleOutput;
@@ -91,18 +91,6 @@ export interface DetailedLayoutOutput {
   value?: DetailedGridOutput;
 }
 
-export interface DimensionTaggedInput {
-  unit: number;
-  value?: number;
-}
-
-export interface GridPlacementInput {
-  kind: number;
-  name?: string;
-  index?: number;
-  span?: number;
-}
-
 export interface GridPlacementLineOutput {
   start: GridPlacementOutput;
   end: GridPlacementOutput;
@@ -115,26 +103,12 @@ export interface GridPlacementOutput {
   span?: number;
 }
 
-export interface GridTemplateAreaInput {
-  name: string;
-  rowStart: number;
-  rowEnd: number;
-  columnStart: number;
-  columnEnd: number;
-}
-
 export interface GridTemplateAreaOutput {
   name: string;
   rowStart: number;
   rowEnd: number;
   columnStart: number;
   columnEnd: number;
-}
-
-export interface GridTemplateAreasInput {
-  areas: Array<GridTemplateAreaInput>;
-  rowCount: number;
-  columnCount: number;
 }
 
 export interface GridTemplateAreasOutput {
@@ -146,12 +120,6 @@ export interface GridTemplateAreasOutput {
 export interface GridTemplateComponentOutput {
   kind: number;
   value: TrackSizingOutput | GridTemplateRepetitionOutput;
-}
-
-export interface GridTemplateRepetitionInput {
-  count: unknown;
-  tracks: Array<unknown>;
-  lineNames: Array<Array<string>>;
 }
 
 export interface GridTemplateRepetitionOutput {
@@ -193,10 +161,6 @@ export interface LengthSizeOutput {
   height: LengthOutput;
 }
 
-export interface MaybeTaggedLengthInput {
-  unit?: number;
-}
-
 export interface MeasureArguments {
   knownDimensions: KnownDimensionsOutput;
   availableSpace: AvailableSpaceSizeOutput;
@@ -231,75 +195,9 @@ export interface OverflowOutput {
   y: number;
 }
 
-export interface PartialLineInput {
-  start?: unknown;
-  end?: unknown;
-}
-
-export interface PartialPointInput {
-  x?: number;
-  y?: number;
-}
-
-export interface PartialRectInput {
-  left?: unknown;
-  right?: unknown;
-  top?: unknown;
-  bottom?: unknown;
-}
-
-export interface PartialSizeInput {
-  width?: unknown;
-  height?: unknown;
-}
-
 export interface RepetitionCountOutput {
   kind: number;
   value?: number;
-}
-
-export interface StyleInput {
-  display?: number;
-  itemIsTable?: boolean;
-  itemIsReplaced?: boolean;
-  boxSizing?: number;
-  direction?: number;
-  overflow?: unknown;
-  scrollbarWidth?: number;
-  float?: number;
-  clear?: number;
-  position?: number;
-  inset?: unknown;
-  size?: unknown;
-  minSize?: unknown;
-  maxSize?: unknown;
-  aspectRatio?: number | null;
-  margin?: unknown;
-  padding?: unknown;
-  border?: unknown;
-  alignItems?: number | null;
-  alignSelf?: number | null;
-  justifyItems?: number | null;
-  justifySelf?: number | null;
-  alignContent?: number | null;
-  justifyContent?: number | null;
-  gap?: unknown;
-  textAlign?: number;
-  flexDirection?: number;
-  flexWrap?: number;
-  flexBasis?: unknown;
-  flexGrow?: number;
-  flexShrink?: number;
-  gridTemplateRows?: Array<unknown>;
-  gridTemplateColumns?: Array<unknown>;
-  gridAutoRows?: Array<unknown>;
-  gridAutoColumns?: Array<unknown>;
-  gridAutoFlow?: number;
-  gridTemplateAreas?: GridTemplateAreasInput | null;
-  gridTemplateColumnNames?: Array<Array<string>>;
-  gridTemplateRowNames?: Array<Array<string>>;
-  gridRow?: unknown;
-  gridColumn?: unknown;
 }
 
 export interface StyleOutput {
@@ -344,16 +242,6 @@ export interface StyleOutput {
   gridTemplateRowNames: Array<Array<string>>;
   gridRow: GridPlacementLineOutput;
   gridColumn: GridPlacementLineOutput;
-}
-
-export interface TaggedGridInput {
-  kind: number;
-  value?: unknown;
-}
-
-export interface TrackSizingInput {
-  min: unknown;
-  max: unknown;
 }
 
 export interface TrackSizingOutput {

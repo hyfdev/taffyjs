@@ -41,7 +41,7 @@ function captureError(body: () => unknown): CodedError {
 
 test("exact-zero", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   assert.deepEqual(tree.getUnroundedLayout(node), ZERO_LAYOUT);
 });
 
@@ -94,7 +94,7 @@ test("detached", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.getUnroundedLayout(1 as never)).constructor, TypeError);
   assert.equal(
@@ -106,7 +106,7 @@ test("invalid-id", () => {
     "ERR_TAFFY_FOREIGN_NODE_ID",
   );
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.getUnroundedLayout(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

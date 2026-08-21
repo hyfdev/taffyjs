@@ -29,7 +29,7 @@ const rect = (value: () => { unit: number; value?: number }) => ({
 
 test("default Style contains every public field and value", () => {
   const tree = new TaffyTree();
-  const style = tree.getStyle(tree.newLeaf({}));
+  const style = tree.getStyle(tree.newLeaf());
 
   assert.deepEqual(style, {
     display: 2,

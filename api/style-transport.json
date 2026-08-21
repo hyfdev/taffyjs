@@ -1,0 +1,229 @@
+{
+  "$schema": "./schemas/style-transport.schema.json",
+  "formatVersion": 1,
+  "wireVersion": 1,
+  "fields": [
+    {
+      "name": "display",
+      "category": "enum",
+      "numericFamily": "Display",
+      "description": "Supplies the node's display style when present."
+    },
+    {
+      "name": "itemIsTable",
+      "category": "boolean",
+      "description": "Supplies the node's item is table style when present."
+    },
+    {
+      "name": "itemIsReplaced",
+      "category": "boolean",
+      "description": "Supplies the node's item is replaced style when present."
+    },
+    {
+      "name": "boxSizing",
+      "category": "enum",
+      "numericFamily": "BoxSizing",
+      "description": "Supplies the node's box sizing style when present."
+    },
+    {
+      "name": "direction",
+      "category": "enum",
+      "numericFamily": "Direction",
+      "description": "Supplies the node's direction style when present."
+    },
+    {
+      "name": "overflow",
+      "category": "partial-point-enum",
+      "numericFamily": "Overflow",
+      "description": "Supplies the node's overflow style when present."
+    },
+    {
+      "name": "scrollbarWidth",
+      "category": "number",
+      "description": "Supplies the node's scrollbar width style when present."
+    },
+    {
+      "name": "float",
+      "category": "enum",
+      "numericFamily": "Float",
+      "description": "Supplies the node's float style when present."
+    },
+    {
+      "name": "clear",
+      "category": "enum",
+      "numericFamily": "Clear",
+      "description": "Sets which preceding floats this node must clear."
+    },
+    {
+      "name": "position",
+      "category": "enum",
+      "numericFamily": "Position",
+      "description": "Supplies the node's position style when present."
+    },
+    {
+      "name": "inset",
+      "category": "partial-rect-length-percentage-auto",
+      "description": "Supplies the node's inset style when present."
+    },
+    {
+      "name": "size",
+      "category": "partial-size-dimension",
+      "description": "Supplies the node's size style when present."
+    },
+    {
+      "name": "minSize",
+      "category": "partial-size-dimension",
+      "description": "Supplies the node's min size style when present."
+    },
+    {
+      "name": "maxSize",
+      "category": "partial-size-dimension",
+      "description": "Supplies the node's max size style when present."
+    },
+    {
+      "name": "aspectRatio",
+      "category": "nullable-number",
+      "description": "Omission uses a default for replacement and preserves on update; null stores Taffy None."
+    },
+    {
+      "name": "margin",
+      "category": "partial-rect-length-percentage-auto",
+      "description": "Supplies the node's margin style when present."
+    },
+    {
+      "name": "padding",
+      "category": "partial-rect-length-percentage",
+      "description": "Supplies the node's padding style when present."
+    },
+    {
+      "name": "border",
+      "category": "partial-rect-length-percentage",
+      "description": "Supplies the node's border style when present."
+    },
+    {
+      "name": "alignItems",
+      "category": "nullable-enum",
+      "numericFamily": "AlignItems",
+      "description": "Omission uses a default for replacement and preserves on update; null stores Taffy None."
+    },
+    {
+      "name": "alignSelf",
+      "category": "nullable-enum",
+      "numericFamily": "AlignItems",
+      "description": "Omission uses a default for replacement and preserves on update; null stores Taffy None."
+    },
+    {
+      "name": "justifyItems",
+      "category": "nullable-enum",
+      "numericFamily": "AlignItems",
+      "description": "Omission uses a default for replacement and preserves on update; null stores Taffy None."
+    },
+    {
+      "name": "justifySelf",
+      "category": "nullable-enum",
+      "numericFamily": "AlignItems",
+      "description": "Omission uses a default for replacement and preserves on update; null stores Taffy None."
+    },
+    {
+      "name": "alignContent",
+      "category": "nullable-enum",
+      "numericFamily": "AlignContent",
+      "description": "Omission uses a default for replacement and preserves on update; null stores Taffy None."
+    },
+    {
+      "name": "justifyContent",
+      "category": "nullable-enum",
+      "numericFamily": "AlignContent",
+      "description": "Omission uses a default for replacement and preserves on update; null stores Taffy None."
+    },
+    {
+      "name": "gap",
+      "category": "partial-size-length-percentage",
+      "description": "Supplies the node's gap style when present."
+    },
+    {
+      "name": "textAlign",
+      "category": "enum",
+      "numericFamily": "TextAlign",
+      "description": "Supplies the node's text align style when present."
+    },
+    {
+      "name": "flexDirection",
+      "category": "enum",
+      "numericFamily": "FlexDirection",
+      "description": "Supplies the node's flex direction style when present."
+    },
+    {
+      "name": "flexWrap",
+      "category": "enum",
+      "numericFamily": "FlexWrap",
+      "description": "Supplies the node's flex wrap style when present."
+    },
+    {
+      "name": "flexBasis",
+      "category": "dimension",
+      "description": "Supplies the node's flex basis style when present."
+    },
+    {
+      "name": "flexGrow",
+      "category": "number",
+      "description": "Supplies the node's flex grow style when present."
+    },
+    {
+      "name": "flexShrink",
+      "category": "number",
+      "description": "Supplies the node's flex shrink style when present."
+    },
+    {
+      "name": "gridTemplateRows",
+      "category": "grid-template-component-array",
+      "description": "Supplies the complete Grid template row list when present."
+    },
+    {
+      "name": "gridTemplateColumns",
+      "category": "grid-template-component-array",
+      "description": "Supplies the complete Grid template column list when present."
+    },
+    {
+      "name": "gridAutoRows",
+      "category": "track-sizing-array",
+      "description": "Supplies the complete automatic Grid row list when present."
+    },
+    {
+      "name": "gridAutoColumns",
+      "category": "track-sizing-array",
+      "description": "Supplies the complete automatic Grid column list when present."
+    },
+    {
+      "name": "gridAutoFlow",
+      "category": "enum",
+      "numericFamily": "GridAutoFlow",
+      "description": "Supplies the node's Grid auto flow style when present."
+    },
+    {
+      "name": "gridTemplateAreas",
+      "category": "nullable-grid-template-areas",
+      "description": "Omission uses a default for replacement and preserves on update; null stores Taffy None."
+    },
+    {
+      "name": "gridTemplateColumnNames",
+      "category": "string-matrix",
+      "description": "Supplies the complete Grid template column-name list when present."
+    },
+    {
+      "name": "gridTemplateRowNames",
+      "category": "string-matrix",
+      "description": "Supplies the complete Grid template row-name list when present."
+    },
+    {
+      "name": "gridRow",
+      "category": "partial-line-grid-placement",
+      "description": "Supplies the node's Grid row placement when present."
+    },
+    {
+      "name": "gridColumn",
+      "category": "partial-line-grid-placement",
+      "description": "Supplies the node's Grid column placement when present."
+    }
+  ]
+}

@@ -13,7 +13,7 @@ export interface BrowserSmokeResult {
 
 export function runBrowserSmoke(): BrowserSmokeResult {
   const tree = new TaffyTree<{ label: string }>();
-  const root = tree.newLeafWithContext({}, { label: "wasm-browser" });
+  const root = tree.newLeafWithContext({ label: "wasm-browser" });
   let measureCalls = 0;
 
   tree.computeLayout({

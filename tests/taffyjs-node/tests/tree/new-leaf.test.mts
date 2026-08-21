@@ -10,13 +10,17 @@ function creationSerial(node: NodeId) {
 
 test("default-style", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
-  const style = tree.getStyle(node);
+  const omitted = tree.newLeaf();
+  const explicitUndefined = tree.newLeaf(undefined);
+  const emptyInput = tree.newLeaf({});
+  const style = tree.getStyle(omitted);
 
   assert.equal(style.display, Display.Flex);
   assert.equal(style.boxSizing, BoxSizing.BorderBox);
   assert.equal(style.flexGrow, 0);
   assert.equal(style.aspectRatio, null);
+  assert.deepEqual(tree.getStyle(explicitUndefined), style);
+  assert.deepEqual(tree.getStyle(emptyInput), style);
 });
 
 test("nondefault-style", () => {
@@ -35,8 +39,8 @@ test("nondefault-style", () => {
 
 test("stable-id", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
-  const second = tree.newLeaf({});
+  const first = tree.newLeaf();
+  const second = tree.newLeaf();
 
   assert.equal(typeof first, "bigint");
   assert.equal(typeof second, "bigint");
@@ -47,11 +51,12 @@ test("stable-id", () => {
 test("conversion-atomic", () => {
   const tree = new TaffyTree();
 
-  assert.throws(() => tree.newLeaf({ unknownField: true } as never), TypeError);
+  const ignored = tree.newLeaf({ unknownField: true } as never);
+  assert.equal(tree.getStyle(ignored).flexGrow, 0);
   assert.throws(() => tree.newLeaf({ display: 999 } as never), RangeError);
-  assert.equal(tree.getNodeCount(), 0);
-
-  const first = tree.newLeaf({});
-  assert.equal(creationSerial(first), 1n, "failed conversion does not consume a serial");
   assert.equal(tree.getNodeCount(), 1);
+
+  const first = tree.newLeaf();
+  assert.equal(creationSerial(first), 2n, "failed conversion does not consume a serial");
+  assert.equal(tree.getNodeCount(), 2);
 });

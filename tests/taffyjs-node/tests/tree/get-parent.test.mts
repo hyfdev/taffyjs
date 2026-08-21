@@ -18,8 +18,8 @@ function captureError(body: () => unknown): CodedError {
 
 test("root-null", () => {
   const tree = new TaffyTree();
-  const leaf = tree.newLeaf({});
-  const emptyParent = tree.newWithChildren({}, []);
+  const leaf = tree.newLeaf();
+  const emptyParent = tree.newWithChildren([]);
 
   assert.equal(tree.getParent(leaf), null);
   assert.equal(tree.getParent(emptyParent), null);
@@ -27,8 +27,8 @@ test("root-null", () => {
 
 test("attached", () => {
   const tree = new TaffyTree();
-  const children = [tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, children);
+  const children = [tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren(children);
 
   assert.equal(tree.getParent(children[0]), parent);
   assert.equal(tree.getParent(children[1]), parent);
@@ -36,9 +36,9 @@ test("attached", () => {
 
 test("transitions", () => {
   const tree = new TaffyTree();
-  const child = tree.newLeaf({});
-  const firstParent = tree.newWithChildren({}, [child]);
-  const secondParent = tree.newLeaf({});
+  const child = tree.newLeaf();
+  const firstParent = tree.newWithChildren([child]);
+  const secondParent = tree.newLeaf();
   assert.equal(tree.getParent(child), firstParent);
 
   tree.setChildren(secondParent, [child]);
@@ -53,12 +53,12 @@ test("transitions", () => {
 
 test("slot-reuse", () => {
   const tree = new TaffyTree();
-  const firstChild = tree.newLeaf({});
-  const firstParent = tree.newWithChildren({}, [firstChild]);
+  const firstChild = tree.newLeaf();
+  const firstParent = tree.newWithChildren([firstChild]);
   tree.clear();
 
-  const secondChild = tree.newLeaf({});
-  const secondParent = tree.newWithChildren({}, [secondChild]);
+  const secondChild = tree.newLeaf();
+  const secondParent = tree.newWithChildren([secondChild]);
   const byValue = (left: bigint, right: bigint) => (left < right ? -1 : left > right ? 1 : 0);
   const firstSlots = [firstChild & SLOT_MASK, firstParent & SLOT_MASK].sort(byValue);
   const secondSlots = [secondChild & SLOT_MASK, secondParent & SLOT_MASK].sort(byValue);
@@ -72,13 +72,13 @@ test("slot-reuse", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.getParent(1 as never)).constructor, TypeError);
   assert.equal(captureError(() => tree.getParent(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
   assert.equal(captureError(() => tree.getParent(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.getParent(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

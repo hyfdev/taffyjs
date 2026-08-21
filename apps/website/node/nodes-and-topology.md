@@ -13,12 +13,13 @@ const tree = new TaffyTree<MyContext>();
 Three methods create nodes:
 
 ```ts
-const leaf = tree.newLeaf(style);
-const contextualLeaf = tree.newLeafWithContext(style, context);
-const parent = tree.newWithChildren(style, [leaf, contextualLeaf]);
+const leaf = tree.newLeaf();
+const styledLeaf = tree.newLeaf(style);
+const contextualLeaf = tree.newLeafWithContext(context, style);
+const parent = tree.newWithChildren([leaf, contextualLeaf], style);
 ```
 
-`newLeaf(style)` creates a node without children or context. `newLeafWithContext(style, context)` also associates a JavaScript value; `undefined` means that no context is present. `newWithChildren(style, children)` creates a node and attaches the supplied live, currently unattached children in order.
+`newLeaf(style?)` creates a node without children or context. `newLeafWithContext(context, style?)` also associates a JavaScript value; `undefined` means that no context is present. `newWithChildren(children, style?)` creates a node and attaches the supplied live, currently unattached children in order. Omitting `style`, or passing it as `undefined`, uses Taffy's default style.
 
 Creation converts the complete style and validates every child before adding the new node. If conversion or topology validation fails, no node is created.
 

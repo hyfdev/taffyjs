@@ -9,9 +9,9 @@ test("initial", () => {
 
 test("leaf-clear", () => {
   const tree = new TaffyTree();
-  tree.newLeaf({});
-  tree.newLeaf({});
-  tree.newLeaf({});
+  tree.newLeaf();
+  tree.newLeaf();
+  tree.newLeaf();
   assert.equal(tree.getNodeCount(), 3);
   tree.clear();
   assert.equal(tree.getNodeCount(), 0);
@@ -24,6 +24,6 @@ test("number-result", () => {
     assert.equal(typeof count, "number");
     assert.equal(Number.isSafeInteger(count), true);
     assert.equal(count, index);
-    tree.newLeaf({});
+    tree.newLeaf();
   }
 });

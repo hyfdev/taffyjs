@@ -567,52 +567,6 @@ interface GridTemplateArea {
   /** Stores the column start component of this GridTemplateArea value. */ readonly columnStart: number;
   /** Stores the column end component of this GridTemplateArea value. */ readonly columnEnd: number;
 }
-/** Supplies writable style fields; creation and setStyle use defaults for omitted fields. */
-interface StyleInput {
-  /** Supplies the node's display style when present. */ display?: Display | undefined;
-  /** Supplies the node's item is table style when present. */ itemIsTable?: boolean | undefined;
-  /** Supplies the node's item is replaced style when present. */ itemIsReplaced?: boolean | undefined;
-  /** Supplies the node's box sizing style when present. */ boxSizing?: BoxSizing | undefined;
-  /** Supplies the node's direction style when present. */ direction?: Direction | undefined;
-  /** Supplies the node's overflow style when present. */ overflow?: PartialPointInput<Overflow> | undefined;
-  /** Supplies the node's scrollbar width style when present. */ scrollbarWidth?: number | undefined;
-  /** Supplies the node's float style when present. */ float?: Float | undefined;
-  /** Sets which preceding floats this node must clear. */ clear?: Clear | undefined;
-  /** Supplies the node's position style when present. */ position?: Position | undefined;
-  /** Supplies the node's inset style when present. */ inset?: LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput> | undefined;
-  /** Supplies the node's size style when present. */ size?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
-  /** Supplies the node's min size style when present. */ minSize?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
-  /** Supplies the node's max size style when present. */ maxSize?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
-  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ aspectRatio?: number | null | undefined;
-  /** Supplies the node's margin style when present. */ margin?: LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput> | undefined;
-  /** Supplies the node's padding style when present. */ padding?: LengthPercentageInput | PartialRectInput<LengthPercentageInput> | undefined;
-  /** Supplies the node's border style when present. */ border?: LengthPercentageInput | PartialRectInput<LengthPercentageInput> | undefined;
-  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignItems?: AlignItems | null | undefined;
-  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignSelf?: AlignItems | null | undefined;
-  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifyItems?: AlignItems | null | undefined;
-  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifySelf?: AlignItems | null | undefined;
-  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignContent?: AlignContent | null | undefined;
-  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifyContent?: AlignContent | null | undefined;
-  /** Supplies the node's gap style when present. */ gap?: LengthPercentageInput | PartialSizeInput<LengthPercentageInput> | undefined;
-  /** Supplies the node's text align style when present. */ textAlign?: TextAlign | undefined;
-  /** Supplies the node's flex direction style when present. */ flexDirection?: FlexDirection | undefined;
-  /** Supplies the node's flex wrap style when present. */ flexWrap?: FlexWrap | undefined;
-  /** Supplies the node's flex basis style when present. */ flexBasis?: DimensionInput | undefined;
-  /** Supplies the node's flex grow style when present. */ flexGrow?: number | undefined;
-  /** Supplies the node's flex shrink style when present. */ flexShrink?: number | undefined;
-  /** Supplies the complete Grid template row list when present. */ gridTemplateRows?: readonly GridTemplateComponentInput[] | undefined;
-  /** Supplies the complete Grid template column list when present. */ gridTemplateColumns?: readonly GridTemplateComponentInput[] | undefined;
-  /** Supplies the complete automatic Grid row list when present. */ gridAutoRows?: readonly TrackSizingFunctionInput[] | undefined;
-  /** Supplies the complete automatic Grid column list when present. */ gridAutoColumns?: readonly TrackSizingFunctionInput[] | undefined;
-  /** Supplies the node's Grid auto flow style when present. */ gridAutoFlow?: GridAutoFlow | undefined;
-  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ gridTemplateAreas?: GridTemplateAreasInput | null | undefined;
-  /** Supplies the complete Grid template column-name list when present. */ gridTemplateColumnNames?: readonly (readonly string[])[] | undefined;
-  /** Supplies the complete Grid template row-name list when present. */ gridTemplateRowNames?: readonly (readonly string[])[] | undefined;
-  /** Supplies the node's Grid row placement when present. */ gridRow?: PartialLineInput<GridPlacementInput> | undefined;
-  /** Supplies the node's Grid column placement when present. */ gridColumn?: PartialLineInput<GridPlacementInput> | undefined;
-}
-/** Supplies style fields to update; omitted or undefined fields and geometry components are preserved. */
-type StyleUpdate = StyleInput;
 /** Returns a complete detached readonly snapshot of a node's stored style. */
 interface Style {
   /** Reports the node's stored display style value. */ readonly display: Display;
@@ -796,6 +750,54 @@ declare const GridTemplateComponent: Readonly<{
   }>;
 }>;
 //#endregion
+//#region src/style-input.d.ts
+/** Supplies style fields; creation and setStyle use defaults for omitted fields. */
+interface StyleInput {
+  /** Supplies the node's display style when present. */ display?: Display | undefined;
+  /** Supplies the node's item is table style when present. */ itemIsTable?: boolean | undefined;
+  /** Supplies the node's item is replaced style when present. */ itemIsReplaced?: boolean | undefined;
+  /** Supplies the node's box sizing style when present. */ boxSizing?: BoxSizing | undefined;
+  /** Supplies the node's direction style when present. */ direction?: Direction | undefined;
+  /** Supplies the node's overflow style when present. */ overflow?: PartialPointInput<Overflow> | undefined;
+  /** Supplies the node's scrollbar width style when present. */ scrollbarWidth?: number | undefined;
+  /** Supplies the node's float style when present. */ float?: Float | undefined;
+  /** Sets which preceding floats this node must clear. */ clear?: Clear | undefined;
+  /** Supplies the node's position style when present. */ position?: Position | undefined;
+  /** Supplies the node's inset style when present. */ inset?: LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput> | undefined;
+  /** Supplies the node's size style when present. */ size?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
+  /** Supplies the node's min size style when present. */ minSize?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
+  /** Supplies the node's max size style when present. */ maxSize?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ aspectRatio?: number | null | undefined;
+  /** Supplies the node's margin style when present. */ margin?: LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput> | undefined;
+  /** Supplies the node's padding style when present. */ padding?: LengthPercentageInput | PartialRectInput<LengthPercentageInput> | undefined;
+  /** Supplies the node's border style when present. */ border?: LengthPercentageInput | PartialRectInput<LengthPercentageInput> | undefined;
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignItems?: AlignItems | null | undefined;
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignSelf?: AlignItems | null | undefined;
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifyItems?: AlignItems | null | undefined;
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifySelf?: AlignItems | null | undefined;
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ alignContent?: AlignContent | null | undefined;
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ justifyContent?: AlignContent | null | undefined;
+  /** Supplies the node's gap style when present. */ gap?: LengthPercentageInput | PartialSizeInput<LengthPercentageInput> | undefined;
+  /** Supplies the node's text align style when present. */ textAlign?: TextAlign | undefined;
+  /** Supplies the node's flex direction style when present. */ flexDirection?: FlexDirection | undefined;
+  /** Supplies the node's flex wrap style when present. */ flexWrap?: FlexWrap | undefined;
+  /** Supplies the node's flex basis style when present. */ flexBasis?: DimensionInput | undefined;
+  /** Supplies the node's flex grow style when present. */ flexGrow?: number | undefined;
+  /** Supplies the node's flex shrink style when present. */ flexShrink?: number | undefined;
+  /** Supplies the complete Grid template row list when present. */ gridTemplateRows?: readonly GridTemplateComponentInput[] | undefined;
+  /** Supplies the complete Grid template column list when present. */ gridTemplateColumns?: readonly GridTemplateComponentInput[] | undefined;
+  /** Supplies the complete automatic Grid row list when present. */ gridAutoRows?: readonly TrackSizingFunctionInput[] | undefined;
+  /** Supplies the complete automatic Grid column list when present. */ gridAutoColumns?: readonly TrackSizingFunctionInput[] | undefined;
+  /** Supplies the node's Grid auto flow style when present. */ gridAutoFlow?: GridAutoFlow | undefined;
+  /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ gridTemplateAreas?: GridTemplateAreasInput | null | undefined;
+  /** Supplies the complete Grid template column-name list when present. */ gridTemplateColumnNames?: readonly (readonly string[])[] | undefined;
+  /** Supplies the complete Grid template row-name list when present. */ gridTemplateRowNames?: readonly (readonly string[])[] | undefined;
+  /** Supplies the node's Grid row placement when present. */ gridRow?: PartialLineInput<GridPlacementInput> | undefined;
+  /** Supplies the node's Grid column placement when present. */ gridColumn?: PartialLineInput<GridPlacementInput> | undefined;
+}
+/** Supplies style fields to update; omitted or undefined fields and geometry components are preserved. */
+type StyleUpdate = StyleInput;
+//#endregion
 //#region src/tree.d.ts
 /** Owns one independent node tree, its contexts, styles, and stored layouts. */
 declare class TaffyTree<TContext = unknown> {
@@ -830,12 +832,12 @@ declare class TaffyTree<TContext = unknown> {
   removeChildrenRange(parent: NodeId, range: ChildRangeInput): void;
   /** Replaces and returns the child at the requested index. */
   replaceChildAtIndex(parent: NodeId, index: number, newChild: NodeId): NodeId;
-  /** Creates a leaf node from the supplied public style input. */
-  newLeaf(style: StyleInput): NodeId;
-  /** Creates a leaf node and associates optional JavaScript context. */
-  newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId;
-  /** Creates a parent node with the supplied ordered children. */
-  newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
+  /** Creates a leaf node, using Taffy's defaults when style is omitted. */
+  newLeaf(style?: StyleInput): NodeId;
+  /** Creates a leaf node with JavaScript context and an optional style. */
+  newLeafWithContext(context: TContext | undefined, style?: StyleInput): NodeId;
+  /** Creates a parent from ordered children and an optional style. */
+  newWithChildren(children: readonly NodeId[], style?: StyleInput): NodeId;
   /** Removes one node, its context and measure function, and invalidates its public NodeId. */
   remove(node: NodeId): void;
   /** Returns the JavaScript context currently associated with one node. */

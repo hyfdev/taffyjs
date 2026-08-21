@@ -52,14 +52,11 @@ function explicitGrid(tree: TaffyTree) {
     gridRow: { start: GridPlacement.Line(2), end: GridPlacement.Line(3) },
     gridColumn: { start: GridPlacement.Line(2), end: GridPlacement.Line(3) },
   });
-  const root = tree.newWithChildren(
-    {
-      display: Display.Grid,
-      gridTemplateRows: [singleLengthTrack(12.25), singleLengthTrack(8.5)],
-      gridTemplateColumns: [singleLengthTrack(7.75), singleLengthTrack(3.25)],
-    },
-    [first, second],
-  );
+  const root = tree.newWithChildren([first, second], {
+    display: Display.Grid,
+    gridTemplateRows: [singleLengthTrack(12.25), singleLengthTrack(8.5)],
+    gridTemplateColumns: [singleLengthTrack(7.75), singleLengthTrack(3.25)],
+  });
   return { first, second, root };
 }
 
@@ -81,7 +78,7 @@ function captureError(body: () => unknown): CodedError {
 
 test("new-none", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   assert.deepEqual(tree.getDetailedLayoutInfo(node), {
     kind: DetailedLayoutInfoKind.None,
   });
@@ -90,7 +87,7 @@ test("new-none", () => {
 test("empty-grid", () => {
   const tree = new TaffyTree();
   const hidden = tree.newLeaf({ display: Display.None });
-  const grid = tree.newWithChildren({ display: Display.Grid }, [hidden]);
+  const grid = tree.newWithChildren([hidden], { display: Display.Grid });
   compute(tree, grid);
 
   const value = gridValue(tree.getDetailedLayoutInfo(grid));
@@ -152,7 +149,7 @@ test("deep-detached", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.getDetailedLayoutInfo(1 as never)).constructor, TypeError);
   assert.equal(
@@ -164,7 +161,7 @@ test("invalid-id", () => {
     "ERR_TAFFY_FOREIGN_NODE_ID",
   );
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(
     captureError(() => tree.getDetailedLayoutInfo(stale)).code,

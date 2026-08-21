@@ -1,5 +1,5 @@
 interface RuntimeSmokeTree<TNode> {
-  newLeaf(style: { size: { width: number; height: number } }): TNode;
+  newLeaf(style?: { size: { width: number; height: number } }): TNode;
   computeLayout(options: { root: TNode; availableSpace: { width: number; height: number } }): void;
   getLayout(node: TNode): { size: { width: number; height: number } };
 }

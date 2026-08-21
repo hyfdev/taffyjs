@@ -1,5 +1,6 @@
 import { BindingTaffyTree } from "./binding.js";
 import { NodeIdRegistry, type NodeId } from "./node-id.js";
+import { type StyleInput, type StyleUpdate, withEncodedStyle } from "./style-input.js";
 import type {
   ChildRangeInput,
   ComputeLayoutOptions,
@@ -8,8 +9,6 @@ import type {
   MeasureFunction,
   Size,
   Style,
-  StyleInput,
-  StyleUpdate,
 } from "./public-types.js";
 import type { AvailableSpace } from "./tagged-values.js";
 
@@ -19,6 +18,8 @@ type RawMeasureArgs = {
   node: bigint;
   getStyle: () => Style;
 };
+
+const DEFAULT_STYLE_INPUT: StyleInput = {};
 
 function checkedChildIndex(index: number): number {
   if (typeof index !== "number") throw new TypeError("Child index must be a number");
@@ -134,27 +135,36 @@ export class TaffyTree<TContext = unknown> {
     return this.#nodes.fromRaw(rawOldChild);
   }
 
-  /** Creates a leaf node from the supplied public style input. */
-  newLeaf(style: StyleInput): NodeId {
-    const serial = this.#nodes.reserveSerial();
-    return this.#nodes.register(this.#inner.rawNewLeaf(style), serial);
+  /** Creates a leaf node, using Taffy's defaults when style is omitted. */
+  newLeaf(style: StyleInput = DEFAULT_STYLE_INPUT): NodeId {
+    return withEncodedStyle(style, (encoded) => {
+      const serial = this.#nodes.reserveSerial();
+      return this.#nodes.register(this.#inner.rawNewLeaf(encoded), serial);
+    });
   }
 
-  /** Creates a leaf node and associates optional JavaScript context. */
-  newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId {
-    const serial = this.#nodes.reserveSerial();
-    const raw = this.#inner.rawNewLeafWithContext(style, context !== undefined);
-    const node = this.#nodes.register(raw, serial);
-    if (context !== undefined) this.#contexts.set(node, context);
-    return node;
+  /** Creates a leaf node with JavaScript context and an optional style. */
+  newLeafWithContext(
+    context: TContext | undefined,
+    style: StyleInput = DEFAULT_STYLE_INPUT,
+  ): NodeId {
+    return withEncodedStyle(style, (encoded) => {
+      const serial = this.#nodes.reserveSerial();
+      const raw = this.#inner.rawNewLeafWithContext(encoded, context !== undefined);
+      const node = this.#nodes.register(raw, serial);
+      if (context !== undefined) this.#contexts.set(node, context);
+      return node;
+    });
   }
 
-  /** Creates a parent node with the supplied ordered children. */
-  newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId {
+  /** Creates a parent from ordered children and an optional style. */
+  newWithChildren(children: readonly NodeId[], style: StyleInput = DEFAULT_STYLE_INPUT): NodeId {
     if (!Array.isArray(children)) throw new TypeError("children must be an array");
     const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
-    const serial = this.#nodes.reserveSerial();
-    return this.#nodes.register(this.#inner.rawNewWithChildren(style, rawChildren), serial);
+    return withEncodedStyle(style, (encoded) => {
+      const serial = this.#nodes.reserveSerial();
+      return this.#nodes.register(this.#inner.rawNewWithChildren(encoded, rawChildren), serial);
+    });
   }
 
   /** Removes one node, its context and measure function, and invalidates its public NodeId. */
@@ -193,12 +203,14 @@ export class TaffyTree<TContext = unknown> {
 
   /** Replaces a node style and marks affected layout state dirty. */
   setStyle(node: NodeId, style: StyleInput): void {
-    this.#inner.rawSetStyle(this.#nodes.resolve(node), style);
+    const raw = this.#nodes.resolve(node);
+    withEncodedStyle(style, (encoded) => this.#inner.rawSetStyle(raw, encoded));
   }
 
   /** Updates supplied style fields and geometry components, preserving omitted values. */
   updateStyle(node: NodeId, update: StyleUpdate): void {
-    this.#inner.rawUpdateStyle(this.#nodes.resolve(node), update);
+    const raw = this.#nodes.resolve(node);
+    withEncodedStyle(update, (encoded) => this.#inner.rawUpdateStyle(raw, encoded));
   }
 
   /** Returns a detached readable snapshot of the node style. */

@@ -12,13 +12,10 @@ import { AvailableSpace, Dimension, Display, TaffyTree } from "@taffyjs/node";
 const tree = new TaffyTree();
 const icon = tree.newLeaf({ size: { width: 16, height: 16 } });
 const label = tree.newLeaf({ flexGrow: 1 });
-const root = tree.newWithChildren(
-  {
-    display: Display.Flex,
-    size: { width: Dimension.Percent(100) },
-  },
-  [icon, label],
-);
+const root = tree.newWithChildren([icon, label], {
+  display: Display.Flex,
+  size: { width: Dimension.Percent(100) },
+});
 ```
 
 `newLeaf` creates a node without children. `newWithChildren` creates a parent and records the children in order. Either kind of node can become the root of a computation.

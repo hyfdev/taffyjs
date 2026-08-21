@@ -29,7 +29,7 @@ function minContentSpace() {
 
 test("zero", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   assert.deepEqual(tree.getLayout(node), ZERO_LAYOUT);
   assert.deepEqual(tree.getUnroundedLayout(node), ZERO_LAYOUT);
 });
@@ -51,7 +51,7 @@ test("f32-special", () => {
 
 test("exact-keys", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   const layout = tree.getLayout(node);
   assert.deepEqual(Object.keys(layout), [
     "order",
@@ -72,7 +72,7 @@ test("exact-keys", () => {
 
 test("detached", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   const first = tree.getLayout(node);
   const second = tree.getLayout(node);
   assert.notEqual(first, second);
@@ -88,7 +88,7 @@ test("detached", () => {
 
 test("shared-converter", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   const rounded = tree.getLayout(node);
   const unrounded = tree.getUnroundedLayout(node);
   assert.deepEqual(rounded, unrounded);

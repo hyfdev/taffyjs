@@ -32,9 +32,9 @@ function topology(tree: TaffyTree, nodes: readonly NodeId[]) {
 
 test("append", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
-  const second = tree.newLeaf({});
-  const parent = tree.newWithChildren({}, [first]);
+  const first = tree.newLeaf();
+  const second = tree.newLeaf();
+  const parent = tree.newWithChildren([first]);
 
   tree.addChild(parent, second);
   assert.deepEqual(tree.getChildren(parent), [first, second]);
@@ -44,9 +44,9 @@ test("append", () => {
 
 test("dirty", () => {
   const tree = new TaffyTree();
-  const container = tree.newLeaf({});
-  const root = tree.newWithChildren({}, [container]);
-  const child = tree.newLeaf({});
+  const container = tree.newLeaf();
+  const root = tree.newWithChildren([container]);
+  const child = tree.newLeaf();
   tree.computeLayout({ root, availableSpace: maxContentSpace() });
   assert.equal(tree.isDirty(container), false);
   assert.equal(tree.isDirty(root), false);
@@ -58,9 +58,9 @@ test("dirty", () => {
 
 test("topology-reject", () => {
   const tree = new TaffyTree();
-  const child = tree.newLeaf({});
-  const firstParent = tree.newWithChildren({}, [child]);
-  const secondParent = tree.newLeaf({});
+  const child = tree.newLeaf();
+  const firstParent = tree.newWithChildren([child]);
+  const secondParent = tree.newLeaf();
 
   for (const [parent, attemptedChild] of [
     [firstParent, child],
@@ -73,9 +73,9 @@ test("topology-reject", () => {
     );
   }
 
-  const descendant = tree.newLeaf({});
-  const middle = tree.newWithChildren({}, [descendant]);
-  const root = tree.newWithChildren({}, [middle]);
+  const descendant = tree.newLeaf();
+  const middle = tree.newWithChildren([descendant]);
+  const root = tree.newWithChildren([middle]);
   assert.equal(
     captureError(() => tree.addChild(descendant, root)).code,
     "ERR_TAFFY_INVALID_TOPOLOGY",
@@ -84,9 +84,9 @@ test("topology-reject", () => {
 
 test("id-roles", () => {
   const tree = new TaffyTree();
-  const parent = tree.newLeaf({});
-  const child = tree.newLeaf({});
-  const foreign = new TaffyTree().newLeaf({});
+  const parent = tree.newLeaf();
+  const child = tree.newLeaf();
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.addChild(1 as never, child)).constructor, TypeError);
   assert.equal(
@@ -99,11 +99,11 @@ test("id-roles", () => {
     "ERR_TAFFY_FOREIGN_NODE_ID",
   );
 
-  const staleParent = tree.newLeaf({});
-  const staleChild = tree.newLeaf({});
+  const staleParent = tree.newLeaf();
+  const staleChild = tree.newLeaf();
   tree.clear();
-  const currentParent = tree.newLeaf({});
-  const currentChild = tree.newLeaf({});
+  const currentParent = tree.newLeaf();
+  const currentChild = tree.newLeaf();
   assert.equal(
     captureError(() => tree.addChild(staleParent, currentChild)).code,
     "ERR_TAFFY_STALE_NODE_ID",
@@ -117,7 +117,7 @@ test("id-roles", () => {
 test("failure-atomic", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf({ flexGrow: 1 });
-  const parent = tree.newWithChildren({}, [child]);
+  const parent = tree.newWithChildren([child]);
   const other = tree.newLeaf({ flexGrow: 2 });
   const nodes = [child, parent, other];
   const before = topology(tree, nodes);
