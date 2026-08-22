@@ -13,13 +13,15 @@ mod number;
 mod numeric;
 mod owner;
 mod style;
+mod style_codec;
+mod style_input;
 mod tagged_values;
 
 use error::{
     BindingResult, child_index_out_of_bounds_error, internal_error, into_napi,
     invalid_topology_error, type_error,
 };
-use napi::bindgen_prelude::{BigInt, Function, Unknown};
+use napi::bindgen_prelude::{BigInt, Function, Uint8ArraySlice, Unknown};
 use napi::{Env, Status};
 use napi_derive::napi;
 use owner::TreeOwner;
@@ -374,8 +376,9 @@ impl BindingTaffyTree {
     }
 
     #[napi(js_name = "rawNewLeaf")]
-    pub fn new_leaf(&self, env: Env, style: Unknown<'_>) -> napi::Result<BigInt> {
-        let style = into_napi(env, style::input(style))?;
+    pub fn new_leaf(&self, env: Env, encoded: Uint8ArraySlice<'_>) -> napi::Result<BigInt> {
+        let mut style = taffy::style::Style::default();
+        into_napi(env, style_input::decode_into(&mut style, encoded.as_ref()))?;
         into_napi(
             env,
             self.owner.access("newLeaf", |tree| {
@@ -390,10 +393,11 @@ impl BindingTaffyTree {
     pub fn new_leaf_with_context(
         &self,
         env: Env,
-        style: Unknown<'_>,
+        encoded: Uint8ArraySlice<'_>,
         has_context: bool,
     ) -> napi::Result<BigInt> {
-        let style = into_napi(env, style::input(style))?;
+        let mut style = taffy::style::Style::default();
+        into_napi(env, style_input::decode_into(&mut style, encoded.as_ref()))?;
         into_napi(
             env,
             self.owner.access("newLeafWithContext", |tree| {
@@ -418,7 +422,7 @@ impl BindingTaffyTree {
     pub fn new_with_children(
         &self,
         env: Env,
-        style: Unknown<'_>,
+        encoded: Uint8ArraySlice<'_>,
         children: Vec<BigInt>,
     ) -> napi::Result<BigInt> {
         let children = into_napi(
@@ -428,7 +432,8 @@ impl BindingTaffyTree {
                 .map(raw_node_id)
                 .collect::<BindingResult<Vec<_>>>(),
         )?;
-        let style = into_napi(env, style::input(style))?;
+        let mut style = taffy::style::Style::default();
+        into_napi(env, style_input::decode_into(&mut style, encoded.as_ref()))?;
         into_napi(
             env,
             self.owner.access("newWithChildren", |tree| {
@@ -453,9 +458,15 @@ impl BindingTaffyTree {
     }
 
     #[napi(js_name = "rawSetStyle")]
-    pub fn set_style(&self, env: Env, node: BigInt, style: Unknown<'_>) -> napi::Result<()> {
+    pub fn set_style(
+        &self,
+        env: Env,
+        node: BigInt,
+        encoded: Uint8ArraySlice<'_>,
+    ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
-        let style = into_napi(env, style::input(style))?;
+        let mut style = taffy::style::Style::default();
+        into_napi(env, style_input::decode_into(&mut style, encoded.as_ref()))?;
         into_napi(
             env,
             self.owner.access("setStyle", |tree| {
@@ -465,16 +476,21 @@ impl BindingTaffyTree {
     }
 
     #[napi(js_name = "rawUpdateStyle")]
-    pub fn update_style(&self, env: Env, node: BigInt, update: Unknown<'_>) -> napi::Result<()> {
+    pub fn update_style(
+        &self,
+        env: Env,
+        node: BigInt,
+        encoded: Uint8ArraySlice<'_>,
+    ) -> napi::Result<()> {
         let node = into_napi(env, raw_node_id(&node))?;
-        let update = into_napi(env, style::patch(update))?;
         into_napi(
             env,
             self.owner.access("updateStyle", |tree| {
                 let current = tree.style(node).map_err(|_| internal_error())?;
-                let Some(updated) = style::apply_patch(current, update)? else {
+                let mut updated = current.clone();
+                if !style_input::decode_into(&mut updated, encoded.as_ref())? {
                     return Ok(());
-                };
+                }
                 tree.set_style(node, updated).map_err(|_| internal_error())
             }),
         )

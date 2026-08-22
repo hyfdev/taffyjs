@@ -28,18 +28,15 @@ const item = tree.newLeaf({
   },
 });
 
-const root = tree.newWithChildren(
-  {
-    display: Display.Grid,
-    size: { width: 100, height: 30 },
-    gridTemplateRows: [GridTemplateComponent.Single(TrackSizingFunction.Length(30))],
-    gridTemplateColumns: [
-      GridTemplateComponent.Single(TrackSizingFunction.Length(40)),
-      GridTemplateComponent.Single(TrackSizingFunction.Fr(1)),
-    ],
-  },
-  [item],
-);
+const root = tree.newWithChildren([item], {
+  display: Display.Grid,
+  size: { width: 100, height: 30 },
+  gridTemplateRows: [GridTemplateComponent.Single(TrackSizingFunction.Length(30))],
+  gridTemplateColumns: [
+    GridTemplateComponent.Single(TrackSizingFunction.Length(40)),
+    GridTemplateComponent.Single(TrackSizingFunction.Fr(1)),
+  ],
+});
 
 tree.computeLayout({ root, availableSpace: { width: 100, height: 30 } });
 

@@ -30,21 +30,33 @@ function measure(tree: TaffyTree, root: NodeId, callback: (args: MeasureArgs) =>
 test("identity", () => {
   const tree = new TaffyTree();
   const context = { label: "same object" };
-  const node = tree.newLeafWithContext({}, context);
+  const node = tree.newLeafWithContext(context);
+  const explicitUndefinedStyle = tree.newLeafWithContext(context, undefined);
   let measured: unknown;
 
   assert.equal(tree.getNodeContext(node), context);
+  assert.equal(tree.getNodeContext(explicitUndefinedStyle), context);
+  assert.deepEqual(tree.getStyle(explicitUndefinedStyle), tree.getStyle(node));
   measure(tree, node, ({ context: received }) => {
     measured = received;
   });
   assert.equal(measured, context);
 });
 
+test("style-shaped-context", () => {
+  const tree = new TaffyTree<{ flexGrow: number }>();
+  const context = { flexGrow: 2 };
+  const node = tree.newLeafWithContext(context);
+
+  assert.equal(tree.getNodeContext(node), context);
+  assert.equal(tree.getStyle(node).flexGrow, 0);
+});
+
 test("primitive-null-undefined", () => {
   const tree = new TaffyTree();
   const symbol = Symbol("context");
   for (const context of [false, 0, "", 1n, symbol, null]) {
-    const node = tree.newLeafWithContext({}, context);
+    const node = tree.newLeafWithContext(context);
     let calls = 0;
     assert.equal(tree.getNodeContext(node), context);
     measure(tree, node, ({ context: received }) => {
@@ -54,7 +66,7 @@ test("primitive-null-undefined", () => {
     assert.equal(calls > 0, true);
   }
 
-  const absent = tree.newLeafWithContext({}, undefined);
+  const absent = tree.newLeafWithContext(undefined);
   let absentCalls = 0;
   assert.equal(tree.getNodeContext(absent), undefined);
   measure(tree, absent, ({ context }) => {
@@ -83,7 +95,7 @@ test("removal-cleanup", () => {
 test("callback-delivery", () => {
   const tree = new TaffyTree();
   const context = { width: 42 };
-  const node = tree.newLeafWithContext({}, context);
+  const node = tree.newLeafWithContext(context);
   let calls = 0;
 
   measure(tree, node, (args) => {
@@ -98,11 +110,13 @@ test("conversion-atomic", () => {
   const tree = new TaffyTree();
   const context = { retained: false };
 
-  assert.throws(() => tree.newLeafWithContext({ unknownField: true } as never, context), TypeError);
-  assert.equal(tree.getNodeCount(), 0);
-
-  const first = tree.newLeafWithContext({}, context);
-  assert.equal(creationSerial(first), 1n, "failed conversion does not consume a serial");
+  const ignored = tree.newLeafWithContext(context, { unknownField: true } as never);
+  assert.equal(tree.getNodeContext(ignored), context);
+  assert.throws(() => tree.newLeafWithContext(context, { display: 999 } as never), RangeError);
   assert.equal(tree.getNodeCount(), 1);
+
+  const first = tree.newLeafWithContext(context);
+  assert.equal(creationSerial(first), 2n, "failed conversion does not consume a serial");
+  assert.equal(tree.getNodeCount(), 2);
   assert.equal(tree.getNodeContext(first), context);
 });

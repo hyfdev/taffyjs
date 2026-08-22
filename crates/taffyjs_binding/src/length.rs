@@ -1,48 +1,12 @@
-use napi::bindgen_prelude::Unknown;
 use napi_derive::napi;
 use taffy::style::{CompactLength, Dimension, LengthPercentage, LengthPercentageAuto};
 
-use crate::error::BindingResult;
-use crate::number::to_f32;
 use crate::numeric::LengthUnitCode;
-use crate::tagged_values::{
-    DimensionInputValue, LengthPercentageAutoInputValue, LengthPercentageInputValue,
-    parse_dimension, parse_length_percentage, parse_length_percentage_auto,
-};
 
 #[napi(object, object_from_js = false)]
 pub struct LengthOutput {
     pub unit: u8,
     pub value: Option<f64>,
-}
-
-pub(crate) fn dimension(value: Unknown<'_>) -> BindingResult<Dimension> {
-    Ok(match parse_dimension(value)? {
-        DimensionInputValue::Length(value) => Dimension::length(to_f32(value)),
-        DimensionInputValue::Percent(value) => Dimension::percent(to_f32(value / 100.0)),
-        DimensionInputValue::Auto => Dimension::auto(),
-    })
-}
-
-pub(crate) fn length_percentage(value: Unknown<'_>) -> BindingResult<LengthPercentage> {
-    Ok(match parse_length_percentage(value)? {
-        LengthPercentageInputValue::Length(value) => LengthPercentage::length(to_f32(value)),
-        LengthPercentageInputValue::Percent(value) => {
-            LengthPercentage::percent(to_f32(value / 100.0))
-        }
-    })
-}
-
-pub(crate) fn length_percentage_auto(value: Unknown<'_>) -> BindingResult<LengthPercentageAuto> {
-    Ok(match parse_length_percentage_auto(value)? {
-        LengthPercentageAutoInputValue::Length(value) => {
-            LengthPercentageAuto::length(to_f32(value))
-        }
-        LengthPercentageAutoInputValue::Percent(value) => {
-            LengthPercentageAuto::percent(to_f32(value / 100.0))
-        }
-        LengthPercentageAutoInputValue::Auto => LengthPercentageAuto::auto(),
-    })
 }
 
 fn output(raw: CompactLength) -> LengthOutput {

@@ -102,7 +102,7 @@ function createNestedUiScenario(nodeCount: number, name: string): BenchmarkScena
                 nextLevel.push(left);
                 continue;
               }
-              const node = tree.newWithChildren(style, [left, right]);
+              const node = tree.newWithChildren([left, right], style);
               nodes.push(node);
               nextLevel.push(node);
             }
@@ -111,7 +111,7 @@ function createNestedUiScenario(nodeCount: number, name: string): BenchmarkScena
           }
 
           const root = shape.needsUnaryRoot
-            ? tree.newWithChildren(rootStyle, [level[0]])
+            ? tree.newWithChildren([level[0]], rootStyle)
             : level[0];
           if (shape.needsUnaryRoot) nodes.push(root);
           tree.computeLayout({ root, availableSpace: { width: 1200, height: 800 } });

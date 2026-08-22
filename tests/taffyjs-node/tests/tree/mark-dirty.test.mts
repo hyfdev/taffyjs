@@ -31,9 +31,9 @@ function captureError(body: () => unknown): CodedError {
 
 test("propagation", () => {
   const tree = new TaffyTree();
-  const leaf = tree.newLeaf({});
-  const parent = tree.newWithChildren({ display: Display.Block }, [leaf]);
-  const root = tree.newWithChildren({ display: Display.Block }, [parent]);
+  const leaf = tree.newLeaf();
+  const parent = tree.newWithChildren([leaf], { display: Display.Block });
+  const root = tree.newWithChildren([parent], { display: Display.Block });
   const calls = new Map<NodeId, number>();
 
   computeMeasured(tree, root, calls);
@@ -49,8 +49,8 @@ test("propagation", () => {
 
 test("idempotent", () => {
   const tree = new TaffyTree();
-  const leaf = tree.newLeaf({});
-  const root = tree.newWithChildren({ display: Display.Block }, [leaf]);
+  const leaf = tree.newLeaf();
+  const root = tree.newWithChildren([leaf], { display: Display.Block });
   const calls = new Map<NodeId, number>();
   computeMeasured(tree, root, calls);
   const first = calls.get(leaf) ?? 0;
@@ -80,9 +80,9 @@ test("layout-retained", () => {
 
 test("child-nuance", () => {
   const tree = new TaffyTree();
-  const first = tree.newLeaf({});
-  const second = tree.newLeaf({});
-  const root = tree.newWithChildren({ display: Display.Block }, [first, second]);
+  const first = tree.newLeaf();
+  const second = tree.newLeaf();
+  const root = tree.newWithChildren([first, second], { display: Display.Block });
   const calls = new Map<NodeId, number>();
   computeMeasured(tree, root, calls);
   const firstCalls = calls.get(first) ?? 0;
@@ -96,9 +96,9 @@ test("child-nuance", () => {
 
 test("any-node", () => {
   const tree = new TaffyTree();
-  const plain = tree.newLeaf({});
-  const contextual = tree.newLeafWithContext({}, { measured: true });
-  const root = tree.newWithChildren({}, [plain, contextual]);
+  const plain = tree.newLeaf();
+  const contextual = tree.newLeafWithContext({ measured: true });
+  const root = tree.newWithChildren([plain, contextual]);
   computeMeasured(tree, root, new Map());
 
   assert.doesNotThrow(() => tree.markDirty(plain));
@@ -108,13 +108,13 @@ test("any-node", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.markDirty(1 as never)).constructor, TypeError);
   assert.equal(captureError(() => tree.markDirty(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
   assert.equal(captureError(() => tree.markDirty(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.markDirty(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

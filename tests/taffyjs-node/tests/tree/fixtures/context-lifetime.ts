@@ -30,7 +30,7 @@ function removedContext() {
   const tree = new TaffyTree<Context>();
   let context: Context | undefined = { label: "removed" };
   const weak = new WeakRef(context);
-  const node = tree.newLeafWithContext({}, context);
+  const node = tree.newLeafWithContext(context);
   context = undefined;
   tree.remove(node);
   return { tree, weak };
@@ -40,7 +40,7 @@ function clearedContext() {
   const tree = new TaffyTree<Context>();
   let context: Context | undefined = { label: "cleared" };
   const weak = new WeakRef(context);
-  tree.newLeafWithContext({}, context);
+  tree.newLeafWithContext(context);
   context = undefined;
   tree.clear();
   return { tree, weak };
@@ -51,14 +51,14 @@ function failedConversionContext() {
   let context: Context | undefined = { label: "failed conversion" };
   const weak = new WeakRef(context);
   // @ts-expect-error This fixture verifies the runtime rejection of an invalid style.
-  assert.throws(() => tree.newLeafWithContext({ unknownField: true }, context), TypeError);
+  assert.throws(() => tree.newLeafWithContext(context, { display: 999 }), RangeError);
   context = undefined;
   return { tree, weak };
 }
 
 function completedMeasureCallback() {
   const tree = new TaffyTree<Context>();
-  const node = tree.newLeafWithContext({}, { label: "measured" });
+  const node = tree.newLeafWithContext({ label: "measured" });
   let callback: MeasureFunction<Context> | undefined = ({ context }) => {
     assert.equal(context?.label, "measured");
     return { width: 31, height: 17 };

@@ -64,10 +64,9 @@ export type {
   Size,
   SizeInput,
   Style,
-  StyleInput,
-  StyleUpdate,
   TrackSizingFunctionInput,
 } from "./public-types.js";
+export type { StyleInput, StyleUpdate } from "./style-input.js";
 export {
   AvailableSpace,
   Dimension,

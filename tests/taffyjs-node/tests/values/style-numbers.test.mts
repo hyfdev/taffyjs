@@ -1,21 +1,21 @@
 import assert from "node:assert/strict";
-import { BindingTaffyTree } from "../../src/binding.ts";
+import { TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 function createOwner() {
-  return new BindingTaffyTree();
+  return new TaffyTree();
 }
 
 function storedStyle(style: unknown) {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(style);
-  return owner.rawGetStyle(node);
+  const node = owner.newLeaf(style as never);
+  return owner.getStyle(node);
 }
 
 function rejectsWithoutNode(style: unknown, error: typeof TypeError | typeof RangeError): void {
   const owner = createOwner();
-  assert.throws(() => owner.rawNewLeaf(style), error);
-  assert.equal(owner.rawGetNodeCount(), 0);
+  assert.throws(() => owner.newLeaf(style as never), error);
+  assert.equal(owner.getNodeCount(), 0);
 }
 
 test("numeric fields accept only primitive numbers", () => {

@@ -28,11 +28,10 @@ const shifted = tree.newLeaf({
   size: { width: 10, height: 10 },
 });
 
-const root = tree.newWithChildren({ display: Display.Block, size: { width: 100 } }, [
-  floated,
-  cleared,
-  shifted,
-]);
+const root = tree.newWithChildren([floated, cleared, shifted], {
+  display: Display.Block,
+  size: { width: 100 },
+});
 
 tree.computeLayout({
   root,

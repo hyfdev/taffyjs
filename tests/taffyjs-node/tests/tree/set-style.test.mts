@@ -39,7 +39,7 @@ test("complete-replace", () => {
 
 test("undefined-null", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
 
   tree.setStyle(node, {
     alignItems: undefined,
@@ -54,22 +54,21 @@ test("undefined-null", () => {
   assert.deepEqual(style.overflow, { x: Overflow.Visible, y: Overflow.Hidden });
 });
 
-test("unknown-calc", () => {
+test("unknown fields are ignored while invalid known fields fail", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({ flexGrow: 2 });
 
-  for (const style of [
-    { unknownField: true },
-    { calc: true },
-    { flexBasis: { calc: "1px + 2%" } },
-  ]) {
-    assert.throws(() => tree.setStyle(node, style as never), TypeError);
-  }
+  tree.setStyle(node, { unknownField: true } as never);
+  assert.equal(tree.getStyle(node).flexGrow, 0);
+  tree.setStyle(node, { flexGrow: 2, calc: true } as never);
+  assert.equal(tree.getStyle(node).flexGrow, 2);
+  assert.throws(() => tree.setStyle(node, { flexBasis: { calc: "1px + 2%" } } as never), TypeError);
+  assert.equal(tree.getStyle(node).flexGrow, 2);
 });
 
 test("conversion-families", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   const track = TrackSizingFunction.Fr(2);
 
   tree.setStyle(node, {
@@ -91,7 +90,7 @@ test("conversion-families", () => {
 
 test("dirty", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
   assert.equal(tree.isDirty(node), false);
 
@@ -113,16 +112,22 @@ test("failure-atomic", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.setStyle(1 as never, {})).constructor, TypeError);
   assert.equal(
     captureError(() => tree.setStyle(0n as never, {})).code,
     "ERR_TAFFY_INVALID_NODE_ID",
   );
-  assert.equal(captureError(() => tree.setStyle(foreign, {})).code, "ERR_TAFFY_FOREIGN_NODE_ID");
+  assert.equal(
+    captureError(() => tree.setStyle(foreign, { display: 999 } as never)).code,
+    "ERR_TAFFY_FOREIGN_NODE_ID",
+  );
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
-  assert.equal(captureError(() => tree.setStyle(stale, {})).code, "ERR_TAFFY_STALE_NODE_ID");
+  assert.equal(
+    captureError(() => tree.setStyle(stale, { display: 999 } as never)).code,
+    "ERR_TAFFY_STALE_NODE_ID",
+  );
 });

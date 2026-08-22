@@ -22,10 +22,10 @@ const baseStyle = {
   display: Display.Flex,
   size: { width: 100, height: 60 },
 };
-const root = tree.newWithChildren({ ...baseStyle, flexDirection: FlexDirection.Row }, [
-  first,
-  second,
-]);
+const root = tree.newWithChildren([first, second], {
+  ...baseStyle,
+  flexDirection: FlexDirection.Row,
+});
 
 tree.computeLayout({ root, availableSpace: { width: 100, height: 60 } });
 

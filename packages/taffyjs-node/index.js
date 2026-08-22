@@ -1009,7 +1009,667 @@ var NodeIdRegistry = class {
 	}
 };
 //#endregion
+//#region src/style-codec.ts
+const COMMON_STYLE_BUFFER_SIZE = 1024;
+const INITIAL_OVERSIZED_STYLE_BUFFER_SIZE = 65536;
+const STYLE_MAGIC_0 = 84;
+const STYLE_MAGIC_1 = 83;
+const SCALAR_GEOMETRY = 128;
+const POINT_FIELDS = /* @__PURE__ */ new Set(["x", "y"]);
+const SIZE_FIELDS = /* @__PURE__ */ new Set(["width", "height"]);
+const RECT_FIELDS = /* @__PURE__ */ new Set([
+	"left",
+	"right",
+	"top",
+	"bottom"
+]);
+const LINE_FIELDS = /* @__PURE__ */ new Set(["start", "end"]);
+const textEncoder = new TextEncoder();
+const sharedStyleBuffer = new Uint8Array(COMMON_STYLE_BUFFER_SIZE);
+let sharedStyleEncoder;
+let sharedStyleBufferInUse = false;
+function typeError(name, expected) {
+	return /* @__PURE__ */ new TypeError(`${name} must be ${expected}`);
+}
+function rangeError(name, expected) {
+	return /* @__PURE__ */ new RangeError(`${name} must be ${expected}`);
+}
+function inputObject(value, name) {
+	if (typeof value !== "object" || value === null || Array.isArray(value)) throw typeError(name, "an object");
+	return value;
+}
+function inputArray(value, name) {
+	if (!Array.isArray(value)) throw typeError(name, "an array");
+	if (value.length > 4294967295) throw rangeError(name, "no longer than 2^32 - 1");
+	return value;
+}
+function inputNumber(value, name) {
+	if (typeof value !== "number") throw typeError(name, "a number");
+	return value;
+}
+function inputString(value, name) {
+	if (typeof value !== "string") throw typeError(name, "a string");
+	return value;
+}
+function inputInteger(value, minimum, maximum, name) {
+	const number = inputNumber(value, name);
+	if (!Number.isInteger(number) || number < minimum || number > maximum) throw rangeError(name, `an integer from ${minimum} through ${maximum}`);
+	return number;
+}
+function validateFields(value, allowedFields, name) {
+	for (const field of Object.keys(value)) if (!allowedFields.has(field)) throw typeError(name, "free of unknown fields");
+}
+function geometryObject(value, allowedFields, name) {
+	const object = inputObject(value, name);
+	validateFields(object, allowedFields, name);
+	return object;
+}
+function withStyleEncoder(style, wireVersion, presenceBytes, use) {
+	inputObject(style, "Style");
+	const usesSharedBuffer = !sharedStyleBufferInUse;
+	if (usesSharedBuffer) sharedStyleBufferInUse = true;
+	const encoder = usesSharedBuffer ? sharedStyleEncoder ??= new StyleEncoder(sharedStyleBuffer) : new StyleEncoder(new Uint8Array(COMMON_STYLE_BUFFER_SIZE));
+	encoder.reset(wireVersion, presenceBytes);
+	try {
+		return use(encoder);
+	} finally {
+		if (usesSharedBuffer) {
+			encoder.releaseTemporaryStorage();
+			sharedStyleBufferInUse = false;
+		}
+	}
+}
+var StyleEncoder = class {
+	#initialBytes;
+	#initialView;
+	#bytes;
+	#view;
+	#offset;
+	#presenceOffset = 4;
+	constructor(bytes) {
+		this.#initialBytes = bytes;
+		this.#initialView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+		this.#bytes = bytes;
+		this.#view = this.#initialView;
+		this.#offset = 0;
+	}
+	reset(wireVersion, presenceBytes) {
+		this.releaseTemporaryStorage();
+		this.#offset = this.#presenceOffset + presenceBytes;
+		this.#bytes.fill(0, 0, this.#offset);
+		this.#bytes[0] = STYLE_MAGIC_0;
+		this.#bytes[1] = STYLE_MAGIC_1;
+		this.#bytes[2] = wireVersion;
+		this.#bytes[3] = presenceBytes;
+	}
+	releaseTemporaryStorage() {
+		this.#bytes = this.#initialBytes;
+		this.#view = this.#initialView;
+	}
+	field(index) {
+		this.#bytes[this.#presenceOffset + (index >> 3)] |= 1 << (index & 7);
+	}
+	finish() {
+		return this.#bytes.subarray(0, this.#offset);
+	}
+	boolean(value, name) {
+		if (typeof value !== "boolean") throw typeError(name, "a boolean");
+		this.#u8(value ? 1 : 0);
+	}
+	number(value, name) {
+		this.#f64(inputNumber(value, name));
+	}
+	nullableNumber(value, name) {
+		if (value === null) {
+			this.#u8(0);
+			return;
+		}
+		this.#u8(1);
+		this.number(value, name);
+	}
+	enumeration(value, mask, name) {
+		const code = inputInteger(value, 0, 30, name);
+		if ((mask & 1 << code) === 0) throw rangeError(name, "a supported enum value");
+		this.#u8(code);
+	}
+	nullableEnumeration(value, mask, name) {
+		if (value === null) {
+			this.#u8(0);
+			return;
+		}
+		this.#u8(1);
+		this.enumeration(value, mask, name);
+	}
+	partialPointEnumeration(value, mask, name) {
+		const object = geometryObject(value, POINT_FIELDS, name);
+		const x = object.x;
+		const y = object.y;
+		this.#u8((x === void 0 ? 0 : 1) | (y === void 0 ? 0 : 2));
+		if (x !== void 0) this.enumeration(x, mask, `${name}.x`);
+		if (y !== void 0) this.enumeration(y, mask, `${name}.y`);
+	}
+	partialRectLengthPercentageAuto(value, name) {
+		if (this.#isLengthInput(value, name)) {
+			this.#u8(SCALAR_GEOMETRY);
+			this.#length(value, true, name);
+			return;
+		}
+		const object = geometryObject(value, RECT_FIELDS, name);
+		const left = object.left;
+		const right = object.right;
+		const top = object.top;
+		const bottom = object.bottom;
+		this.#u8((left === void 0 ? 0 : 1) | (right === void 0 ? 0 : 2) | (top === void 0 ? 0 : 4) | (bottom === void 0 ? 0 : 8));
+		if (left !== void 0) this.#length(left, true, `${name}.left`);
+		if (right !== void 0) this.#length(right, true, `${name}.right`);
+		if (top !== void 0) this.#length(top, true, `${name}.top`);
+		if (bottom !== void 0) this.#length(bottom, true, `${name}.bottom`);
+	}
+	partialSizeDimension(value, name) {
+		if (this.#isLengthInput(value, name)) {
+			this.#u8(SCALAR_GEOMETRY);
+			this.#length(value, true, name);
+			return;
+		}
+		const object = geometryObject(value, SIZE_FIELDS, name);
+		const width = object.width;
+		const height = object.height;
+		this.#u8((width === void 0 ? 0 : 1) | (height === void 0 ? 0 : 2));
+		if (width !== void 0) this.#length(width, true, `${name}.width`);
+		if (height !== void 0) this.#length(height, true, `${name}.height`);
+	}
+	partialRectLengthPercentage(value, name) {
+		if (this.#isLengthInput(value, name)) {
+			this.#u8(SCALAR_GEOMETRY);
+			this.#length(value, false, name);
+			return;
+		}
+		const object = geometryObject(value, RECT_FIELDS, name);
+		const left = object.left;
+		const right = object.right;
+		const top = object.top;
+		const bottom = object.bottom;
+		this.#u8((left === void 0 ? 0 : 1) | (right === void 0 ? 0 : 2) | (top === void 0 ? 0 : 4) | (bottom === void 0 ? 0 : 8));
+		if (left !== void 0) this.#length(left, false, `${name}.left`);
+		if (right !== void 0) this.#length(right, false, `${name}.right`);
+		if (top !== void 0) this.#length(top, false, `${name}.top`);
+		if (bottom !== void 0) this.#length(bottom, false, `${name}.bottom`);
+	}
+	partialSizeLengthPercentage(value, name) {
+		if (this.#isLengthInput(value, name)) {
+			this.#u8(SCALAR_GEOMETRY);
+			this.#length(value, false, name);
+			return;
+		}
+		const object = geometryObject(value, SIZE_FIELDS, name);
+		const width = object.width;
+		const height = object.height;
+		this.#u8((width === void 0 ? 0 : 1) | (height === void 0 ? 0 : 2));
+		if (width !== void 0) this.#length(width, false, `${name}.width`);
+		if (height !== void 0) this.#length(height, false, `${name}.height`);
+	}
+	dimension(value, name) {
+		this.#length(value, true, name);
+	}
+	gridTemplateComponents(value, name) {
+		const values = inputArray(value, name);
+		this.#u32(values.length);
+		for (let index = 0; index < values.length; index += 1) this.#gridTemplateComponent(values[index], `${name}[${index}]`);
+	}
+	trackSizingFunctions(value, name) {
+		const values = inputArray(value, name);
+		this.#u32(values.length);
+		for (let index = 0; index < values.length; index += 1) this.#trackSizingFunction(values[index], `${name}[${index}]`);
+	}
+	nullableGridTemplateAreas(value, name) {
+		if (value === null) {
+			this.#u8(0);
+			return;
+		}
+		this.#u8(1);
+		const object = inputObject(value, name);
+		const areas = inputArray(object.areas, `${name}.areas`);
+		const rowCount = inputInteger(object.rowCount, 0, 65535, `${name}.rowCount`);
+		const columnCount = inputInteger(object.columnCount, 0, 65535, `${name}.columnCount`);
+		this.#u32(areas.length);
+		for (let index = 0; index < areas.length; index += 1) {
+			const areaName = `${name}.areas[${index}]`;
+			const area = inputObject(areas[index], areaName);
+			const gridName = inputString(area.name, `${areaName}.name`);
+			const rowStart = inputInteger(area.rowStart, 0, 65535, `${areaName}.rowStart`);
+			const rowEnd = inputInteger(area.rowEnd, 0, 65535, `${areaName}.rowEnd`);
+			const columnStart = inputInteger(area.columnStart, 0, 65535, `${areaName}.columnStart`);
+			const columnEnd = inputInteger(area.columnEnd, 0, 65535, `${areaName}.columnEnd`);
+			this.#string(gridName, `${areaName}.name`);
+			this.#u16(rowStart);
+			this.#u16(rowEnd);
+			this.#u16(columnStart);
+			this.#u16(columnEnd);
+		}
+		this.#u16(rowCount);
+		this.#u16(columnCount);
+	}
+	stringMatrix(value, name) {
+		this.#stringMatrix(value, name);
+	}
+	partialLineGridPlacement(value, name) {
+		const object = geometryObject(value, LINE_FIELDS, name);
+		const start = object.start;
+		const end = object.end;
+		this.#u8((start === void 0 ? 0 : 1) | (end === void 0 ? 0 : 2));
+		if (start !== void 0) this.#gridPlacement(start, `${name}.start`);
+		if (end !== void 0) this.#gridPlacement(end, `${name}.end`);
+	}
+	#isLengthInput(value, name) {
+		if (typeof value === "number") return true;
+		const unit = inputObject(value, name).unit;
+		if (unit === void 0 || unit === null) return false;
+		inputNumber(unit, `${name}.unit`);
+		return true;
+	}
+	#length(value, allowAuto, name) {
+		if (typeof value === "number") {
+			this.#u8(LengthUnit.Length);
+			this.#f64(value);
+			return;
+		}
+		const object = inputObject(value, name);
+		const unit = inputInteger(object.unit, 0, 255, `${name}.unit`);
+		if (unit !== LengthUnit.Length && unit !== LengthUnit.Percent && unit !== LengthUnit.Auto) throw rangeError(`${name}.unit`, "a supported length unit");
+		const payload = object.value;
+		if (payload !== void 0) inputNumber(payload, `${name}.value`);
+		if (unit === LengthUnit.Auto) {
+			if (!allowAuto) throw typeError(name, "a non-Auto length");
+			this.#u8(unit);
+			return;
+		}
+		this.#u8(unit);
+		this.#f64(inputNumber(payload, `${name}.value`));
+	}
+	#gridPlacement(value, name) {
+		const object = inputObject(value, name);
+		const kind = inputInteger(object.kind, 0, 255, `${name}.kind`);
+		if (kind !== GridPlacementKind.Auto && kind !== GridPlacementKind.Line && kind !== GridPlacementKind.NamedLine && kind !== GridPlacementKind.Span && kind !== GridPlacementKind.NamedSpan) throw rangeError(`${name}.kind`, "a supported Grid placement kind");
+		const gridName = object.name;
+		const index = object.index;
+		const span = object.span;
+		this.#u8(kind);
+		if (kind === GridPlacementKind.Line) this.#i16(inputInteger(index, -32768, 32767, `${name}.index`));
+		else if (kind === GridPlacementKind.NamedLine) {
+			this.#string(inputString(gridName, `${name}.name`), `${name}.name`);
+			this.#i16(inputInteger(index, -32768, 32767, `${name}.index`));
+		} else if (kind === GridPlacementKind.Span) this.#u16(inputInteger(span, 0, 65535, `${name}.span`));
+		else if (kind === GridPlacementKind.NamedSpan) {
+			this.#string(inputString(gridName, `${name}.name`), `${name}.name`);
+			this.#u16(inputInteger(span, 0, 65535, `${name}.span`));
+		}
+	}
+	#trackSizingFunction(value, name) {
+		const object = inputObject(value, name);
+		const minimum = object.min;
+		const maximum = object.max;
+		if (minimum === void 0) throw typeError(`${name}.min`, "present");
+		if (maximum === void 0) throw typeError(`${name}.max`, "present");
+		this.#trackSizingValue(minimum, false, `${name}.min`);
+		this.#trackSizingValue(maximum, true, `${name}.max`);
+	}
+	#trackSizingValue(value, maximum, name) {
+		const object = inputObject(value, name);
+		const kind = inputInteger(object.kind, 0, 255, `${name}.kind`);
+		if (kind !== TrackSizingKind.Length && kind !== TrackSizingKind.Percent && kind !== TrackSizingKind.Auto && kind !== TrackSizingKind.MinContent && kind !== TrackSizingKind.MaxContent && kind !== TrackSizingKind.FitContent && kind !== TrackSizingKind.Fr) throw rangeError(`${name}.kind`, "a supported track sizing kind");
+		const payload = object.value;
+		if (!maximum && (kind === TrackSizingKind.FitContent || kind === TrackSizingKind.Fr)) throw typeError(name, "a valid minimum track value");
+		this.#u8(kind);
+		if (kind === TrackSizingKind.Length || kind === TrackSizingKind.Percent || kind === TrackSizingKind.Fr) this.#f64(inputNumber(payload, `${name}.value`));
+		else if (kind === TrackSizingKind.FitContent) this.#length(payload, false, `${name}.value`);
+	}
+	#gridTemplateComponent(value, name) {
+		const object = inputObject(value, name);
+		const kind = inputInteger(object.kind, 0, 255, `${name}.kind`);
+		if (kind !== GridTemplateComponentKind.Single && kind !== GridTemplateComponentKind.Repeat) throw rangeError(`${name}.kind`, "a supported Grid template component kind");
+		const payload = object.value;
+		if (payload === void 0) throw typeError(`${name}.value`, "present");
+		this.#u8(kind);
+		if (kind === GridTemplateComponentKind.Single) {
+			this.#trackSizingFunction(payload, `${name}.value`);
+			return;
+		}
+		const repetition = inputObject(payload, `${name}.value`);
+		const count = repetition.count;
+		const tracks = repetition.tracks;
+		const lineNames = repetition.lineNames;
+		if (count === void 0) throw typeError(`${name}.value.count`, "present");
+		this.#repetitionCount(count, `${name}.value.count`);
+		this.trackSizingFunctions(tracks, `${name}.value.tracks`);
+		this.#stringMatrix(lineNames, `${name}.value.lineNames`);
+	}
+	#repetitionCount(value, name) {
+		const object = inputObject(value, name);
+		const kind = inputInteger(object.kind, 0, 255, `${name}.kind`);
+		if (kind !== RepetitionCountKind.Count && kind !== RepetitionCountKind.AutoFill && kind !== RepetitionCountKind.AutoFit) throw rangeError(`${name}.kind`, "a supported repetition count kind");
+		const payload = object.value;
+		this.#u8(kind);
+		if (kind === RepetitionCountKind.Count) this.#u16(inputInteger(payload, 0, 65535, `${name}.value`));
+	}
+	#stringMatrix(value, name) {
+		const rows = inputArray(value, name);
+		this.#u32(rows.length);
+		for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+			const rowName = `${name}[${rowIndex}]`;
+			const row = inputArray(rows[rowIndex], rowName);
+			this.#u32(row.length);
+			for (let columnIndex = 0; columnIndex < row.length; columnIndex += 1) {
+				const valueName = `${rowName}[${columnIndex}]`;
+				this.#string(inputString(row[columnIndex], valueName), valueName);
+			}
+		}
+	}
+	#ensure(additional) {
+		const required = this.#offset + additional;
+		if (required <= this.#bytes.length) return;
+		let capacity = Math.max(this.#bytes.length, INITIAL_OVERSIZED_STYLE_BUFFER_SIZE);
+		while (capacity < required) {
+			capacity *= 2;
+			if (!Number.isSafeInteger(capacity)) throw rangeError("Encoded Style", "representable");
+		}
+		const next = new Uint8Array(capacity);
+		next.set(this.#bytes.subarray(0, this.#offset));
+		this.#bytes = next;
+		this.#view = new DataView(next.buffer);
+	}
+	#u8(value) {
+		this.#ensure(1);
+		this.#bytes[this.#offset] = value;
+		this.#offset += 1;
+	}
+	#u16(value) {
+		this.#ensure(2);
+		this.#view.setUint16(this.#offset, value, true);
+		this.#offset += 2;
+	}
+	#i16(value) {
+		this.#ensure(2);
+		this.#view.setInt16(this.#offset, value, true);
+		this.#offset += 2;
+	}
+	#u32(value) {
+		this.#ensure(4);
+		this.#view.setUint32(this.#offset, value, true);
+		this.#offset += 4;
+	}
+	#f64(value) {
+		this.#ensure(8);
+		this.#view.setFloat64(this.#offset, value, true);
+		this.#offset += 8;
+	}
+	#string(value, name) {
+		const maximumLength = value.length * 3;
+		if (!Number.isSafeInteger(maximumLength) || maximumLength > 4294967295) throw rangeError(name, "at most 2^32 - 1 UTF-8 bytes");
+		this.#ensure(4 + maximumLength);
+		const lengthOffset = this.#offset;
+		this.#offset += 4;
+		const result = textEncoder.encodeInto(value, this.#bytes.subarray(this.#offset));
+		if (result.read !== value.length) throw rangeError(name, "valid encodable text");
+		this.#view.setUint32(lengthOffset, result.written, true);
+		this.#offset += result.written;
+	}
+};
+//#endregion
+//#region src/style-input.ts
+function withEncodedStyle(style, use) {
+	return withStyleEncoder(style, 1, 6, (encoder) => {
+		const display = style.display;
+		if (display !== void 0) {
+			encoder.field(0);
+			const value = display;
+			encoder.enumeration(value, 31, "Style.display");
+		}
+		const itemIsTable = style.itemIsTable;
+		if (itemIsTable !== void 0) {
+			encoder.field(1);
+			const value = itemIsTable;
+			encoder.boolean(value, "Style.itemIsTable");
+		}
+		const itemIsReplaced = style.itemIsReplaced;
+		if (itemIsReplaced !== void 0) {
+			encoder.field(2);
+			const value = itemIsReplaced;
+			encoder.boolean(value, "Style.itemIsReplaced");
+		}
+		const boxSizing = style.boxSizing;
+		if (boxSizing !== void 0) {
+			encoder.field(3);
+			const value = boxSizing;
+			encoder.enumeration(value, 3, "Style.boxSizing");
+		}
+		const direction = style.direction;
+		if (direction !== void 0) {
+			encoder.field(4);
+			const value = direction;
+			encoder.enumeration(value, 3, "Style.direction");
+		}
+		const overflow = style.overflow;
+		if (overflow !== void 0) {
+			encoder.field(5);
+			const value = overflow;
+			encoder.partialPointEnumeration(value, 15, "Style.overflow");
+		}
+		const scrollbarWidth = style.scrollbarWidth;
+		if (scrollbarWidth !== void 0) {
+			encoder.field(6);
+			const value = scrollbarWidth;
+			encoder.number(value, "Style.scrollbarWidth");
+		}
+		const float = style.float;
+		if (float !== void 0) {
+			encoder.field(7);
+			const value = float;
+			encoder.enumeration(value, 7, "Style.float");
+		}
+		const clear = style.clear;
+		if (clear !== void 0) {
+			encoder.field(8);
+			const value = clear;
+			encoder.enumeration(value, 15, "Style.clear");
+		}
+		const position = style.position;
+		if (position !== void 0) {
+			encoder.field(9);
+			const value = position;
+			encoder.enumeration(value, 3, "Style.position");
+		}
+		const inset = style.inset;
+		if (inset !== void 0) {
+			encoder.field(10);
+			const value = inset;
+			encoder.partialRectLengthPercentageAuto(value, "Style.inset");
+		}
+		const size = style.size;
+		if (size !== void 0) {
+			encoder.field(11);
+			const value = size;
+			encoder.partialSizeDimension(value, "Style.size");
+		}
+		const minSize = style.minSize;
+		if (minSize !== void 0) {
+			encoder.field(12);
+			const value = minSize;
+			encoder.partialSizeDimension(value, "Style.minSize");
+		}
+		const maxSize = style.maxSize;
+		if (maxSize !== void 0) {
+			encoder.field(13);
+			const value = maxSize;
+			encoder.partialSizeDimension(value, "Style.maxSize");
+		}
+		const aspectRatio = style.aspectRatio;
+		if (aspectRatio !== void 0) {
+			encoder.field(14);
+			const value = aspectRatio;
+			encoder.nullableNumber(value, "Style.aspectRatio");
+		}
+		const margin = style.margin;
+		if (margin !== void 0) {
+			encoder.field(15);
+			const value = margin;
+			encoder.partialRectLengthPercentageAuto(value, "Style.margin");
+		}
+		const padding = style.padding;
+		if (padding !== void 0) {
+			encoder.field(16);
+			const value = padding;
+			encoder.partialRectLengthPercentage(value, "Style.padding");
+		}
+		const border = style.border;
+		if (border !== void 0) {
+			encoder.field(17);
+			const value = border;
+			encoder.partialRectLengthPercentage(value, "Style.border");
+		}
+		const alignItems = style.alignItems;
+		if (alignItems !== void 0) {
+			encoder.field(18);
+			const value = alignItems;
+			encoder.nullableEnumeration(value, 65535, "Style.alignItems");
+		}
+		const alignSelf = style.alignSelf;
+		if (alignSelf !== void 0) {
+			encoder.field(19);
+			const value = alignSelf;
+			encoder.nullableEnumeration(value, 65535, "Style.alignSelf");
+		}
+		const justifyItems = style.justifyItems;
+		if (justifyItems !== void 0) {
+			encoder.field(20);
+			const value = justifyItems;
+			encoder.nullableEnumeration(value, 65535, "Style.justifyItems");
+		}
+		const justifySelf = style.justifySelf;
+		if (justifySelf !== void 0) {
+			encoder.field(21);
+			const value = justifySelf;
+			encoder.nullableEnumeration(value, 65535, "Style.justifySelf");
+		}
+		const alignContent = style.alignContent;
+		if (alignContent !== void 0) {
+			encoder.field(22);
+			const value = alignContent;
+			encoder.nullableEnumeration(value, 16383, "Style.alignContent");
+		}
+		const justifyContent = style.justifyContent;
+		if (justifyContent !== void 0) {
+			encoder.field(23);
+			const value = justifyContent;
+			encoder.nullableEnumeration(value, 16383, "Style.justifyContent");
+		}
+		const gap = style.gap;
+		if (gap !== void 0) {
+			encoder.field(24);
+			const value = gap;
+			encoder.partialSizeLengthPercentage(value, "Style.gap");
+		}
+		const textAlign = style.textAlign;
+		if (textAlign !== void 0) {
+			encoder.field(25);
+			const value = textAlign;
+			encoder.enumeration(value, 15, "Style.textAlign");
+		}
+		const flexDirection = style.flexDirection;
+		if (flexDirection !== void 0) {
+			encoder.field(26);
+			const value = flexDirection;
+			encoder.enumeration(value, 15, "Style.flexDirection");
+		}
+		const flexWrap = style.flexWrap;
+		if (flexWrap !== void 0) {
+			encoder.field(27);
+			const value = flexWrap;
+			encoder.enumeration(value, 7, "Style.flexWrap");
+		}
+		const flexBasis = style.flexBasis;
+		if (flexBasis !== void 0) {
+			encoder.field(28);
+			const value = flexBasis;
+			encoder.dimension(value, "Style.flexBasis");
+		}
+		const flexGrow = style.flexGrow;
+		if (flexGrow !== void 0) {
+			encoder.field(29);
+			const value = flexGrow;
+			encoder.number(value, "Style.flexGrow");
+		}
+		const flexShrink = style.flexShrink;
+		if (flexShrink !== void 0) {
+			encoder.field(30);
+			const value = flexShrink;
+			encoder.number(value, "Style.flexShrink");
+		}
+		const gridTemplateRows = style.gridTemplateRows;
+		if (gridTemplateRows !== void 0) {
+			encoder.field(31);
+			const value = gridTemplateRows;
+			encoder.gridTemplateComponents(value, "Style.gridTemplateRows");
+		}
+		const gridTemplateColumns = style.gridTemplateColumns;
+		if (gridTemplateColumns !== void 0) {
+			encoder.field(32);
+			const value = gridTemplateColumns;
+			encoder.gridTemplateComponents(value, "Style.gridTemplateColumns");
+		}
+		const gridAutoRows = style.gridAutoRows;
+		if (gridAutoRows !== void 0) {
+			encoder.field(33);
+			const value = gridAutoRows;
+			encoder.trackSizingFunctions(value, "Style.gridAutoRows");
+		}
+		const gridAutoColumns = style.gridAutoColumns;
+		if (gridAutoColumns !== void 0) {
+			encoder.field(34);
+			const value = gridAutoColumns;
+			encoder.trackSizingFunctions(value, "Style.gridAutoColumns");
+		}
+		const gridAutoFlow = style.gridAutoFlow;
+		if (gridAutoFlow !== void 0) {
+			encoder.field(35);
+			const value = gridAutoFlow;
+			encoder.enumeration(value, 15, "Style.gridAutoFlow");
+		}
+		const gridTemplateAreas = style.gridTemplateAreas;
+		if (gridTemplateAreas !== void 0) {
+			encoder.field(36);
+			const value = gridTemplateAreas;
+			encoder.nullableGridTemplateAreas(value, "Style.gridTemplateAreas");
+		}
+		const gridTemplateColumnNames = style.gridTemplateColumnNames;
+		if (gridTemplateColumnNames !== void 0) {
+			encoder.field(37);
+			const value = gridTemplateColumnNames;
+			encoder.stringMatrix(value, "Style.gridTemplateColumnNames");
+		}
+		const gridTemplateRowNames = style.gridTemplateRowNames;
+		if (gridTemplateRowNames !== void 0) {
+			encoder.field(38);
+			const value = gridTemplateRowNames;
+			encoder.stringMatrix(value, "Style.gridTemplateRowNames");
+		}
+		const gridRow = style.gridRow;
+		if (gridRow !== void 0) {
+			encoder.field(39);
+			const value = gridRow;
+			encoder.partialLineGridPlacement(value, "Style.gridRow");
+		}
+		const gridColumn = style.gridColumn;
+		if (gridColumn !== void 0) {
+			encoder.field(40);
+			const value = gridColumn;
+			encoder.partialLineGridPlacement(value, "Style.gridColumn");
+		}
+		return use(encoder.finish());
+	});
+}
+//#endregion
 //#region src/tree.ts
+const DEFAULT_STYLE_INPUT = {};
 function checkedChildIndex(index) {
 	if (typeof index !== "number") throw new TypeError("Child index must be a number");
 	return index;
@@ -1095,25 +1755,31 @@ var TaffyTree = class {
 		const rawOldChild = this.#inner.rawReplaceChildAtIndex(rawParent, checkedChildIndex(index), rawNewChild);
 		return this.#nodes.fromRaw(rawOldChild);
 	}
-	/** Creates a leaf node from the supplied public style input. */
-	newLeaf(style) {
-		const serial = this.#nodes.reserveSerial();
-		return this.#nodes.register(this.#inner.rawNewLeaf(style), serial);
+	/** Creates a leaf node, using Taffy's defaults when style is omitted. */
+	newLeaf(style = DEFAULT_STYLE_INPUT) {
+		return withEncodedStyle(style, (encoded) => {
+			const serial = this.#nodes.reserveSerial();
+			return this.#nodes.register(this.#inner.rawNewLeaf(encoded), serial);
+		});
 	}
-	/** Creates a leaf node and associates optional JavaScript context. */
-	newLeafWithContext(style, context) {
-		const serial = this.#nodes.reserveSerial();
-		const raw = this.#inner.rawNewLeafWithContext(style, context !== void 0);
-		const node = this.#nodes.register(raw, serial);
-		if (context !== void 0) this.#contexts.set(node, context);
-		return node;
+	/** Creates a leaf node with JavaScript context and an optional style. */
+	newLeafWithContext(context, style = DEFAULT_STYLE_INPUT) {
+		return withEncodedStyle(style, (encoded) => {
+			const serial = this.#nodes.reserveSerial();
+			const raw = this.#inner.rawNewLeafWithContext(encoded, context !== void 0);
+			const node = this.#nodes.register(raw, serial);
+			if (context !== void 0) this.#contexts.set(node, context);
+			return node;
+		});
 	}
-	/** Creates a parent node with the supplied ordered children. */
-	newWithChildren(style, children) {
+	/** Creates a parent from ordered children and an optional style. */
+	newWithChildren(children, style = DEFAULT_STYLE_INPUT) {
 		if (!Array.isArray(children)) throw new TypeError("children must be an array");
 		const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
-		const serial = this.#nodes.reserveSerial();
-		return this.#nodes.register(this.#inner.rawNewWithChildren(style, rawChildren), serial);
+		return withEncodedStyle(style, (encoded) => {
+			const serial = this.#nodes.reserveSerial();
+			return this.#nodes.register(this.#inner.rawNewWithChildren(encoded, rawChildren), serial);
+		});
 	}
 	/** Removes one node, its context and measure function, and invalidates its public NodeId. */
 	remove(node) {
@@ -1145,11 +1811,13 @@ var TaffyTree = class {
 	}
 	/** Replaces a node style and marks affected layout state dirty. */
 	setStyle(node, style) {
-		this.#inner.rawSetStyle(this.#nodes.resolve(node), style);
+		const raw = this.#nodes.resolve(node);
+		withEncodedStyle(style, (encoded) => this.#inner.rawSetStyle(raw, encoded));
 	}
 	/** Updates supplied style fields and geometry components, preserving omitted values. */
 	updateStyle(node, update) {
-		this.#inner.rawUpdateStyle(this.#nodes.resolve(node), update);
+		const raw = this.#nodes.resolve(node);
+		withEncodedStyle(update, (encoded) => this.#inner.rawUpdateStyle(raw, encoded));
 	}
 	/** Returns a detached readable snapshot of the node style. */
 	getStyle(node) {

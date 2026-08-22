@@ -13,24 +13,18 @@ export function computeHomeLayout({
   const header = tree.newLeaf({ size: { height: headerHeight } });
   const content = tree.newLeaf({ flexGrow: 1 });
 
-  const main = tree.newWithChildren(
-    {
-      display: Display.Flex,
-      flexDirection: FlexDirection.Column,
-      flexGrow: 1,
-      gap: { height: verticalGap },
-    },
-    [header, content],
-  );
+  const main = tree.newWithChildren([header, content], {
+    display: Display.Flex,
+    flexDirection: FlexDirection.Column,
+    flexGrow: 1,
+    gap: { height: verticalGap },
+  });
 
-  const root = tree.newWithChildren(
-    {
-      display: Display.Flex,
-      gap: { width: horizontalGap },
-      size: { width: Dimension.Percent(100), height: 220 },
-    },
-    [sidebar, main],
-  );
+  const root = tree.newWithChildren([sidebar, main], {
+    display: Display.Flex,
+    gap: { width: horizontalGap },
+    size: { width: Dimension.Percent(100), height: 220 },
+  });
 
   tree.computeLayout({
     root,

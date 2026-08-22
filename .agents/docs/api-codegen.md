@@ -4,7 +4,7 @@
 
 `tools/api-codegen` is the repository's long-term home for generators that keep one API description aligned across Rust and TypeScript. New API generators should extend this tool instead of adding isolated scripts with their own parsing, writing, and checking rules.
 
-This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The implemented families are the numeric constants shared by the Node wrapper and Rust binding and the accepted absolute-length and definite-available-space input shorthands. The future query design is recorded separately in [API query code generation](api-codegen-query.md).
+This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The implemented families are the numeric constants shared by the Node wrapper and Rust binding, the accepted absolute-length and definite-available-space input shorthands, and the compact Style codec. The future query design is recorded separately in [API query code generation](api-codegen-query.md).
 
 ## One maintained input
 
@@ -30,9 +30,17 @@ The initial generated family covers only semantic lengths and available space. I
 
 The TypeScript emitter owns the affected public input and output declarations, their JSDoc, and the `Dimension` and `AvailableSpace` complete-form helpers so their names, fields, tags, payloads, and shorthand descriptions come from the same model. Handwritten public entry modules may re-export generated values and types but must not restate their shapes.
 
-The Rust emitter owns boundary parsing into small generated Rust values such as `Length(value)`, `Percent(value)`, `Auto`, `Definite(value)`, `MinContent`, and `MaxContent`. A JavaScript number and its equivalent tagged object converge in that parser. The JavaScript wrapper must not normalize a number by allocating a tagged object or recursively walking Style before the native call. Handwritten Rust continues to map the generated boundary value to Taffy, including percentage scaling and the exact Taffy constructors; handwritten geometry and Style code continues to decide where each accepted input type is used.
+The Rust emitter owns direct boundary parsing for tagged inputs that still cross as JavaScript values, currently available space. A JavaScript number and its equivalent tagged object converge in that parser. Style lengths instead converge in the generated Style encoder and shared compact decoder described below, without allocating replacement tagged objects. Handwritten Rust continues to map decoded values to Taffy, including percentage scaling and the exact Taffy constructors.
 
 Verification follows the repository-wide rule below: `check:codegen` detects stale generated files, while focused public type and behavior tests prove that each shorthand is accepted only in its declared input types, matches the complete form, and still produces complete tagged output. Ordinary behavior tests and examples use the shorthand once it exists; focused coverage keeps the complete form. Do not add tests of the generator itself or use generated data as the only behavioral oracle.
+
+## Generated Style codec
+
+`api/style-codec.json` and `api/schemas/style-codec.schema.json` are the maintained versioned model for the 41 public Style input fields, their canonical order, their encoding categories, their referenced numeric families, and their public descriptions. The compiler resolves numeric-family references and derives field indexes and the presence-map width once. Neither target keeps a handwritten second field inventory.
+
+The TypeScript emitter writes `packages/taffyjs-node/src/style-input.ts`, which owns the public `StyleInput` and `StyleUpdate` declarations and a straight-line encoder that reads each known property once in canonical order. The Rust emitter writes `crates/taffyjs_binding/src/style_input.rs`, which applies the matching fields in the same order through `decode_into`. Handwritten `style-codec.ts` and `style_codec.rs` own only the closed category encodings, validation primitives, buffer mechanics, and Taffy-specific conversion used by those generated call sites.
+
+The wire version is distinct from the maintained input format version. A change that only extends generator metadata without changing bytes need not change the wire version; a change that reinterprets existing private bytes must. The current format, buffer lifetime, format choice, and mutation rules are recorded in [Compact Style codec](style-codec.md).
 
 ## Tool organization
 

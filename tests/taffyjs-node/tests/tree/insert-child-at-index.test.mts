@@ -27,11 +27,11 @@ function topology(tree: TaffyTree, nodes: readonly NodeId[]) {
 
 test("positions", () => {
   const tree = new TaffyTree();
-  const [first, second] = [tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, [first, second]);
-  const start = tree.newLeaf({});
-  const middle = tree.newLeaf({});
-  const end = tree.newLeaf({});
+  const [first, second] = [tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren([first, second]);
+  const start = tree.newLeaf();
+  const middle = tree.newLeaf();
+  const end = tree.newLeaf();
 
   tree.insertChildAtIndex(parent, 0, start);
   assert.deepEqual(tree.getChildren(parent), [start, first, second]);
@@ -44,9 +44,9 @@ test("positions", () => {
 
 test("end-bound", () => {
   const tree = new TaffyTree();
-  const parent = tree.newLeaf({});
-  const first = tree.newLeaf({});
-  const second = tree.newLeaf({});
+  const parent = tree.newLeaf();
+  const first = tree.newLeaf();
+  const second = tree.newLeaf();
 
   tree.insertChildAtIndex(parent, 0, first);
   tree.insertChildAtIndex(parent, 1, second);
@@ -55,8 +55,8 @@ test("end-bound", () => {
 
 test("index-errors", () => {
   const tree = new TaffyTree();
-  const parent = tree.newLeaf({});
-  const child = tree.newLeaf({});
+  const parent = tree.newLeaf();
+  const child = tree.newLeaf();
 
   for (const index of [-1, 0.5, Number.NaN, Number.POSITIVE_INFINITY, 2 ** 53]) {
     const error = captureError(() => tree.insertChildAtIndex(parent, index, child));
@@ -80,9 +80,9 @@ test("index-errors", () => {
 
 test("id-roles", () => {
   const tree = new TaffyTree();
-  const parent = tree.newLeaf({});
-  const child = tree.newLeaf({});
-  const foreign = new TaffyTree().newLeaf({});
+  const parent = tree.newLeaf();
+  const child = tree.newLeaf();
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(
     captureError(() => tree.insertChildAtIndex(1 as never, 0, child)).constructor,
@@ -101,11 +101,11 @@ test("id-roles", () => {
     "ERR_TAFFY_FOREIGN_NODE_ID",
   );
 
-  const staleParent = tree.newLeaf({});
-  const staleChild = tree.newLeaf({});
+  const staleParent = tree.newLeaf();
+  const staleChild = tree.newLeaf();
   tree.clear();
-  const currentParent = tree.newLeaf({});
-  const currentChild = tree.newLeaf({});
+  const currentParent = tree.newLeaf();
+  const currentChild = tree.newLeaf();
   assert.equal(
     captureError(() => tree.insertChildAtIndex(staleParent, 0, currentChild)).code,
     "ERR_TAFFY_STALE_NODE_ID",
@@ -118,9 +118,9 @@ test("id-roles", () => {
 
 test("failure-atomic", () => {
   const tree = new TaffyTree();
-  const child = tree.newLeaf({});
-  const parent = tree.newWithChildren({}, [child]);
-  const other = tree.newLeaf({});
+  const child = tree.newLeaf();
+  const parent = tree.newWithChildren([child]);
+  const other = tree.newLeaf();
   const nodes = [child, parent, other];
   const before = topology(tree, nodes);
 

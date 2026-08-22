@@ -60,7 +60,7 @@ function captureError(body: () => unknown): CodedError {
 
 test("exact-keys", () => {
   const tree = new TaffyTree();
-  const defaults = tree.getStyle(tree.newLeaf({}));
+  const defaults = tree.getStyle(tree.newLeaf());
   const changed = tree.getStyle(tree.newLeaf({ display: Display.Grid, flexGrow: 2 }));
 
   assert.deepEqual(Object.keys(defaults), STYLE_FIELDS);
@@ -152,13 +152,13 @@ test("independent-snapshots", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.getStyle(1 as never)).constructor, TypeError);
   assert.equal(captureError(() => tree.getStyle(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
   assert.equal(captureError(() => tree.getStyle(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.getStyle(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

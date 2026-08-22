@@ -50,7 +50,7 @@ export const wideWrappingCollectionScenario: BenchmarkScenario = {
         const items = Array.from({ length: itemCount }, (_, index) =>
           tree.newLeaf(itemStyles[index % itemStyles.length]),
         );
-        const root = tree.newWithChildren(rootStyle, items);
+        const root = tree.newWithChildren(items, rootStyle);
         const nodes: readonly NodeId[] = [root, ...items];
         tree.computeLayout({
           root,

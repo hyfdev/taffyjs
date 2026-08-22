@@ -9,7 +9,7 @@ test("construct", () => {
 
   assert.equal(first.getNodeCount(), 0);
   assert.equal(second.getNodeCount(), 0);
-  assert.notEqual(first.newLeaf({}), second.newLeaf({}), "each tree has an independent token");
+  assert.notEqual(first.newLeaf(), second.newLeaf(), "each tree has an independent token");
 });
 
 test("export-boundary", () => {

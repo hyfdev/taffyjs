@@ -41,7 +41,7 @@ function captureError(body: () => unknown): CodedError {
 
 test("exact-zero", () => {
   const tree = new TaffyTree();
-  const node = tree.newLeaf({});
+  const node = tree.newLeaf();
   const layout = tree.getLayout(node);
 
   assert.deepEqual(layout, ZERO_LAYOUT);
@@ -132,13 +132,13 @@ test("numeric-widening", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.getLayout(1 as never)).constructor, TypeError);
   assert.equal(captureError(() => tree.getLayout(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
   assert.equal(captureError(() => tree.getLayout(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.getLayout(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

@@ -35,6 +35,7 @@ export interface TaggedFamily {
   readonly rustName: string;
   readonly tagField: string;
   readonly numericFamily: NumericFamily;
+  readonly emitRustParser: boolean;
   readonly branches: readonly TaggedBranch[];
   readonly publicAliases: readonly TaggedAlias[];
   readonly numberShorthand?: NumberShorthand;
@@ -267,6 +268,7 @@ export function compileTaggedValues(
       rustName: familyRustName,
       tagField: family.tagField,
       numericFamily,
+      emitRustParser: family.emitRustParser ?? true,
       branches,
       publicAliases,
       ...(numberShorthand === undefined ? {} : { numberShorthand }),

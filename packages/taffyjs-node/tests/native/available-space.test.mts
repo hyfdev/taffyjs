@@ -1,15 +1,20 @@
 import assert from "node:assert/strict";
 import { BindingTaffyTree } from "../../src/binding.ts";
 import { AvailableSpace } from "../../src/index.ts";
+import { withEncodedStyle } from "../../src/style-input.ts";
 import { test } from "vite-plus/test";
 
 function createOwner() {
   return new BindingTaffyTree();
 }
 
+function newLeaf(owner: BindingTaffyTree, style: unknown) {
+  return withEncodedStyle(style as never, (encoded) => owner.rawNewLeaf(encoded));
+}
+
 function layoutFor(width: unknown, height: unknown = width) {
   const owner = createOwner();
-  const node = owner.rawNewLeaf({
+  const node = newLeaf(owner, {
     size: {
       width: { unit: 1, value: 100 },
       height: { unit: 1, value: 100 },
@@ -21,7 +26,7 @@ function layoutFor(width: unknown, height: unknown = width) {
 
 test("available space requires complete named width and height fields", () => {
   const owner = createOwner();
-  const node = owner.rawNewLeaf({});
+  const node = newLeaf(owner, {});
   for (const value of [
     [
       { kind: 0, value: 10 },

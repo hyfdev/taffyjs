@@ -6,6 +6,7 @@
       "name": "Dimension",
       "tagField": "unit",
       "numericFamily": "LengthUnit",
+      "emitRustParser": false,
       "numberShorthand": { "targetBranch": "Length" },
       "branches": [
         {

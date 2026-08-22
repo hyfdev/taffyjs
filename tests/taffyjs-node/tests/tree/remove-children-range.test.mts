@@ -28,8 +28,8 @@ function topology(tree: TaffyTree, nodes: readonly NodeId[]) {
 
 test("ranges", () => {
   const tree = new TaffyTree();
-  const children = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, children);
+  const children = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren(children);
 
   tree.removeChildrenRange(parent, { start: 1, end: 1 });
   assert.deepEqual(tree.getChildren(parent), children);
@@ -41,9 +41,9 @@ test("ranges", () => {
 
 test("detached-live", () => {
   const tree = new TaffyTree();
-  const [first, second, third] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, [first, second, third]);
-  const nextParent = tree.newLeaf({});
+  const [first, second, third] = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren([first, second, third]);
+  const nextParent = tree.newLeaf();
   const count = tree.getNodeCount();
 
   tree.removeChildrenRange(parent, { start: 0, end: 2 });
@@ -57,8 +57,8 @@ test("detached-live", () => {
 
 test("range-errors", () => {
   const tree = new TaffyTree();
-  const children = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, children);
+  const children = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren(children);
   const invalidRanges = [
     { start: 2, end: 1 },
     { start: 0, end: 4 },
@@ -78,8 +78,8 @@ test("range-errors", () => {
 
 test("extra-properties", () => {
   const tree = new TaffyTree();
-  const [first, second] = [tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, [first, second]);
+  const [first, second] = [tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren([first, second]);
 
   tree.removeChildrenRange(parent, { start: 0, end: 1, ignored: true } as ChildRangeInput);
   assert.deepEqual(tree.getChildren(parent), [second]);
@@ -87,8 +87,8 @@ test("extra-properties", () => {
 
 test("failure-atomic", () => {
   const tree = new TaffyTree();
-  const [first, second, third] = [tree.newLeaf({}), tree.newLeaf({}), tree.newLeaf({})];
-  const parent = tree.newWithChildren({}, [first, second, third]);
+  const [first, second, third] = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
+  const parent = tree.newWithChildren([first, second, third]);
   const nodes = [first, second, third, parent];
   const before = topology(tree, nodes);
   const rejectedCalls = [

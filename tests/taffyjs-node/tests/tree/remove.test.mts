@@ -39,7 +39,7 @@ function snapshot(tree: TaffyTree, child: NodeId, parent: NodeId, root: NodeId) 
 
 test("remove-root", () => {
   const tree = new TaffyTree();
-  const root = tree.newLeaf({});
+  const root = tree.newLeaf();
   assert.equal(tree.getNodeCount(), 1);
 
   assert.equal(tree.remove(root), undefined);
@@ -48,9 +48,9 @@ test("remove-root", () => {
 
 test("remove-child", () => {
   const tree = new TaffyTree();
-  const grandchild = tree.newLeaf({});
-  const child = tree.newWithChildren({}, [grandchild]);
-  const parent = tree.newWithChildren({}, [child]);
+  const grandchild = tree.newLeaf();
+  const child = tree.newWithChildren([grandchild]);
+  const parent = tree.newWithChildren([child]);
   assert.equal(tree.getNodeCount(), 3);
 
   tree.remove(child);
@@ -62,11 +62,11 @@ test("remove-child", () => {
 
 test("id-stale", () => {
   const tree = new TaffyTree();
-  const removed = tree.newLeaf({});
+  const removed = tree.newLeaf();
   tree.remove(removed);
 
   assert.equal(captureError(() => tree.remove(removed)).code, "ERR_TAFFY_STALE_NODE_ID");
-  const replacement = tree.newLeaf({});
+  const replacement = tree.newLeaf();
   assert.equal(replacement & SLOT_MASK, removed & SLOT_MASK, "the native slot is reused");
   assert.notEqual(replacement, removed);
   assert.equal(tree.getParent(replacement), null);
@@ -78,8 +78,8 @@ test("parent-not-dirtied", () => {
   const child = tree.newLeaf({
     size: { width: 30, height: 10 },
   });
-  const parent = tree.newWithChildren({}, [child]);
-  const root = tree.newWithChildren({}, [parent]);
+  const parent = tree.newWithChildren([child]);
+  const root = tree.newWithChildren([parent]);
   compute(tree, root);
   const parentLayout = tree.getLayout(parent);
   const rootLayout = tree.getLayout(root);
@@ -100,10 +100,10 @@ test("parent-not-dirtied", () => {
 test("invalid-atomic", () => {
   const tree = new TaffyTree();
   const context = { retained: true };
-  const child = tree.newLeafWithContext({}, context);
-  const parent = tree.newWithChildren({}, [child]);
-  const root = tree.newWithChildren({}, [parent]);
-  const foreign = new TaffyTree().newLeaf({});
+  const child = tree.newLeafWithContext(context);
+  const parent = tree.newWithChildren([child]);
+  const root = tree.newWithChildren([parent]);
+  const foreign = new TaffyTree().newLeaf();
   compute(tree, root);
   const before = snapshot(tree, child, parent, root);
 
@@ -113,9 +113,9 @@ test("invalid-atomic", () => {
   }
 
   tree.clear();
-  const currentChild = tree.newLeafWithContext({}, context);
-  const currentParent = tree.newWithChildren({}, [currentChild]);
-  const currentRoot = tree.newWithChildren({}, [currentParent]);
+  const currentChild = tree.newLeafWithContext(context);
+  const currentParent = tree.newWithChildren([currentChild]);
+  const currentRoot = tree.newWithChildren([currentParent]);
   compute(tree, currentRoot);
   const afterClear = snapshot(tree, currentChild, currentParent, currentRoot);
   assert.equal(captureError(() => tree.remove(child)).code, "ERR_TAFFY_STALE_NODE_ID");

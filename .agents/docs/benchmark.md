@@ -26,19 +26,20 @@ Every benchmark case is a scenario with a named question, input and scale, publi
 
 Scenario timing follows the transaction being investigated. An initial-layout scenario may create the public tree, compute layout, and read the outputs the consumer needs. A persistent-tree scenario may mutate an existing tree, recompute it, and read the affected outputs without rebuilding the tree. A batch scenario may create, compute, read or serialize, and finish one complete item. Fixture parsing, result validation, and harness bookkeeping stay outside the timed interval unless they are themselves the public operation named by the scenario. A total is measured directly rather than reconstructed by adding separately aggregated phase results.
 
-[VOUCHED @hyfdev 2026-08-17]
+[VOUCHED @hyfdev 2026-08-22]
 
-The initial public suite contains exactly five scenarios:
+The public suite contains six scenarios:
 
 1. **Small nested UI: 50 nodes.** Create the deterministic nested public tree, compute its initial layout, read every required layout result, and complete the package's applicable public lifecycle. This exposes fixed package and API costs for a small layout transaction.
 2. **Nested UI: 500 nodes.** Run the same transaction and deterministic structure family at ten times the node count. This exposes how the package and runtime tradeoff changes with scale.
 3. **Wide wrapping collection: 500 items.** Create one wrapping container with 500 direct items, compute its initial layout, read every required result, and complete the applicable lifecycle. The root makes 501 total nodes; the public parameter remains the user-facing item count. This distinguishes a wide, batched topology from the similarly sized nested transaction.
 4. **Coding-agent chat: initial layout.** Create the modeled application tree and JavaScript measurement contexts, compute through the public Measure callback, read every required result, and complete the applicable lifecycle. This exposes synchronous JavaScript callback crossings in a complete application transaction.
 5. **Coding-agent chat: viewport resize.** Prepare and initially lay out the persistent public tree outside timing. Each timed transaction changes the root between two fixed viewport sizes through the public API, recomputes layout, and reads every required result. Persistent-tree disposal happens after measurement rather than inside each resize transaction.
+6. **Styled node construction: 500 leaves.** Create the root and 500 leaves from one shared fifteen-field Style value, attach every leaf, compute layout, and read every required result. Tree shape and layout work stay small so the transaction reports what public Style input conversion and node creation cost.
 
 Every scenario runs all five applicable implementations: `@taffyjs/node`, `@taffyjs/wasm`, `@taffyjs/yoga`, `@taffyjs/yoga-wasm`, and `yoga-layout`. The two API-specific implementations of a scenario must use equivalent styles, measurement behavior, viewport state, and required output while retaining the real call structure of each public API.
 
-The round parameters `50`, `500`, and `500` are intentional public workload descriptions rather than powers of two inherited from an upstream stress benchmark. The initial suite does not include captured Yoga applications, Grid, Block, super-deep trees, additional scale points, cold start, or browser measurements. A scenario or scale may be added only when it answers a concrete product question that these five do not answer; it must never be selected or modified in response to which implementation wins.
+The round parameters `50` and `500` are intentional public workload descriptions rather than powers of two inherited from an upstream stress benchmark. The suite does not include captured Yoga applications, Grid, Block, super-deep trees, additional scale points, cold start, or browser measurements. A scenario or scale may be added only when it answers a concrete product question the existing scenarios do not answer; it must never be selected or modified in response to which implementation wins.
 
 ## Repository ownership
 

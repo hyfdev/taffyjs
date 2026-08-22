@@ -29,7 +29,7 @@ tree.updateStyle(node, {
 
 Arrays, tagged values, and other complete records are whole replacements. An empty array clears the stored array; `null` clears only a publicly nullable field. `updateStyle` does not recursively merge an array element or tagged-union payload.
 
-`null` is accepted only for the optional fields listed in the [Style reference](./style.md#shared-fields). Other fields reject it. Unknown top-level style fields and unknown components in partial geometry records are also rejected. Replacement and update conversion finish before mutation, and a failed operation leaves both the previous style and its dirty state unchanged. An empty or unchanged `updateStyle` call does not newly dirty a clean node; a successful changed update uses Taffy's normal dirty propagation.
+`null` is accepted only for the optional fields listed in the [Style reference](./style.md#shared-fields). Other fields reject it, including every component of a partial geometry record. Unknown components in partial geometry records are also rejected. Unknown top-level style properties are ignored, so a misspelled field name selects that field's default instead of raising an error. Replacement and update conversion finish before mutation, and a failed operation leaves both the previous style and its dirty state unchanged. An empty or unchanged `updateStyle` call does not newly dirty a clean node; a successful changed update uses Taffy's normal dirty propagation.
 
 Floating-point style values accept JavaScript numbers and are stored with Taffy's 32-bit precision. They are not coerced from strings or objects, clamped, or replaced with binding-specific defaults; negative and non-finite numbers reach Taffy as numeric values. Integer codes, indices, spans, and counts instead must be finite integers in the range of the corresponding public value.
 
@@ -45,7 +45,7 @@ The generic parameter on `TaffyTree<TContext>` describes the values returned by 
 type TextContext = { text: string; fontSize: number };
 
 const tree = new TaffyTree<TextContext>();
-const label = tree.newLeafWithContext({}, { text: "Hello", fontSize: 16 });
+const label = tree.newLeafWithContext({ text: "Hello", fontSize: 16 });
 ```
 
 Context is optional measurement data, not a switch that makes a node measurable. Use `setMeasure(node, callback)` to configure per-node measurement independently. A configured node without context receives `context === undefined`; a node with context but no per-node measure remains an ordinary leaf unless the current `computeLayout` call supplies a global fallback.

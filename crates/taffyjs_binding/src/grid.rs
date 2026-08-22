@@ -1,4 +1,4 @@
-use napi::bindgen_prelude::{Either, Unknown};
+use napi::bindgen_prelude::Either;
 use napi_derive::napi;
 use taffy::style::{
     CompactLength, GridPlacement, GridTemplateArea, GridTemplateAreas, GridTemplateComponent,
@@ -6,57 +6,12 @@ use taffy::style::{
     TrackSizingFunction,
 };
 
-use crate::error::{BindingResult, range_error, type_error};
-use crate::js_object;
-use crate::length::{self, LengthOutput};
-use crate::number::{from_unknown, to_f32, to_integer};
+use crate::error::{BindingResult, range_error};
+use crate::length::LengthOutput;
 use crate::numeric::{
     GridPlacementKindCode, GridTemplateComponentKindCode, RepetitionCountKindCode,
     TrackSizingKindCode,
 };
-
-#[napi(object, object_to_js = false)]
-pub struct TaggedGridInput<'env> {
-    pub kind: f64,
-    pub value: Option<Unknown<'env>>,
-}
-
-#[napi(object, object_to_js = false)]
-pub struct GridPlacementInput {
-    pub kind: f64,
-    pub name: Option<String>,
-    pub index: Option<f64>,
-    pub span: Option<f64>,
-}
-
-#[napi(object, object_to_js = false)]
-pub struct TrackSizingInput<'env> {
-    pub min: Unknown<'env>,
-    pub max: Unknown<'env>,
-}
-
-#[napi(object, object_to_js = false)]
-pub struct GridTemplateRepetitionInput<'env> {
-    pub count: Unknown<'env>,
-    pub tracks: Vec<Unknown<'env>>,
-    pub line_names: Vec<Vec<String>>,
-}
-
-#[napi(object, object_to_js = false)]
-pub struct GridTemplateAreaInput {
-    pub name: String,
-    pub row_start: f64,
-    pub row_end: f64,
-    pub column_start: f64,
-    pub column_end: f64,
-}
-
-#[napi(object, object_to_js = false)]
-pub struct GridTemplateAreasInput {
-    pub areas: Vec<GridTemplateAreaInput>,
-    pub row_count: f64,
-    pub column_count: f64,
-}
 
 #[napi(object, object_from_js = false)]
 pub struct GridPlacementOutput {
@@ -113,152 +68,6 @@ pub struct GridTemplateAreasOutput {
     pub column_count: u16,
 }
 
-fn tagged_input<'env>(value: Unknown<'env>, name: &str) -> BindingResult<TaggedGridInput<'env>> {
-    js_object::input(value, name, None)
-}
-
-fn tagged_kind<T>(input: &TaggedGridInput<'_>) -> BindingResult<T>
-where
-    T: TryFrom<i64>,
-{
-    to_integer(input.kind)
-}
-
-fn tagged_value<'env>(input: &TaggedGridInput<'env>, name: &str) -> BindingResult<Unknown<'env>> {
-    js_object::required(input.value, name)
-}
-
-pub(crate) fn grid_placement(value: Unknown<'_>) -> BindingResult<GridPlacement<String>> {
-    let input: GridPlacementInput = js_object::input(value, "a GridPlacement object", None)?;
-    Ok(match to_integer::<GridPlacementKindCode>(input.kind)? {
-        GridPlacementKindCode::Auto => GridPlacement::Auto,
-        GridPlacementKindCode::Line => GridPlacement::Line(
-            to_integer::<i16>(js_object::required(input.index, "Grid line index")?)?.into(),
-        ),
-        GridPlacementKindCode::NamedLine => GridPlacement::NamedLine(
-            js_object::required(input.name, "Grid line name")?,
-            to_integer::<i16>(js_object::required(input.index, "Grid line index")?)?,
-        ),
-        GridPlacementKindCode::Span => GridPlacement::Span(to_integer::<u16>(
-            js_object::required(input.span, "Grid span")?,
-        )?),
-        GridPlacementKindCode::NamedSpan => GridPlacement::NamedSpan(
-            js_object::required(input.name, "Grid span name")?,
-            to_integer::<u16>(js_object::required(input.span, "Grid span")?)?,
-        ),
-    })
-}
-
-fn min_track(value: Unknown<'_>) -> BindingResult<MinTrackSizingFunction> {
-    let input = tagged_input(value, "a minimum track object")?;
-    match tagged_kind::<TrackSizingKindCode>(&input)? {
-        TrackSizingKindCode::Length => Ok(MinTrackSizingFunction::length(to_f32(from_unknown(
-            tagged_value(&input, "Track value")?,
-            "Track value",
-        )?))),
-        TrackSizingKindCode::Percent => Ok(MinTrackSizingFunction::percent(to_f32(
-            from_unknown(tagged_value(&input, "Track value")?, "Track value")? / 100.0,
-        ))),
-        TrackSizingKindCode::Auto => Ok(MinTrackSizingFunction::auto()),
-        TrackSizingKindCode::MinContent => Ok(MinTrackSizingFunction::min_content()),
-        TrackSizingKindCode::MaxContent => Ok(MinTrackSizingFunction::max_content()),
-        TrackSizingKindCode::FitContent | TrackSizingKindCode::Fr => {
-            Err(type_error("This track kind is not valid for a minimum"))
-        }
-    }
-}
-
-fn max_track(value: Unknown<'_>) -> BindingResult<MaxTrackSizingFunction> {
-    let input = tagged_input(value, "a maximum track object")?;
-    match tagged_kind::<TrackSizingKindCode>(&input)? {
-        TrackSizingKindCode::Length => Ok(MaxTrackSizingFunction::length(to_f32(from_unknown(
-            tagged_value(&input, "Track value")?,
-            "Track value",
-        )?))),
-        TrackSizingKindCode::Percent => Ok(MaxTrackSizingFunction::percent(to_f32(
-            from_unknown(tagged_value(&input, "Track value")?, "Track value")? / 100.0,
-        ))),
-        TrackSizingKindCode::Auto => Ok(MaxTrackSizingFunction::auto()),
-        TrackSizingKindCode::MinContent => Ok(MaxTrackSizingFunction::min_content()),
-        TrackSizingKindCode::MaxContent => Ok(MaxTrackSizingFunction::max_content()),
-        TrackSizingKindCode::FitContent => {
-            let value = length::length_percentage(tagged_value(&input, "Track value")?)?;
-            let raw = value.into_raw();
-            Ok(match raw.tag() {
-                CompactLength::LENGTH_TAG => MaxTrackSizingFunction::fit_content_px(raw.value()),
-                CompactLength::PERCENT_TAG => {
-                    MaxTrackSizingFunction::fit_content_percent(raw.value())
-                }
-                _ => panic!("unsupported fit-content length tag"),
-            })
-        }
-        TrackSizingKindCode::Fr => Ok(MaxTrackSizingFunction::fr(to_f32(from_unknown(
-            tagged_value(&input, "Track value")?,
-            "Track value",
-        )?))),
-    }
-}
-
-pub(crate) fn track_sizing(value: Unknown<'_>) -> BindingResult<TrackSizingFunction> {
-    let input: TrackSizingInput<'_> =
-        js_object::input(value, "a TrackSizingFunction object", None)?;
-    Ok(TrackSizingFunction {
-        min: min_track(input.min)?,
-        max: max_track(input.max)?,
-    })
-}
-
-fn repetition_count(value: Unknown<'_>) -> BindingResult<RepetitionCount> {
-    let input = tagged_input(value, "a RepetitionCount object")?;
-    Ok(match tagged_kind::<RepetitionCountKindCode>(&input)? {
-        RepetitionCountKindCode::Count => RepetitionCount::Count(to_integer::<u16>(from_unknown(
-            tagged_value(&input, "Repetition count")?,
-            "Repetition count",
-        )?)?),
-        RepetitionCountKindCode::AutoFill => RepetitionCount::AutoFill,
-        RepetitionCountKindCode::AutoFit => RepetitionCount::AutoFit,
-    })
-}
-
-fn template_repetition(value: Unknown<'_>) -> BindingResult<GridTemplateRepetition<String>> {
-    let input: GridTemplateRepetitionInput<'_> =
-        js_object::input(value, "a GridTemplateRepetition object", None)?;
-    Ok(GridTemplateRepetition {
-        count: repetition_count(input.count)?,
-        tracks: input
-            .tracks
-            .into_iter()
-            .map(track_sizing)
-            .collect::<BindingResult<Vec<_>>>()?,
-        line_names: input.line_names,
-    })
-}
-
-pub(crate) fn template_component(
-    value: Unknown<'_>,
-) -> BindingResult<GridTemplateComponent<String>> {
-    let input = tagged_input(value, "a GridTemplateComponent object")?;
-    Ok(
-        match tagged_kind::<GridTemplateComponentKindCode>(&input)? {
-            GridTemplateComponentKindCode::Single => {
-                GridTemplateComponent::Single(track_sizing(tagged_value(&input, "Grid value")?)?)
-            }
-            GridTemplateComponentKindCode::Repeat => GridTemplateComponent::Repeat(
-                template_repetition(tagged_value(&input, "Grid value")?)?,
-            ),
-        },
-    )
-}
-
-pub(crate) fn template_components(
-    values: Vec<Unknown<'_>>,
-) -> BindingResult<Vec<GridTemplateComponent<String>>> {
-    values
-        .into_iter()
-        .map(template_component)
-        .collect::<BindingResult<Vec<_>>>()
-}
-
 pub(crate) fn validate_template_line_names(
     values: &[GridTemplateComponent<String>],
     top_level_line_names: &[Vec<String>],
@@ -274,30 +83,6 @@ pub(crate) fn validate_template_line_names(
         }
     }
     Ok(())
-}
-
-fn template_area(input: GridTemplateAreaInput) -> BindingResult<GridTemplateArea<String>> {
-    Ok(GridTemplateArea {
-        name: input.name,
-        row_start: to_integer::<u16>(input.row_start)?,
-        row_end: to_integer::<u16>(input.row_end)?,
-        column_start: to_integer::<u16>(input.column_start)?,
-        column_end: to_integer::<u16>(input.column_end)?,
-    })
-}
-
-pub(crate) fn template_areas(
-    input: GridTemplateAreasInput,
-) -> BindingResult<GridTemplateAreas<String>> {
-    Ok(GridTemplateAreas {
-        areas: input
-            .areas
-            .into_iter()
-            .map(template_area)
-            .collect::<BindingResult<Vec<_>>>()?,
-        row_count: to_integer::<u16>(input.row_count)?,
-        column_count: to_integer::<u16>(input.column_count)?,
-    })
 }
 
 fn placement_output_parts(

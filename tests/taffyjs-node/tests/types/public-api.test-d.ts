@@ -21,9 +21,9 @@ type Context = { readonly label: string };
 type ExpectedTree<TContext> = {
   enableRounding(): void;
   disableRounding(): void;
-  newLeaf(style: StyleInput): NodeId;
-  newLeafWithContext(style: StyleInput, context: TContext | undefined): NodeId;
-  newWithChildren(style: StyleInput, children: readonly NodeId[]): NodeId;
+  newLeaf(style?: StyleInput): NodeId;
+  newLeafWithContext(context: TContext | undefined, style?: StyleInput): NodeId;
+  newWithChildren(children: readonly NodeId[], style?: StyleInput): NodeId;
   clear(): void;
   remove(node: NodeId): void;
   setNodeContext(node: NodeId, context: TContext | undefined): void;
@@ -86,7 +86,15 @@ const readonlyStyleUpdate: StyleUpdate = {
 };
 tree.setStyle(node, reusableStyleInput);
 tree.updateStyle(node, readonlyStyleUpdate);
+tree.newLeaf();
+tree.newLeaf(undefined);
 tree.newLeaf(readonlyStyleInput);
+tree.newLeafWithContext({ label: "context" });
+tree.newLeafWithContext({ label: "styled context" }, readonlyStyleInput);
+tree.newLeafWithContext(undefined, undefined);
+tree.newWithChildren([]);
+tree.newWithChildren([], readonlyStyleInput);
+tree.newWithChildren([], undefined);
 
 const perNodeMeasure: api.MeasureFunction<Context> = ({ context: callbackContext }) => {
   const label: string | undefined = callbackContext?.label;
@@ -124,7 +132,11 @@ const changed: NodeId = node + 1n;
 // @ts-expect-error The public constructor takes no arguments.
 new TaffyTree({});
 // @ts-expect-error Context excludes null unless its generic includes null.
-tree.newLeafWithContext({}, null);
+tree.newLeafWithContext(null);
+// @ts-expect-error The former style-first context order is not retained.
+tree.newLeafWithContext({}, { label: "old order" });
+// @ts-expect-error The former style-first children order is not retained.
+tree.newWithChildren({}, [node]);
 // @ts-expect-error Returned children are readonly.
 children.push(node);
 // @ts-expect-error Raw native methods are private.

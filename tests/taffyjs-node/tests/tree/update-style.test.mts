@@ -236,6 +236,16 @@ test("empty and unchanged updates preserve clean state", () => {
   assert.equal(Object.is(tree.getStyle(node).scrollbarWidth, -0), true);
 });
 
+test("unknown fields are ignored", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeaf({ flexGrow: 2 });
+  tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
+
+  tree.updateStyle(node, { unknownField: true } as never);
+  assert.equal(tree.getStyle(node).flexGrow, 2);
+  assert.equal(tree.isDirty(node), false);
+});
+
 test("validates the merged style before one atomic write", () => {
   const tree = new TaffyTree();
   const track = TrackSizingFunction.Length(10);
@@ -262,16 +272,22 @@ test("validates the merged style before one atomic write", () => {
 
 test("validates node IDs before updating", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.updateStyle(1 as never, {})).constructor, TypeError);
   assert.equal(
     captureError(() => tree.updateStyle(0n as never, {})).code,
     "ERR_TAFFY_INVALID_NODE_ID",
   );
-  assert.equal(captureError(() => tree.updateStyle(foreign, {})).code, "ERR_TAFFY_FOREIGN_NODE_ID");
+  assert.equal(
+    captureError(() => tree.updateStyle(foreign, { display: 999 } as never)).code,
+    "ERR_TAFFY_FOREIGN_NODE_ID",
+  );
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
-  assert.equal(captureError(() => tree.updateStyle(stale, {})).code, "ERR_TAFFY_STALE_NODE_ID");
+  assert.equal(
+    captureError(() => tree.updateStyle(stale, { display: 999 } as never)).code,
+    "ERR_TAFFY_STALE_NODE_ID",
+  );
 });

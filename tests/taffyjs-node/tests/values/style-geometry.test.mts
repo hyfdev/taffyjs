@@ -1,25 +1,25 @@
 import assert from "node:assert/strict";
-import { BindingTaffyTree } from "../../src/binding.ts";
+import { TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 function createOwner() {
-  return new BindingTaffyTree();
+  return new TaffyTree();
 }
 
 function storedStyle(style: unknown) {
   const owner = createOwner();
-  const node = owner.rawNewLeaf(style);
-  return owner.rawGetStyle(node);
+  const node = owner.newLeaf(style as never);
+  return owner.getStyle(node);
 }
 
 function rejectsWithoutNode(style: unknown): void {
   const owner = createOwner();
-  assert.throws(() => owner.rawNewLeaf(style), TypeError);
-  assert.equal(owner.rawGetNodeCount(), 0);
+  assert.throws(() => owner.newLeaf(style as never), TypeError);
+  assert.equal(owner.getNodeCount(), 0);
 }
 
-const length = (value: number) => ({ unit: 0, value });
-const percent = (value: number) => ({ unit: 1, value });
+const length = (value: number) => ({ unit: 0 as const, value });
+const percent = (value: number) => ({ unit: 1 as const, value });
 
 test("partial Style geometry fills omitted components from defaults", () => {
   const style = storedStyle({
@@ -98,14 +98,14 @@ test("only semantic-length Size and Rect fields accept a scalar", () => {
 
 test("geometry output is detached and can be reused as input", () => {
   const owner = createOwner();
-  const node = owner.rawNewLeaf({
+  const node = owner.newLeaf({
     overflow: { x: 1, y: 2 },
     size: { width: length(10), height: percent(50) },
     padding: length(3),
     gridRow: { start: { kind: 1, index: 2 }, end: { kind: 0 } },
   });
-  const first = owner.rawGetStyle(node);
-  const second = owner.rawGetStyle(node);
+  const first = owner.getStyle(node);
+  const second = owner.getStyle(node);
   for (const field of ["overflow", "size", "padding", "gridRow"] as const) {
     assert.notEqual(first[field], second[field], field);
     assert.equal(Object.isFrozen(first[field]), false, field);

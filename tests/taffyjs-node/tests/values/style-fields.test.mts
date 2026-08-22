@@ -27,9 +27,25 @@ const rect = (value: () => { unit: number; value?: number }) => ({
   bottom: value(),
 });
 
+const nullableFields = [
+  "aspectRatio",
+  "alignItems",
+  "alignSelf",
+  "justifyItems",
+  "justifySelf",
+  "alignContent",
+  "justifyContent",
+  "gridTemplateAreas",
+] as const;
+
+function publicStyleFields(): readonly string[] {
+  const tree = new TaffyTree();
+  return Object.keys(tree.getStyle(tree.newLeaf()));
+}
+
 test("default Style contains every public field and value", () => {
   const tree = new TaffyTree();
-  const style = tree.getStyle(tree.newLeaf({}));
+  const style = tree.getStyle(tree.newLeaf());
 
   assert.deepEqual(style, {
     display: 2,
@@ -74,6 +90,34 @@ test("default Style contains every public field and value", () => {
     gridRow: { start: { kind: 0 }, end: { kind: 0 } },
     gridColumn: { start: { kind: 0 }, end: { kind: 0 } },
   });
+});
+
+test("every public field treats explicit undefined as absent", () => {
+  const tree = new TaffyTree();
+  const defaults = tree.getStyle(tree.newLeaf());
+  const explicit = tree.getStyle(
+    tree.newLeaf(
+      Object.fromEntries(publicStyleFields().map((field) => [field, undefined])) as StyleInput,
+    ),
+  );
+
+  assert.deepEqual(explicit, defaults);
+});
+
+test("only publicly nullable fields accept null", () => {
+  assert.equal(nullableFields.length, 8);
+  const tree = new TaffyTree();
+  const accepted = tree.getStyle(
+    tree.newLeaf(Object.fromEntries(nullableFields.map((field) => [field, null])) as StyleInput),
+  );
+  for (const field of nullableFields) assert.equal(accepted[field], null, field);
+
+  const nullable = new Set<string>(nullableFields);
+  for (const field of publicStyleFields().filter((field) => !nullable.has(field))) {
+    const owner = new TaffyTree();
+    assert.throws(() => owner.newLeaf({ [field]: null } as StyleInput), TypeError, field);
+    assert.equal(owner.getNodeCount(), 0, field);
+  }
 });
 
 test("representative Style input categories round-trip", () => {
@@ -124,6 +168,23 @@ test("representative invalid Style conversion categories are rejected", () => {
   for (const [name, style, ErrorClass] of invalidCases) {
     const tree = new TaffyTree();
     assert.throws(() => tree.newLeaf(style as StyleInput), ErrorClass, name);
+    assert.equal(tree.getNodeCount(), 0, name);
+  }
+});
+
+test("partial geometry components reject null", () => {
+  const nullComponents: ReadonlyArray<readonly [string, unknown]> = [
+    ["point enum", { overflow: { x: null } }],
+    ["dimension size", { size: { width: null } }],
+    ["length-percentage size", { gap: { height: null } }],
+    ["length-percentage-auto rect", { inset: { left: null } }],
+    ["length-percentage rect", { padding: { top: null } }],
+    ["grid placement line", { gridRow: { start: null } }],
+  ];
+
+  for (const [name, style] of nullComponents) {
+    const tree = new TaffyTree();
+    assert.throws(() => tree.newLeaf(style as StyleInput), TypeError, name);
     assert.equal(tree.getNodeCount(), 0, name);
   }
 });

@@ -42,11 +42,11 @@ Ordinary input objects are read through normal JavaScript property access. Acces
 
 `StyleUpdate` has the same structural field types but different presence semantics. `updateStyle` preserves a missing or explicit-`undefined` field, and a partial `Point`, `Size`, `Rect`, or `Line` preserves each missing component. Supplied arrays, tagged unions, and other complete records replace their stored values as a whole; an empty array clears the collection, and accepted `null` still maps to `None`. This is not a recursive `Partial` operation.
 
-The outer Style object rejects unknown enumerable string fields. Style geometry fields use partial named records; missing components use the matching enclosing Style default during construction or replacement and preserve the matching stored component during update. Unknown components are rejected. Complete inputs such as layout available space and a measure result require every component.
+The outer Style object ignores unknown properties and reads each known property once without enumeration. Style geometry fields use partial named records; missing components use the matching enclosing Style default during construction or replacement and preserve the matching stored component during update. Unknown geometry components are rejected. Complete inputs such as layout available space and a measure result require every component.
 
 Named geometry uses `x/y`, `width/height`, `left/right/top/bottom`, or `start/end`. Input records are mutable in TypeScript. Homogeneous semantic-length `Size` and `Rect` Style fields also accept one contained value and expand it to every component for both replacement and update.
 
-Native update conversion produces an owned patch and component-presence masks before borrowing the tree. Under Taffy 0.13, `TaffyTree::style` exposes only `&Style` and `set_style` accepts a complete replacement; there is no public mutable, take, swap, or closure-based Style operation. The binding returns an empty patch before cloning. For a nonempty patch, it clones the stored Style once, applies and compares supplied values in the same traversal, discards an unchanged candidate without dirtying, and otherwise validates the complete candidate before calling `set_style` once. This deliberately favors one straightforward application inventory over an unbenchmarked selective-clone path; replacing a collection can therefore clone the old collection before overwriting it. Safe reuse of the current Style's allocations is not available through the pinned Taffy API. A future upstream closure-style mutation API that owns dirty propagation could remove the copy without changing the JavaScript contract.
+All five Style-taking public methods use the generated Style codec. The shared TypeScript wrapper encodes the supplied Style exactly once and makes one private call with a `Uint8Array`; Native borrows that view and WASI copies only those bytes into Wasm memory. Creation and `setStyle` decode into a local default Style. `updateStyle` resolves the NodeId first, clones the stored Style once, applies and compares present values directly through generated `decode_into`, validates the candidate, and calls `set_style` only if a value changed. The local candidate is dropped on any error, so decoding cannot partially mutate the tree. [Compact Style codec](style-codec.md) records the wire and buffer rules.
 
 ### Numbers and closed families
 
@@ -66,7 +66,7 @@ Available-space inputs accept a direct number as shorthand for `Definite`. The c
 
 Maintained examples and ordinary behavior tests use these numeric shorthands by default. Focused tests and explanations retain the complete forms where those forms are the subject. Public JSDoc names the corresponding `Dimension.Length(value)` or `AvailableSpace.Definite(value)` form whenever it documents a numeric shorthand.
 
-The accepted implementation makes these mappings part of the repository generator contract. Generated TypeScript declarations, JSDoc, complete-form helpers, and Rust boundary parsing share one tagged-input model. Rust parses a number or tagged record directly into the same boundary value; JavaScript does not allocate a replacement tagged object or walk nested Style solely to normalize the shorthand. Taffy-specific conversion and the use of each input type inside geometry and Style remain handwritten. [API code generation](api-codegen.md#generated-tagged-inputs) records the boundary in detail.
+The accepted implementation makes these mappings part of the repository generator contract. Generated TypeScript declarations, JSDoc, and complete-form helpers share one tagged-input model. Available-space values still converge in generated Rust boundary parsing; Style length values converge in the generated Style encoder and compact Rust decoder without allocating replacement tagged objects. Taffy-specific percentage scaling and constructors remain in the handwritten codec primitives. [API code generation](api-codegen.md#generated-tagged-inputs) records the boundary in detail.
 
 Other values that carry data, including Grid placement, track sizing, repetition counts, and template components, use ordinary records with numeric discriminators. A branch requires its own payload fields; unrelated structural properties do not become part of complete output.
 
@@ -74,9 +74,9 @@ Grid integers use checked `i16` or `u16` conversion, strings remain ordinary ide
 
 ### napi-rs types and remaining `Unknown`
 
-Simple scalar and fixed-object fields use concrete napi-rs types. Local `#[napi(object)]` bridges copy fields and then convert to Taffy types; TypeScript generics describe shared shapes but do not create generic native converters.
+Non-Style scalar and fixed-object inputs use concrete napi-rs types where their boundary is already small. Local `#[napi(object)]` bridges copy fields and then convert to Taffy types; TypeScript generics describe shared shapes but do not create generic native converters.
 
-`Unknown` remains only where JavaScript shape is genuinely dynamic: tagged unions, containers whose elements are tagged values, callback return conversion, and arbitrary JavaScript thrown values. `StyleInput.overflow` is one narrow fixed-object exception: napi-rs nested object conversion does not reject arrays, primitives, or extra keys, so the binding first performs the selected strict shape check and then converts to the existing typed point object. This exception does not justify another general parser.
+`Unknown` remains only where a non-Style JavaScript shape is genuinely dynamic: available-space tagged input, callback return conversion, and arbitrary JavaScript thrown values. Style tagged unions, collections, and partial geometry are validated by the authored TypeScript codec primitives and revalidated structurally by the borrowed Rust decoder; they no longer use napi-rs rich-object conversion.
 
 ## Output conversion
 

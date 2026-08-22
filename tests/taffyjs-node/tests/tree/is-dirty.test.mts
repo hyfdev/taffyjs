@@ -14,9 +14,9 @@ function compute(tree: TaffyTree, root: NodeId) {
 
 function settledTree() {
   const tree = new TaffyTree();
-  const child = tree.newLeaf({});
-  const parent = tree.newWithChildren({}, [child]);
-  const root = tree.newWithChildren({}, [parent]);
+  const child = tree.newLeaf();
+  const parent = tree.newWithChildren([child]);
+  const root = tree.newWithChildren([parent]);
   compute(tree, root);
   for (const node of [child, parent, root]) assert.equal(tree.isDirty(node), false);
   return { tree, child, parent, root };
@@ -40,8 +40,8 @@ function captureError(body: () => unknown): CodedError {
 
 test("lifecycle", () => {
   const tree = new TaffyTree();
-  const child = tree.newLeaf({});
-  const root = tree.newWithChildren({}, [child]);
+  const child = tree.newLeaf();
+  const root = tree.newWithChildren([child]);
   assert.equal(tree.isDirty(child), true);
   assert.equal(tree.isDirty(root), true);
   assert.equal(typeof tree.isDirty(root), "boolean");
@@ -63,8 +63,8 @@ test("style", () => {
 test("context", () => {
   const tree = new TaffyTree();
   const context = { version: 1 };
-  const child = tree.newLeafWithContext({}, context);
-  const root = tree.newWithChildren({}, [child]);
+  const child = tree.newLeafWithContext(context);
+  const root = tree.newWithChildren([child]);
   compute(tree, root);
   assert.equal(tree.isDirty(child), false);
   assert.equal(tree.isDirty(root), false);
@@ -77,17 +77,17 @@ test("context", () => {
 test("topology", () => {
   {
     const { tree, child, parent, root } = settledTree();
-    tree.addChild(parent, tree.newLeaf({}));
+    tree.addChild(parent, tree.newLeaf());
     assertParentDirty(tree, child, parent, root);
   }
   {
     const { tree, child, parent, root } = settledTree();
-    tree.insertChildAtIndex(parent, 0, tree.newLeaf({}));
+    tree.insertChildAtIndex(parent, 0, tree.newLeaf());
     assertParentDirty(tree, child, parent, root);
   }
   {
     const { tree, child, parent, root } = settledTree();
-    tree.setChildren(parent, [child, tree.newLeaf({})]);
+    tree.setChildren(parent, [child, tree.newLeaf()]);
     assertParentDirty(tree, child, parent, root);
   }
   {
@@ -107,7 +107,7 @@ test("topology", () => {
   }
   {
     const { tree, child, parent, root } = settledTree();
-    assert.equal(tree.replaceChildAtIndex(parent, 0, tree.newLeaf({})), child);
+    assert.equal(tree.replaceChildAtIndex(parent, 0, tree.newLeaf()), child);
     assertParentDirty(tree, child, parent, root);
   }
   {
@@ -135,7 +135,7 @@ test("child-nuance", () => {
     display: Display.Flex,
     size: { width: 100, height: 20 },
   };
-  const root = tree.newWithChildren({ ...rootStyle, justifyContent: AlignContent.Start }, [child]);
+  const root = tree.newWithChildren([child], { ...rootStyle, justifyContent: AlignContent.Start });
   compute(tree, root);
   const before = tree.getUnroundedLayout(child).location.x;
 
@@ -151,13 +151,13 @@ test("child-nuance", () => {
 
 test("invalid-id", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf({});
+  const foreign = new TaffyTree().newLeaf();
 
   assert.equal(captureError(() => tree.isDirty(1 as never)).constructor, TypeError);
   assert.equal(captureError(() => tree.isDirty(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
   assert.equal(captureError(() => tree.isDirty(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
 
-  const stale = tree.newLeaf({});
+  const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.isDirty(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

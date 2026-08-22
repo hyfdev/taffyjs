@@ -30,7 +30,7 @@ function singleTrack(value: number) {
 function computeChildren(rootStyle: StyleInput, childStyles: readonly StyleInput[]) {
   const tree = new TaffyTree();
   const children = childStyles.map((style) => tree.newLeaf(style));
-  const root = tree.newWithChildren(rootStyle, children);
+  const root = tree.newWithChildren(children, rootStyle);
   tree.computeLayout({ root, availableSpace: definiteWidth(100) });
   return {
     root: tree.getUnroundedLayout(root),
@@ -109,13 +109,10 @@ test("flex", () => {
     flexGrow: 1,
     size: { width: 10, height: 10 },
   });
-  const root = tree.newWithChildren(
-    {
-      display: Display.Flex,
-      size: { width: 101, height: 20 },
-    },
-    [first, second],
-  );
+  const root = tree.newWithChildren([first, second], {
+    display: Display.Flex,
+    size: { width: 101, height: 20 },
+  });
   const options = { root, availableSpace: maxContentSpace() };
 
   tree.disableRounding();
@@ -156,17 +153,14 @@ test("grid", () => {
     gridRow: { start: GridPlacement.Line(2), end: GridPlacement.Line(3) },
     gridColumn: { start: GridPlacement.Line(2), end: GridPlacement.Line(3) },
   });
-  const root = tree.newWithChildren(
-    {
-      display: Display.Grid,
-      size: { width: 100, height: 50 },
-      overflow: { x: Overflow.Scroll, y: Overflow.Scroll },
-      scrollbarWidth: 7,
-      gridTemplateRows: [singleTrack(20), singleTrack(30)],
-      gridTemplateColumns: [singleTrack(40), singleTrack(60)],
-    },
-    [first, second],
-  );
+  const root = tree.newWithChildren([first, second], {
+    display: Display.Grid,
+    size: { width: 100, height: 50 },
+    overflow: { x: Overflow.Scroll, y: Overflow.Scroll },
+    scrollbarWidth: 7,
+    gridTemplateRows: [singleTrack(20), singleTrack(30)],
+    gridTemplateColumns: [singleTrack(40), singleTrack(60)],
+  });
   tree.computeLayout({ root, availableSpace: maxContentSpace() });
 
   assert.deepEqual(tree.getUnroundedLayout(first).size, { width: 40, height: 20 });
@@ -201,7 +195,7 @@ test("grid", () => {
 test("measure-context", () => {
   const context = { width: 20, height: 10 };
   const tree = new TaffyTree<typeof context>();
-  const node = tree.newLeafWithContext({}, context);
+  const node = tree.newLeafWithContext(context);
   let calls = 0;
   const options = {
     root: node,
@@ -230,8 +224,8 @@ test("measure-context", () => {
 test("topology-cache", () => {
   type Context = { width: number; height: number };
   const tree = new TaffyTree<Context>();
-  const first = tree.newLeafWithContext({}, { width: 10, height: 5 });
-  const root = tree.newWithChildren({ display: Display.Flex }, [first]);
+  const first = tree.newLeafWithContext({ width: 10, height: 5 });
+  const root = tree.newWithChildren([first], { display: Display.Flex });
   assert.equal(tree.getNodeCount(), 2);
   let calls = 0;
   const options = {
@@ -250,7 +244,7 @@ test("topology-cache", () => {
   tree.computeLayout(options);
   assert.equal(calls, firstCalls, "an unchanged tree reuses its cached measurements");
 
-  const second = tree.newLeafWithContext({}, { width: 20, height: 10 });
+  const second = tree.newLeafWithContext({ width: 20, height: 10 });
   assert.equal(tree.getNodeCount(), 3);
   tree.addChild(root, second);
   assert.equal(tree.getNodeCount(), 3);

@@ -52,7 +52,7 @@ const update: StyleUpdate = {
 tree.updateStyle(node, update);
 tree.updateStyle(node, output);
 
-// @ts-expect-error Unknown Style fields are rejected.
+// @ts-expect-error Object literals remain limited to declared Style fields even though runtime extras are ignored.
 tree.newLeaf({ unknownField: true });
 // @ts-expect-error Numeric families accept only their declared members.
 tree.newLeaf({ display: 99 });

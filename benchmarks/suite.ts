@@ -1,6 +1,7 @@
 import { codingAgentChatScenarios } from "./coding-agent-chat/benchmark.ts";
 import { nestedUiScenarios } from "./nested-ui/benchmark.ts";
 import type { BenchmarkProfile, BenchmarkScenario, BenchmarkTarget } from "./scenario.ts";
+import { styledNodeConstructionScenario } from "./styled-node-construction/benchmark.ts";
 import { wideWrappingCollectionScenario } from "./wide-wrapping-collection/benchmark.ts";
 
 export const benchmarkProfiles: readonly BenchmarkProfile[] = [
@@ -73,5 +74,6 @@ export const benchmarkBaselineTargetId = "yoga-layout";
 export const benchmarkScenarios: readonly BenchmarkScenario[] = [
   ...nestedUiScenarios,
   wideWrappingCollectionScenario,
+  styledNodeConstructionScenario,
   ...codingAgentChatScenarios,
 ];

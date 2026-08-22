@@ -189,13 +189,13 @@ function buildTaffyChat(api: TaffyApi): TaffyChatFixture {
     return node;
   };
   const measuredLeaf = (context: TextContext): NodeId => {
-    const node = tree.newLeafWithContext(textStyle, context);
+    const node = tree.newLeafWithContext(context, textStyle);
     tree.setMeasure(node, measure);
     nodes.push(node);
     return node;
   };
   const parent = (style: StyleInput, children: readonly NodeId[]): NodeId => {
-    const node = tree.newWithChildren(style, children);
+    const node = tree.newWithChildren(children, style);
     nodes.push(node);
     return node;
   };
