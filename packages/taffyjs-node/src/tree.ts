@@ -9,29 +9,38 @@ import type {
   MeasureFunction,
   Style,
 } from "./public-types.js";
-import { AvailableSpace } from "./tagged-values.js";
+import { AvailableSpaceKind } from "./numeric-families.js";
+import type { AvailableSpace } from "./tagged-values.js";
 
-// Keep these values identical to crates/taffyjs_binding/src/measure.rs.
-const AVAILABLE_MIN_CONTENT = -1;
-const AVAILABLE_MAX_CONTENT = -2;
+// Slot order and tag layout of the private measure-constraint record.
+// Keep identical to crates/taffyjs_binding/src/measure.rs.
+const CONSTRAINT_SLOTS = 7;
+const SLOT_KNOWN_WIDTH = 0;
+const SLOT_KNOWN_HEIGHT = 1;
+const SLOT_AVAILABLE_WIDTH = 2;
+const SLOT_AVAILABLE_HEIGHT = 3;
+const SLOT_TAGS = 4;
+const SLOT_NODE_LOW = 5;
+const SLOT_NODE_HIGH = 6;
+const TAG_KNOWN_WIDTH_PRESENT = 1;
+const TAG_KNOWN_HEIGHT_PRESENT = 1 << 1;
+const TAG_AVAILABLE_WIDTH_SHIFT = 2;
+const TAG_AVAILABLE_HEIGHT_SHIFT = 4;
+const TAG_KIND_MASK = 3;
 
-type RawMeasureArgs = {
-  knownWidth: number;
-  knownHeight: number;
-  availableWidth: number;
-  availableHeight: number;
-  node: number;
-  getStyle: () => Style;
-};
+// One shared record serves the common case. A measure callback may compute another tree, so a
+// nested compute takes its own record and leaves the outer one untouched.
+const sharedConstraintRecord = new Float64Array(new ArrayBuffer(CONSTRAINT_SLOTS * 8));
+let sharedConstraintRecordInUse = false;
 
-function knownDimension(value: number): number | undefined {
-  return Number.isNaN(value) ? undefined : value;
+function knownDimension(slots: Float64Array, slot: number, present: number): number | undefined {
+  return present === 0 ? undefined : slots[slot];
 }
 
-function availableSpaceConstraint(value: number): AvailableSpace {
-  if (value === AVAILABLE_MIN_CONTENT) return AvailableSpace.MinContent;
-  if (value === AVAILABLE_MAX_CONTENT) return AvailableSpace.MaxContent;
-  return AvailableSpace.Definite(value);
+function availableSpaceConstraint(slots: Float64Array, slot: number, kind: number): AvailableSpace {
+  if (kind === AvailableSpaceKind.MinContent) return { kind: AvailableSpaceKind.MinContent };
+  if (kind === AvailableSpaceKind.MaxContent) return { kind: AvailableSpaceKind.MaxContent };
+  return { kind: AvailableSpaceKind.Definite, value: slots[slot] };
 }
 
 const DEFAULT_STYLE_INPUT: StyleInput = {};
@@ -294,31 +303,50 @@ export class TaffyTree<TContext = unknown> {
     availableSpace: ComputeLayoutOptions<TContext>["availableSpace"],
     fallback: MeasureFunction<TContext> | undefined,
   ): void {
-    this.#inner.rawComputeLayoutWithMeasure(
-      root,
-      availableSpace,
-      (value) => {
-        const args = value as RawMeasureArgs;
-        const node = this.#nodes.fromRaw(BigInt(args.node));
-        const measure = this.#measures.get(node) ?? fallback;
-        if (measure === undefined) {
-          throw new Error("Native measure marker has no JavaScript measure function");
-        }
-        return measure({
-          knownDimensions: {
-            width: knownDimension(args.knownWidth),
-            height: knownDimension(args.knownHeight),
-          },
-          availableSpace: {
-            width: availableSpaceConstraint(args.availableWidth),
-            height: availableSpaceConstraint(args.availableHeight),
-          },
-          node,
-          context: this.#contexts.get(node),
-          getStyle: args.getStyle,
-        });
-      },
-      fallback !== undefined,
-    );
+    const usesSharedRecord = !sharedConstraintRecordInUse;
+    if (usesSharedRecord) sharedConstraintRecordInUse = true;
+    const slots = usesSharedRecord
+      ? sharedConstraintRecord
+      : new Float64Array(new ArrayBuffer(CONSTRAINT_SLOTS * 8));
+    try {
+      this.#inner.rawComputeLayoutWithMeasure(
+        root,
+        availableSpace,
+        (getStyle) => {
+          const tags = slots[SLOT_TAGS];
+          const node = (BigInt(slots[SLOT_NODE_HIGH]) << 32n) | BigInt(slots[SLOT_NODE_LOW]);
+          const publicNode = this.#nodes.fromRaw(node);
+          const measure = this.#measures.get(publicNode) ?? fallback;
+          if (measure === undefined) {
+            throw new Error("Native measure marker has no JavaScript measure function");
+          }
+          return measure({
+            knownDimensions: {
+              width: knownDimension(slots, SLOT_KNOWN_WIDTH, tags & TAG_KNOWN_WIDTH_PRESENT),
+              height: knownDimension(slots, SLOT_KNOWN_HEIGHT, tags & TAG_KNOWN_HEIGHT_PRESENT),
+            },
+            availableSpace: {
+              width: availableSpaceConstraint(
+                slots,
+                SLOT_AVAILABLE_WIDTH,
+                (tags >>> TAG_AVAILABLE_WIDTH_SHIFT) & TAG_KIND_MASK,
+              ),
+              height: availableSpaceConstraint(
+                slots,
+                SLOT_AVAILABLE_HEIGHT,
+                (tags >>> TAG_AVAILABLE_HEIGHT_SHIFT) & TAG_KIND_MASK,
+              ),
+            },
+            node: publicNode,
+            context: this.#contexts.get(publicNode),
+            getStyle: getStyle as () => Style,
+          });
+        },
+        slots,
+        fallback !== undefined,
+      );
+    } finally {
+      if (usesSharedRecord) sharedConstraintRecordInUse = false;
+    }
   }
 }

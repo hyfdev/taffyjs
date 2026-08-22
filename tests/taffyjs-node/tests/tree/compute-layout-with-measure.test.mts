@@ -220,6 +220,7 @@ test("callback-args reconstruct MaxContent, negative, and non-finite available s
     { width: -4, height: Number.POSITIVE_INFINITY },
     { width: Number.NaN, height: Number.NEGATIVE_INFINITY },
     { width: -0, height: 0 },
+    { width: -1, height: -2 },
   ] as const) {
     tree.computeLayout({
       root: node,
@@ -247,6 +248,11 @@ test("callback-args reconstruct MaxContent, negative, and non-finite available s
   assert.equal(Object.is(received[3].width.value, -0), true);
   assert.equal(received[3].height.kind, AvailableSpaceKind.Definite);
   assert.equal(Object.is(received[3].height.value, 0), true);
+  // A definite size is carried in its own slot, so no value is reserved for a keyword.
+  assert.equal(received[4].width.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[4].width.value, -1);
+  assert.equal(received[4].height.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[4].height.value, -2);
 });
 
 test("getStyle provider is reused per node and refreshed for the next compute", () => {

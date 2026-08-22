@@ -3,29 +3,129 @@ use std::marker::PhantomData;
 use std::ptr;
 use std::rc::Rc;
 
-use napi::bindgen_prelude::{Function, FunctionRef, ToNapiValue, Unknown};
-use napi::{Env, JsValue, sys};
+use napi::bindgen_prelude::{Float64ArraySlice, Function, FunctionRef, Unknown};
+use napi::{Env, JsValue, Status, sys};
 use napi_derive::napi;
 use taffy::geometry::Size;
 use taffy::style::{AvailableSpace, Style};
 use taffy::{NodeId, TaffyTree};
 
 use crate::error::{BindingError, BindingResult, internal_error};
+use crate::numeric::AvailableSpaceKindCode;
 use crate::{js_object, number, style};
 
-// Keep these values identical to packages/taffyjs-node/src/tree.ts.
-// Layout sizes are non-negative, so NaN / -1 / -2 cannot collide with a definite size.
-const AVAILABLE_MIN_CONTENT: f64 = -1.0;
-const AVAILABLE_MAX_CONTENT: f64 = -2.0;
+/// Slot order of the private measure-constraint record.
+/// Keep identical to `packages/taffyjs-node/src/tree.ts`.
+pub(crate) const CONSTRAINT_SLOTS: usize = 7;
+const SLOT_KNOWN_WIDTH: usize = 0;
+const SLOT_KNOWN_HEIGHT: usize = 1;
+const SLOT_AVAILABLE_WIDTH: usize = 2;
+const SLOT_AVAILABLE_HEIGHT: usize = 3;
+const SLOT_TAGS: usize = 4;
+const SLOT_NODE_LOW: usize = 5;
+const SLOT_NODE_HIGH: usize = 6;
 
-#[napi(object, object_from_js = false)]
-pub struct MeasureArguments<'env> {
-    pub known_width: f64,
-    pub known_height: f64,
-    pub available_width: f64,
-    pub available_height: f64,
-    pub node: f64,
-    pub get_style: Function<'env, (), style::StyleOutput>,
+/// Presence and variant bits packed into `SLOT_TAGS`. The two-bit variant fields carry the public
+/// `AvailableSpaceKind` codes, so no numeric slot has to double as its own tag and no sentinel
+/// value has to be excluded from the size range.
+const TAG_KNOWN_WIDTH_PRESENT: u32 = 1;
+const TAG_KNOWN_HEIGHT_PRESENT: u32 = 1 << 1;
+const TAG_AVAILABLE_WIDTH_SHIFT: u32 = 2;
+const TAG_AVAILABLE_HEIGHT_SHIFT: u32 = 4;
+
+fn constraint_slots_length_error() -> napi::Error {
+    napi::Error::new(
+        Status::InvalidArg,
+        format!("Measure constraints must contain exactly {CONSTRAINT_SLOTS} values"),
+    )
+}
+
+/// Carries one measure-constraint record to the caller's `Float64Array`.
+///
+/// Node-API promises that `napi_get_typedarray_info` yields a pointer into the array's own storage,
+/// which a Wasm module cannot be given: its linear memory cannot address the JavaScript heap. The
+/// native path therefore re-derives that pointer for every request rather than holding one across
+/// the JavaScript callbacks that run between requests, and the Wasm path writes the elements.
+pub(crate) struct ConstraintTarget<'a, 'env> {
+    output: &'a mut Float64ArraySlice<'env>,
+    #[cfg(target_arch = "wasm32")]
+    slots: [f64; CONSTRAINT_SLOTS],
+}
+
+impl<'a, 'env> ConstraintTarget<'a, 'env> {
+    pub(crate) fn new(output: &'a mut Float64ArraySlice<'env>) -> napi::Result<Self> {
+        if output.len() != CONSTRAINT_SLOTS {
+            return Err(constraint_slots_length_error());
+        }
+        Ok(Self {
+            output,
+            #[cfg(target_arch = "wasm32")]
+            slots: [0.0; CONSTRAINT_SLOTS],
+        })
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn write(&mut self, env: &Env, slots: [f64; CONSTRAINT_SLOTS]) -> BindingResult<()> {
+        let _ = env;
+        let target: &mut [f64; CONSTRAINT_SLOTS] = unsafe { self.output.as_mut() }
+            .try_into()
+            .map_err(|_| internal_error())?;
+        *target = slots;
+        Ok(())
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn write(&mut self, env: &Env, slots: [f64; CONSTRAINT_SLOTS]) -> BindingResult<()> {
+        use napi::bindgen_prelude::JsObjectValue;
+        self.slots = slots;
+        for index in 0..CONSTRAINT_SLOTS {
+            let value = env
+                .create_double(self.slots[index])
+                .map_err(|_| internal_error())?;
+            self.output
+                .set_element(index as u32, value)
+                .map_err(|_| internal_error())?;
+        }
+        Ok(())
+    }
+}
+
+fn constraint_slots(
+    known_dimensions: Size<Option<f32>>,
+    available_space: Size<AvailableSpace>,
+    node: NodeId,
+) -> [f64; CONSTRAINT_SLOTS] {
+    let mut slots = [0.0; CONSTRAINT_SLOTS];
+    let mut tags = 0u32;
+    if let Some(value) = known_dimensions.width {
+        tags |= TAG_KNOWN_WIDTH_PRESENT;
+        slots[SLOT_KNOWN_WIDTH] = f64::from(value);
+    }
+    if let Some(value) = known_dimensions.height {
+        tags |= TAG_KNOWN_HEIGHT_PRESENT;
+        slots[SLOT_KNOWN_HEIGHT] = f64::from(value);
+    }
+    let (width_kind, width_value) = available_space_slot(available_space.width);
+    tags |= width_kind << TAG_AVAILABLE_WIDTH_SHIFT;
+    slots[SLOT_AVAILABLE_WIDTH] = width_value;
+    let (height_kind, height_value) = available_space_slot(available_space.height);
+    tags |= height_kind << TAG_AVAILABLE_HEIGHT_SHIFT;
+    slots[SLOT_AVAILABLE_HEIGHT] = height_value;
+    slots[SLOT_TAGS] = f64::from(tags);
+    let raw = u64::from(node);
+    slots[SLOT_NODE_LOW] = f64::from((raw & 0xffff_ffff) as u32);
+    slots[SLOT_NODE_HIGH] = f64::from((raw >> 32) as u32);
+    slots
+}
+
+fn available_space_slot(value: AvailableSpace) -> (u32, f64) {
+    match value {
+        AvailableSpace::Definite(value) => {
+            (AvailableSpaceKindCode::Definite as u32, f64::from(value))
+        }
+        AvailableSpace::MinContent => (AvailableSpaceKindCode::MinContent as u32, 0.0),
+        AvailableSpace::MaxContent => (AvailableSpaceKindCode::MaxContent as u32, 0.0),
+    }
 }
 
 #[napi(object, object_to_js = false)]
@@ -81,23 +181,26 @@ pub(crate) enum MeasureFailure<'env> {
     Binding(BindingError),
 }
 
-pub(crate) struct MeasureSession<'env> {
+pub(crate) struct MeasureSession<'session, 'env> {
     env: Env,
-    callback: Function<'env, MeasureArguments<'env>, Unknown<'env>>,
+    callback: Function<'env, Unknown<'env>, Unknown<'env>>,
+    constraints: ConstraintTarget<'session, 'env>,
     cache: HashMap<MeasureCacheKey, Size<f32>>,
     style_providers: HashMap<u64, FunctionRef<(), style::StyleOutput>>,
     failure: Option<MeasureFailure<'env>>,
     not_send: PhantomData<Rc<()>>,
 }
 
-impl<'env> MeasureSession<'env> {
+impl<'session, 'env> MeasureSession<'session, 'env> {
     pub(crate) fn new(
         env: Env,
-        callback: Function<'env, MeasureArguments<'env>, Unknown<'env>>,
+        callback: Function<'env, Unknown<'env>, Unknown<'env>>,
+        constraints: ConstraintTarget<'session, 'env>,
     ) -> Self {
         Self {
             env,
             callback,
+            constraints,
             cache: HashMap::new(),
             style_providers: HashMap::new(),
             failure: None,
@@ -121,17 +224,14 @@ impl<'env> MeasureSession<'env> {
             return *size;
         }
 
-        let result = arguments(
-            &self.env,
-            &mut self.style_providers,
-            known_dimensions,
-            available_space,
-            node,
-            style,
-        )
-        .map_err(MeasureFailure::Binding)
-        .and_then(|arguments| call(&self.callback, arguments))
-        .and_then(|value| result_size(value).map_err(MeasureFailure::Binding));
+        let slots = constraint_slots(known_dimensions, available_space, node);
+        let result = self
+            .constraints
+            .write(&self.env, slots)
+            .and_then(|()| style_provider(&self.env, &mut self.style_providers, node, style))
+            .map_err(MeasureFailure::Binding)
+            .and_then(|provider| call(&self.callback, provider))
+            .and_then(|value| result_size(value).map_err(MeasureFailure::Binding));
         match result {
             Ok(size) => {
                 self.cache.insert(cache_key, size);
@@ -151,24 +251,6 @@ impl<'env> MeasureSession<'env> {
     pub(crate) fn has_failed(&self) -> bool {
         self.failure.is_some()
     }
-}
-
-fn arguments<'env>(
-    env: &'env Env,
-    style_providers: &mut HashMap<u64, FunctionRef<(), style::StyleOutput>>,
-    known_dimensions: Size<Option<f32>>,
-    available_space: Size<AvailableSpace>,
-    node: NodeId,
-    style: &Style,
-) -> BindingResult<MeasureArguments<'env>> {
-    Ok(MeasureArguments {
-        known_width: encode_known_dimension(known_dimensions.width),
-        known_height: encode_known_dimension(known_dimensions.height),
-        available_width: encode_available_space(available_space.width),
-        available_height: encode_available_space(available_space.height),
-        node: encode_node(node),
-        get_style: style_provider(env, style_providers, node, style)?,
-    })
 }
 
 fn style_provider<'env>(
@@ -196,8 +278,8 @@ fn style_provider<'env>(
 }
 
 fn call<'env>(
-    callback: &Function<'env, MeasureArguments<'env>, Unknown<'env>>,
-    arguments: MeasureArguments<'_>,
+    callback: &Function<'env, Unknown<'env>, Unknown<'env>>,
+    get_style: Function<'_, (), style::StyleOutput>,
 ) -> Result<Unknown<'env>, MeasureFailure<'env>> {
     let env = callback.value().env;
     let mut receiver = ptr::null_mut();
@@ -206,9 +288,7 @@ fn call<'env>(
         return Err(MeasureFailure::Binding(internal_error()));
     }
 
-    let argument = unsafe { MeasureArguments::to_napi_value(env, arguments) }
-        .map_err(|_| MeasureFailure::Binding(internal_error()))?;
-    let args = [argument];
+    let args = [get_style.raw()];
     let mut returned = ptr::null_mut();
     let status = unsafe {
         sys::napi_call_function(
@@ -233,25 +313,6 @@ fn call<'env>(
         }
         _ => Err(MeasureFailure::Binding(internal_error())),
     }
-}
-
-fn encode_known_dimension(value: Option<f32>) -> f64 {
-    match value {
-        Some(value) => f64::from(value),
-        None => f64::NAN,
-    }
-}
-
-fn encode_available_space(value: AvailableSpace) -> f64 {
-    match value {
-        AvailableSpace::Definite(value) => f64::from(value),
-        AvailableSpace::MinContent => AVAILABLE_MIN_CONTENT,
-        AvailableSpace::MaxContent => AVAILABLE_MAX_CONTENT,
-    }
-}
-
-fn encode_node(node: NodeId) -> f64 {
-    u64::from(node) as f64
 }
 
 fn result_size(value: Unknown<'_>) -> BindingResult<Size<f32>> {
@@ -283,9 +344,9 @@ mod tests {
     use taffy::{NodeId, TaffyTree};
 
     use super::{
-        AVAILABLE_MAX_CONTENT, AVAILABLE_MIN_CONTENT, AvailableSpaceCacheKey, MeasureCacheKey,
-        MeasureSession, encode_available_space, encode_known_dimension, encode_node,
-        invalidate_subtree,
+        AvailableSpaceCacheKey, MeasureCacheKey, MeasureSession, SLOT_AVAILABLE_HEIGHT,
+        SLOT_AVAILABLE_WIDTH, SLOT_KNOWN_HEIGHT, SLOT_KNOWN_WIDTH, SLOT_NODE_HIGH, SLOT_NODE_LOW,
+        SLOT_TAGS, constraint_slots, invalidate_subtree,
     };
 
     fn cache_key(
@@ -347,25 +408,66 @@ mod tests {
     }
 
     #[test]
-    fn compact_constraint_sentinels_use_nan_and_negative_keywords() {
-        assert!(encode_known_dimension(None).is_nan());
-        assert_eq!(encode_known_dimension(Some(12.5)), 12.5);
-        assert_eq!(
-            encode_known_dimension(Some(-0.0)).to_bits(),
-            (-0.0f64).to_bits()
+    fn constraint_slots_separate_values_from_variant_tags() {
+        let definite = constraint_slots(
+            Size {
+                width: Some(12.5),
+                height: None,
+            },
+            Size {
+                width: AvailableSpace::Definite(-1.0),
+                height: AvailableSpace::Definite(-2.0),
+            },
+            NodeId::from(1u64),
         );
-        assert!(!encode_known_dimension(Some(f32::INFINITY)).is_nan());
-        assert_eq!(
-            encode_available_space(AvailableSpace::MinContent),
-            AVAILABLE_MIN_CONTENT
+        // A definite -1 or -2 stays a definite size; only the tag slot selects the variant.
+        assert_eq!(definite[SLOT_KNOWN_WIDTH], 12.5);
+        assert_eq!(definite[SLOT_AVAILABLE_WIDTH], -1.0);
+        assert_eq!(definite[SLOT_AVAILABLE_HEIGHT], -2.0);
+        assert_eq!(definite[SLOT_TAGS], 1.0);
+
+        let keywords = constraint_slots(
+            Size {
+                width: None,
+                height: Some(-0.0),
+            },
+            Size {
+                width: AvailableSpace::MinContent,
+                height: AvailableSpace::MaxContent,
+            },
+            NodeId::from(0u64),
         );
-        assert_eq!(
-            encode_available_space(AvailableSpace::MaxContent),
-            AVAILABLE_MAX_CONTENT
+        assert_eq!(keywords[SLOT_KNOWN_HEIGHT].to_bits(), (-0.0f64).to_bits());
+        assert_eq!(keywords[SLOT_TAGS], (2 | (1 << 2) | (2 << 4)) as f64);
+
+        let large = constraint_slots(
+            Size {
+                width: None,
+                height: None,
+            },
+            Size {
+                width: AvailableSpace::MaxContent,
+                height: AvailableSpace::MaxContent,
+            },
+            NodeId::from((3u64 << 32) | 7),
         );
-        assert_eq!(encode_available_space(AvailableSpace::Definite(0.0)), 0.0);
-        assert_eq!(encode_available_space(AvailableSpace::Definite(12.5)), 12.5);
-        assert_eq!(encode_node(NodeId::from(1u64 << 32)), (1u64 << 32) as f64);
+        assert_eq!(large[SLOT_NODE_LOW], 7.0);
+        assert_eq!(large[SLOT_NODE_HIGH], 3.0);
+
+        // Every slot pair stays exact for the widest node id slotmap can produce.
+        let widest = constraint_slots(
+            Size {
+                width: None,
+                height: None,
+            },
+            Size {
+                width: AvailableSpace::MinContent,
+                height: AvailableSpace::MinContent,
+            },
+            NodeId::from(u64::MAX),
+        );
+        assert_eq!(widest[SLOT_NODE_LOW], f64::from(u32::MAX));
+        assert_eq!(widest[SLOT_NODE_HIGH], f64::from(u32::MAX));
     }
 
     #[test]
@@ -377,7 +479,7 @@ mod tests {
         impl<T: ?Sized> AmbiguousIfSend<()> for Check<T> {}
         impl<T: ?Sized + Send> AmbiguousIfSend<u8> for Check<T> {}
 
-        let _ = <Check<MeasureSession<'static>> as AmbiguousIfSend<_>>::check;
+        let _ = <Check<MeasureSession<'static, 'static>> as AmbiguousIfSend<_>>::check;
     }
 
     #[test]
