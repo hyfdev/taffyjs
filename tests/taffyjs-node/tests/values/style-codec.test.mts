@@ -96,31 +96,29 @@ test("Grid, strings, tagged unions, and oversized values round-trip", () => {
   assert.deepEqual(style.gridTemplateRowNames, [["large".repeat(1024)]]);
 });
 
-test("known Proxy properties are read once and unknown properties are rejected by name", () => {
+test("known Proxy properties are read once and unknown properties are ignored", () => {
   const tree = new TaffyTree();
   const reads = new Map<PropertyKey, number>();
-  const proxied = (target: object) =>
-    new Proxy(target, {
-      get(object, property, receiver) {
-        reads.set(property, (reads.get(property) ?? 0) + 1);
-        return Reflect.get(object, property, receiver);
-      },
-    });
-
-  const node = tree.newLeaf(proxied({ flexGrow: 3 }) as never);
-  assert.equal(tree.getStyle(node).flexGrow, 3);
-  assert.equal(reads.get("flexGrow"), 1);
-
-  reads.clear();
-  const withUnknown = proxied({
+  const target = {
     flexGrow: 3,
     get unknownField(): never {
-      throw new Error("an unknown property is rejected by name, not by value");
+      throw new Error("unknown getter must not run");
+    },
+  };
+  const style = new Proxy(target, {
+    get(object, property, receiver) {
+      reads.set(property, (reads.get(property) ?? 0) + 1);
+      return Reflect.get(object, property, receiver);
+    },
+    ownKeys() {
+      throw new Error("unknown-field filtering must not enumerate the Style object");
     },
   });
-  assert.throws(() => tree.newLeaf(withUnknown as never), TypeError);
+
+  const node = tree.newLeaf(style as never);
+  assert.equal(tree.getStyle(node).flexGrow, 3);
+  assert.equal(reads.get("flexGrow"), 1);
   assert.equal(reads.has("unknownField"), false);
-  assert.equal(tree.getNodeCount(), 1);
 });
 
 test("all five Style operations isolate recursive calls and oversized storage", () => {
@@ -216,14 +214,11 @@ test("NaN and signed zero retain bitwise update behavior", () => {
   assert.equal(tree.isDirty(node), false);
 });
 
-test("newWithChildren rejects unknown fields without attaching the children", () => {
+test("unknown fields are ignored by newWithChildren", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf();
+  const parent = tree.newWithChildren([child], { flexGrow: 2, unknownField: true } as never);
 
-  assert.throws(
-    () => tree.newWithChildren([child], { flexGrow: 2, unknownField: true } as never),
-    TypeError,
-  );
-  assert.equal(tree.getNodeCount(), 1);
-  assert.equal(tree.getParent(child), null);
+  assert.equal(tree.getStyle(parent).flexGrow, 2);
+  assert.deepEqual(tree.getChildren(parent), [child]);
 });

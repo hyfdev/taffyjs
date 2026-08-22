@@ -1064,8 +1064,8 @@ function geometryObject(value, allowedFields, name) {
 	validateFields(object, allowedFields, name);
 	return object;
 }
-function withStyleEncoder(style, wireVersion, presenceBytes, allowedFields, use) {
-	validateFields(inputObject(style, "Style"), allowedFields, "Style");
+function withStyleEncoder(style, wireVersion, presenceBytes, use) {
+	inputObject(style, "Style");
 	const usesSharedBuffer = !sharedStyleBufferInUse;
 	if (usesSharedBuffer) sharedStyleBufferInUse = true;
 	const encoder = usesSharedBuffer ? sharedStyleEncoder ??= new StyleEncoder(sharedStyleBuffer) : new StyleEncoder(new Uint8Array(COMMON_STYLE_BUFFER_SIZE));
@@ -1416,51 +1416,8 @@ var StyleEncoder = class {
 };
 //#endregion
 //#region src/style-input.ts
-const styleFields = /* @__PURE__ */ new Set([
-	"display",
-	"itemIsTable",
-	"itemIsReplaced",
-	"boxSizing",
-	"direction",
-	"overflow",
-	"scrollbarWidth",
-	"float",
-	"clear",
-	"position",
-	"inset",
-	"size",
-	"minSize",
-	"maxSize",
-	"aspectRatio",
-	"margin",
-	"padding",
-	"border",
-	"alignItems",
-	"alignSelf",
-	"justifyItems",
-	"justifySelf",
-	"alignContent",
-	"justifyContent",
-	"gap",
-	"textAlign",
-	"flexDirection",
-	"flexWrap",
-	"flexBasis",
-	"flexGrow",
-	"flexShrink",
-	"gridTemplateRows",
-	"gridTemplateColumns",
-	"gridAutoRows",
-	"gridAutoColumns",
-	"gridAutoFlow",
-	"gridTemplateAreas",
-	"gridTemplateColumnNames",
-	"gridTemplateRowNames",
-	"gridRow",
-	"gridColumn"
-]);
 function withEncodedStyle(style, use) {
-	return withStyleEncoder(style, 1, 6, styleFields, (encoder) => {
+	return withStyleEncoder(style, 1, 6, (encoder) => {
 		const display = style.display;
 		if (display !== void 0) {
 			encoder.field(0);

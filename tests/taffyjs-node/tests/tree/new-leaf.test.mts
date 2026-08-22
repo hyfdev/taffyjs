@@ -51,11 +51,12 @@ test("stable-id", () => {
 test("conversion-atomic", () => {
   const tree = new TaffyTree();
 
-  assert.throws(() => tree.newLeaf({ unknownField: true } as never), TypeError);
+  const ignored = tree.newLeaf({ unknownField: true } as never);
+  assert.equal(tree.getStyle(ignored).flexGrow, 0);
   assert.throws(() => tree.newLeaf({ display: 999 } as never), RangeError);
-  assert.equal(tree.getNodeCount(), 0);
+  assert.equal(tree.getNodeCount(), 1);
 
   const first = tree.newLeaf();
-  assert.equal(creationSerial(first), 1n, "failed conversion does not consume a serial");
-  assert.equal(tree.getNodeCount(), 1);
+  assert.equal(creationSerial(first), 2n, "failed conversion does not consume a serial");
+  assert.equal(tree.getNodeCount(), 2);
 });

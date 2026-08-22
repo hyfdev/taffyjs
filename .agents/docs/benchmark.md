@@ -26,6 +26,8 @@ Every benchmark case is a scenario with a named question, input and scale, publi
 
 Scenario timing follows the transaction being investigated. An initial-layout scenario may create the public tree, compute layout, and read the outputs the consumer needs. A persistent-tree scenario may mutate an existing tree, recompute it, and read the affected outputs without rebuilding the tree. A batch scenario may create, compute, read or serialize, and finish one complete item. Fixture parsing, result validation, and harness bookkeeping stay outside the timed interval unless they are themselves the public operation named by the scenario. A total is measured directly rather than reconstructed by adding separately aggregated phase results.
 
+[VOUCHED @hyfdev 2026-08-22]
+
 The public suite contains six scenarios:
 
 1. **Small nested UI: 50 nodes.** Create the deterministic nested public tree, compute its initial layout, read every required layout result, and complete the package's applicable public lifecycle. This exposes fixed package and API costs for a small layout transaction.

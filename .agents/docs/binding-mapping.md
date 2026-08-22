@@ -42,7 +42,7 @@ Ordinary input objects are read through normal JavaScript property access. Acces
 
 `StyleUpdate` has the same structural field types but different presence semantics. `updateStyle` preserves a missing or explicit-`undefined` field, and a partial `Point`, `Size`, `Rect`, or `Line` preserves each missing component. Supplied arrays, tagged unions, and other complete records replace their stored values as a whole; an empty array clears the collection, and accepted `null` still maps to `None`. This is not a recursive `Partial` operation.
 
-The outer Style object rejects unknown properties and reads each known property once. Style geometry fields use partial named records; missing components use the matching enclosing Style default during construction or replacement and preserve the matching stored component during update. Unknown geometry components are rejected. Complete inputs such as layout available space and a measure result require every component.
+The outer Style object ignores unknown properties and reads each known property once without enumeration. Style geometry fields use partial named records; missing components use the matching enclosing Style default during construction or replacement and preserve the matching stored component during update. Unknown geometry components are rejected. Complete inputs such as layout available space and a measure result require every component.
 
 Named geometry uses `x/y`, `width/height`, `left/right/top/bottom`, or `start/end`. Input records are mutable in TypeScript. Homogeneous semantic-length `Size` and `Rect` Style fields also accept one contained value and expand it to every component for both replacement and update.
 

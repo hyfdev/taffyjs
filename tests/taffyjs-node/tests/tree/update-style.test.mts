@@ -236,12 +236,12 @@ test("empty and unchanged updates preserve clean state", () => {
   assert.equal(Object.is(tree.getStyle(node).scrollbarWidth, -0), true);
 });
 
-test("unknown fields are rejected without dirtying the node", () => {
+test("unknown fields are ignored", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({ flexGrow: 2 });
   tree.computeLayout({ root: node, availableSpace: maxContentSpace() });
 
-  assert.throws(() => tree.updateStyle(node, { unknownField: true } as never), TypeError);
+  tree.updateStyle(node, { unknownField: true } as never);
   assert.equal(tree.getStyle(node).flexGrow, 2);
   assert.equal(tree.isDirty(node), false);
 });
