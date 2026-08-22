@@ -212,6 +212,98 @@ test("callback-args", () => {
   assert.equal(secondStyle.flexGrow, Math.fround(1.25));
 });
 
+test("callback-args reconstruct MaxContent, negative, and non-finite available space", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeafWithContext(true);
+  const received: MeasureArgs<unknown>["availableSpace"][] = [];
+
+  for (const availableSpace of [
+    { width: AvailableSpace.MaxContent, height: AvailableSpace.MinContent },
+    { width: -4, height: Number.POSITIVE_INFINITY },
+    { width: Number.NaN, height: Number.NEGATIVE_INFINITY },
+    { width: -0, height: 0 },
+    { width: -1, height: -2 },
+  ] as const) {
+    tree.computeLayout({
+      root: node,
+      availableSpace,
+      measure(args) {
+        received.push(args.availableSpace);
+        return { width: 8, height: 4 };
+      },
+    });
+  }
+
+  assert.deepEqual(received[0], {
+    width: AvailableSpace.MaxContent,
+    height: AvailableSpace.MinContent,
+  });
+  assert.equal(received[1].width.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[1].width.value, -4);
+  assert.equal(received[1].height.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[1].height.value, Number.POSITIVE_INFINITY);
+  assert.equal(received[2].width.kind, AvailableSpaceKind.Definite);
+  assert.equal(Number.isNaN(received[2].width.value), true);
+  assert.equal(received[2].height.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[2].height.value, Number.NEGATIVE_INFINITY);
+  assert.equal(received[3].width.kind, AvailableSpaceKind.Definite);
+  assert.equal(Object.is(received[3].width.value, -0), true);
+  assert.equal(received[3].height.kind, AvailableSpaceKind.Definite);
+  assert.equal(Object.is(received[3].height.value, 0), true);
+  // The variant comes from its own slot, so every finite definite size round-trips.
+  assert.equal(received[4].width.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[4].width.value, -1);
+  assert.equal(received[4].height.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[4].height.value, -2);
+});
+
+test("a measure callback can lay out another tree without disturbing its own request", () => {
+  const inner = new TaffyTree<string>();
+  const innerLeaf = inner.newLeafWithContext("inner", { display: Display.Flex });
+  inner.setMeasure(innerLeaf, ({ context }) => {
+    assert.equal(context, "inner");
+    return { width: 7, height: 3 };
+  });
+  const innerRoot = inner.newWithChildren([innerLeaf], {
+    display: Display.Flex,
+    size: { width: 50, height: 50 },
+  });
+
+  const outer = new TaffyTree<string>();
+  const outerLeaf = outer.newLeafWithContext("outer", { display: Display.Flex });
+  const seen: MeasureArgs<string>[] = [];
+  outer.setMeasure(outerLeaf, (args) => {
+    const before = {
+      width: args.knownDimensions.width,
+      availableWidth: args.availableSpace.width,
+      node: args.node,
+      context: args.context,
+    };
+    inner.computeLayout({ root: innerRoot, availableSpace: { width: 50, height: 50 } });
+    assert.deepEqual(args.knownDimensions.width, before.width);
+    assert.deepEqual(args.availableSpace.width, before.availableWidth);
+    assert.equal(args.node, before.node);
+    assert.equal(args.context, before.context);
+    seen.push(args);
+    return { width: 21, height: 9 };
+  });
+  const outerRoot = outer.newWithChildren([outerLeaf], {
+    display: Display.Flex,
+    size: { width: 200, height: 100 },
+  });
+  outer.computeLayout({ root: outerRoot, availableSpace: { width: 200, height: 100 } });
+
+  assert.equal(seen.length > 0, true);
+  assert.equal(
+    seen.every((args) => args.node === outerLeaf),
+    true,
+  );
+  // Both leaves stretch on their container's cross axis, so the measured width is what each
+  // callback decides.
+  assert.equal(outer.getUnroundedLayout(outerLeaf).size.width, 21);
+  assert.equal(inner.getUnroundedLayout(innerLeaf).size.width, 7);
+});
+
 test("getStyle provider is reused per node and refreshed for the next compute", () => {
   const fixture = createNestedMeasureFixture(FlexDirection.Row);
   const providers = new Map<NodeId, () => ReturnType<MeasureArgs<unknown>["getStyle"]>>();
@@ -791,6 +883,13 @@ test("malformed-result", () => {
     const error = captureError(() => compute(tree, node, () => result as never));
     assert.equal((error as Error).constructor, TypeError);
   }
+});
+
+test("extra-result-fields are ignored", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeafWithContext(true);
+  compute(tree, node, () => ({ width: 30, height: 10, extra: 3 }) as never);
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 30, height: 10 });
 });
 
 test("zero-drain", () => {

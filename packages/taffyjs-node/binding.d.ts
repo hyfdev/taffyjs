@@ -35,19 +35,10 @@ export declare class BindingTaffyTree {
   rawComputeLayoutWithMeasure(
     node: bigint,
     availableSpace: unknown,
-    measure: (arg: MeasureArguments) => unknown,
+    measure: (arg: unknown) => unknown,
+    constraints: Float64Array,
     hasGlobalMeasure: boolean,
   ): void;
-}
-
-export interface AvailableSpaceOutput {
-  kind: number;
-  value?: number;
-}
-
-export interface AvailableSpaceSizeOutput {
-  width: AvailableSpaceOutput;
-  height: AvailableSpaceOutput;
 }
 
 export interface AvailableSpaceTaggedInput {
@@ -128,11 +119,6 @@ export interface GridTemplateRepetitionOutput {
   lineNames: Array<Array<string>>;
 }
 
-export interface KnownDimensionsOutput {
-  width: number | undefined;
-  height: number | undefined;
-}
-
 export interface LengthOutput {
   unit: number;
   value?: number;
@@ -148,13 +134,6 @@ export interface LengthRectOutput {
 export interface LengthSizeOutput {
   width: LengthOutput;
   height: LengthOutput;
-}
-
-export interface MeasureArguments {
-  knownDimensions: KnownDimensionsOutput;
-  availableSpace: AvailableSpaceSizeOutput;
-  node: bigint;
-  getStyle: () => StyleOutput;
 }
 
 export interface MeasureResultInput {

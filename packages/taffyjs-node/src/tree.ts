@@ -10,14 +10,61 @@ import type {
   Size,
   Style,
 } from "./public-types.js";
+import { AvailableSpaceKind } from "./numeric-families.js";
 import type { AvailableSpace } from "./tagged-values.js";
 
-type RawMeasureArgs = {
-  knownDimensions: Size<number | undefined>;
-  availableSpace: Size<AvailableSpace>;
-  node: bigint;
-  getStyle: () => Style;
-};
+// Slot order and tag layout of the private measure-constraint record.
+// Keep identical to crates/taffyjs_binding/src/measure.rs.
+const CONSTRAINT_SLOTS = 7;
+const SLOT_KNOWN_WIDTH = 0;
+const SLOT_KNOWN_HEIGHT = 1;
+const SLOT_AVAILABLE_WIDTH = 2;
+const SLOT_AVAILABLE_HEIGHT = 3;
+const SLOT_TAGS = 4;
+const SLOT_NODE_LOW = 5;
+const SLOT_NODE_HIGH = 6;
+const TAG_KNOWN_WIDTH_PRESENT = 1;
+const TAG_KNOWN_HEIGHT_PRESENT = 1 << 1;
+const TAG_AVAILABLE_WIDTH_SHIFT = 2;
+const TAG_AVAILABLE_HEIGHT_SHIFT = 4;
+const TAG_KIND_MASK = 3;
+
+// One record serves every compute. The callback decodes it completely before it invokes the user
+// function, so a measure callback that lays out another tree cannot disturb an outer request.
+const constraintRecord = new Float64Array(new ArrayBuffer(CONSTRAINT_SLOTS * 8));
+
+interface MeasureConstraints {
+  readonly knownDimensions: Size<number | undefined>;
+  readonly availableSpace: Size<AvailableSpace>;
+  readonly node: bigint;
+}
+
+function availableSpaceConstraint(value: number, kind: number): AvailableSpace {
+  if (kind === AvailableSpaceKind.MinContent) return { kind: AvailableSpaceKind.MinContent };
+  if (kind === AvailableSpaceKind.MaxContent) return { kind: AvailableSpaceKind.MaxContent };
+  return { kind: AvailableSpaceKind.Definite, value };
+}
+
+function decodeConstraints(slots: Float64Array): MeasureConstraints {
+  const tags = slots[SLOT_TAGS];
+  return {
+    knownDimensions: {
+      width: (tags & TAG_KNOWN_WIDTH_PRESENT) === 0 ? undefined : slots[SLOT_KNOWN_WIDTH],
+      height: (tags & TAG_KNOWN_HEIGHT_PRESENT) === 0 ? undefined : slots[SLOT_KNOWN_HEIGHT],
+    },
+    availableSpace: {
+      width: availableSpaceConstraint(
+        slots[SLOT_AVAILABLE_WIDTH],
+        (tags >>> TAG_AVAILABLE_WIDTH_SHIFT) & TAG_KIND_MASK,
+      ),
+      height: availableSpaceConstraint(
+        slots[SLOT_AVAILABLE_HEIGHT],
+        (tags >>> TAG_AVAILABLE_HEIGHT_SHIFT) & TAG_KIND_MASK,
+      ),
+    },
+    node: (BigInt(slots[SLOT_NODE_HIGH]) << 32n) | BigInt(slots[SLOT_NODE_LOW]),
+  };
+}
 
 const DEFAULT_STYLE_INPUT: StyleInput = {};
 
@@ -282,21 +329,22 @@ export class TaffyTree<TContext = unknown> {
     this.#inner.rawComputeLayoutWithMeasure(
       root,
       availableSpace,
-      (value) => {
-        const args = value as RawMeasureArgs;
-        const node = this.#nodes.fromRaw(args.node);
+      (getStyle) => {
+        const constraints = decodeConstraints(constraintRecord);
+        const node = this.#nodes.fromRaw(constraints.node);
         const measure = this.#measures.get(node) ?? fallback;
         if (measure === undefined) {
           throw new Error("Native measure marker has no JavaScript measure function");
         }
         return measure({
-          knownDimensions: args.knownDimensions,
-          availableSpace: args.availableSpace,
+          knownDimensions: constraints.knownDimensions,
+          availableSpace: constraints.availableSpace,
           node,
           context: this.#contexts.get(node),
-          getStyle: args.getStyle,
+          getStyle: getStyle as () => Style,
         });
       },
+      constraintRecord,
       fallback !== undefined,
     );
   }

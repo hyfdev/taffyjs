@@ -286,6 +286,26 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly requested a dedicated `@taffyjs/node` documentation page that explains the distinction and tells readers to prefer `updateStyle` unless they have a specific need for `setStyle`.
 
+### Private compact measure-callback constraints ABI
+
+**Ruling:** The private measure-callback transport must not mirror the public argument shape. Constraints cross in a caller-owned reusable `Float64Array` record that the binding fills before each request; the callback itself receives only the `getStyle` handle, and the wrapper reconstructs the public `knownDimensions`, `availableSpace`, and `NodeId` from the record before calling the user function. Every numeric slot carries only its value: presence of each known dimension and the `AvailableSpaceKind` of each axis live in a separate tag slot, and Taffy's slot id crosses as two 32-bit halves. No slot value may double as its own tag.
+
+**Limits:** This reopens only the compact private constraints ABI / numeric-slots exclusion in [On-demand Style in measure callbacks](#on-demand-style-in-measure-callbacks). Public `MeasureArgs` type, fields, values, and `getStyle` behavior stay unchanged, and its values stay ordinary mutable objects created per request. Unlike the Layout transport, the binding holds the borrowed view of this record for the whole compute rather than for one synchronous write, which is sound only while the record stays inside the wrapper and cannot be detached; the callback also decodes every slot before it invokes the user function, so laying out another tree from inside a measure callback cannot disturb the request in flight. The record's slot order and tag layout are written once per language and checked by behavior tests rather than by [API code generation](api-codegen.md); generation stays available if a third private record earns it. It does not approve a public buffer or numeric-slot API, per-node native callback tables, an upstream algorithm change, a JavaScript Style mirror, or unsafe callback-scope handles.
+
+**Why:** Yunfei selected “批准改动 A（推荐）” after being shown the 1877 ns versus 242 ns round-trip, the chat-scenario CPU share of `#computeMeasuredLayout` (68.9% / 77.6%), the prototype caveat that landing must rebuild public objects, and the vouched Limits text that had not approved a compact constraints ABI. He first accepted an encoding that packed each variant into its numeric slot: `NaN` for an absent known dimension, `-1` for `MinContent`, `-2` for `MaxContent`. That encoding rested on the premise that layout sizes are non-negative, which does not hold for available space: `computeLayout` accepts a caller-supplied definite `-1` or `-2` without validation, and the callback then received `MinContent` or `MaxContent` instead. Told that, Yunfei ruled that the private transport and the public representation must not be coupled at all, so a value never has to be excluded from a slot's range to make room for a tag.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-22 and 2026-08-23; in-session answer “批准改动 A（推荐）”, then “公共 api 的表示，和内部传输不用耦合在一起吧” with the instruction to apply it to the measure-callback transport.
+
+### Ignore extra fields on measure results
+
+**Ruling:** A measure callback result is read as `width` and `height` only. Extra own properties are ignored. Missing fields, `null`, arrays, non-number payloads, and other unsupported whole-value shapes still produce a `TypeError`.
+
+**Limits:** This applies to the measure-result object, not to Style input, partial geometry records, or other Size inputs that still reject unknown component names. It does not add Yoga-style missing-axis fallback, coercion, or asynchronous settlement.
+
+**Why:** Yunfei selected “忽略多余字段（推荐）”. That option used the same ground as [Generated compact Style codec](#generated-compact-style-codec): the binding reads only the fields it needs, and supplying correct field names is the caller's responsibility. He did not add further words.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-22; in-session answer “忽略多余字段（推荐）”.
+
 ## Open
 
 ### Selective query implementation details

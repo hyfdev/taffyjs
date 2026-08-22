@@ -1731,6 +1731,41 @@ function withEncodedStyle(style, use) {
 }
 //#endregion
 //#region src/tree.ts
+const SLOT_KNOWN_WIDTH = 0;
+const SLOT_KNOWN_HEIGHT = 1;
+const SLOT_AVAILABLE_WIDTH = 2;
+const SLOT_AVAILABLE_HEIGHT = 3;
+const SLOT_TAGS = 4;
+const SLOT_NODE_LOW = 5;
+const SLOT_NODE_HIGH = 6;
+const TAG_KNOWN_WIDTH_PRESENT = 1;
+const TAG_KNOWN_HEIGHT_PRESENT = 2;
+const TAG_AVAILABLE_WIDTH_SHIFT = 2;
+const TAG_AVAILABLE_HEIGHT_SHIFT = 4;
+const TAG_KIND_MASK = 3;
+const constraintRecord = new Float64Array(/* @__PURE__ */ new ArrayBuffer(56));
+function availableSpaceConstraint(value, kind) {
+	if (kind === AvailableSpaceKind.MinContent) return { kind: AvailableSpaceKind.MinContent };
+	if (kind === AvailableSpaceKind.MaxContent) return { kind: AvailableSpaceKind.MaxContent };
+	return {
+		kind: AvailableSpaceKind.Definite,
+		value
+	};
+}
+function decodeConstraints(slots) {
+	const tags = slots[SLOT_TAGS];
+	return {
+		knownDimensions: {
+			width: (tags & TAG_KNOWN_WIDTH_PRESENT) === 0 ? void 0 : slots[SLOT_KNOWN_WIDTH],
+			height: (tags & TAG_KNOWN_HEIGHT_PRESENT) === 0 ? void 0 : slots[SLOT_KNOWN_HEIGHT]
+		},
+		availableSpace: {
+			width: availableSpaceConstraint(slots[SLOT_AVAILABLE_WIDTH], tags >>> TAG_AVAILABLE_WIDTH_SHIFT & TAG_KIND_MASK),
+			height: availableSpaceConstraint(slots[SLOT_AVAILABLE_HEIGHT], tags >>> TAG_AVAILABLE_HEIGHT_SHIFT & TAG_KIND_MASK)
+		},
+		node: BigInt(slots[SLOT_NODE_HIGH]) << 32n | BigInt(slots[SLOT_NODE_LOW])
+	};
+}
 const DEFAULT_STYLE_INPUT = {};
 const layoutCodecBuffer = new Float64Array(/* @__PURE__ */ new ArrayBuffer(168));
 function checkedChildIndex(index) {
@@ -1927,19 +1962,19 @@ var TaffyTree = class {
 		this.#computeMeasuredLayout(root, options.availableSpace, measure);
 	}
 	#computeMeasuredLayout(root, availableSpace, fallback) {
-		this.#inner.rawComputeLayoutWithMeasure(root, availableSpace, (value) => {
-			const args = value;
-			const node = this.#nodes.fromRaw(args.node);
+		this.#inner.rawComputeLayoutWithMeasure(root, availableSpace, (getStyle) => {
+			const constraints = decodeConstraints(constraintRecord);
+			const node = this.#nodes.fromRaw(constraints.node);
 			const measure = this.#measures.get(node) ?? fallback;
 			if (measure === void 0) throw new Error("Native measure marker has no JavaScript measure function");
 			return measure({
-				knownDimensions: args.knownDimensions,
-				availableSpace: args.availableSpace,
+				knownDimensions: constraints.knownDimensions,
+				availableSpace: constraints.availableSpace,
 				node,
 				context: this.#contexts.get(node),
-				getStyle: args.getStyle
+				getStyle
 			});
-		}, fallback !== void 0);
+		}, constraintRecord, fallback !== void 0);
 	}
 };
 //#endregion

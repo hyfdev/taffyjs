@@ -709,15 +709,17 @@ impl BindingTaffyTree {
         env: Env,
         node: BigInt,
         available_space: Unknown<'env>,
-        measure: Function<'env, measure::MeasureArguments<'env>, Unknown<'env>>,
+        measure: Function<'env, Unknown<'env>, Unknown<'env>>,
+        mut constraints: Float64ArraySlice<'env>,
         has_global_measure: bool,
     ) -> napi::Result<()> {
+        let constraints = measure::ConstraintTarget::new(&mut constraints)?;
         let node = into_napi(env, raw_node_id(&node))?;
         let available_space = into_napi(
             env,
             geometry::size(available_space, available_space::available_space),
         )?;
-        let mut session = measure::MeasureSession::new(env, measure);
+        let mut session = measure::MeasureSession::new(env, measure, constraints);
         let result = self.owner.access("computeLayout", |tree| {
             tree.compute_layout_with_measure(
                 node,
