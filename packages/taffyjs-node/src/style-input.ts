@@ -156,8 +156,52 @@ export interface StyleInput {
 /** Supplies style fields to update; omitted or undefined fields and geometry components are preserved. */
 export type StyleUpdate = StyleInput;
 
+const styleFields: ReadonlySet<string> = new Set([
+  "display",
+  "itemIsTable",
+  "itemIsReplaced",
+  "boxSizing",
+  "direction",
+  "overflow",
+  "scrollbarWidth",
+  "float",
+  "clear",
+  "position",
+  "inset",
+  "size",
+  "minSize",
+  "maxSize",
+  "aspectRatio",
+  "margin",
+  "padding",
+  "border",
+  "alignItems",
+  "alignSelf",
+  "justifyItems",
+  "justifySelf",
+  "alignContent",
+  "justifyContent",
+  "gap",
+  "textAlign",
+  "flexDirection",
+  "flexWrap",
+  "flexBasis",
+  "flexGrow",
+  "flexShrink",
+  "gridTemplateRows",
+  "gridTemplateColumns",
+  "gridAutoRows",
+  "gridAutoColumns",
+  "gridAutoFlow",
+  "gridTemplateAreas",
+  "gridTemplateColumnNames",
+  "gridTemplateRowNames",
+  "gridRow",
+  "gridColumn",
+]);
+
 export function withEncodedStyle<T>(style: StyleInput, use: (encoded: Uint8Array) => T): T {
-  return withStyleEncoder(style, 1, 6, (encoder) => {
+  return withStyleEncoder(style, 1, 6, styleFields, (encoder) => {
     const display = style.display;
     if (display !== undefined) {
       encoder.field(0);

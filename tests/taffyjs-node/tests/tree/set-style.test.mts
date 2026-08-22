@@ -54,14 +54,12 @@ test("undefined-null", () => {
   assert.deepEqual(style.overflow, { x: Overflow.Visible, y: Overflow.Hidden });
 });
 
-test("unknown fields are ignored while invalid known fields fail", () => {
+test("unknown and calc fields are rejected without replacing the stored Style", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({ flexGrow: 2 });
 
-  tree.setStyle(node, { unknownField: true } as never);
-  assert.equal(tree.getStyle(node).flexGrow, 0);
-  tree.setStyle(node, { flexGrow: 2, calc: true } as never);
-  assert.equal(tree.getStyle(node).flexGrow, 2);
+  assert.throws(() => tree.setStyle(node, { unknownField: true } as never), TypeError);
+  assert.throws(() => tree.setStyle(node, { flexGrow: 3, calc: true } as never), TypeError);
   assert.throws(() => tree.setStyle(node, { flexBasis: { calc: "1px + 2%" } } as never), TypeError);
   assert.equal(tree.getStyle(node).flexGrow, 2);
 });

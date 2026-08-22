@@ -145,8 +145,12 @@ export function emitStyleCodecTypeScript(model: StyleCodecModel): OutputFile {
     "/** Supplies style fields to update; omitted or undefined fields and geometry components are preserved. */",
     "export type StyleUpdate = StyleInput;",
     "",
+    "const styleFields: ReadonlySet<string> = new Set([",
+    ...model.fields.map((field) => `  ${JSON.stringify(field.name)},`),
+    "]);",
+    "",
     "export function withEncodedStyle<T>(style: StyleInput, use: (encoded: Uint8Array) => T): T {",
-    `  return withStyleEncoder(style, ${model.wireVersion}, ${model.presenceBytes}, (encoder) => {`,
+    `  return withStyleEncoder(style, ${model.wireVersion}, ${model.presenceBytes}, styleFields, (encoder) => {`,
   );
   for (const field of model.fields) emitFieldEncoder(lines, field);
   lines.push("    return use(encoder.finish());", "  });", "}");

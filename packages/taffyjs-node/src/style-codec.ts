@@ -83,9 +83,10 @@ export function withStyleEncoder<T>(
   style: unknown,
   wireVersion: number,
   presenceBytes: number,
+  allowedFields: ReadonlySet<string>,
   use: (encoder: StyleEncoder) => T,
 ): T {
-  inputObject(style, "Style");
+  validateFields(inputObject(style, "Style"), allowedFields, "Style");
 
   const usesSharedBuffer = !sharedStyleBufferInUse;
   if (usesSharedBuffer) sharedStyleBufferInUse = true;

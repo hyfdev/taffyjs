@@ -110,13 +110,12 @@ test("conversion-atomic", () => {
   const tree = new TaffyTree();
   const context = { retained: false };
 
-  const ignored = tree.newLeafWithContext(context, { unknownField: true } as never);
-  assert.equal(tree.getNodeContext(ignored), context);
+  assert.throws(() => tree.newLeafWithContext(context, { unknownField: true } as never), TypeError);
   assert.throws(() => tree.newLeafWithContext(context, { display: 999 } as never), RangeError);
-  assert.equal(tree.getNodeCount(), 1);
+  assert.equal(tree.getNodeCount(), 0);
 
   const first = tree.newLeafWithContext(context);
-  assert.equal(creationSerial(first), 2n, "failed conversion does not consume a serial");
-  assert.equal(tree.getNodeCount(), 2);
+  assert.equal(creationSerial(first), 1n, "failed conversion does not consume a serial");
+  assert.equal(tree.getNodeCount(), 1);
   assert.equal(tree.getNodeContext(first), context);
 });
