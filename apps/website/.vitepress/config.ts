@@ -22,7 +22,7 @@ const documentationSidebar = [
   {
     text: "@taffyjs/node",
     items: [
-      { text: "Design Philosophy", link: "/node/design-philosophy" },
+      { text: "Design", link: "/node/design" },
       { text: "Overview", link: "/node/" },
       { text: "Nodes and Topology", link: "/node/nodes-and-topology" },
       { text: "Styles and Context", link: "/node/styles-and-context" },
@@ -40,21 +40,21 @@ const documentationSidebar = [
   {
     text: "@taffyjs/wasm",
     items: [
-      { text: "Design Philosophy", link: "/wasm/design-philosophy" },
+      { text: "Design", link: "/wasm/design" },
       { text: "Overview", link: "/wasm/" },
     ],
   },
   {
     text: "@taffyjs/yoga",
     items: [
-      { text: "Design Philosophy", link: "/yoga/design-philosophy" },
+      { text: "Design", link: "/yoga/design" },
       { text: "Overview", link: "/yoga/" },
     ],
   },
   {
     text: "@taffyjs/yoga-wasm",
     items: [
-      { text: "Design Philosophy", link: "/yoga-wasm/design-philosophy" },
+      { text: "Design", link: "/yoga-wasm/design" },
       { text: "Overview", link: "/yoga-wasm/" },
     ],
   },

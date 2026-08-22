@@ -1,4 +1,4 @@
-# Design Philosophy
+# Design
 
 `@taffyjs/yoga-wasm` exists because two choices are independent: the API an application uses and the runtime that executes Taffy.
 

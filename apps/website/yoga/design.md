@@ -1,4 +1,4 @@
-# Design Philosophy
+# Design
 
 A migration is not successful merely because the new package exports the same method names. Existing source should keep compiling where the behavior is supported, and unsupported behavior should become visible before it turns into a layout bug.
 

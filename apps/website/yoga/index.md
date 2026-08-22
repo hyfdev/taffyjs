@@ -2,7 +2,7 @@
 
 `@taffyjs/yoga` is a Yoga 3.2.1 compatibility facade backed by native TaffyJS. It is for Node.js, Bun, and Deno applications that want to replace `yoga-layout` while keeping the supported Yoga API and import shape.
 
-Read the [Design Philosophy](./design-philosophy.md) to understand what the package preserves, where Taffy remains visible, and how unsupported behavior is reported.
+Read the [Design](./design.md) to understand what the package preserves, where Taffy remains visible, and how unsupported behavior is reported.
 
 ## Install as `yoga-layout`
 

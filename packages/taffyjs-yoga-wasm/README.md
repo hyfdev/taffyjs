@@ -2,7 +2,7 @@
 
 `@taffyjs/yoga-wasm` is an ESM Yoga 3.2.1 compatibility facade backed by `@taffyjs/wasm`. It uses the same TypeScript facade, public entries, declarations, and compatibility classifications as `@taffyjs/yoga`; only the TaffyJS runtime backend changes. Taffy is at revision [`55cda62a`](https://github.com/DioxusLabs/taffy/commit/55cda62a5df9a5d04c0023be6f6dd607b1474fe9).
 
-The [design philosophy](../../apps/website/yoga-wasm/design-philosophy.md) explains why the Yoga-facing model and runtime transport remain separate choices.
+The [Design](../../apps/website/yoga-wasm/design.md) explains why the Yoga-facing model and runtime transport remain separate choices.
 
 The package supports Node.js `>=22.20`, Bun 1.2+ within the Bun 1 major, Deno 2.2+ within the Deno 2 major, and modern bundled browsers within the [documented `@taffyjs/wasm` runtime boundary](https://github.com/hyfdev/taffyjs/blob/main/packages/taffyjs-wasm/README.md). Deno requires no permission flags. Browser consumers need a bundler that honors package export conditions and top-level await. Direct CDN scripts, legacy browsers, and non-browser edge runtimes are not currently supported.
 

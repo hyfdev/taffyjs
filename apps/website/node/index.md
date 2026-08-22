@@ -4,7 +4,7 @@
 
 Follow [Getting Started](../guide/getting-started.md) to install the package and compute a first layout.
 
-Read the [Design Philosophy](./design-philosophy.md) to understand why the API follows Taffy's model and where the binding deliberately adds JavaScript-specific operations.
+Read the [Design](./design.md) to understand why the API follows Taffy's model and where the binding deliberately adds JavaScript-specific operations.
 
 ## Runtime support
 

@@ -2,7 +2,7 @@
 
 `@taffyjs/yoga` is a Node.js compatibility facade for `yoga-layout@3.2.1`, implemented in TypeScript over `@taffyjs/node`. It keeps Yoga's package entries and public API shape while Taffy, at revision [`55cda62a`](https://github.com/DioxusLabs/taffy/commit/55cda62a5df9a5d04c0023be6f6dd607b1474fe9), remains the only layout engine.
 
-The [design philosophy](../../apps/website/yoga/design-philosophy.md) explains which parts of Yoga the facade preserves, which parts stay owned by Taffy, and how unsupported behavior is reported.
+The [Design](../../apps/website/yoga/design.md) explains which parts of Yoga the facade preserves, which parts stay owned by Taffy, and how unsupported behavior is reported.
 
 The package is ESM-only, requires Node.js `>=22.20`, and does not provide a browser or WASM backend. Its native package metadata and distribution builds follow the complete `@taffyjs/node` target matrix; the blocking runtime suite covers Linux x64 GNU and Windows x64 MSVC, while the other native targets are build-covered during publication. Bun 1.2+ within the Bun 1 major and Deno 2.2+ within the Deno 2 major are smoke-tested on the Linux and Windows targets. Deno requires local `node_modules` plus `--allow-env`, `--allow-read`, and `--allow-ffi`.
 

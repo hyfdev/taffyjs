@@ -25,7 +25,7 @@ No planned package receives empty reference pages or documentation navigation th
 
 ## Documentation structure
 
-The documentation is arranged in three layers: Guide, Essentials, and package sections. Guide contains the Introduction and Getting Started. Essentials teaches the shared layout-engine model in learning order. Package sections hold complete runtime and platform support, initialization, binding-specific behavior, compatibility, migration, and exact public API details. Every package section begins with a short Design Philosophy article that explains the package's intended model, responsibility boundary and reasons for existing before the Overview explains setup and support. One documentation sidebar lists Guide, Essentials, and every implemented package with its articles, so readers can see the complete documentation structure from any documentation page. The top navigation links to that documentation once as Guide rather than repeating packages in a separate menu. Empty package sections are not reserved in advance.
+The documentation is arranged in three layers: Guide, Essentials, and package sections. Guide contains the Introduction and Getting Started. Essentials teaches the shared layout-engine model in learning order. Package sections hold complete runtime and platform support, initialization, binding-specific behavior, compatibility, migration, and exact public API details. Every package section begins with a short Design article that explains the package's intended model, responsibility boundary and reasons for existing before the Overview explains setup and support. One documentation sidebar lists Guide, Essentials, and every implemented package with its articles, so readers can see the complete documentation structure from any documentation page. The top navigation links to that documentation once as Guide rather than repeating packages in a separate menu. Empty package sections are not reserved in advance.
 
 Getting Started and Essentials use `@taffyjs/node` code by default. At points where runtime choice matters, a short callout sends browser or WebAssembly users to `@taffyjs/wasm` and users seeking Yoga compatibility to `@taffyjs/yoga`. Shared teaching is not repeated once per package.
 
@@ -43,10 +43,10 @@ The target page groups are:
 
 - Guide: Introduction and Getting Started only.
 - Essentials: the tree-compute-read workflow, styles and values, Block, Flexbox, Grid, and measuring text and images.
-- `@taffyjs/node`: design philosophy; package overview and supported targets; `TaffyTree` node and topology operations, styles and context, the detailed `setStyle` versus `updateStyle` choice, computation and dirty state, and layout results; the grouped `Style` data model; value helpers; and errors.
-- `@taffyjs/wasm`: design philosophy; package overview and setup, supported environments, initialization and deployment, observable differences from Node, and a link to the shared direct API reference.
-- `@taffyjs/yoga`: design philosophy; package overview and installation, compatibility scope, migration from Yoga, Yoga-facing API reference, and documented differences from the direct Taffy API.
-- `@taffyjs/yoga-wasm`: design philosophy; package overview and installation, WebAssembly loading and supported environments, and links to the shared Yoga compatibility material.
+- `@taffyjs/node`: design; package overview and supported targets; `TaffyTree` node and topology operations, styles and context, the detailed `setStyle` versus `updateStyle` choice, computation and dirty state, and layout results; the grouped `Style` data model; value helpers; and errors.
+- `@taffyjs/wasm`: design; package overview and setup, supported environments, initialization and deployment, observable differences from Node, and a link to the shared direct API reference.
+- `@taffyjs/yoga`: design; package overview and installation, compatibility scope, migration from Yoga, Yoga-facing API reference, and documented differences from the direct Taffy API.
+- `@taffyjs/yoga-wasm`: design; package overview and installation, WebAssembly loading and supported environments, and links to the shared Yoga compatibility material.
 
 The global site navigation and the documentation sidebar serve different purposes. The landing page and later real Blog or Showcase sections are site-level content; Guide, Essentials, and package sections all belong to the same documentation sidebar. Do not create empty Blog, Showcase, version switcher or package pages merely to make the site appear complete.
 
@@ -58,7 +58,7 @@ The benchmark page is a site-level view of retained Node.js results rather than 
 - Guide introduces the product and establishes the minimum layout-engine mental model.
 - Essentials teaches shared concepts and layout tasks in a deliberate learning sequence through `@taffyjs/node` code.
 - Package sections explain package-specific runtime requirements or initialization, observable binding behavior, compatibility or migration needs, and exact public APIs.
-- Design Philosophy articles explain why a package has its particular public model and boundary. They may mention future work only to state the rule that would govern it; they do not present unshipped APIs or unmeasured performance claims as current features.
+- Design articles explain why a package has its particular public model and boundary. They may mention future work only to state the rule that would govern it; they do not present unshipped APIs or unmeasured performance claims as current features.
 - Getting Started and each relevant layout or measurement page own one complete example. There is no separate example collection that repeats those programs, and package pages and README files link to the Guide rather than copying them.
 - Package README files remain short installation and orientation pages that link to the website.
 - Source declarations and JSDoc remain the exhaustive editor-facing type and field reference. The website explains high-level APIs in human-written prose; its `Style` page groups related fields without reproducing a generated declaration dump or creating one page per field.

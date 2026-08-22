@@ -2,7 +2,7 @@
 
 `@taffyjs/yoga-wasm` runs the same Yoga 3.2.1 compatibility facade as `@taffyjs/yoga` over `@taffyjs/wasm`. Choose it for a bundled browser application or another supported environment where a native addon is not the right fit.
 
-Read the [Design Philosophy](./design-philosophy.md) to see why the Yoga model and the runtime transport remain separate choices.
+Read the [Design](./design.md) to see why the Yoga model and the runtime transport remain separate choices.
 
 ## Install as `yoga-layout`
 

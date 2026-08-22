@@ -1,4 +1,4 @@
-# Design Philosophy
+# Design
 
 A binding can hide its Rust library behind a new JavaScript model. That may make the first call look familiar, but it also gives users two systems to understand: the wrapper and the engine underneath it.
 

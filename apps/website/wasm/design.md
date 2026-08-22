@@ -1,4 +1,4 @@
-# Design Philosophy
+# Design
 
 Choosing WebAssembly should change where Taffy runs, not how an application describes layout.
 
