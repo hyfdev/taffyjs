@@ -12,9 +12,8 @@ import type {
 import { AvailableSpace } from "./tagged-values.js";
 
 // Keep these values identical to crates/taffyjs_binding/src/measure.rs.
-const KNOWN_DIMENSION_ABSENT = 2 ** 128;
-const AVAILABLE_MIN_CONTENT = -(2 ** 128);
-const AVAILABLE_MAX_CONTENT = -(2 ** 129);
+const AVAILABLE_MIN_CONTENT = -1;
+const AVAILABLE_MAX_CONTENT = -2;
 
 type RawMeasureArgs = {
   knownWidth: number;
@@ -26,7 +25,7 @@ type RawMeasureArgs = {
 };
 
 function knownDimension(value: number): number | undefined {
-  return value === KNOWN_DIMENSION_ABSENT ? undefined : value;
+  return Number.isNaN(value) ? undefined : value;
 }
 
 function availableSpaceConstraint(value: number): AvailableSpace {

@@ -14,11 +14,9 @@ use crate::error::{BindingError, BindingResult, internal_error};
 use crate::{js_object, number, style};
 
 // Keep these values identical to packages/taffyjs-node/src/tree.ts.
-// 2^128 is larger than any finite f32, so it cannot collide with a known
-// dimension or with AvailableSpace::Definite after f32→f64 conversion.
-const KNOWN_DIMENSION_ABSENT: f64 = f64::from_bits(0x47F0_0000_0000_0000); // 2^128
-const AVAILABLE_MIN_CONTENT: f64 = f64::from_bits(0xC7F0_0000_0000_0000); // -2^128
-const AVAILABLE_MAX_CONTENT: f64 = f64::from_bits(0xC800_0000_0000_0000); // -2^129
+// Layout sizes are non-negative, so NaN / -1 / -2 cannot collide with a definite size.
+const AVAILABLE_MIN_CONTENT: f64 = -1.0;
+const AVAILABLE_MAX_CONTENT: f64 = -2.0;
 
 #[napi(object, object_from_js = false)]
 pub struct MeasureArguments<'env> {
@@ -240,7 +238,7 @@ fn call<'env>(
 fn encode_known_dimension(value: Option<f32>) -> f64 {
     match value {
         Some(value) => f64::from(value),
-        None => KNOWN_DIMENSION_ABSENT,
+        None => f64::NAN,
     }
 }
 
@@ -285,9 +283,9 @@ mod tests {
     use taffy::{NodeId, TaffyTree};
 
     use super::{
-        AVAILABLE_MAX_CONTENT, AVAILABLE_MIN_CONTENT, AvailableSpaceCacheKey,
-        KNOWN_DIMENSION_ABSENT, MeasureCacheKey, MeasureSession, encode_available_space,
-        encode_known_dimension, encode_node, invalidate_subtree,
+        AVAILABLE_MAX_CONTENT, AVAILABLE_MIN_CONTENT, AvailableSpaceCacheKey, MeasureCacheKey,
+        MeasureSession, encode_available_space, encode_known_dimension, encode_node,
+        invalidate_subtree,
     };
 
     fn cache_key(
@@ -349,22 +347,14 @@ mod tests {
     }
 
     #[test]
-    fn compact_constraint_sentinels_do_not_collide_with_f32_payloads() {
-        assert_eq!(KNOWN_DIMENSION_ABSENT, 2.0f64.powi(128));
-        assert_eq!(AVAILABLE_MIN_CONTENT, -(2.0f64.powi(128)));
-        assert_eq!(AVAILABLE_MAX_CONTENT, -(2.0f64.powi(129)));
-        assert_eq!(encode_known_dimension(None), KNOWN_DIMENSION_ABSENT);
+    fn compact_constraint_sentinels_use_nan_and_negative_keywords() {
+        assert!(encode_known_dimension(None).is_nan());
         assert_eq!(encode_known_dimension(Some(12.5)), 12.5);
         assert_eq!(
             encode_known_dimension(Some(-0.0)).to_bits(),
             (-0.0f64).to_bits()
         );
-        assert_ne!(
-            encode_known_dimension(Some(f32::INFINITY)),
-            KNOWN_DIMENSION_ABSENT
-        );
-        assert!(encode_known_dimension(Some(f32::NAN)).is_nan());
-
+        assert!(!encode_known_dimension(Some(f32::INFINITY)).is_nan());
         assert_eq!(
             encode_available_space(AvailableSpace::MinContent),
             AVAILABLE_MIN_CONTENT
@@ -373,15 +363,8 @@ mod tests {
             encode_available_space(AvailableSpace::MaxContent),
             AVAILABLE_MAX_CONTENT
         );
-        assert_eq!(encode_available_space(AvailableSpace::Definite(-1.0)), -1.0);
-        assert_eq!(
-            encode_available_space(AvailableSpace::Definite(f32::NEG_INFINITY)),
-            f64::NEG_INFINITY
-        );
-        assert_ne!(
-            encode_available_space(AvailableSpace::Definite(f32::NEG_INFINITY)),
-            AVAILABLE_MIN_CONTENT
-        );
+        assert_eq!(encode_available_space(AvailableSpace::Definite(0.0)), 0.0);
+        assert_eq!(encode_available_space(AvailableSpace::Definite(12.5)), 12.5);
         assert_eq!(encode_node(NodeId::from(1u64 << 32)), (1u64 << 32) as f64);
     }
 

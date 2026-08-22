@@ -288,13 +288,13 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 ### Private compact measure-callback constraints ABI
 
-**Ruling:** The private measure-callback argument may carry five numbers — `knownWidth`, `knownHeight`, `availableWidth`, `availableHeight`, and Taffy's slot id as `node` — instead of nested constraint objects and a BigInt node. The wrapper must reconstruct the public `knownDimensions`, `availableSpace`, and `NodeId` before calling the user function. `getStyle` stays the existing per-node cached function handle. Absent known dimensions use a sentinel; `MinContent` and `MaxContent` use negative sentinels outside the `f32` range so a `Definite` value, including a negative one, is not decoded as a content keyword.
+**Ruling:** The private measure-callback argument may carry five numbers — `knownWidth`, `knownHeight`, `availableWidth`, `availableHeight`, and Taffy's slot id as `node` — instead of nested constraint objects and a BigInt node. The wrapper must reconstruct the public `knownDimensions`, `availableSpace`, and `NodeId` before calling the user function. `getStyle` stays the existing per-node cached function handle. `knownWidth` / `knownHeight` are the actual size when present and `NaN` when absent. `availableWidth` / `availableHeight` are the actual size for `Definite`, `-1` for `MinContent`, and `-2` for `MaxContent`. Layout sizes are non-negative, so those encodings do not collide with a definite size.
 
 **Limits:** This reopens only the compact private constraints ABI / numeric-slots exclusion in [On-demand Style in measure callbacks](#on-demand-style-in-measure-callbacks). Public `MeasureArgs` type, fields, values, and `getStyle` behavior stay unchanged. It does not approve a public buffer or numeric-slot API, per-node native callback tables, an upstream algorithm change, a JavaScript Style mirror, or unsafe callback-scope handles.
 
-**Why:** Yunfei selected “批准改动 A（推荐）” after being shown the 1877 ns versus 242 ns round-trip, the chat-scenario CPU share of `#computeMeasuredLayout` (68.9% / 77.6%), the prototype caveat that landing must rebuild public objects, and the vouched Limits text that had not approved a compact constraints ABI. He did not add further words.
+**Why:** Yunfei selected “批准改动 A（推荐）” after being shown the 1877 ns versus 242 ns round-trip, the chat-scenario CPU share of `#computeMeasuredLayout` (68.9% / 77.6%), the prototype caveat that landing must rebuild public objects, and the vouched Limits text that had not approved a compact constraints ABI. On 2026-08-23 he replaced an earlier out-of-range sentinel choice with this encoding: known dimensions use `NaN` when absent; available space uses `-1` for `MinContent` and `-2` for `MaxContent`, because sizes are non-negative.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-22; in-session answer “批准改动 A（推荐）” to reopening that Limits item for this private five-number crossing.
+**Source:** Yunfei (`@hyfdev`), 2026-08-22 and 2026-08-23; in-session answer “批准改动 A（推荐）”, then the explicit NaN / `-1` / `-2` encoding.
 
 ### Ignore extra fields on measure results
 

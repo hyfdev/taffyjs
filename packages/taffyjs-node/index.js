@@ -1731,11 +1731,10 @@ function withEncodedStyle(style, use) {
 }
 //#endregion
 //#region src/tree.ts
-const KNOWN_DIMENSION_ABSENT = 2 ** 128;
-const AVAILABLE_MIN_CONTENT = -(2 ** 128);
-const AVAILABLE_MAX_CONTENT = -(2 ** 129);
+const AVAILABLE_MIN_CONTENT = -1;
+const AVAILABLE_MAX_CONTENT = -2;
 function knownDimension(value) {
-	return value === KNOWN_DIMENSION_ABSENT ? void 0 : value;
+	return Number.isNaN(value) ? void 0 : value;
 }
 function availableSpaceConstraint(value) {
 	if (value === AVAILABLE_MIN_CONTENT) return AvailableSpace.MinContent;
