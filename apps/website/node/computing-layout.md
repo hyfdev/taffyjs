@@ -55,6 +55,14 @@ tree.computeLayout({
 
 `setMeasure(node, measure)` sets or replaces the callback. `setMeasure(node, undefined)` clears it. Context and measurement are independent: a node may have either, both, or neither. Setting, replacing, or clearing a callback marks that node dirty. If data captured by an unchanged callback changes without another setter call, use `markDirty(node)`.
 
+## How often the callback runs
+
+Taffy decides which intrinsic sizes a layout needs, so one `computeLayout` call can ask a measured node for several different constraint combinations. Requests that repeat exactly within one call enter JavaScript once.
+
+A flex item whose minimum main size stays at the CSS default of `auto` resolves that minimum by measuring the min-content size of its own subtree, and the measurement reaches every measured node below it. Every container between the root and a measured node pays it. Declaring `minSize: { width: 0, height: 0 }` on those containers removes the pass: in a modeled chat screen with 51 measured nodes, the callback runs 590 times with the default and 288 times with the explicit zero minimum, and both produce identical layout output.
+
+An explicit zero minimum also removes what it buys. A flex item with an automatic minimum main size never shrinks below its own min-content size; one with a zero minimum can. Declare the zero minimum where the layout does not depend on that floor.
+
 ## Optional global fallback
 
 Pass `measure` to `computeLayout` for compatibility and advanced cases where any otherwise unconfigured leaf may need external measurement:
