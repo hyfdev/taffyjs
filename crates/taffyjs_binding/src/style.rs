@@ -225,11 +225,8 @@ pub(crate) fn grid_auto_flow(value: f64) -> BindingResult<GridAutoFlow> {
 }
 
 pub(crate) fn validate(style: &Style) -> BindingResult<()> {
-    grid::validate_template_line_names(&style.grid_template_rows, &style.grid_template_row_names)?;
-    grid::validate_template_line_names(
-        &style.grid_template_columns,
-        &style.grid_template_column_names,
-    )?;
+    grid::validate_template_line_names(&style.grid_template_rows)?;
+    grid::validate_template_line_names(&style.grid_template_columns)?;
     Ok(())
 }
 
@@ -366,6 +363,7 @@ fn flex_wrap_output(value: FlexWrap) -> u8 {
         FlexWrap::NoWrap => FlexWrapCode::NoWrap as u8,
         FlexWrap::Wrap => FlexWrapCode::Wrap as u8,
         FlexWrap::WrapReverse => FlexWrapCode::WrapReverse as u8,
+        FlexWrap::Balance | FlexWrap::BalanceReverse => panic!("unsupported Taffy flex wrap"),
     }
 }
 
@@ -428,8 +426,12 @@ pub(crate) fn output(style: &Style) -> StyleOutput {
             length::length_percentage_auto_output(*value)
         }),
         size: size_output(&style.size, |value| length::dimension_output(*value)),
-        min_size: size_output(&style.min_size, |value| length::dimension_output(*value)),
-        max_size: size_output(&style.max_size, |value| length::dimension_output(*value)),
+        min_size: size_output(&style.min_size, |value| {
+            length::length_percentage_auto_output(*value)
+        }),
+        max_size: size_output(&style.max_size, |value| {
+            length::length_percentage_auto_output(*value)
+        }),
         aspect_ratio: style.aspect_ratio.map(f64::from),
         margin: rect_output(&style.margin, |value| {
             length::length_percentage_auto_output(*value)

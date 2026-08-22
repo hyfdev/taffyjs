@@ -70,15 +70,14 @@ pub struct GridTemplateAreasOutput {
 
 pub(crate) fn validate_template_line_names(
     values: &[GridTemplateComponent<String>],
-    top_level_line_names: &[Vec<String>],
 ) -> BindingResult<()> {
-    for value in values.iter().take(top_level_line_names.len()) {
+    for value in values {
         if let GridTemplateComponent::Repeat(repetition) = value
-            && repetition.line_names.is_empty()
-            && repetition.count != RepetitionCount::Count(0)
+            && !repetition.line_names.is_empty()
+            && repetition.line_names.len() != repetition.tracks.len() + 1
         {
             return Err(range_error(
-                "A positive Grid repetition requires lineNames entries",
+                "A Grid repetition requires either no lineNames entries or one more than its tracks",
             ));
         }
     }

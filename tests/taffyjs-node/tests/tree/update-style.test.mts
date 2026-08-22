@@ -262,7 +262,9 @@ test("validates the merged style before one atomic write", () => {
     () =>
       tree.updateStyle(node, {
         flexGrow: 2,
-        gridTemplateRows: [GridTemplateComponent.Repeat(RepetitionCount.Count(1), [track])],
+        gridTemplateRows: [
+          GridTemplateComponent.Repeat(RepetitionCount.Count(1), [track], [["row"]]),
+        ],
       }),
     RangeError,
   );

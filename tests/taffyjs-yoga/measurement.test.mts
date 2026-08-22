@@ -169,7 +169,6 @@ test("constant measurement matches Yoga while callback traces remain deliberatel
   assert.deepEqual(layoutSize(child), layoutSize(oracleChild));
   assert.deepEqual(calls, [
     [Number.NaN, MeasureMode.Undefined, 40, MeasureMode.Exactly],
-    [0, MeasureMode.AtMost, 40, MeasureMode.Exactly],
     [30, MeasureMode.Exactly, 40, MeasureMode.AtMost],
     [30, MeasureMode.AtMost, 40, MeasureMode.AtMost],
   ]);

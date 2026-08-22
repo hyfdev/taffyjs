@@ -9,7 +9,7 @@ export interface Layout {
   /** Reports this node's stable traversal order in the stored layout. */ readonly order: number;
   /** Reports this node's position relative to its parent. */ readonly location: Point<number>;
   /** Reports this node's outer width and height. */ readonly size: Size<number>;
-  /** Reports the width and height of this node's content. */ readonly contentSize: Size<number>;
+  /** Reports the width and height of this node's laid-out content. The node's own end padding counts only for a scroll container, and content that overflows past the scroll origin does not count. */ readonly contentSize: Size<number>;
   /** Reports the width and height reserved for scrollbars. */ readonly scrollbarSize: Size<number>;
   /** Reports this node's resolved border widths. */ readonly border: Rect<number>;
   /** Reports this node's resolved padding widths. */ readonly padding: Rect<number>;

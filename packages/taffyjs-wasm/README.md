@@ -1,6 +1,6 @@
 # `@taffyjs/wasm`
 
-`@taffyjs/wasm` runs the Taffy layout engine as threadless WebAssembly in Node.js, Bun 1.2+ within major 1, Deno 2.2+ within major 2, and bundled browsers. It exposes the same public TaffyJS API as `@taffyjs/node`; choosing this package guarantees that the implementation is Wasm rather than a native addon.
+`@taffyjs/wasm` runs the Taffy layout engine, at revision [`55cda62a`](https://github.com/DioxusLabs/taffy/commit/55cda62a5df9a5d04c0023be6f6dd607b1474fe9), as threadless WebAssembly in Node.js, Bun 1.2+ within major 1, Deno 2.2+ within major 2, and bundled browsers. It exposes the same public TaffyJS API as `@taffyjs/node`; choosing this package guarantees that the implementation is Wasm rather than a native addon.
 
 The [design philosophy](../../apps/website/wasm/design-philosophy.md) explains how the package keeps one direct API across native and WebAssembly runtimes.
 

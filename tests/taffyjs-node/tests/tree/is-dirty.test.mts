@@ -113,8 +113,8 @@ test("topology", () => {
   {
     const { tree, child, parent, root } = settledTree();
     tree.remove(child);
-    assert.equal(tree.isDirty(parent), false, "pinned Taffy remove does not dirty the parent");
-    assert.equal(tree.isDirty(root), false, "pinned Taffy remove does not dirty ancestors");
+    assert.equal(tree.isDirty(parent), true, "remove dirties the former parent");
+    assert.equal(tree.isDirty(root), true, "remove dirties the former ancestors");
   }
 });
 

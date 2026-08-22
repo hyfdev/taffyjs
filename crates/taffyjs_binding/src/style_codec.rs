@@ -188,22 +188,24 @@ impl<'a> StyleDecoder<'a> {
         Ok(changed)
     }
 
-    pub(crate) fn dimension_size(
+    pub(crate) fn dimension_size<T: Copy + PartialEq + From<LengthPercentageAuto>>(
         &mut self,
-        current: &mut Size<Dimension>,
+        current: &mut Size<T>,
         name: &str,
     ) -> BindingResult<bool> {
         let mask = self.geometry_mask(0b11, true, name)?;
         if mask == SCALAR_GEOMETRY {
-            let value = self.dimension(name)?;
+            let value = self.length_percentage_auto(name)?.into();
             return Ok(replace(&mut current.width, value) | replace(&mut current.height, value));
         }
         let mut changed = false;
         if mask & 1 != 0 {
-            changed |= replace(&mut current.width, self.dimension(name)?);
+            let value = self.length_percentage_auto(name)?.into();
+            changed |= replace(&mut current.width, value);
         }
         if mask & 2 != 0 {
-            changed |= replace(&mut current.height, self.dimension(name)?);
+            let value = self.length_percentage_auto(name)?.into();
+            changed |= replace(&mut current.height, value);
         }
         Ok(changed)
     }

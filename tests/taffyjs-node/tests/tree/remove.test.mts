@@ -73,7 +73,7 @@ test("id-stale", () => {
   assert.equal(captureError(() => tree.getParent(removed)).code, "ERR_TAFFY_STALE_NODE_ID");
 });
 
-test("parent-not-dirtied", () => {
+test("parent-dirtied", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf({
     size: { width: 30, height: 10 },
@@ -87,14 +87,10 @@ test("parent-not-dirtied", () => {
   assert.equal(tree.isDirty(root), false);
 
   tree.remove(child);
-  assert.equal(tree.isDirty(parent), false);
-  assert.equal(tree.isDirty(root), false);
-  assert.deepEqual(tree.getLayout(parent), parentLayout);
-  assert.deepEqual(tree.getLayout(root), rootLayout);
-
-  tree.markDirty(parent);
   assert.equal(tree.isDirty(parent), true);
   assert.equal(tree.isDirty(root), true);
+  assert.deepEqual(tree.getLayout(parent), parentLayout);
+  assert.deepEqual(tree.getLayout(root), rootLayout);
 });
 
 test("invalid-atomic", () => {

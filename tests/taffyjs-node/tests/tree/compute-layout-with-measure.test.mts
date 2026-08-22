@@ -133,10 +133,12 @@ function createNestedMeasureFixture(
       gap: 2,
     });
   }
-  const fixed = tree.newLeaf({ size: { width: 264, height: 100 } });
+  // The sibling claims most of the root's main axis, which is the axis the nested chain
+  // does not start with, so the measured leaf is sized under several distinct constraints.
+  const fixed = tree.newLeaf({ size: { width: 1200, height: 760 } });
   const root = tree.newWithChildren([fixed, nested], {
     display: Display.Flex,
-    flexDirection: FlexDirection.Row,
+    flexDirection: firstDirection === FlexDirection.Row ? FlexDirection.Column : FlexDirection.Row,
     size: { width: 1280, height: 800 },
     padding: 16,
   });

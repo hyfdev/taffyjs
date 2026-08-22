@@ -1,8 +1,8 @@
 # Taffy-to-Node Binding Mapping
 
-This is the current reference for Rust/JavaScript conversion and safety in `@taffyjs/node`. It describes the implemented Taffy 0.13 boundary. Product choices that should constrain future work are recorded in [@taffyjs/node decisions](taffyjs-node-decisions.md).
+This is the current reference for Rust/JavaScript conversion and safety in `@taffyjs/node`. It describes the implemented Taffy boundary. Product choices that should constrain future work are recorded in [@taffyjs/node decisions](taffyjs-node-decisions.md).
 
-Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScript changes. The primary upstream references are [TaffyTree](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/tree/taffy_tree.rs), [Style](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/style/mod.rs), [geometry](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/geometry.rs), and [napi-rs conversions](https://napi.rs/docs/concepts/type-conversions).
+Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScript changes. The primary upstream references are [TaffyTree](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/taffy_tree.rs), [Style](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/style/mod.rs), [geometry](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/geometry.rs), and [napi-rs conversions](https://napi.rs/docs/concepts/type-conversions).
 
 ## Scope and ownership
 
@@ -70,7 +70,7 @@ The accepted implementation makes these mappings part of the repository generato
 
 Other values that carry data, including Grid placement, track sizing, repetition counts, and template components, use ordinary records with numeric discriminators. A branch requires its own payload fields; unrelated structural properties do not become part of complete output.
 
-Grid integers use checked `i16` or `u16` conversion, strings remain ordinary identifiers rather than a CSS grammar, and nested collections are copied completely before mutation. The binding prevents the known Taffy 0.13 named-line underflow shape but otherwise leaves safely representable Grid semantics to Taffy.
+Grid integers use checked `i16` or `u16` conversion, strings remain ordinary identifiers rather than a CSS grammar, and nested collections are copied completely before mutation. The binding enforces Taffy's line-name count contract for Grid repetitions but otherwise leaves safely representable Grid semantics to Taffy.
 
 ### napi-rs types and remaining `Unknown`
 

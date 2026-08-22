@@ -8,7 +8,7 @@ The feedback loop is: apply the current rules to concrete upstream behavior; dis
 
 Direct reads still materialize complete snapshots. The measured callback path now preserves the same complete Style capability through on-demand `getStyle()` delivery as recorded in the [read boundary](architecture.md#read-boundary); selective reads remain separate work under the [performance TODO](api-alignment-todos.md#performance).
 
-The evidence baseline for this case is Taffy 0.13.0, napi 3.12.0, napi-derive 3.6.2, and @napi-rs/cli 3.8.2.
+The evidence baseline for this case is Taffy at revision [`55cda62a`](https://github.com/DioxusLabs/taffy/commit/55cda62a5df9a5d04c0023be6f6dd607b1474fe9), napi 3.12.0, napi-derive 3.6.2, and @napi-rs/cli 3.8.2.
 
 ## Case 1: TaffyTree layout state and node identities
 
@@ -90,9 +90,9 @@ This case is closed as an API mapping exercise. It fixes the outer state owner, 
 
 ### Evidence
 
-- [TaffyTree and NodeData implementation](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/tree/taffy_tree.rs)
-- [NodeId implementation](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/tree/node.rs)
-- [Layout implementation](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/tree/layout.rs)
+- [TaffyTree and NodeData implementation](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/taffy_tree.rs)
+- [NodeId implementation](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/node.rs)
+- [Layout implementation](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/layout.rs)
 - [ECMAScript Map objects](https://tc39.es/ecma262/multipage/keyed-collections.html#sec-map-objects)
 - [ECMAScript SameValueZero comparison](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevaluezero)
 
@@ -167,7 +167,7 @@ The container rules are demonstrated by ordinary integration cases: `{}` and exp
 
 TypeScript encodes the supplied fields and nested component masks once. Rust clones the stored Style, applies and compares those values directly through generated `decode_into`, including bitwise comparison for direct floating-point fields so repeated `NaN` and distinct signed zero behave predictably. Empty and unchanged inputs do not call Taffy's dirtying setter. For a real change, the complete candidate is validated before one `set_style` call, so a failure preserves both the old Style and dirty state.
 
-Taffy 0.13 exposes the stored value through `style(&self) -> &Style` and replaces it through `set_style(Style)`, with no public mutable or take operation. The compact path therefore clones the current Style once for every update, then decodes, compares, and applies supplied fields in one traversal. An unchanged candidate is discarded without dirtying, while a changed candidate is validated and written once. Replacing a collection can clone the old collection before overwriting it. This preserves Taffy's sole ownership and avoids both a JavaScript shadow Style and a retained Rust patch; a future upstream closure-style update operation could safely expose in-place mutation and automatic dirty propagation.
+Taffy exposes the stored value through `style(&self) -> &Style` and replaces it through `set_style(Style)`, with no public mutable or take operation. The compact path therefore clones the current Style once for every update, then decodes, compares, and applies supplied fields in one traversal. An unchanged candidate is discarded without dirtying, while a changed candidate is validated and written once. Replacing a collection can clone the old collection before overwriting it. This preserves Taffy's sole ownership and avoids both a JavaScript shadow Style and a retained Rust patch; a future upstream closure-style update operation could safely expose in-place mutation and automatic dirty propagation.
 
 The earlier rich-object implementation was justified by a focused end-to-end native-binding microbenchmark on implementation commit `6ed48b4` that retained the JavaScript-to-Rust boundary, input conversion, mutation, and alternating real value changes. It ran on Node.js 24.19.0 on Linux with an Intel Core i5-13500H, pinned to one core, after warmup, with 13 samples in each of two runs. Representative historical per-operation timings were:
 
@@ -520,11 +520,11 @@ The Style fields `gridTemplateRows` and `gridTemplateColumns` use readonly array
 
 Every grid `f32` payload follows the existing JavaScript-number-only rounding and semantic pass-through rule. An `i16` line index and every `u16` span, repetition count, template dimension, and area coordinate accept only a JavaScript number that is finite, integral, and exactly within the corresponding Rust range. They are not clamped, truncated, wrapped, or coerced. This validation means “the selected Rust value can be constructed,” not “the grid is sensible”: representable zero values, unusual area-coordinate relationships, most empty collections, multiple auto repetitions, nonfixed auto-repeat tracks, and other combinations that Taffy can safely receive pass through. The binding does not copy Taffy's internal 10,000-track computation cap into the JavaScript boundary. Strings map directly to Taffy's custom-identifier storage without CSS custom-ident grammar validation. There is no CSS text parser, array-to-CSS shorthand, or additional scalar shorthand.
 
-Pinned Taffy 0.13 has one known collection-shape exception to pass-through. Its named-line resolver visits repeat components only while iterating the corresponding top-level `gridTemplateRowNames` or `gridTemplateColumnNames`. If that iteration reaches a repetition whose resolved count can be positive while its internal `lineNames` array is empty, the resolver's `current_line -= 1` bookkeeping can underflow and panic in a debug build. The complete Style converter must either reject that concrete cross-field combination with a controlled error or supply the semantically empty line-name sets Taffy expects, normally `tracks.length + 1` empty sets, before native state can be used. It must not reject other empty or mismatched collections merely for CSS conformance. This is a pinned implementation safety exception, not a new public grid-validity policy.
+The pinned Taffy revision states one collection-shape contract that the binding must enforce. A repetition's `lineNames` must either be empty, leaving every line of the repetition unnamed, or contain exactly `tracks.length + 1` sets, one for each line including both edges. Any other length panics during layout, in every build profile, once a template's named lines are resolved. The complete Style converter rejects the other lengths with a controlled error before native state can be used. It must not reject other empty or mismatched collections merely for CSS conformance. This enforces an upstream contract rather than a new public grid-validity policy.
 
 Each tagged branch declares only the fields that its selected variant needs. It does not add `value?: never`, `index?: never`, or similar exclusions for other variants. Conversion reads the selected discriminator and its required payload; unrelated extra structural properties are caller responsibility and are absent from canonical output. This rule is separate from ignored unknown properties on the outer `StyleInput` and strict field names on partial geometry records.
 
-Acceptance cases cover every discriminator and convenience, complete pair normalization, user-facing percentage conversion, canonical output with no helper history, exact `i16` and `u16` boundaries, rejection of fractional and out-of-range integer payloads, zero-value pass-through, arbitrary JavaScript strings, mutable and readonly nested input arrays, recursive readonly output, direct output-to-input reuse, safely forwardable empty and nested collections, nullable template areas, ignored unrelated tagged-branch properties, full conversion before replacement, and the specific empty-repeat-line-names underflow regression in both axes. CSS-invalid structure is not by itself a rejection reason, but any concrete collection relationship found to reach a panic must be rejected or converted safely under the binding-wide safety rule.
+Acceptance cases cover every discriminator and convenience, complete pair normalization, user-facing percentage conversion, canonical output with no helper history, exact `i16` and `u16` boundaries, rejection of fractional and out-of-range integer payloads, zero-value pass-through, arbitrary JavaScript strings, mutable and readonly nested input arrays, recursive readonly output, direct output-to-input reuse, safely forwardable empty and nested collections, nullable template areas, ignored unrelated tagged-branch properties, full conversion before replacement, and the specific rejected and accepted repetition line-name counts in both axes. CSS-invalid structure is not by itself a rejection reason, but any concrete collection relationship found to reach a panic must be rejected or converted safely under the binding-wide safety rule.
 
 ### Derivation sequence
 
@@ -571,7 +571,7 @@ This case paid for several corrections that should prevent later mapping work fr
 - Optional-`never` properties attempted to emulate exact object types across every tagged branch. They multiplied declaration noise without protecting the ordinary runtime path, so branches now declare only the payloads they consume and leave unrelated structural extras to the caller.
 - Early numeric discussion mixed JavaScript-to-Rust representability with layout-domain validation. The binding checks that a selected Rust value can be constructed and prevents known panics; Taffy owns safe downstream semantics, including unusual finite, negative, or non-finite floating-point values.
 - Requiring callback-path measurement before choosing any Style output representation made an optimization question block a usable baseline. Choose the simplest truthful owned representation first. Unretained prototypes suggested that selective conversion could be cheaper, but they established neither a durable performance result nor a consumer bottleneck that justifies an initial optimization API.
-- The first Grid summary treated empty line-name collections too broadly as safe. Source review found a specific reachable Taffy 0.13 underflow, so the exception is recorded narrowly without turning CSS conformance into binding validation.
+- The first Grid summary treated empty line-name collections too broadly as safe. Source review found a reachable Taffy panic behind that shape, so the rule is recorded narrowly as the upstream line-name contract without turning CSS conformance into binding validation.
 - Interpreting the end of this example as a transition toward implementation imported an unrelated project-phase question. An alignment case is complete when it has yielded its reusable distinctions and stop conditions; the next question is whether another example would exercise a new distinction.
 - Selecting a direction and vouching exact recorded words are separate acts. A human vouch applies only to the reviewed wording, and later edits that alter its scope or content must remove the stamp until the revised text is explicitly re-vouched.
 
@@ -581,15 +581,15 @@ The shared definition and stable codes that this case originally left open are n
 
 ### Evidence
 
-- [Taffy Style definition and defaults](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/style/mod.rs)
-- [Taffy semantic length types](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/style/dimension.rs)
-- [Taffy alignment types](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/style/alignment.rs)
+- [Taffy Style definition and defaults](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/style/mod.rs)
+- [Taffy semantic length types](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/style/dimension.rs)
+- [Taffy alignment types](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/style/alignment.rs)
 - [CSS Box Alignment overflow-position values](https://www.w3.org/TR/css-align-3/#overflow-values)
-- [Taffy geometry types](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/geometry.rs)
-- [Taffy grid Style types](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/style/grid.rs)
+- [Taffy geometry types](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/geometry.rs)
+- [Taffy grid Style types](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/style/grid.rs)
 - [Yoga 3.2.1 JavaScript wrapper](https://github.com/facebook/yoga/blob/v3.2.1/javascript/src/wrapAssembly.ts)
 - [Yoga 3.2.1 native Style normalization](https://github.com/facebook/yoga/blob/v3.2.1/yoga/style/Style.h)
-- [TaffyTree Style operations and measurement](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/tree/taffy_tree.rs)
+- [TaffyTree Style operations and measurement](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/taffy_tree.rs)
 - [napi-rs object conversion](https://napi.rs/docs/concepts/type-conversions)
 - [napi-rs enum conversion](https://napi.rs/docs/concepts/enum)
 - [TypeScript enum objects and const-enum publication pitfalls](https://www.typescriptlang.org/docs/handbook/enums)
@@ -685,10 +685,10 @@ Retaining a callback's owned `getStyle` provider remains supported and does not 
 
 ### Evidence
 
-- [TaffyTree context, dirty-state, and compute operations](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/tree/taffy_tree.rs)
-- [Taffy root and cached layout computation](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/compute/mod.rs)
-- [Taffy leaf measurement](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/compute/leaf.rs)
-- [Taffy per-node cache behavior](https://github.com/DioxusLabs/taffy/blob/v0.13.0/src/tree/cache.rs)
+- [TaffyTree context, dirty-state, and compute operations](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/taffy_tree.rs)
+- [Taffy root and cached layout computation](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/mod.rs)
+- [Taffy leaf measurement](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/leaf.rs)
+- [Taffy per-node cache behavior](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/cache.rs)
 - [napi-rs scoped function calls and pending-exception capture](https://github.com/napi-rs/napi-rs/blob/napi-v3.12.0/crates/napi/src/bindgen_runtime/js_values/function.rs)
 - [napi-rs JavaScript exception retention](https://github.com/napi-rs/napi-rs/blob/napi-v3.12.0/crates/napi/src/error.rs)
 - [Yoga 3.2.1 JavaScript measure wrapper](https://github.com/facebook/yoga/blob/v3.2.1/javascript/src/wrapAssembly.ts)

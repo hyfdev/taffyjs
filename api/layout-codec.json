@@ -23,7 +23,7 @@
       "name": "contentSize",
       "shape": "size",
       "components": ["width", "height"],
-      "documentation": "Reports the width and height of this node's content."
+      "documentation": "Reports the width and height of this node's laid-out content. The node's own end padding counts only for a scroll container, and content that overflows past the scroll origin does not count."
     },
     {
       "name": "scrollbarSize",

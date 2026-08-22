@@ -32,7 +32,7 @@ Style replacement, context replacement, topology changes, and every `setMeasure`
 
 The global fallback's identity and presence are not part of Taffy's cache key. Adding, removing, or changing the fallback or its captured data therefore requires marking every potentially affected leaf dirty before computing again. `markDirty(root)` is not enough: it clears that node and its ancestors, not cached descendants.
 
-A dirty node can still have a previously stored layout. Reading it returns that old snapshot until another successful compute stores a new result. As noted in [Nodes and Topology](./nodes-and-topology.md#remove-nodes), `remove(node)` does not dirty its former parent in the current Taffy version.
+A dirty node can still have a previously stored layout. Reading it returns that old snapshot until another successful compute stores a new result.
 
 ## Rounding
 

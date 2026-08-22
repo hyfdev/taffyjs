@@ -722,13 +722,20 @@ impl BindingTaffyTree {
             tree.compute_layout_with_measure(
                 node,
                 available_space,
-                |known_dimensions, available_space, node, metadata, style| {
+                |input, node, metadata, style| {
                     let has_node_measure = metadata.is_some_and(|metadata| metadata.has_measure);
-                    if has_node_measure || has_global_measure {
-                        session.invoke(known_dimensions, available_space, node, style)
-                    } else {
-                        taffy::geometry::Size::ZERO
-                    }
+                    taffy::compute_leaf_layout(
+                        input,
+                        style,
+                        |_, _| 0.0,
+                        |known_dimensions, available_space| {
+                            if has_node_measure || has_global_measure {
+                                session.invoke(known_dimensions, available_space, node, style)
+                            } else {
+                                taffy::geometry::Size::ZERO
+                            }
+                        },
+                    )
                 },
             )
             .map_err(|_| internal_error())?;

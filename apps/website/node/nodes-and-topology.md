@@ -57,7 +57,7 @@ Indices and range endpoints must be non-negative integers within the relevant bo
 
 `remove(node)` deletes one node, invalidates its `NodeId`, detaches it from its parent, and leaves its children alive as roots. It also releases the removed node's JavaScript context and per-node measure function.
 
-In Taffy 0.13, removing the node itself does not mark its former parent or ancestors dirty. Call `markDirty(formerParent)` before the next compute when their layout must account for the removal. The child-detachment methods in the previous section do mark the affected parent path dirty.
+Removing the node marks its former parent and ancestors dirty, like the child-detachment methods in the previous section, so the next compute accounts for the removal.
 
 `clear()` removes every node, context value, and per-node measure function. All IDs previously created by the tree become stale. The tree itself remains reusable, and its rounding mode is retained.
 

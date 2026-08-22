@@ -1,5 +1,13 @@
 import assert from "node:assert/strict";
-import { AvailableSpace, Dimension, Display, Float, type NodeId, TaffyTree } from "@taffyjs/node";
+import {
+  AvailableSpace,
+  Dimension,
+  Display,
+  Float,
+  type NodeId,
+  Position,
+  TaffyTree,
+} from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
 type CodedError = Error & { code?: string };
@@ -32,8 +40,8 @@ function wrapperState(tree: TaffyTree, nodes: readonly NodeId[]) {
 
 test("algorithms", () => {
   // Pinned upstream routing, cache, and hidden-layout sources for these values:
-  // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/tree/taffy_tree.rs#L250-L323
-  // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/compute/mod.rs#L275-L303
+  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/taffy_tree.rs#L284-L329
+  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/mod.rs#L278-L290
   const cases = [
     ["Flex", Display.Flex, {}],
     ["Grid", Display.Grid, {}],
@@ -82,7 +90,7 @@ test("algorithms", () => {
 
 test("percentage-content", () => {
   // Pinned upstream block percentage and content-size source for these values:
-  // https://github.com/DioxusLabs/taffy/blob/45a56299d366ddb383e593a1f0372158d00e8530/src/compute/block.rs#L548-L707
+  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/block.rs#L566-L746
   const tree = new TaffyTree();
   const child = tree.newLeaf({
     size: { width: Dimension.Percent(50), height: 80 },
@@ -95,6 +103,39 @@ test("percentage-content", () => {
   tree.computeLayout({ root, availableSpace: maxContentSpace() });
   assert.deepEqual(tree.getUnroundedLayout(child).size, { width: 100, height: 80 });
   assert.deepEqual(tree.getUnroundedLayout(root).contentSize, { width: 100, height: 80 });
+});
+
+test("content-size-overflow", () => {
+  // Pinned upstream content-size sources for these values:
+  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/common/content_size.rs
+  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/block.rs#L566-L746
+  const padded = new TaffyTree();
+  padded.disableRounding();
+  const paddedChild = padded.newLeaf({ size: { width: 30, height: 20 } });
+  const paddedRoot = padded.newWithChildren([paddedChild], {
+    display: Display.Block,
+    size: { width: 40, height: 30 },
+    padding: 10,
+  });
+  padded.computeLayout({ root: paddedRoot, availableSpace: { width: 40, height: 30 } });
+  assert.deepEqual(padded.getUnroundedLayout(paddedRoot).contentSize, { width: 40, height: 30 });
+
+  const overflowing = new TaffyTree();
+  overflowing.disableRounding();
+  const absolute = overflowing.newLeaf({
+    position: Position.Absolute,
+    inset: { left: -20, top: -20 },
+    size: { width: 30, height: 30 },
+  });
+  const overflowingRoot = overflowing.newWithChildren([absolute], {
+    display: Display.Block,
+    size: { width: 10, height: 10 },
+  });
+  overflowing.computeLayout({ root: overflowingRoot, availableSpace: { width: 10, height: 10 } });
+  assert.deepEqual(overflowing.getUnroundedLayout(overflowingRoot).contentSize, {
+    width: 10,
+    height: 10,
+  });
 });
 
 test("stored-output", () => {

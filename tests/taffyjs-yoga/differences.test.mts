@@ -644,56 +644,6 @@ test("Different: zero-cross-size stretched lines keep Taffy distribution", () =>
   }
 });
 
-test("Different: main-axis auto margins retain Taffy's justify offset", () => {
-  const config = Yoga.Config.create();
-  const oracleConfig = OracleYoga.Config.create();
-  config.setPointScaleFactor(0);
-  oracleConfig.setPointScaleFactor(0);
-  const root = Yoga.Node.createWithConfig(config);
-  const first = Yoga.Node.createWithConfig(config);
-  const second = Yoga.Node.createWithConfig(config);
-  const oracleRoot = OracleYoga.Node.createWithConfig(oracleConfig);
-  const oracleFirst = OracleYoga.Node.createWithConfig(oracleConfig);
-  const oracleSecond = OracleYoga.Node.createWithConfig(oracleConfig);
-  try {
-    root.setWidth(240);
-    root.setHeight(180);
-    root.setFlexDirection(FlexDirection.Column);
-    root.setJustifyContent(Justify.Center);
-    first.setWidth(10);
-    first.setHeight(30);
-    first.setMarginAuto(Edge.Top);
-    first.setMarginAuto(Edge.Bottom);
-    second.setWidth(20);
-    second.setHeight(20);
-    root.insertChild(first, 0);
-    root.insertChild(second, 1);
-    oracleRoot.setWidth(240);
-    oracleRoot.setHeight(180);
-    oracleRoot.setFlexDirection(OracleFlexDirection.Column);
-    oracleRoot.setJustifyContent(OracleJustify.Center);
-    oracleFirst.setWidth(10);
-    oracleFirst.setHeight(30);
-    oracleFirst.setMarginAuto(OracleEdge.Top);
-    oracleFirst.setMarginAuto(OracleEdge.Bottom);
-    oracleSecond.setWidth(20);
-    oracleSecond.setHeight(20);
-    oracleRoot.insertChild(oracleFirst, 0);
-    oracleRoot.insertChild(oracleSecond, 1);
-    root.calculateLayout(undefined, undefined);
-    oracleRoot.calculateLayout(undefined, undefined);
-    assert.deepEqual([first.getComputedTop(), second.getComputedTop()], [130, 225]);
-    assert.deepEqual([oracleFirst.getComputedTop(), oracleSecond.getComputedTop()], [65, 160]);
-    assert.equal(first.getComputedMargin(Edge.Top), 0);
-    assert.equal(first.getComputedMargin(Edge.Bottom), 0);
-  } finally {
-    root.freeRecursive();
-    oracleRoot.freeRecursive();
-    config.free();
-    oracleConfig.free();
-  }
-});
-
 for (const fixture of [
   { name: "both auto", left: "auto", right: "auto", taffyLeft: -10, yogaLeft: [0, -20] },
   { name: "left auto", left: "auto", right: undefined, taffyLeft: -20, yogaLeft: [0, -20] },
@@ -759,41 +709,3 @@ for (const fixture of [
     }
   });
 }
-
-test("Different: reversed-axis auto margins keep Taffy's distribution", () => {
-  const config = Yoga.Config.create();
-  const oracleConfig = OracleYoga.Config.create();
-  config.setPointScaleFactor(0);
-  oracleConfig.setPointScaleFactor(0);
-  const root = Yoga.Node.createWithConfig(config);
-  const child = Yoga.Node.createWithConfig(config);
-  const oracleRoot = OracleYoga.Node.createWithConfig(oracleConfig);
-  const oracleChild = OracleYoga.Node.createWithConfig(oracleConfig);
-  try {
-    root.setWidth(240);
-    root.setHeight(100);
-    root.setFlexDirection(FlexDirection.RowReverse);
-    child.setWidth(60);
-    child.setHeight(20);
-    child.setMarginAuto(Edge.Left);
-    root.insertChild(child, 0);
-    oracleRoot.setWidth(240);
-    oracleRoot.setHeight(100);
-    oracleRoot.setFlexDirection(OracleFlexDirection.RowReverse);
-    oracleChild.setWidth(60);
-    oracleChild.setHeight(20);
-    oracleChild.setMarginAuto(OracleEdge.Left);
-    oracleRoot.insertChild(oracleChild, 0);
-    root.calculateLayout(undefined, undefined);
-    oracleRoot.calculateLayout(undefined, undefined);
-    assert.equal(child.getComputedLeft(), 360);
-    assert.equal(oracleChild.getComputedLeft(), 180);
-    assert.equal(child.getComputedMargin(Edge.Left), 0);
-    assert.equal(oracleChild.getComputedMargin(OracleEdge.Left), 0);
-  } finally {
-    root.freeRecursive();
-    oracleRoot.freeRecursive();
-    config.free();
-    oracleConfig.free();
-  }
-});

@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import {
+  AlignItems,
   AvailableSpace,
   Clear,
+  Dimension,
   DetailedLayoutInfoKind,
   Display,
   Float,
   GridPlacement,
   Position,
+  RepetitionCount,
   TaffyTree,
   TrackSizingFunction,
   GridTemplateComponent,
@@ -38,14 +41,14 @@ function computeChildren(rootStyle: StyleInput, childStyles: readonly StyleInput
   };
 }
 
-// Every fixed layout value below is pinned to the exact Taffy 0.13.0 sources at:
-// https://docs.rs/crate/taffy/0.13.0/source/src/compute/block.rs
-// https://docs.rs/crate/taffy/0.13.0/source/src/compute/float.rs
-// https://docs.rs/crate/taffy/0.13.0/source/src/compute/flexbox.rs
-// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/mod.rs
-// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/placement.rs
-// https://docs.rs/crate/taffy/0.13.0/source/src/compute/grid/track_sizing.rs
-// https://docs.rs/crate/taffy/0.13.0/source/src/compute/mod.rs
+// Every fixed layout value below is pinned to the exact Taffy sources at revision 55cda62a:
+// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/block.rs
+// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/float.rs
+// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/flexbox.rs
+// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/grid/mod.rs
+// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/grid/placement.rs
+// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/grid/track_sizing.rs
+// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/mod.rs
 
 test("block-float", () => {
   const block = computeChildren({ display: Display.Block, size: { width: 100 } }, [
@@ -143,6 +146,43 @@ test("flex", () => {
   assert.deepEqual(tree.getUnroundedLayout(second).location, { x: 50.5, y: 0 });
 });
 
+test("auto-margin-alignment", () => {
+  const baseline = new TaffyTree();
+  baseline.disableRounding();
+  const marginItem = baseline.newLeaf({
+    size: { width: 10, height: 20 },
+    margin: { top: Dimension.Auto },
+  });
+  const sibling = baseline.newLeaf({ size: { width: 10, height: 10 } });
+  const baselineRoot = baseline.newWithChildren([marginItem, sibling], {
+    display: Display.Flex,
+    alignItems: AlignItems.Baseline,
+    size: { width: 100, height: 50 },
+  });
+  baseline.computeLayout({ root: baselineRoot, availableSpace: maxContentSpace() });
+  assert.deepEqual(
+    [marginItem, sibling].map((node) => baseline.getUnroundedLayout(node).location.y),
+    [30, 0],
+  );
+
+  const absolute = new TaffyTree();
+  absolute.disableRounding();
+  const child = absolute.newLeaf({
+    position: Position.Absolute,
+    inset: { left: 0, right: 0 },
+    margin: { left: Dimension.Auto, right: Dimension.Auto },
+    maxSize: { width: 50 },
+    size: { height: 10 },
+  });
+  const absoluteRoot = absolute.newWithChildren([child], {
+    display: Display.Block,
+    size: { width: 100, height: 100 },
+  });
+  absolute.computeLayout({ root: absoluteRoot, availableSpace: maxContentSpace() });
+  const placed = absolute.getUnroundedLayout(child);
+  assert.deepEqual({ x: placed.location.x, width: placed.size.width }, { x: 25, width: 50 });
+});
+
 test("grid", () => {
   const tree = new TaffyTree();
   const first = tree.newLeaf({
@@ -190,6 +230,31 @@ test("grid", () => {
     { rowStart: 1, rowEnd: 2, columnStart: 1, columnEnd: 2 },
     { rowStart: 2, rowEnd: 3, columnStart: 2, columnEnd: 3 },
   ]);
+});
+
+test("grid-repetition-line-names", () => {
+  const tree = new TaffyTree();
+  tree.disableRounding();
+  const track = TrackSizingFunction.Length(10);
+  const child = tree.newLeaf({
+    gridColumn: { start: GridPlacement.NamedLine("mid", 1), end: GridPlacement.Auto },
+    size: { height: 5 },
+  });
+  const root = tree.newWithChildren([child], {
+    display: Display.Grid,
+    size: { width: 100, height: 40 },
+    gridTemplateColumns: [
+      GridTemplateComponent.Repeat(RepetitionCount.Count(2), [track, track], []),
+    ],
+    gridTemplateColumnNames: [["mid"], ["edge"]],
+  });
+
+  tree.computeLayout({ root, availableSpace: maxContentSpace() });
+  const placed = tree.getUnroundedLayout(child);
+  assert.deepEqual(
+    { x: placed.location.x, y: placed.location.y, width: placed.size.width },
+    { x: 0, y: 0, width: 10 },
+  );
 });
 
 test("measure-context", () => {

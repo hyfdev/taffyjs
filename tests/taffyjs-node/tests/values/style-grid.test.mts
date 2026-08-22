@@ -124,27 +124,34 @@ test("Grid helpers and direct tagged records store the same values", () => {
   );
 });
 
-test("reachable positive repetitions reject the empty line-name shape that panics Taffy", () => {
+test("repetitions reject the line-name counts that panic Taffy", () => {
   const track = { min: { kind: 0, value: 10 }, max: { kind: 0, value: 10 } };
-  const safeRepeat = repeat({ kind: 0, value: 1 }, [track], []);
-  storedStyle({ gridTemplateRows: [safeRepeat] });
-  storedStyle({ gridTemplateColumns: [safeRepeat] });
-
-  for (const count of [{ kind: 0, value: 1 }, { kind: 1 }, { kind: 2 }] as Count[]) {
-    const unsafeRepeat = repeat(count, [track], []);
-    rejectsWithoutNode(
-      { gridTemplateRows: [unsafeRepeat], gridTemplateRowNames: [[]] },
-      RangeError,
-    );
-    rejectsWithoutNode(
-      { gridTemplateColumns: [unsafeRepeat], gridTemplateColumnNames: [[]] },
-      RangeError,
-    );
+  const count: Count = { kind: 0, value: 2 };
+  for (const [tracks, lineNames] of [
+    [[track], []],
+    [[track], [["start"], ["end"]]],
+    [
+      [track, track],
+      [["start"], ["middle"], ["end"]],
+    ],
+  ] as Array<[Track[], string[][]]>) {
+    const accepted = repeat(count, tracks, lineNames);
+    storedStyle({ gridTemplateRows: [accepted] });
+    storedStyle({ gridTemplateColumns: [accepted] });
   }
 
-  const zeroRepeat = repeat({ kind: 0, value: 0 }, [track], []);
-  storedStyle({ gridTemplateRows: [zeroRepeat], gridTemplateRowNames: [[]] });
-  storedStyle({ gridTemplateColumns: [zeroRepeat], gridTemplateColumnNames: [[]] });
+  for (const [tracks, lineNames] of [
+    [[track], [["start"]]],
+    [[track], [["start"], ["middle"], ["end"]]],
+    [
+      [track, track],
+      [["start"], ["end"]],
+    ],
+  ] as Array<[Track[], string[][]]>) {
+    const rejected = repeat(count, tracks, lineNames);
+    rejectsWithoutNode({ gridTemplateRows: [rejected] }, RangeError);
+    rejectsWithoutNode({ gridTemplateColumns: [rejected] }, RangeError);
+  }
 });
 
 test("Grid integer fields enforce their exact Rust ranges", () => {
