@@ -369,18 +369,6 @@ export interface Style {
   /** Reports the node's stored grid column style value. */ readonly gridColumn: Line<GridPlacement>;
 }
 
-/** Returns a detached readonly snapshot of a node's most recently stored layout. */
-export interface Layout {
-  /** Reports this node's stable traversal order in the stored layout. */ readonly order: number;
-  /** Reports this node's position relative to its parent. */ readonly location: Point<number>;
-  /** Reports this node's outer width and height. */ readonly size: Size<number>;
-  /** Reports the width and height of this node's content. */ readonly contentSize: Size<number>;
-  /** Reports the width and height reserved for scrollbars. */ readonly scrollbarSize: Size<number>;
-  /** Reports this node's resolved border widths. */ readonly border: Rect<number>;
-  /** Reports this node's resolved padding widths. */ readonly padding: Rect<number>;
-  /** Reports this node's resolved margins. */ readonly margin: Rect<number>;
-}
-
 /** Reports detached readonly detailed layout info from a completed Grid layout. */
 export type DetailedLayoutInfo =
   | Readonly<{

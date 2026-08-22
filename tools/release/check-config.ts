@@ -134,14 +134,21 @@ assertJobNeeds(workflowJob(yogaWorkflow, "publish"), "assemble", "Yoga publicati
 const ordinaryCi = await readFile(resolve(root, ".github/workflows/ci.yml"), "utf8");
 assert.deepEqual(
   [...ordinaryCi.matchAll(/^  (?<job>test-[a-z0-9-]+):$/gm)].map((match) => match.groups?.job),
-  ["test-ubuntu-x64-gnu", "test-windows-x64-msvc"],
-  "Ordinary CI must keep only the Linux and Windows runtime test jobs",
+  ["test-ubuntu-x64-gnu", "test-windows-x64-msvc", "test-wasm"],
+  "Ordinary CI must keep only the Linux, Windows, and Wasm runtime test jobs",
 );
 assert.equal(ordinaryCi.includes("matrix.settings.target"), false);
 assert.equal(ordinaryCi.includes("x86_64-unknown-freebsd"), false);
 assert.equal(ordinaryCi.includes("macos-"), false);
-assert.equal(ordinaryCi.includes("wasm32-wasip1"), false);
-assert.equal(ordinaryCi.includes("check:wasm"), false);
+// The binding compiles target-specific code for wasm32 that no other ordinary job builds or runs.
+assert(ordinaryCi.includes("targets: wasm32-wasip1"), "Ordinary CI must build the WASIP target");
+assert.deepEqual(
+  [...ordinaryCi.matchAll(/vp run (?<task>check:wasm[a-z:-]*)/g)].map(
+    (match) => match.groups?.task,
+  ),
+  ["check:wasm"],
+  "Ordinary CI must run the whole check:wasm rather than a hand-picked subset",
+);
 assert(ordinaryCi.includes("pnpm exec vp run check:release"));
 
 const releaseDocumentation = await readFile(resolve(root, ".agents/docs/release.md"), "utf8");

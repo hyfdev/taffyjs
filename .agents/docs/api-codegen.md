@@ -4,7 +4,7 @@
 
 `tools/api-codegen` is the repository's long-term home for generators that keep one API description aligned across Rust and TypeScript. New API generators should extend this tool instead of adding isolated scripts with their own parsing, writing, and checking rules.
 
-This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The implemented families are the numeric constants shared by the Node wrapper and Rust binding, the accepted absolute-length and definite-available-space input shorthands, and the compact Style codec. The future query design is recorded separately in [API query code generation](api-codegen-query.md).
+This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The implemented families are the numeric constants shared by the Node wrapper and Rust binding, the accepted absolute-length and definite-available-space input shorthands, the compact Style codec, and the fixed Layout codec. The future query design is recorded separately in [API query code generation](api-codegen-query.md).
 
 ## One maintained input
 
@@ -42,15 +42,29 @@ The TypeScript emitter writes `packages/taffyjs-node/src/style-input.ts`, which 
 
 The wire version is distinct from the maintained input format version. A change that only extends generator metadata without changing bytes need not change the wire version; a change that reinterprets existing private bytes must. The current format, buffer lifetime, format choice, and mutation rules are recorded in [Compact Style codec](style-codec.md).
 
+## Generated Layout codec
+
+The complete public `Layout` field tree and its fixed 21-number private transport have one versioned description in `api/layout-codec.json`. Input order is the public property and slot order. The compiler validates the supported scalar and geometry shapes, resolves JavaScript and Rust field paths, assigns every slot once, and derives the 168-byte buffer size.
+
+The TypeScript emitter owns the public `Layout` declaration, slot constants, and straight-line reconstruction of fresh ordinary objects. The Rust emitter owns the same slot constants and the straight-line writer from Taffy's stored `Layout`. The authored tree wrapper owns one module-local `Float64Array` scratch buffer built over an explicit `ArrayBuffer`; the private binding writers synchronously fill it and never retain a pointer to it. The explicit `ArrayBuffer` is required because JavaScriptCore materializes the backing buffer of a length-constructed typed array lazily and Bun loses the first pointer write into any such buffer. Native targets fill the buffer through the borrowed slice; the Wasm target fills the same slots through `napi_set_element`, because a Wasm module cannot receive a pointer into the JavaScript heap. Both targets share one public method name, so the wrapper and the generated decoder never branch on the runtime.
+
+The transport stays specific to Layout. It does not establish a general serialization format, runtime schema interpreter, public typed-array API, or automatic precedent for variable-sized outputs. Public behavior tests cover complete values, object shape and ownership, errors, Native/WASI parity, and browser execution; `check:codegen` covers agreement between the maintained model and committed generated sources.
+
 ## Tool organization
 
 The first implementation should establish the permanent boundaries instead of starting as a single numeric-specific script:
 
 ```text
 api/
+├── layout-codec.json
 ├── numeric-families.json
+├── style-codec.json
+├── tagged-values.json
 └── schemas/
-    └── numeric-families.schema.json
+    ├── layout-codec.schema.json
+    ├── numeric-families.schema.json
+    ├── style-codec.schema.json
+    └── tagged-values.schema.json
 
 tools/api-codegen/src/
 ├── generate.ts
@@ -58,11 +72,26 @@ tools/api-codegen/src/
 ├── diagnostics.ts
 ├── input/
 │   ├── load.ts
-│   └── numeric-families.ts
+│   ├── layout-codec.ts
+│   ├── numeric-families.ts
+│   ├── style-codec.ts
+│   └── tagged-values.ts
 ├── compiler/
-│   └── numeric-families.ts
+│   ├── layout-codec.ts
+│   ├── numeric-families.ts
+│   ├── style-codec.ts
+│   └── tagged-values.ts
 ├── emit/
-│   └── numeric-families/
+│   ├── layout-codec/
+│   │   ├── rust.ts
+│   │   └── typescript.ts
+│   ├── numeric-families/
+│   │   ├── rust.ts
+│   │   └── typescript.ts
+│   ├── style-codec/
+│   │   ├── rust.ts
+│   │   └── typescript.ts
+│   └── tagged-values/
 │       ├── rust.ts
 │       └── typescript.ts
 └── output/

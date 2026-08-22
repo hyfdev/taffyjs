@@ -947,6 +947,68 @@ if (!nativeBinding) {
 }
 const { BindingTaffyTree } = nativeBinding;
 //#endregion
+//#region src/layout-codec.ts
+const ORDER_SLOT = 0;
+const LOCATION_X_SLOT = 1;
+const LOCATION_Y_SLOT = 2;
+const SIZE_WIDTH_SLOT = 3;
+const SIZE_HEIGHT_SLOT = 4;
+const CONTENT_SIZE_WIDTH_SLOT = 5;
+const CONTENT_SIZE_HEIGHT_SLOT = 6;
+const SCROLLBAR_SIZE_WIDTH_SLOT = 7;
+const SCROLLBAR_SIZE_HEIGHT_SLOT = 8;
+const BORDER_LEFT_SLOT = 9;
+const BORDER_RIGHT_SLOT = 10;
+const BORDER_TOP_SLOT = 11;
+const BORDER_BOTTOM_SLOT = 12;
+const PADDING_LEFT_SLOT = 13;
+const PADDING_RIGHT_SLOT = 14;
+const PADDING_TOP_SLOT = 15;
+const PADDING_BOTTOM_SLOT = 16;
+const MARGIN_LEFT_SLOT = 17;
+const MARGIN_RIGHT_SLOT = 18;
+const MARGIN_TOP_SLOT = 19;
+const MARGIN_BOTTOM_SLOT = 20;
+function decodeLayout(output) {
+	return {
+		order: output[ORDER_SLOT],
+		location: {
+			x: output[LOCATION_X_SLOT],
+			y: output[LOCATION_Y_SLOT]
+		},
+		size: {
+			width: output[SIZE_WIDTH_SLOT],
+			height: output[SIZE_HEIGHT_SLOT]
+		},
+		contentSize: {
+			width: output[CONTENT_SIZE_WIDTH_SLOT],
+			height: output[CONTENT_SIZE_HEIGHT_SLOT]
+		},
+		scrollbarSize: {
+			width: output[SCROLLBAR_SIZE_WIDTH_SLOT],
+			height: output[SCROLLBAR_SIZE_HEIGHT_SLOT]
+		},
+		border: {
+			left: output[BORDER_LEFT_SLOT],
+			right: output[BORDER_RIGHT_SLOT],
+			top: output[BORDER_TOP_SLOT],
+			bottom: output[BORDER_BOTTOM_SLOT]
+		},
+		padding: {
+			left: output[PADDING_LEFT_SLOT],
+			right: output[PADDING_RIGHT_SLOT],
+			top: output[PADDING_TOP_SLOT],
+			bottom: output[PADDING_BOTTOM_SLOT]
+		},
+		margin: {
+			left: output[MARGIN_LEFT_SLOT],
+			right: output[MARGIN_RIGHT_SLOT],
+			top: output[MARGIN_TOP_SLOT],
+			bottom: output[MARGIN_BOTTOM_SLOT]
+		}
+	};
+}
+//#endregion
 //#region src/node-id.ts
 const U64_BITS = 64n;
 const TOKEN_SHIFT = 128n;
@@ -1670,6 +1732,7 @@ function withEncodedStyle(style, use) {
 //#endregion
 //#region src/tree.ts
 const DEFAULT_STYLE_INPUT = {};
+const layoutCodecBuffer = new Float64Array(/* @__PURE__ */ new ArrayBuffer(168));
 function checkedChildIndex(index) {
 	if (typeof index !== "number") throw new TypeError("Child index must be a number");
 	return index;
@@ -1825,11 +1888,13 @@ var TaffyTree = class {
 	}
 	/** Returns the most recently stored layout selected by the tree's current rounding mode. */
 	getLayout(node) {
-		return this.#inner.rawGetLayout(this.#nodes.resolve(node));
+		this.#inner.rawWriteLayout(this.#nodes.resolve(node), layoutCodecBuffer);
+		return decodeLayout(layoutCodecBuffer);
 	}
 	/** Returns the most recently stored unrounded layout snapshot. */
 	getUnroundedLayout(node) {
-		return this.#inner.rawGetUnroundedLayout(this.#nodes.resolve(node));
+		this.#inner.rawWriteUnroundedLayout(this.#nodes.resolve(node), layoutCodecBuffer);
+		return decodeLayout(layoutCodecBuffer);
 	}
 	/** Returns detailed Grid tracks and item placement when available. */
 	getDetailedLayoutInfo(node) {

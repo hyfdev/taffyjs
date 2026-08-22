@@ -30,13 +30,13 @@ This ledger records only tooling judgments that Yunfei explicitly expressed for 
 
 ### Ordinary CI platform boundary
 
-**Ruling:** Ordinary pull-request and `main` CI runs the full native test graph only on Linux x64 GNU and Windows x64 MSVC. macOS, Wasm-specific verification, and every build whose purpose is to produce a publication artifact run only inside the manually dispatched publication workflows.
+**Ruling:** Ordinary pull-request and `main` CI runs the full native test graph on Linux x64 GNU and Windows x64 MSVC, and runs the complete Wasm verification graph on Linux. macOS and every build whose purpose is to produce a publication artifact run only inside the manually dispatched publication workflows.
 
-**Limits:** The Ubuntu Node and Rust static-check jobs remain ordinary CI, and developers may still run every graph locally. This boundary does not reduce the 13-target published native set: targets other than Linux x64 GNU and Windows x64 MSVC remain build-covered during Core publication rather than runtime-tested on every change. Both publication workflows must run the complete Wasm verification graph before publishing their package group.
+**Limits:** The Ubuntu Node and Rust static-check jobs remain ordinary CI, and developers may still run every graph locally. This boundary does not reduce the 13-target published native set: targets other than Linux x64 GNU and Windows x64 MSVC remain build-covered during Core publication rather than runtime-tested on every change. Both publication workflows must still run the complete Wasm verification graph before publishing their package group. Ordinary CI runs the whole `check:wasm` graph rather than a hand-picked subset, so no one has to maintain a list of which Wasm tasks a pull request may run.
 
-**Why:** Yunfei does not want ordinary changes to pay for distribution builds that are needed only when a release is actually authorized.
+**Why:** The binding compiles target-specific code for `wasm32`, so a Wasm defect can reach `main` without any native job noticing. Yunfei still does not want ordinary changes to pay for distribution builds, and macOS and the release targets stay at publication time; the Wasm job is verification of code the repository already ships, not production of a release artifact.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly required ordinary CI to test only Windows and Linux and moved publication builds to publication time.
+**Source:** Yunfei (`@hyfdev`), 2026-08-18; explicitly required ordinary CI to test only Windows and Linux and moved publication builds to publication time. Revised by Yunfei (`@hyfdev`), 2026-08-22; after the Layout codec introduced a `wasm32`-only binding path, he explicitly required Wasm to run in ordinary CI and asked to record the change.
 
 ### Initial public versions
 

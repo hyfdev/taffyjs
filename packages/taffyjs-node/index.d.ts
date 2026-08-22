@@ -611,17 +611,6 @@ interface Style {
   /** Reports the node's stored grid row style value. */ readonly gridRow: Line<GridPlacement$1>;
   /** Reports the node's stored grid column style value. */ readonly gridColumn: Line<GridPlacement$1>;
 }
-/** Returns a detached readonly snapshot of a node's most recently stored layout. */
-interface Layout {
-  /** Reports this node's stable traversal order in the stored layout. */ readonly order: number;
-  /** Reports this node's position relative to its parent. */ readonly location: Point<number>;
-  /** Reports this node's outer width and height. */ readonly size: Size<number>;
-  /** Reports the width and height of this node's content. */ readonly contentSize: Size<number>;
-  /** Reports the width and height reserved for scrollbars. */ readonly scrollbarSize: Size<number>;
-  /** Reports this node's resolved border widths. */ readonly border: Rect<number>;
-  /** Reports this node's resolved padding widths. */ readonly padding: Rect<number>;
-  /** Reports this node's resolved margins. */ readonly margin: Rect<number>;
-}
 /** Reports detached readonly detailed layout info from a completed Grid layout. */
 type DetailedLayoutInfo = Readonly<{
   /** Identifies which DetailedLayoutInfo tagged variant this value contains. */ kind: typeof DetailedLayoutInfoKind.None;
@@ -749,6 +738,19 @@ declare const GridTemplateComponent: Readonly<{
     kind: typeof GridTemplateComponentKind.Repeat;
   }>;
 }>;
+//#endregion
+//#region src/layout-codec.d.ts
+/** Returns a detached readonly snapshot of a node's most recently stored layout. */
+interface Layout {
+  /** Reports this node's stable traversal order in the stored layout. */ readonly order: number;
+  /** Reports this node's position relative to its parent. */ readonly location: Point<number>;
+  /** Reports this node's outer width and height. */ readonly size: Size<number>;
+  /** Reports the width and height of this node's content. */ readonly contentSize: Size<number>;
+  /** Reports the width and height reserved for scrollbars. */ readonly scrollbarSize: Size<number>;
+  /** Reports this node's resolved border widths. */ readonly border: Rect<number>;
+  /** Reports this node's resolved padding widths. */ readonly padding: Rect<number>;
+  /** Reports this node's resolved margins. */ readonly margin: Rect<number>;
+}
 //#endregion
 //#region src/style-input.d.ts
 /** Supplies style fields; creation and setStyle use defaults for omitted fields. */

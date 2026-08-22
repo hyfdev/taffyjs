@@ -6,7 +6,7 @@ mod error;
 mod geometry;
 mod grid;
 mod js_object;
-mod layout;
+mod layout_codec;
 mod length;
 mod measure;
 mod number;
@@ -21,14 +21,86 @@ use error::{
     BindingResult, child_index_out_of_bounds_error, internal_error, into_napi,
     invalid_topology_error, type_error,
 };
-use napi::bindgen_prelude::{BigInt, Function, Uint8ArraySlice, Unknown};
-use napi::{Env, Status};
+use napi::bindgen_prelude::{BigInt, Float64ArraySlice, Function, Uint8ArraySlice, Unknown};
+use napi::{Env, Error, Status};
 use napi_derive::napi;
 use owner::TreeOwner;
 use std::collections::HashSet;
 use taffy::{NodeId, TraversePartialTree};
 
 const JS_MAX_SAFE_INTEGER: u64 = (1u64 << 53) - 1;
+
+fn layout_codec_length_error() -> Error {
+    Error::new(
+        Status::InvalidArg,
+        format!(
+            "Layout output must contain exactly {} values",
+            layout_codec::OUTPUT_LENGTH
+        ),
+    )
+}
+
+/// Receives one Layout record on its way to the caller's `Float64Array`.
+///
+/// Node-API promises that `napi_get_typedarray_info` yields a pointer into the array's own storage,
+/// which a Wasm module cannot be given: its linear memory cannot address the JavaScript heap. Each
+/// target therefore fills the array the way that target can express.
+#[cfg(not(target_arch = "wasm32"))]
+struct LayoutCodecTarget<'a> {
+    slots: &'a mut [f64; layout_codec::OUTPUT_LENGTH],
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl<'a> LayoutCodecTarget<'a> {
+    fn new(output: &'a mut Float64ArraySlice<'_>) -> napi::Result<Self> {
+        Ok(Self {
+            slots: unsafe { output.as_mut() }
+                .try_into()
+                .map_err(|_| layout_codec_length_error())?,
+        })
+    }
+
+    fn slots(&mut self) -> &mut [f64; layout_codec::OUTPUT_LENGTH] {
+        self.slots
+    }
+
+    fn commit(self, _env: &Env) -> napi::Result<()> {
+        Ok(())
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+struct LayoutCodecTarget<'a, 'env> {
+    output: &'a mut Float64ArraySlice<'env>,
+    slots: [f64; layout_codec::OUTPUT_LENGTH],
+}
+
+#[cfg(target_arch = "wasm32")]
+impl<'a, 'env> LayoutCodecTarget<'a, 'env> {
+    fn new(output: &'a mut Float64ArraySlice<'env>) -> napi::Result<Self> {
+        if output.len() != layout_codec::OUTPUT_LENGTH {
+            return Err(layout_codec_length_error());
+        }
+        Ok(Self {
+            output,
+            slots: [0.0; layout_codec::OUTPUT_LENGTH],
+        })
+    }
+
+    fn slots(&mut self) -> &mut [f64; layout_codec::OUTPUT_LENGTH] {
+        &mut self.slots
+    }
+
+    fn commit(mut self, env: &Env) -> napi::Result<()> {
+        use napi::bindgen_prelude::JsObjectValue;
+        for index in 0..layout_codec::OUTPUT_LENGTH {
+            let value = self.slots[index];
+            self.output
+                .set_element(index as u32, env.create_double(value)?)?;
+        }
+        Ok(())
+    }
+}
 
 #[derive(Clone, Copy, Debug, Default)]
 pub(crate) struct NodeMetadata {
@@ -555,31 +627,43 @@ impl BindingTaffyTree {
         )
     }
 
-    #[napi(js_name = "rawGetLayout")]
-    pub fn get_layout(&self, env: Env, node: BigInt) -> napi::Result<layout::LayoutOutput> {
+    #[napi(js_name = "rawWriteLayout")]
+    pub fn write_layout(
+        &self,
+        env: Env,
+        node: BigInt,
+        mut output: Float64ArraySlice<'_>,
+    ) -> napi::Result<()> {
+        let mut target = LayoutCodecTarget::new(&mut output)?;
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
             self.owner.access("getLayout", |tree| {
                 let value = tree.layout(node).map_err(|_| internal_error())?;
-                Ok(layout::output(value))
+                layout_codec::write_output(value, target.slots());
+                Ok(())
             }),
-        )
+        )?;
+        target.commit(&env)
     }
 
-    #[napi(js_name = "rawGetUnroundedLayout")]
-    pub fn get_unrounded_layout(
+    #[napi(js_name = "rawWriteUnroundedLayout")]
+    pub fn write_unrounded_layout(
         &self,
         env: Env,
         node: BigInt,
-    ) -> napi::Result<layout::LayoutOutput> {
+        mut output: Float64ArraySlice<'_>,
+    ) -> napi::Result<()> {
+        let mut target = LayoutCodecTarget::new(&mut output)?;
         let node = into_napi(env, raw_node_id(&node))?;
         into_napi(
             env,
             self.owner.access("getUnroundedLayout", |tree| {
-                Ok(layout::output(tree.unrounded_layout(node)))
+                layout_codec::write_output(tree.unrounded_layout(node), target.slots());
+                Ok(())
             }),
-        )
+        )?;
+        target.commit(&env)
     }
 
     #[napi(js_name = "rawGetDetailedLayoutInfo")]
@@ -742,7 +826,7 @@ mod tests {
     use taffy::TaffyTree;
     use taffy::style::Style;
 
-    use super::{NodeMetadata, set_node_metadata};
+    use super::{NodeMetadata, layout_codec, set_node_metadata};
 
     #[test]
     fn context_and_measure_metadata_are_independent() {
@@ -769,5 +853,12 @@ mod tests {
 
         set_node_metadata(&mut tree, node, |metadata| metadata.has_measure = false).unwrap();
         assert!(tree.get_node_context(node).is_none());
+    }
+
+    #[test]
+    fn layout_codec_preserves_the_full_u32_order_range() {
+        let mut output = [0.0; layout_codec::OUTPUT_LENGTH];
+        layout_codec::write_output(&taffy::Layout::with_order(u32::MAX), &mut output);
+        assert_eq!(output[layout_codec::ORDER_SLOT], f64::from(u32::MAX));
     }
 }

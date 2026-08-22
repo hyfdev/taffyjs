@@ -27,6 +27,7 @@ export {
   RepetitionCount,
   TrackSizingFunction,
 } from "./grid.js";
+export type { Layout } from "./layout-codec.js";
 export type { NodeId } from "./node-id.js";
 export type {
   ChildRangeInput,
@@ -43,7 +44,6 @@ export type {
   GridTemplateComponentInput,
   GridTemplateRepetition,
   GridTemplateRepetitionInput,
-  Layout,
   Line,
   LineInput,
   MaxTrackSizingFunction,

@@ -1,0 +1,53 @@
+{
+  "$schema": "./schemas/layout-codec.schema.json",
+  "formatVersion": 1,
+  "fields": [
+    {
+      "name": "order",
+      "shape": "number",
+      "documentation": "Reports this node's stable traversal order in the stored layout."
+    },
+    {
+      "name": "location",
+      "shape": "point",
+      "components": ["x", "y"],
+      "documentation": "Reports this node's position relative to its parent."
+    },
+    {
+      "name": "size",
+      "shape": "size",
+      "components": ["width", "height"],
+      "documentation": "Reports this node's outer width and height."
+    },
+    {
+      "name": "contentSize",
+      "shape": "size",
+      "components": ["width", "height"],
+      "documentation": "Reports the width and height of this node's content."
+    },
+    {
+      "name": "scrollbarSize",
+      "shape": "size",
+      "components": ["width", "height"],
+      "documentation": "Reports the width and height reserved for scrollbars."
+    },
+    {
+      "name": "border",
+      "shape": "rect",
+      "components": ["left", "right", "top", "bottom"],
+      "documentation": "Reports this node's resolved border widths."
+    },
+    {
+      "name": "padding",
+      "shape": "rect",
+      "components": ["left", "right", "top", "bottom"],
+      "documentation": "Reports this node's resolved padding widths."
+    },
+    {
+      "name": "margin",
+      "shape": "rect",
+      "components": ["left", "right", "top", "bottom"],
+      "documentation": "Reports this node's resolved margins."
+    }
+  ]
+}

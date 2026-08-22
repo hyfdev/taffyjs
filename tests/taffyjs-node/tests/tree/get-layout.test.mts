@@ -141,4 +141,9 @@ test("invalid-id", () => {
   const stale = tree.newLeaf();
   tree.clear();
   assert.equal(captureError(() => tree.getLayout(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
+
+  const removedTree = new TaffyTree();
+  const removed = removedTree.newLeaf({});
+  removedTree.remove(removed);
+  assert.equal(captureError(() => removedTree.getLayout(removed)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

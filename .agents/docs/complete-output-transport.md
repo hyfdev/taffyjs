@@ -20,3 +20,11 @@ General generation makes the mechanism maintainable; it does not prove that ever
 Layout is the first candidate because its complete output is a fixed numeric record. Style and DetailedLayoutInfo should use the same direction only after representative default, nested collection, tagged-variant, string-heavy, single-value, and batch workloads demonstrate a material end-to-end benefit.
 
 The public complete getter remains the semantic baseline regardless of its private transport. This direction does not add a new public API by itself and does not weaken the need for selective query when a consumer wants only part of a value.
+
+## Implemented Layout transport
+
+`getLayout()` and `getUnroundedLayout()` use one private caller-owned 21-slot `Float64Array` whose order is generated from `api/layout-codec.json`. Rust validates the exact length, synchronously writes all slots through a borrowed view, and retains neither the view nor its pointer. TypeScript immediately reconstructs a fresh complete ordinary `Layout` object, preserving the public API and detached-snapshot semantics.
+
+Native targets write into the JavaScript buffer through the borrowed Node-API view. The scratch buffer is allocated over an explicit `ArrayBuffer` rather than by length: JavaScriptCore materializes the backing buffer of a length-constructed typed array lazily, and Bun loses the first pointer write into any such buffer, so an eagerly allocated buffer keeps one shared path correct on Node, Deno, and Bun alike.
+
+The Wasm target fills the same buffer through `napi_set_element` instead. Node-API promises that `napi_get_typedarray_info` yields a pointer into the array's own storage, and a Wasm module cannot be given such a pointer, because its linear memory cannot address the JavaScript heap; Emnapi can only hand back a copy. Writing the elements keeps the Wasm binding inside portable Node-API and leaves the generated loaders untouched, at the cost of 21 calls per read instead of one.
