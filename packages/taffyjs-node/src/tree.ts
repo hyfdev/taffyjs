@@ -1,11 +1,11 @@
 import { BindingTaffyTree } from "./binding.js";
+import { layoutCodecByteLength, decodeLayout, type Layout } from "./layout-codec.js";
 import { NodeIdRegistry, type NodeId } from "./node-id.js";
 import { type StyleInput, type StyleUpdate, withEncodedStyle } from "./style-input.js";
 import type {
   ChildRangeInput,
   ComputeLayoutOptions,
   DetailedLayoutInfo,
-  Layout,
   MeasureFunction,
   Size,
   Style,
@@ -20,6 +20,13 @@ type RawMeasureArgs = {
 };
 
 const DEFAULT_STYLE_INPUT: StyleInput = {};
+
+// The two private writers are synchronous and cannot invoke JavaScript, so one module-local
+// scratch buffer is decoded before another public getter can reuse it. The buffer is built over
+// an explicit ArrayBuffer because JavaScriptCore materializes the backing buffer of a
+// length-constructed typed array lazily, and Bun loses the first pointer write into any such
+// buffer; an eagerly allocated buffer gives every runtime the same stable backing store.
+const layoutCodecBuffer = new Float64Array(new ArrayBuffer(layoutCodecByteLength));
 
 function checkedChildIndex(index: number): number {
   if (typeof index !== "number") throw new TypeError("Child index must be a number");
@@ -220,12 +227,14 @@ export class TaffyTree<TContext = unknown> {
 
   /** Returns the most recently stored layout selected by the tree's current rounding mode. */
   getLayout(node: NodeId): Layout {
-    return this.#inner.rawGetLayout(this.#nodes.resolve(node));
+    this.#inner.rawWriteLayout(this.#nodes.resolve(node), layoutCodecBuffer);
+    return decodeLayout(layoutCodecBuffer);
   }
 
   /** Returns the most recently stored unrounded layout snapshot. */
   getUnroundedLayout(node: NodeId): Layout {
-    return this.#inner.rawGetUnroundedLayout(this.#nodes.resolve(node));
+    this.#inner.rawWriteUnroundedLayout(this.#nodes.resolve(node), layoutCodecBuffer);
+    return decodeLayout(layoutCodecBuffer);
   }
 
   /** Returns detailed Grid tracks and item placement when available. */

@@ -27,8 +27,8 @@ export declare class BindingTaffyTree {
   rawSetMeasure(node: bigint, hasMeasure: boolean): void;
   rawGetStyle(node: bigint): StyleOutput;
   rawComputeLayout(node: bigint, availableSpace: unknown): void;
-  rawGetLayout(node: bigint): LayoutOutput;
-  rawGetUnroundedLayout(node: bigint): LayoutOutput;
+  rawWriteLayout(node: bigint, output: Float64Array): void;
+  rawWriteUnroundedLayout(node: bigint, output: Float64Array): void;
   rawGetDetailedLayoutInfo(node: bigint): DetailedLayoutOutput;
   rawMarkDirty(node: bigint): void;
   rawIsDirty(node: bigint): boolean;
@@ -133,17 +133,6 @@ export interface KnownDimensionsOutput {
   height: number | undefined;
 }
 
-export interface LayoutOutput {
-  order: number;
-  location: NumberPointOutput;
-  size: NumberSizeOutput;
-  contentSize: NumberSizeOutput;
-  scrollbarSize: NumberSizeOutput;
-  border: NumberRectOutput;
-  padding: NumberRectOutput;
-  margin: NumberRectOutput;
-}
-
 export interface LengthOutput {
   unit: number;
   value?: number;
@@ -169,23 +158,6 @@ export interface MeasureArguments {
 }
 
 export interface MeasureResultInput {
-  width: number;
-  height: number;
-}
-
-export interface NumberPointOutput {
-  x: number;
-  y: number;
-}
-
-export interface NumberRectOutput {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-}
-
-export interface NumberSizeOutput {
   width: number;
   height: number;
 }

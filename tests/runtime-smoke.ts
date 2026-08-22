@@ -30,6 +30,8 @@ export function runRuntimeSmoke<TNode>(packageName: string, tree: RuntimeSmokeTr
   const root = tree.newLeaf({ size: { width: 120, height: 80 } });
   tree.computeLayout({ root, availableSpace: { width: 800, height: 600 } });
 
+  // This is the process's first read. A runtime that fails to expose the Layout scratch buffer's
+  // backing store to the binding loses exactly the first write into that buffer, so keep it first.
   const { width, height } = tree.getLayout(root).size;
   if (width !== 120 || height !== 80) {
     throw new Error(`${packageName} produced an unexpected layout: ${width}x${height}`);

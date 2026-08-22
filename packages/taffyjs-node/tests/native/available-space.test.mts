@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { BindingTaffyTree } from "../../src/binding.ts";
 import { AvailableSpace } from "../../src/index.ts";
+import { layoutCodecByteLength, decodeLayout } from "../../src/layout-codec.ts";
 import { withEncodedStyle } from "../../src/style-input.ts";
 import { test } from "vite-plus/test";
 
@@ -21,7 +22,9 @@ function layoutFor(width: unknown, height: unknown = width) {
     },
   });
   owner.rawComputeLayout(node, { width, height });
-  return owner.rawGetLayout(node);
+  const output = new Float64Array(new ArrayBuffer(layoutCodecByteLength));
+  owner.rawWriteLayout(node, output);
+  return decodeLayout(output);
 }
 
 test("available space requires complete named width and height fields", () => {
