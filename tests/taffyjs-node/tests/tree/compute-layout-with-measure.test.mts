@@ -210,6 +210,45 @@ test("callback-args", () => {
   assert.equal(secondStyle.flexGrow, Math.fround(1.25));
 });
 
+test("callback-args reconstruct MaxContent, negative, and non-finite available space", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeafWithContext(true);
+  const received: MeasureArgs<unknown>["availableSpace"][] = [];
+
+  for (const availableSpace of [
+    { width: AvailableSpace.MaxContent, height: AvailableSpace.MinContent },
+    { width: -4, height: Number.POSITIVE_INFINITY },
+    { width: Number.NaN, height: Number.NEGATIVE_INFINITY },
+    { width: -0, height: 0 },
+  ] as const) {
+    tree.computeLayout({
+      root: node,
+      availableSpace,
+      measure(args) {
+        received.push(args.availableSpace);
+        return { width: 8, height: 4 };
+      },
+    });
+  }
+
+  assert.deepEqual(received[0], {
+    width: AvailableSpace.MaxContent,
+    height: AvailableSpace.MinContent,
+  });
+  assert.equal(received[1].width.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[1].width.value, -4);
+  assert.equal(received[1].height.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[1].height.value, Number.POSITIVE_INFINITY);
+  assert.equal(received[2].width.kind, AvailableSpaceKind.Definite);
+  assert.equal(Number.isNaN(received[2].width.value), true);
+  assert.equal(received[2].height.kind, AvailableSpaceKind.Definite);
+  assert.equal(received[2].height.value, Number.NEGATIVE_INFINITY);
+  assert.equal(received[3].width.kind, AvailableSpaceKind.Definite);
+  assert.equal(Object.is(received[3].width.value, -0), true);
+  assert.equal(received[3].height.kind, AvailableSpaceKind.Definite);
+  assert.equal(Object.is(received[3].height.value, 0), true);
+});
+
 test("getStyle provider is reused per node and refreshed for the next compute", () => {
   const fixture = createNestedMeasureFixture(FlexDirection.Row);
   const providers = new Map<NodeId, () => ReturnType<MeasureArgs<unknown>["getStyle"]>>();
@@ -789,6 +828,13 @@ test("malformed-result", () => {
     const error = captureError(() => compute(tree, node, () => result as never));
     assert.equal((error as Error).constructor, TypeError);
   }
+});
+
+test("extra-result-fields are ignored", () => {
+  const tree = new TaffyTree();
+  const node = tree.newLeafWithContext(true);
+  compute(tree, node, () => ({ width: 30, height: 10, extra: 3 }) as never);
+  assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 30, height: 10 });
 });
 
 test("zero-drain", () => {

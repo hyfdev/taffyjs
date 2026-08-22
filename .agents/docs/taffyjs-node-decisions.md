@@ -286,6 +286,26 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-16; explicitly requested a dedicated `@taffyjs/node` documentation page that explains the distinction and tells readers to prefer `updateStyle` unless they have a specific need for `setStyle`.
 
+### Private compact measure-callback constraints ABI
+
+**Ruling:** The private measure-callback argument may carry five numbers — `knownWidth`, `knownHeight`, `availableWidth`, `availableHeight`, and Taffy's slot id as `node` — instead of nested constraint objects and a BigInt node. The wrapper must reconstruct the public `knownDimensions`, `availableSpace`, and `NodeId` before calling the user function. `getStyle` stays the existing per-node cached function handle. Absent known dimensions use a sentinel; `MinContent` and `MaxContent` use negative sentinels outside the `f32` range so a `Definite` value, including a negative one, is not decoded as a content keyword.
+
+**Limits:** This reopens only the compact private constraints ABI / numeric-slots exclusion in [On-demand Style in measure callbacks](#on-demand-style-in-measure-callbacks). Public `MeasureArgs` type, fields, values, and `getStyle` behavior stay unchanged. It does not approve a public buffer or numeric-slot API, per-node native callback tables, an upstream algorithm change, a JavaScript Style mirror, or unsafe callback-scope handles.
+
+**Why:** Yunfei selected “批准改动 A（推荐）” after being shown the 1877 ns versus 242 ns round-trip, the chat-scenario CPU share of `#computeMeasuredLayout` (68.9% / 77.6%), the prototype caveat that landing must rebuild public objects, and the vouched Limits text that had not approved a compact constraints ABI. He did not add further words.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-22; in-session answer “批准改动 A（推荐）” to reopening that Limits item for this private five-number crossing.
+
+### Ignore extra fields on measure results
+
+**Ruling:** A measure callback result is read as `width` and `height` only. Extra own properties are ignored. Missing fields, `null`, arrays, non-number payloads, and other unsupported whole-value shapes still produce a `TypeError`.
+
+**Limits:** This applies to the measure-result object, not to Style input, partial geometry records, or other Size inputs that still reject unknown component names. It does not add Yoga-style missing-axis fallback, coercion, or asynchronous settlement.
+
+**Why:** Yunfei selected “忽略多余字段（推荐）”. That option used the same ground as [Generated compact Style codec](#generated-compact-style-codec): the binding reads only the fields it needs, and supplying correct field names is the caller's responsibility. He did not add further words.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-22; in-session answer “忽略多余字段（推荐）”.
+
 ## Open
 
 ### Selective query implementation details

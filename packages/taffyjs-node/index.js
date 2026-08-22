@@ -1731,6 +1731,17 @@ function withEncodedStyle(style, use) {
 }
 //#endregion
 //#region src/tree.ts
+const KNOWN_DIMENSION_ABSENT = 2 ** 128;
+const AVAILABLE_MIN_CONTENT = -(2 ** 128);
+const AVAILABLE_MAX_CONTENT = -(2 ** 129);
+function knownDimension(value) {
+	return value === KNOWN_DIMENSION_ABSENT ? void 0 : value;
+}
+function availableSpaceConstraint(value) {
+	if (value === AVAILABLE_MIN_CONTENT) return AvailableSpace.MinContent;
+	if (value === AVAILABLE_MAX_CONTENT) return AvailableSpace.MaxContent;
+	return AvailableSpace.Definite(value);
+}
 const DEFAULT_STYLE_INPUT = {};
 const layoutCodecBuffer = new Float64Array(/* @__PURE__ */ new ArrayBuffer(168));
 function checkedChildIndex(index) {
@@ -1929,12 +1940,18 @@ var TaffyTree = class {
 	#computeMeasuredLayout(root, availableSpace, fallback) {
 		this.#inner.rawComputeLayoutWithMeasure(root, availableSpace, (value) => {
 			const args = value;
-			const node = this.#nodes.fromRaw(args.node);
+			const node = this.#nodes.fromRaw(BigInt(args.node));
 			const measure = this.#measures.get(node) ?? fallback;
 			if (measure === void 0) throw new Error("Native measure marker has no JavaScript measure function");
 			return measure({
-				knownDimensions: args.knownDimensions,
-				availableSpace: args.availableSpace,
+				knownDimensions: {
+					width: knownDimension(args.knownWidth),
+					height: knownDimension(args.knownHeight)
+				},
+				availableSpace: {
+					width: availableSpaceConstraint(args.availableWidth),
+					height: availableSpaceConstraint(args.availableHeight)
+				},
 				node,
 				context: this.#contexts.get(node),
 				getStyle: args.getStyle

@@ -40,16 +40,6 @@ export declare class BindingTaffyTree {
   ): void;
 }
 
-export interface AvailableSpaceOutput {
-  kind: number;
-  value?: number;
-}
-
-export interface AvailableSpaceSizeOutput {
-  width: AvailableSpaceOutput;
-  height: AvailableSpaceOutput;
-}
-
 export interface AvailableSpaceTaggedInput {
   kind: number;
   value?: number;
@@ -128,11 +118,6 @@ export interface GridTemplateRepetitionOutput {
   lineNames: Array<Array<string>>;
 }
 
-export interface KnownDimensionsOutput {
-  width: number | undefined;
-  height: number | undefined;
-}
-
 export interface LengthOutput {
   unit: number;
   value?: number;
@@ -151,9 +136,11 @@ export interface LengthSizeOutput {
 }
 
 export interface MeasureArguments {
-  knownDimensions: KnownDimensionsOutput;
-  availableSpace: AvailableSpaceSizeOutput;
-  node: bigint;
+  knownWidth: number;
+  knownHeight: number;
+  availableWidth: number;
+  availableHeight: number;
+  node: number;
   getStyle: () => StyleOutput;
 }
 

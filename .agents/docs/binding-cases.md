@@ -632,7 +632,7 @@ These are callback-boundary facts rather than a recommended side-effectful measu
 
 ### Selected measure-result mapping
 
-The synchronous measure function returns a complete mutable `SizeInput<number>` ordinary object with required `width` and `height` properties. A missing or explicit-`undefined` axis, `null`, another non-number payload, an array, a Promise or other unsupported whole-value shape, and an unknown geometry component produce a controlled `TypeError`. The callback result does not gain Style partiality, scalar expansion, coercion, asynchronous settlement, or a Yoga-style missing-axis fallback.
+The synchronous measure function returns a complete mutable `SizeInput<number>` ordinary object with required `width` and `height` properties. A missing or explicit-`undefined` axis, `null`, another non-number payload, an array, a Promise, or another unsupported whole-value shape produces a controlled `TypeError`. Extra own properties are ignored. The callback result does not gain Style partiality, scalar expansion, coercion, asynchronous settlement, or a Yoga-style missing-axis fallback.
 
 Each axis follows the vouched scalar mapping: read one JavaScript `number`, convert it to Taffy's `f32` with ordinary rounding, and pass negative values, `NaN`, infinities, and finite values that overflow to `f32` infinity without semantic validation or normalization. These values are successful measure results rather than callback failures.
 

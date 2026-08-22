@@ -7,17 +7,33 @@ import type {
   ComputeLayoutOptions,
   DetailedLayoutInfo,
   MeasureFunction,
-  Size,
   Style,
 } from "./public-types.js";
-import type { AvailableSpace } from "./tagged-values.js";
+import { AvailableSpace } from "./tagged-values.js";
+
+// Keep these values identical to crates/taffyjs_binding/src/measure.rs.
+const KNOWN_DIMENSION_ABSENT = 2 ** 128;
+const AVAILABLE_MIN_CONTENT = -(2 ** 128);
+const AVAILABLE_MAX_CONTENT = -(2 ** 129);
 
 type RawMeasureArgs = {
-  knownDimensions: Size<number | undefined>;
-  availableSpace: Size<AvailableSpace>;
-  node: bigint;
+  knownWidth: number;
+  knownHeight: number;
+  availableWidth: number;
+  availableHeight: number;
+  node: number;
   getStyle: () => Style;
 };
+
+function knownDimension(value: number): number | undefined {
+  return value === KNOWN_DIMENSION_ABSENT ? undefined : value;
+}
+
+function availableSpaceConstraint(value: number): AvailableSpace {
+  if (value === AVAILABLE_MIN_CONTENT) return AvailableSpace.MinContent;
+  if (value === AVAILABLE_MAX_CONTENT) return AvailableSpace.MaxContent;
+  return AvailableSpace.Definite(value);
+}
 
 const DEFAULT_STYLE_INPUT: StyleInput = {};
 
@@ -284,14 +300,20 @@ export class TaffyTree<TContext = unknown> {
       availableSpace,
       (value) => {
         const args = value as RawMeasureArgs;
-        const node = this.#nodes.fromRaw(args.node);
+        const node = this.#nodes.fromRaw(BigInt(args.node));
         const measure = this.#measures.get(node) ?? fallback;
         if (measure === undefined) {
           throw new Error("Native measure marker has no JavaScript measure function");
         }
         return measure({
-          knownDimensions: args.knownDimensions,
-          availableSpace: args.availableSpace,
+          knownDimensions: {
+            width: knownDimension(args.knownWidth),
+            height: knownDimension(args.knownHeight),
+          },
+          availableSpace: {
+            width: availableSpaceConstraint(args.availableWidth),
+            height: availableSpaceConstraint(args.availableHeight),
+          },
           node,
           context: this.#contexts.get(node),
           getStyle: args.getStyle,

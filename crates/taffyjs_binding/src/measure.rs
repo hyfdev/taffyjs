@@ -3,9 +3,7 @@ use std::marker::PhantomData;
 use std::ptr;
 use std::rc::Rc;
 
-use napi::bindgen_prelude::{
-    BigInt, Either, Function, FunctionRef, ToNapiValue, Undefined, Unknown,
-};
+use napi::bindgen_prelude::{Function, FunctionRef, ToNapiValue, Unknown};
 use napi::{Env, JsValue, sys};
 use napi_derive::napi;
 use taffy::geometry::Size;
@@ -13,25 +11,22 @@ use taffy::style::{AvailableSpace, Style};
 use taffy::{NodeId, TaffyTree};
 
 use crate::error::{BindingError, BindingResult, internal_error};
-use crate::{available_space, js_object, number, style};
+use crate::{js_object, number, style};
 
-#[napi(object, object_from_js = false)]
-pub struct KnownDimensionsOutput {
-    pub width: Either<f64, Undefined>,
-    pub height: Either<f64, Undefined>,
-}
-
-#[napi(object, object_from_js = false)]
-pub struct AvailableSpaceSizeOutput {
-    pub width: available_space::AvailableSpaceOutput,
-    pub height: available_space::AvailableSpaceOutput,
-}
+// Keep these values identical to packages/taffyjs-node/src/tree.ts.
+// 2^128 is larger than any finite f32, so it cannot collide with a known
+// dimension or with AvailableSpace::Definite after f32→f64 conversion.
+const KNOWN_DIMENSION_ABSENT: f64 = f64::from_bits(0x47F0_0000_0000_0000); // 2^128
+const AVAILABLE_MIN_CONTENT: f64 = f64::from_bits(0xC7F0_0000_0000_0000); // -2^128
+const AVAILABLE_MAX_CONTENT: f64 = f64::from_bits(0xC800_0000_0000_0000); // -2^129
 
 #[napi(object, object_from_js = false)]
 pub struct MeasureArguments<'env> {
-    pub known_dimensions: KnownDimensionsOutput,
-    pub available_space: AvailableSpaceSizeOutput,
-    pub node: BigInt,
+    pub known_width: f64,
+    pub known_height: f64,
+    pub available_width: f64,
+    pub available_height: f64,
+    pub node: f64,
     pub get_style: Function<'env, (), style::StyleOutput>,
 }
 
@@ -169,9 +164,11 @@ fn arguments<'env>(
     style: &Style,
 ) -> BindingResult<MeasureArguments<'env>> {
     Ok(MeasureArguments {
-        known_dimensions: known_dimensions_output(known_dimensions),
-        available_space: available_space_size_output(available_space),
-        node: BigInt::from(u64::from(node)),
+        known_width: encode_known_dimension(known_dimensions.width),
+        known_height: encode_known_dimension(known_dimensions.height),
+        available_width: encode_available_space(available_space.width),
+        available_height: encode_available_space(available_space.height),
+        node: encode_node(node),
         get_style: style_provider(env, style_providers, node, style)?,
     })
 }
@@ -240,30 +237,27 @@ fn call<'env>(
     }
 }
 
-fn known_dimension_output(value: Option<f32>) -> Either<f64, Undefined> {
+fn encode_known_dimension(value: Option<f32>) -> f64 {
     match value {
-        Some(value) => Either::A(f64::from(value)),
-        None => Either::B(()),
+        Some(value) => f64::from(value),
+        None => KNOWN_DIMENSION_ABSENT,
     }
 }
 
-fn known_dimensions_output(value: Size<Option<f32>>) -> KnownDimensionsOutput {
-    KnownDimensionsOutput {
-        width: known_dimension_output(value.width),
-        height: known_dimension_output(value.height),
+fn encode_available_space(value: AvailableSpace) -> f64 {
+    match value {
+        AvailableSpace::Definite(value) => f64::from(value),
+        AvailableSpace::MinContent => AVAILABLE_MIN_CONTENT,
+        AvailableSpace::MaxContent => AVAILABLE_MAX_CONTENT,
     }
 }
 
-fn available_space_size_output(value: Size<AvailableSpace>) -> AvailableSpaceSizeOutput {
-    AvailableSpaceSizeOutput {
-        width: available_space::available_space_output(value.width),
-        height: available_space::available_space_output(value.height),
-    }
+fn encode_node(node: NodeId) -> f64 {
+    u64::from(node) as f64
 }
 
 fn result_size(value: Unknown<'_>) -> BindingResult<Size<f32>> {
-    let input: MeasureResultInput =
-        js_object::input(value, "a measured Size object", Some(&["width", "height"]))?;
+    let input: MeasureResultInput = js_object::input(value, "a measured Size object", None)?;
     Ok(Size {
         width: number::to_f32(input.width),
         height: number::to_f32(input.height),
@@ -290,7 +284,11 @@ mod tests {
     use taffy::style::{AvailableSpace, Style};
     use taffy::{NodeId, TaffyTree};
 
-    use super::{AvailableSpaceCacheKey, MeasureCacheKey, MeasureSession, invalidate_subtree};
+    use super::{
+        AVAILABLE_MAX_CONTENT, AVAILABLE_MIN_CONTENT, AvailableSpaceCacheKey,
+        KNOWN_DIMENSION_ABSENT, MeasureCacheKey, MeasureSession, encode_available_space,
+        encode_known_dimension, encode_node, invalidate_subtree,
+    };
 
     fn cache_key(
         node: u64,
@@ -348,6 +346,43 @@ mod tests {
                 available_height: AvailableSpaceCacheKey::MaxContent,
             }
         );
+    }
+
+    #[test]
+    fn compact_constraint_sentinels_do_not_collide_with_f32_payloads() {
+        assert_eq!(KNOWN_DIMENSION_ABSENT, 2.0f64.powi(128));
+        assert_eq!(AVAILABLE_MIN_CONTENT, -(2.0f64.powi(128)));
+        assert_eq!(AVAILABLE_MAX_CONTENT, -(2.0f64.powi(129)));
+        assert_eq!(encode_known_dimension(None), KNOWN_DIMENSION_ABSENT);
+        assert_eq!(encode_known_dimension(Some(12.5)), 12.5);
+        assert_eq!(
+            encode_known_dimension(Some(-0.0)).to_bits(),
+            (-0.0f64).to_bits()
+        );
+        assert_ne!(
+            encode_known_dimension(Some(f32::INFINITY)),
+            KNOWN_DIMENSION_ABSENT
+        );
+        assert!(encode_known_dimension(Some(f32::NAN)).is_nan());
+
+        assert_eq!(
+            encode_available_space(AvailableSpace::MinContent),
+            AVAILABLE_MIN_CONTENT
+        );
+        assert_eq!(
+            encode_available_space(AvailableSpace::MaxContent),
+            AVAILABLE_MAX_CONTENT
+        );
+        assert_eq!(encode_available_space(AvailableSpace::Definite(-1.0)), -1.0);
+        assert_eq!(
+            encode_available_space(AvailableSpace::Definite(f32::NEG_INFINITY)),
+            f64::NEG_INFINITY
+        );
+        assert_ne!(
+            encode_available_space(AvailableSpace::Definite(f32::NEG_INFINITY)),
+            AVAILABLE_MIN_CONTENT
+        );
+        assert_eq!(encode_node(NodeId::from(1u64 << 32)), (1u64 << 32) as f64);
     }
 
     #[test]
