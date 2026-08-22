@@ -12,7 +12,7 @@
 - [Technology stack](technology-stack.md) — why napi-rs and Vite+ own different build stages and how repository tasks are composed.
 - [Release](release.md) — the two version groups, one-dispatch workflows, verified-tarball boundary, retry behavior, and one-time npm bootstrap.
 - [API code generation](api-codegen.md) — repository-wide rules for maintained inputs, generated tagged-input mappings, shared compilation, deterministic Rust and TypeScript output, repository commands, and independent verification.
-- [Compact Style input transport](style-transport.md) — the generated Style model, private wire format, buffer lifetime, mutation semantics, prototype evidence, and target-specific copy boundary.
+- [Compact Style codec](style-codec.md) — the generated Style model, private wire format, buffer lifetime, mutation semantics, format choice, and target-specific copy boundary.
 - [API query code generation](api-codegen-query.md) — query-specific generation guidance for the agreed selective-query API shape; implementation and release remain performance-gated.
 - [@taffyjs/node decisions](taffyjs-node-decisions.md) — vouched choices for the Node binding's role, API priorities, module format, distribution, and testing strategy.
 - [@taffyjs/wasm package design](taffyjs-wasm-package.md) — public contract, artifact layout, initialization model, ownership boundary, and verification requirements for the explicit Wasm package.

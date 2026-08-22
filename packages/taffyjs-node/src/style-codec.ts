@@ -366,9 +366,6 @@ export class StyleEncoder {
     const gridName = object.name;
     const index = object.index;
     const span = object.span;
-    if (gridName !== undefined) inputString(gridName, `${name}.name`);
-    if (index !== undefined) inputInteger(index, -0x8000, 0x7fff, `${name}.index`);
-    if (span !== undefined) inputInteger(span, 0, 0xffff, `${name}.span`);
     this.#u8(kind);
     if (kind === GridPlacementKind.Line) {
       this.#i16(inputInteger(index, -0x8000, 0x7fff, `${name}.index`));
@@ -483,7 +480,7 @@ export class StyleEncoder {
     let capacity = Math.max(this.#bytes.length, INITIAL_OVERSIZED_STYLE_BUFFER_SIZE);
     while (capacity < required) {
       capacity *= 2;
-      if (!Number.isSafeInteger(capacity)) throw rangeError("Style transport", "representable");
+      if (!Number.isSafeInteger(capacity)) throw rangeError("Encoded Style", "representable");
     }
     const next = new Uint8Array(capacity);
     next.set(this.#bytes.subarray(0, this.#offset));

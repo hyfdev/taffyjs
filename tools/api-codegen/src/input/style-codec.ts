@@ -28,7 +28,7 @@ export interface RawStyleField {
   readonly numericFamily?: string;
 }
 
-export interface RawStyleTransport {
+export interface RawStyleCodec {
   readonly formatVersion: 1;
   readonly wireVersion: number;
   readonly fields: readonly RawStyleField[];
@@ -106,11 +106,11 @@ function field(sourcePath: string, fieldPath: string, value: unknown): RawStyleF
   };
 }
 
-export function validateStyleTransport(value: unknown, sourcePath: string): RawStyleTransport {
+export function validateStyleCodec(value: unknown, sourcePath: string): RawStyleCodec {
   const input = record(sourcePath, "$", value);
   exactKeys(sourcePath, "$", input, ["$schema", "formatVersion", "wireVersion", "fields"]);
-  if (input.$schema !== "./schemas/style-transport.schema.json") {
-    fail(sourcePath, "$.$schema", 'expected "./schemas/style-transport.schema.json"');
+  if (input.$schema !== "./schemas/style-codec.schema.json") {
+    fail(sourcePath, "$.$schema", 'expected "./schemas/style-codec.schema.json"');
   }
   if (input.formatVersion !== 1) fail(sourcePath, "$.formatVersion", "unsupported format version");
   if (

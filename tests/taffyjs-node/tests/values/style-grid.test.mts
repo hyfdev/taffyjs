@@ -267,7 +267,7 @@ test("Grid output reports stored values without helper history", () => {
 
 test("tagged Grid records ignore fields from inactive variants", () => {
   const style = storedStyle({
-    gridRow: { start: { kind: 0, index: 99, ignored: true } },
+    gridRow: { start: { kind: 0, index: 99_999, span: 99_999, ignored: true } },
     gridAutoRows: [{ min: { kind: 2, value: 99 }, max: { kind: 6, value: 2, ignored: true } }],
     gridTemplateRows: [{ kind: 0, value: { min: { kind: 2 }, max: { kind: 2 } }, ignored: true }],
   });

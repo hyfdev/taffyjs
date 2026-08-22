@@ -29,7 +29,7 @@ try {
 
 ## JavaScript error classes
 
-`TypeError` reports the wrong JavaScript type or object shape, such as a non-bigint node ID, an incomplete available-space record, an unknown style input or update field, or a non-function measure callback.
+`TypeError` reports the wrong JavaScript type or object shape, such as a non-bigint node ID, an incomplete available-space record, an unknown component in a partial geometry record, or a non-function measure callback.
 
 `RangeError` reports a numeric value that cannot represent the requested public value, such as an unknown numeric-family code, a fractional child index, an out-of-range Grid line, or an invalid child range. The out-of-bounds child-index case also carries the code shown above.
 

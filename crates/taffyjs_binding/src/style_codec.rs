@@ -71,18 +71,18 @@ impl<'a> StyleDecoder<'a> {
     ) -> BindingResult<Self> {
         let header_length = 4usize
             .checked_add(presence_bytes)
-            .ok_or_else(|| range_error("Style transport header is too large"))?;
+            .ok_or_else(|| range_error("Encoded Style header is too large"))?;
         if encoded.len() < header_length {
-            return Err(type_error("Style transport is truncated"));
+            return Err(type_error("Encoded Style is truncated"));
         }
         if encoded[0] != STYLE_MAGIC_0 || encoded[1] != STYLE_MAGIC_1 {
-            return Err(type_error("Style transport has an invalid header"));
+            return Err(type_error("Encoded Style has an invalid header"));
         }
         if encoded[2] != wire_version {
-            return Err(type_error("Style transport uses an unsupported version"));
+            return Err(type_error("Encoded Style uses an unsupported version"));
         }
         if usize::from(encoded[3]) != presence_bytes {
-            return Err(type_error("Style transport has an invalid presence map"));
+            return Err(type_error("Encoded Style has an invalid presence map"));
         }
         let presence = &encoded[4..header_length];
         Ok(Self {
@@ -99,11 +99,11 @@ impl<'a> StyleDecoder<'a> {
 
     pub(crate) fn finish(self) -> BindingResult<()> {
         if self.offset != self.encoded.len() {
-            return Err(type_error("Style transport contains trailing data"));
+            return Err(type_error("Encoded Style contains trailing data"));
         }
         for index in self.field_count..self.presence.len() * 8 {
             if self.field(index) {
-                return Err(type_error("Style transport contains an unknown field"));
+                return Err(type_error("Encoded Style contains an unknown field"));
             }
         }
         Ok(())
@@ -141,7 +141,7 @@ impl<'a> StyleDecoder<'a> {
         }
     }
 
-    pub(crate) fn overflow(
+    pub(crate) fn overflow_point(
         &mut self,
         current: &mut Point<Overflow>,
         name: &str,

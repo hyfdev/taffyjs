@@ -4,7 +4,7 @@
 
 `tools/api-codegen` is the repository's long-term home for generators that keep one API description aligned across Rust and TypeScript. New API generators should extend this tool instead of adding isolated scripts with their own parsing, writing, and checking rules.
 
-This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The implemented families are the numeric constants shared by the Node wrapper and Rust binding, the accepted absolute-length and definite-available-space input shorthands, and the compact Style input transport. The future query design is recorded separately in [API query code generation](api-codegen-query.md).
+This document defines the shared organization and safety rules. It does not require every repetitive source file to become generated, and it does not approve a public API merely because that API could be generated. The implemented families are the numeric constants shared by the Node wrapper and Rust binding, the accepted absolute-length and definite-available-space input shorthands, and the compact Style codec. The future query design is recorded separately in [API query code generation](api-codegen-query.md).
 
 ## One maintained input
 
@@ -34,13 +34,13 @@ The Rust emitter owns direct boundary parsing for tagged inputs that still cross
 
 Verification follows the repository-wide rule below: `check:codegen` detects stale generated files, while focused public type and behavior tests prove that each shorthand is accepted only in its declared input types, matches the complete form, and still produces complete tagged output. Ordinary behavior tests and examples use the shorthand once it exists; focused coverage keeps the complete form. Do not add tests of the generator itself or use generated data as the only behavioral oracle.
 
-## Generated Style transport
+## Generated Style codec
 
-`api/style-transport.json` and `api/schemas/style-transport.schema.json` are the maintained versioned model for the 41 public Style input fields, their canonical order, their encoding categories, their referenced numeric families, and their public descriptions. The compiler resolves numeric-family references and derives field indexes and the presence-map width once. Neither target keeps a handwritten second field inventory.
+`api/style-codec.json` and `api/schemas/style-codec.schema.json` are the maintained versioned model for the 41 public Style input fields, their canonical order, their encoding categories, their referenced numeric families, and their public descriptions. The compiler resolves numeric-family references and derives field indexes and the presence-map width once. Neither target keeps a handwritten second field inventory.
 
-The TypeScript emitter writes `packages/taffyjs-node/src/style-input.ts`, which owns the public `StyleInput` and `StyleUpdate` declarations and a straight-line encoder that reads each known property once in canonical order. The Rust emitter writes `crates/taffyjs_binding/src/style_input.rs`, which applies the matching fields in the same order through `decode_into`. Handwritten `style-transport.ts` and `style_transport.rs` own only the closed category encodings, validation primitives, buffer mechanics, and Taffy-specific conversion used by those generated call sites.
+The TypeScript emitter writes `packages/taffyjs-node/src/style-input.ts`, which owns the public `StyleInput` and `StyleUpdate` declarations and a straight-line encoder that reads each known property once in canonical order. The Rust emitter writes `crates/taffyjs_binding/src/style_input.rs`, which applies the matching fields in the same order through `decode_into`. Handwritten `style-codec.ts` and `style_codec.rs` own only the closed category encodings, validation primitives, buffer mechanics, and Taffy-specific conversion used by those generated call sites.
 
-The wire version is distinct from the maintained input format version. A change that only extends generator metadata without changing bytes need not change the wire version; a change that reinterprets existing private bytes must. The current format, buffer lifetime, prototype evidence, and mutation rules are recorded in [Compact Style input transport](style-transport.md).
+The wire version is distinct from the maintained input format version. A change that only extends generator metadata without changing bytes need not change the wire version; a change that reinterprets existing private bytes must. The current format, buffer lifetime, format choice, and mutation rules are recorded in [Compact Style codec](style-codec.md).
 
 ## Tool organization
 

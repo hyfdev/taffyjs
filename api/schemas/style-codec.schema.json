@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "TaffyJS Style transport",
+  "title": "TaffyJS Style codec",
   "type": "object",
   "additionalProperties": false,
   "required": ["$schema", "formatVersion", "wireVersion", "fields"],
   "properties": {
     "$schema": {
-      "const": "./schemas/style-transport.schema.json"
+      "const": "./schemas/style-codec.schema.json"
     },
     "formatVersion": {
       "const": 1

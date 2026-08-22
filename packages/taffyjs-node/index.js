@@ -1009,7 +1009,7 @@ var NodeIdRegistry = class {
 	}
 };
 //#endregion
-//#region src/style-transport.ts
+//#region src/style-codec.ts
 const COMMON_STYLE_BUFFER_SIZE = 1024;
 const INITIAL_OVERSIZED_STYLE_BUFFER_SIZE = 65536;
 const STYLE_MAGIC_0 = 84;
@@ -1293,9 +1293,6 @@ var StyleEncoder = class {
 		const gridName = object.name;
 		const index = object.index;
 		const span = object.span;
-		if (gridName !== void 0) inputString(gridName, `${name}.name`);
-		if (index !== void 0) inputInteger(index, -32768, 32767, `${name}.index`);
-		if (span !== void 0) inputInteger(span, 0, 65535, `${name}.span`);
 		this.#u8(kind);
 		if (kind === GridPlacementKind.Line) this.#i16(inputInteger(index, -32768, 32767, `${name}.index`));
 		else if (kind === GridPlacementKind.NamedLine) {
@@ -1373,7 +1370,7 @@ var StyleEncoder = class {
 		let capacity = Math.max(this.#bytes.length, INITIAL_OVERSIZED_STYLE_BUFFER_SIZE);
 		while (capacity < required) {
 			capacity *= 2;
-			if (!Number.isSafeInteger(capacity)) throw rangeError("Style transport", "representable");
+			if (!Number.isSafeInteger(capacity)) throw rangeError("Encoded Style", "representable");
 		}
 		const next = new Uint8Array(capacity);
 		next.set(this.#bytes.subarray(0, this.#offset));

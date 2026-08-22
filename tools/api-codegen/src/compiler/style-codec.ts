@@ -1,5 +1,5 @@
 import { CodegenError } from "../diagnostics.ts";
-import type { RawStyleTransport, StyleEncodingCategory } from "../input/style-transport.ts";
+import type { RawStyleCodec, StyleEncodingCategory } from "../input/style-codec.ts";
 import type { NumericFamiliesModel, NumericFamily } from "./numeric-families.ts";
 
 export interface StyleField {
@@ -12,7 +12,7 @@ export interface StyleField {
   readonly enumMask?: number;
 }
 
-export interface StyleTransportModel {
+export interface StyleCodecModel {
   readonly wireVersion: number;
   readonly presenceBytes: number;
   readonly fields: readonly StyleField[];
@@ -27,11 +27,11 @@ function rustName(name: string): string {
     .toLowerCase();
 }
 
-export function compileStyleTransport(
-  input: RawStyleTransport,
+export function compileStyleCodec(
+  input: RawStyleCodec,
   sourcePath: string,
   numericModel: NumericFamiliesModel,
-): StyleTransportModel {
+): StyleCodecModel {
   const numericFamilies = new Map(
     numericModel.families.map((family) => [family.name, family] as const),
   );

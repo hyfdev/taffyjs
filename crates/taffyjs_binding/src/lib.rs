@@ -13,8 +13,8 @@ mod number;
 mod numeric;
 mod owner;
 mod style;
+mod style_codec;
 mod style_input;
-mod style_transport;
 mod tagged_values;
 
 use error::{
