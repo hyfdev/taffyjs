@@ -8,8 +8,14 @@ pub struct DetailedGridTracksOutput {
     pub negative_implicit_tracks: u16,
     pub explicit_tracks: u16,
     pub positive_implicit_tracks: u16,
-    pub gutters: Vec<f64>,
-    pub sizes: Vec<f64>,
+    pub positions: Vec<DetailedGridTrackPositionOutput>,
+    pub line_names: Vec<Vec<String>>,
+}
+
+#[napi(object, object_from_js = false)]
+pub struct DetailedGridTrackPositionOutput {
+    pub start: f64,
+    pub end: f64,
 }
 
 #[napi(object, object_from_js = false)]
@@ -38,8 +44,18 @@ fn tracks_output(value: &DetailedGridTracksInfo) -> DetailedGridTracksOutput {
         negative_implicit_tracks: value.negative_implicit_tracks,
         explicit_tracks: value.explicit_tracks,
         positive_implicit_tracks: value.positive_implicit_tracks,
-        gutters: value.gutters.iter().copied().map(f64::from).collect(),
-        sizes: value.sizes.iter().copied().map(f64::from).collect(),
+        positions: value
+            .positions
+            .iter()
+            .map(|position| DetailedGridTrackPositionOutput {
+                start: f64::from(position.start),
+                end: f64::from(position.end),
+            })
+            .collect(),
+        line_names: value
+            .iter_line_names()
+            .map(|names| names.to_vec())
+            .collect(),
     }
 }
 

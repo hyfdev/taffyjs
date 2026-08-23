@@ -38,6 +38,17 @@ const Overflow = Object.freeze({
 	/** Selects the Scroll choice from the Overflow numeric family. */
 	Scroll: 3
 });
+/** Lists the supported contain choices as stable numeric constants. */
+const Contain = Object.freeze({
+	/** Selects the None choice from the Contain numeric family. */
+	None: 0,
+	/** Selects the Layout choice from the Contain numeric family. */
+	Layout: 1,
+	/** Selects the Paint choice from the Contain numeric family. */
+	Paint: 2,
+	/** Selects the Content choice from the Contain numeric family. */
+	Content: 3
+});
 /** Lists the supported float choices as stable numeric constants. */
 const Float = Object.freeze({
 	/** Selects the Left choice from the Float numeric family. */
@@ -953,22 +964,24 @@ const LOCATION_X_SLOT = 1;
 const LOCATION_Y_SLOT = 2;
 const SIZE_WIDTH_SLOT = 3;
 const SIZE_HEIGHT_SLOT = 4;
-const CONTENT_SIZE_WIDTH_SLOT = 5;
-const CONTENT_SIZE_HEIGHT_SLOT = 6;
-const SCROLLBAR_SIZE_WIDTH_SLOT = 7;
-const SCROLLBAR_SIZE_HEIGHT_SLOT = 8;
-const BORDER_LEFT_SLOT = 9;
-const BORDER_RIGHT_SLOT = 10;
-const BORDER_TOP_SLOT = 11;
-const BORDER_BOTTOM_SLOT = 12;
-const PADDING_LEFT_SLOT = 13;
-const PADDING_RIGHT_SLOT = 14;
-const PADDING_TOP_SLOT = 15;
-const PADDING_BOTTOM_SLOT = 16;
-const MARGIN_LEFT_SLOT = 17;
-const MARGIN_RIGHT_SLOT = 18;
-const MARGIN_TOP_SLOT = 19;
-const MARGIN_BOTTOM_SLOT = 20;
+const SCROLLABLE_OVERFLOW_RECT_LEFT_SLOT = 5;
+const SCROLLABLE_OVERFLOW_RECT_RIGHT_SLOT = 6;
+const SCROLLABLE_OVERFLOW_RECT_TOP_SLOT = 7;
+const SCROLLABLE_OVERFLOW_RECT_BOTTOM_SLOT = 8;
+const SCROLLBAR_SIZE_WIDTH_SLOT = 9;
+const SCROLLBAR_SIZE_HEIGHT_SLOT = 10;
+const BORDER_LEFT_SLOT = 11;
+const BORDER_RIGHT_SLOT = 12;
+const BORDER_TOP_SLOT = 13;
+const BORDER_BOTTOM_SLOT = 14;
+const PADDING_LEFT_SLOT = 15;
+const PADDING_RIGHT_SLOT = 16;
+const PADDING_TOP_SLOT = 17;
+const PADDING_BOTTOM_SLOT = 18;
+const MARGIN_LEFT_SLOT = 19;
+const MARGIN_RIGHT_SLOT = 20;
+const MARGIN_TOP_SLOT = 21;
+const MARGIN_BOTTOM_SLOT = 22;
 function decodeLayout(output) {
 	return {
 		order: output[ORDER_SLOT],
@@ -980,9 +993,11 @@ function decodeLayout(output) {
 			width: output[SIZE_WIDTH_SLOT],
 			height: output[SIZE_HEIGHT_SLOT]
 		},
-		contentSize: {
-			width: output[CONTENT_SIZE_WIDTH_SLOT],
-			height: output[CONTENT_SIZE_HEIGHT_SLOT]
+		scrollableOverflowRect: {
+			left: output[SCROLLABLE_OVERFLOW_RECT_LEFT_SLOT],
+			right: output[SCROLLABLE_OVERFLOW_RECT_RIGHT_SLOT],
+			top: output[SCROLLABLE_OVERFLOW_RECT_TOP_SLOT],
+			bottom: output[SCROLLABLE_OVERFLOW_RECT_BOTTOM_SLOT]
 		},
 		scrollbarSize: {
 			width: output[SCROLLBAR_SIZE_WIDTH_SLOT],
@@ -1424,7 +1439,7 @@ var StyleEncoder = class {
 //#endregion
 //#region src/style-input.ts
 function withEncodedStyle(style, use) {
-	return withStyleEncoder(style, 1, 6, (encoder) => {
+	return withStyleEncoder(style, 2, 6, (encoder) => {
 		const display = style.display;
 		if (display !== void 0) {
 			encoder.field(0);
@@ -1467,207 +1482,213 @@ function withEncodedStyle(style, use) {
 			const value = scrollbarWidth;
 			encoder.number(value, "Style.scrollbarWidth");
 		}
+		const contain = style.contain;
+		if (contain !== void 0) {
+			encoder.field(7);
+			const value = contain;
+			encoder.enumeration(value, 15, "Style.contain");
+		}
 		const float = style.float;
 		if (float !== void 0) {
-			encoder.field(7);
+			encoder.field(8);
 			const value = float;
 			encoder.enumeration(value, 7, "Style.float");
 		}
 		const clear = style.clear;
 		if (clear !== void 0) {
-			encoder.field(8);
+			encoder.field(9);
 			const value = clear;
 			encoder.enumeration(value, 15, "Style.clear");
 		}
 		const position = style.position;
 		if (position !== void 0) {
-			encoder.field(9);
+			encoder.field(10);
 			const value = position;
 			encoder.enumeration(value, 3, "Style.position");
 		}
 		const inset = style.inset;
 		if (inset !== void 0) {
-			encoder.field(10);
+			encoder.field(11);
 			const value = inset;
 			encoder.partialRectLengthPercentageAuto(value, "Style.inset");
 		}
 		const size = style.size;
 		if (size !== void 0) {
-			encoder.field(11);
+			encoder.field(12);
 			const value = size;
 			encoder.partialSizeDimension(value, "Style.size");
 		}
 		const minSize = style.minSize;
 		if (minSize !== void 0) {
-			encoder.field(12);
+			encoder.field(13);
 			const value = minSize;
 			encoder.partialSizeDimension(value, "Style.minSize");
 		}
 		const maxSize = style.maxSize;
 		if (maxSize !== void 0) {
-			encoder.field(13);
+			encoder.field(14);
 			const value = maxSize;
 			encoder.partialSizeDimension(value, "Style.maxSize");
 		}
 		const aspectRatio = style.aspectRatio;
 		if (aspectRatio !== void 0) {
-			encoder.field(14);
+			encoder.field(15);
 			const value = aspectRatio;
 			encoder.nullableNumber(value, "Style.aspectRatio");
 		}
 		const margin = style.margin;
 		if (margin !== void 0) {
-			encoder.field(15);
+			encoder.field(16);
 			const value = margin;
 			encoder.partialRectLengthPercentageAuto(value, "Style.margin");
 		}
 		const padding = style.padding;
 		if (padding !== void 0) {
-			encoder.field(16);
+			encoder.field(17);
 			const value = padding;
 			encoder.partialRectLengthPercentage(value, "Style.padding");
 		}
 		const border = style.border;
 		if (border !== void 0) {
-			encoder.field(17);
+			encoder.field(18);
 			const value = border;
 			encoder.partialRectLengthPercentage(value, "Style.border");
 		}
 		const alignItems = style.alignItems;
 		if (alignItems !== void 0) {
-			encoder.field(18);
+			encoder.field(19);
 			const value = alignItems;
 			encoder.nullableEnumeration(value, 65535, "Style.alignItems");
 		}
 		const alignSelf = style.alignSelf;
 		if (alignSelf !== void 0) {
-			encoder.field(19);
+			encoder.field(20);
 			const value = alignSelf;
 			encoder.nullableEnumeration(value, 65535, "Style.alignSelf");
 		}
 		const justifyItems = style.justifyItems;
 		if (justifyItems !== void 0) {
-			encoder.field(20);
+			encoder.field(21);
 			const value = justifyItems;
 			encoder.nullableEnumeration(value, 65535, "Style.justifyItems");
 		}
 		const justifySelf = style.justifySelf;
 		if (justifySelf !== void 0) {
-			encoder.field(21);
+			encoder.field(22);
 			const value = justifySelf;
 			encoder.nullableEnumeration(value, 65535, "Style.justifySelf");
 		}
 		const alignContent = style.alignContent;
 		if (alignContent !== void 0) {
-			encoder.field(22);
+			encoder.field(23);
 			const value = alignContent;
 			encoder.nullableEnumeration(value, 16383, "Style.alignContent");
 		}
 		const justifyContent = style.justifyContent;
 		if (justifyContent !== void 0) {
-			encoder.field(23);
+			encoder.field(24);
 			const value = justifyContent;
 			encoder.nullableEnumeration(value, 16383, "Style.justifyContent");
 		}
 		const gap = style.gap;
 		if (gap !== void 0) {
-			encoder.field(24);
+			encoder.field(25);
 			const value = gap;
 			encoder.partialSizeLengthPercentage(value, "Style.gap");
 		}
 		const textAlign = style.textAlign;
 		if (textAlign !== void 0) {
-			encoder.field(25);
+			encoder.field(26);
 			const value = textAlign;
 			encoder.enumeration(value, 15, "Style.textAlign");
 		}
 		const flexDirection = style.flexDirection;
 		if (flexDirection !== void 0) {
-			encoder.field(26);
+			encoder.field(27);
 			const value = flexDirection;
 			encoder.enumeration(value, 15, "Style.flexDirection");
 		}
 		const flexWrap = style.flexWrap;
 		if (flexWrap !== void 0) {
-			encoder.field(27);
+			encoder.field(28);
 			const value = flexWrap;
 			encoder.enumeration(value, 7, "Style.flexWrap");
 		}
 		const flexBasis = style.flexBasis;
 		if (flexBasis !== void 0) {
-			encoder.field(28);
+			encoder.field(29);
 			const value = flexBasis;
 			encoder.dimension(value, "Style.flexBasis");
 		}
 		const flexGrow = style.flexGrow;
 		if (flexGrow !== void 0) {
-			encoder.field(29);
+			encoder.field(30);
 			const value = flexGrow;
 			encoder.number(value, "Style.flexGrow");
 		}
 		const flexShrink = style.flexShrink;
 		if (flexShrink !== void 0) {
-			encoder.field(30);
+			encoder.field(31);
 			const value = flexShrink;
 			encoder.number(value, "Style.flexShrink");
 		}
 		const gridTemplateRows = style.gridTemplateRows;
 		if (gridTemplateRows !== void 0) {
-			encoder.field(31);
+			encoder.field(32);
 			const value = gridTemplateRows;
 			encoder.gridTemplateComponents(value, "Style.gridTemplateRows");
 		}
 		const gridTemplateColumns = style.gridTemplateColumns;
 		if (gridTemplateColumns !== void 0) {
-			encoder.field(32);
+			encoder.field(33);
 			const value = gridTemplateColumns;
 			encoder.gridTemplateComponents(value, "Style.gridTemplateColumns");
 		}
 		const gridAutoRows = style.gridAutoRows;
 		if (gridAutoRows !== void 0) {
-			encoder.field(33);
+			encoder.field(34);
 			const value = gridAutoRows;
 			encoder.trackSizingFunctions(value, "Style.gridAutoRows");
 		}
 		const gridAutoColumns = style.gridAutoColumns;
 		if (gridAutoColumns !== void 0) {
-			encoder.field(34);
+			encoder.field(35);
 			const value = gridAutoColumns;
 			encoder.trackSizingFunctions(value, "Style.gridAutoColumns");
 		}
 		const gridAutoFlow = style.gridAutoFlow;
 		if (gridAutoFlow !== void 0) {
-			encoder.field(35);
+			encoder.field(36);
 			const value = gridAutoFlow;
 			encoder.enumeration(value, 15, "Style.gridAutoFlow");
 		}
 		const gridTemplateAreas = style.gridTemplateAreas;
 		if (gridTemplateAreas !== void 0) {
-			encoder.field(36);
+			encoder.field(37);
 			const value = gridTemplateAreas;
 			encoder.nullableGridTemplateAreas(value, "Style.gridTemplateAreas");
 		}
 		const gridTemplateColumnNames = style.gridTemplateColumnNames;
 		if (gridTemplateColumnNames !== void 0) {
-			encoder.field(37);
+			encoder.field(38);
 			const value = gridTemplateColumnNames;
 			encoder.stringMatrix(value, "Style.gridTemplateColumnNames");
 		}
 		const gridTemplateRowNames = style.gridTemplateRowNames;
 		if (gridTemplateRowNames !== void 0) {
-			encoder.field(38);
+			encoder.field(39);
 			const value = gridTemplateRowNames;
 			encoder.stringMatrix(value, "Style.gridTemplateRowNames");
 		}
 		const gridRow = style.gridRow;
 		if (gridRow !== void 0) {
-			encoder.field(39);
+			encoder.field(40);
 			const value = gridRow;
 			encoder.partialLineGridPlacement(value, "Style.gridRow");
 		}
 		const gridColumn = style.gridColumn;
 		if (gridColumn !== void 0) {
-			encoder.field(40);
+			encoder.field(41);
 			const value = gridColumn;
 			encoder.partialLineGridPlacement(value, "Style.gridColumn");
 		}
@@ -1712,7 +1733,7 @@ function decodeConstraints(slots) {
 	};
 }
 const DEFAULT_STYLE_INPUT = {};
-const layoutCodecBuffer = new Float64Array(/* @__PURE__ */ new ArrayBuffer(168));
+const layoutCodecBuffer = new Float64Array(/* @__PURE__ */ new ArrayBuffer(184));
 function checkedChildIndex(index) {
 	if (typeof index !== "number") throw new TypeError("Child index must be a number");
 	return index;
@@ -1908,4 +1929,4 @@ var TaffyTree = class {
 	}
 };
 //#endregion
-export { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Clear, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, GridPlacementKind, GridTemplateComponent, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCount, RepetitionCountKind, TaffyTree, TextAlign, TrackSizingFunction, TrackSizingKind };
+export { AlignContent, AlignItems, AvailableSpace, AvailableSpaceKind, BoxSizing, Clear, Contain, DetailedLayoutInfoKind, Dimension, Direction, Display, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, GridPlacementKind, GridTemplateComponent, GridTemplateComponentKind, LengthUnit, Overflow, Position, RepetitionCount, RepetitionCountKind, TaffyTree, TextAlign, TrackSizingFunction, TrackSizingKind };

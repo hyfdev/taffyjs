@@ -3,6 +3,7 @@ import {
   AlignItems,
   BoxSizing,
   Clear,
+  Contain,
   DetailedLayoutInfoKind,
   Direction,
   Display,
@@ -333,6 +334,7 @@ export interface Style {
   /** Reports the node's stored direction style value. */ readonly direction: Direction;
   /** Reports the node's stored overflow style value. */ readonly overflow: Point<Overflow>;
   /** Reports the node's stored scrollbar width style value. */ readonly scrollbarWidth: number;
+  /** Reports the node's stored layout and paint containment style value. */ readonly contain: Contain;
   /** Reports the node's stored float style value. */ readonly float: Float;
   /** Reports which preceding floats this node must clear. */ readonly clear: Clear;
   /** Reports the node's stored position style value. */ readonly position: Position;
@@ -391,8 +393,8 @@ export interface DetailedGridTracksInfo {
   /** Reports the negative implicit tracks value stored in DetailedGridTracksInfo. */ readonly negativeImplicitTracks: number;
   /** Reports the explicit tracks value stored in DetailedGridTracksInfo. */ readonly explicitTracks: number;
   /** Reports the positive implicit tracks value stored in DetailedGridTracksInfo. */ readonly positiveImplicitTracks: number;
-  /** Reports the gutters value stored in DetailedGridTracksInfo. */ readonly gutters: readonly number[];
-  /** Reports the sizes value stored in DetailedGridTracksInfo. */ readonly sizes: readonly number[];
+  /** Reports each track's start and end position relative to the Grid container's border box. */ readonly positions: readonly Line<number>[];
+  /** Reports the names attached to each Grid line; empty when the axis has no named lines. */ readonly lineNames: readonly (readonly string[])[];
 }
 
 /** Reports detached readonly detailed grid item info from a completed Grid layout. */

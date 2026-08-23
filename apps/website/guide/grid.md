@@ -97,11 +97,12 @@ After computing a Grid root, `getDetailedLayoutInfo(root)` can expose the resolv
 const detail = tree.getDetailedLayoutInfo(root);
 
 if (detail.kind === DetailedLayoutInfoKind.Grid) {
-  console.log(detail.value.columns.sizes);
+  console.log(detail.value.columns.positions);
+  console.log(detail.value.columns.lineNames);
   console.log(detail.value.items);
 }
 ```
 
-The row and column records distinguish negative implicit, explicit, and positive implicit tracks and include resolved gutter and track sizes. Item records report the resolved start and end lines. This data is a detached snapshot, just like ordinary layout output.
+The row and column records distinguish negative implicit, explicit, and positive implicit tracks. Each `positions` entry gives one track's start and end relative to the Grid container's border box, including gaps and content alignment; `lineNames` reports the names attached to the corresponding Grid lines. Item records report resolved start and end line numbers. This data is a detached snapshot, just like ordinary layout output.
 
 The opening example uses the same line-based placement model as the named and automatic forms described here.

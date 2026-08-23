@@ -8,15 +8,16 @@ Each constant family is a frozen object whose members are stable numeric literal
 
 The general style families are:
 
-| Family              | What it selects                                   |
-| ------------------- | ------------------------------------------------- |
-| `Display`           | Block, Flow Root, Flexbox, Grid, or no layout.    |
-| `BoxSizing`         | Border-box or content-box sizing.                 |
-| `Direction`         | Left-to-right or right-to-left writing direction. |
-| `Overflow`          | Overflow handling on each axis.                   |
-| `Float` and `Clear` | Block float placement and clearing.               |
-| `Position`          | Relative or absolute positioning.                 |
-| `TextAlign`         | Taffy's text-alignment contribution to layout.    |
+| Family              | What it selects                                     |
+| ------------------- | --------------------------------------------------- |
+| `Display`           | Block, Flow Root, Flexbox, Grid, or no layout.      |
+| `BoxSizing`         | Border-box or content-box sizing.                   |
+| `Direction`         | Left-to-right or right-to-left writing direction.   |
+| `Overflow`          | Overflow handling on each axis.                     |
+| `Contain`           | No, layout, paint, or combined content containment. |
+| `Float` and `Clear` | Block float placement and clearing.                 |
+| `Position`          | Relative or absolute positioning.                   |
+| `TextAlign`         | Taffy's text-alignment contribution to layout.      |
 
 Flexbox and alignment use `FlexDirection`, `FlexWrap`, `AlignItems`, and `AlignContent`. Grid automatic placement uses `GridAutoFlow`.
 

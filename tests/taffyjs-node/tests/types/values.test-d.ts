@@ -82,7 +82,7 @@ declare const detail: DetailedLayoutInfo;
 if (detail.kind === DetailedLayoutInfoKind.Grid) {
   const rows: number = detail.value.rows.explicitTracks;
   // @ts-expect-error Detailed output arrays are readonly.
-  detail.value.rows.sizes.push(1);
+  detail.value.rows.positions.push({ start: 0, end: 1 });
   void rows;
 } else {
   // @ts-expect-error None has no Grid payload.

@@ -41,14 +41,14 @@ function computeChildren(rootStyle: StyleInput, childStyles: readonly StyleInput
   };
 }
 
-// Every fixed layout value below is pinned to the exact Taffy sources at revision 55cda62a:
-// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/block.rs
-// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/float.rs
-// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/flexbox.rs
-// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/grid/mod.rs
-// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/grid/placement.rs
-// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/grid/track_sizing.rs
-// https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/mod.rs
+// Every fixed layout value below is pinned to the exact Taffy sources at revision 8d13fdc8:
+// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/block.rs
+// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/float.rs
+// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/flexbox.rs
+// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/grid/mod.rs
+// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/grid/placement.rs
+// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/grid/track_sizing.rs
+// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/mod.rs
 
 test("block-float", () => {
   const block = computeChildren({ display: Display.Block, size: { width: 100 } }, [
@@ -72,7 +72,7 @@ test("block-float", () => {
   assert.deepEqual(block.children[0].location, { x: 0, y: 0 });
   assert.deepEqual(block.children[1].location, { x: 0, y: 10 });
   assert.deepEqual(block.children[2].location, { x: 5, y: 22 });
-  assert.deepEqual(block.root.contentSize, { width: 30, height: 32 });
+  assert.deepEqual(block.root.scrollableOverflowRect, { left: 0, right: 30, top: 0, bottom: 32 });
 
   const flowRoot = computeChildren({ display: Display.FlowRoot, size: { width: 100 } }, [
     {
@@ -82,7 +82,12 @@ test("block-float", () => {
     },
   ]);
   assert.deepEqual(flowRoot.children[0].location, { x: 80, y: 0 });
-  assert.deepEqual(flowRoot.root.contentSize, { width: 100, height: 10 });
+  assert.deepEqual(flowRoot.root.scrollableOverflowRect, {
+    left: 0,
+    right: 100,
+    top: 0,
+    bottom: 10,
+  });
 
   const positioned = computeChildren(
     {
@@ -206,7 +211,7 @@ test("grid", () => {
   assert.deepEqual(tree.getUnroundedLayout(first).size, { width: 40, height: 20 });
   assert.deepEqual(tree.getUnroundedLayout(second).location, { x: 40, y: 20 });
   const layout = tree.getUnroundedLayout(root);
-  assert.deepEqual(layout.contentSize, { width: 100, height: 50 });
+  assert.deepEqual(layout.scrollableOverflowRect, { left: 0, right: 100, top: 0, bottom: 50 });
   assert.deepEqual(layout.scrollbarSize, { width: 7, height: 7 });
 
   const detail = tree.getDetailedLayoutInfo(root);
@@ -216,15 +221,21 @@ test("grid", () => {
     negativeImplicitTracks: 0,
     explicitTracks: 2,
     positiveImplicitTracks: 0,
-    gutters: [0, 0, 0],
-    sizes: [20, 30],
+    positions: [
+      { start: 0, end: 20 },
+      { start: 20, end: 50 },
+    ],
+    lineNames: [],
   });
   assert.deepEqual(detail.value.columns, {
     negativeImplicitTracks: 0,
     explicitTracks: 2,
     positiveImplicitTracks: 0,
-    gutters: [0, 0, 0],
-    sizes: [40, 60],
+    positions: [
+      { start: 0, end: 40 },
+      { start: 40, end: 100 },
+    ],
+    lineNames: [],
   });
   assert.deepEqual(detail.value.items, [
     { rowStart: 1, rowEnd: 2, columnStart: 1, columnEnd: 2 },
@@ -317,7 +328,12 @@ test("topology-cache", () => {
   tree.computeLayout(options);
   assert.equal(calls > firstCalls, true, "a new child is measured");
   assert.deepEqual(tree.getChildren(root), [first, second]);
-  assert.deepEqual(tree.getUnroundedLayout(root).contentSize, { width: 30, height: 10 });
+  assert.deepEqual(tree.getUnroundedLayout(root).scrollableOverflowRect, {
+    left: 0,
+    right: 30,
+    top: 0,
+    bottom: 10,
+  });
 
   tree.removeChild(root, first);
   assert.equal(tree.getNodeCount(), 3);
@@ -325,7 +341,12 @@ test("topology-cache", () => {
   tree.computeLayout(options);
   assert.equal(tree.isDirty(root), false);
   assert.deepEqual(tree.getChildren(root), [second]);
-  assert.deepEqual(tree.getUnroundedLayout(root).contentSize, { width: 20, height: 10 });
+  assert.deepEqual(tree.getUnroundedLayout(root).scrollableOverflowRect, {
+    left: 0,
+    right: 20,
+    top: 0,
+    bottom: 10,
+  });
 
   tree.remove(first);
   assert.equal(tree.getNodeCount(), 2);

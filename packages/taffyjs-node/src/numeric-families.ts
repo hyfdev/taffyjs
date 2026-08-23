@@ -55,6 +55,20 @@ export const Overflow = Object.freeze({
 
 export type Overflow = EnumValue<typeof Overflow>;
 
+/** Lists the supported contain choices as stable numeric constants. */
+export const Contain = Object.freeze({
+  /** Selects the None choice from the Contain numeric family. */
+  None: 0,
+  /** Selects the Layout choice from the Contain numeric family. */
+  Layout: 1,
+  /** Selects the Paint choice from the Contain numeric family. */
+  Paint: 2,
+  /** Selects the Content choice from the Contain numeric family. */
+  Content: 3,
+} as const);
+
+export type Contain = EnumValue<typeof Contain>;
+
 /** Lists the supported float choices as stable numeric constants. */
 export const Float = Object.freeze({
   /** Selects the Left choice from the Float numeric family. */

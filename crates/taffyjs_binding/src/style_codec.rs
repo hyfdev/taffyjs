@@ -590,7 +590,7 @@ mod tests {
     const PRESENCE_BYTES: usize = 6;
 
     fn packet(field: Option<usize>, payload: &[u8]) -> Vec<u8> {
-        let mut encoded = vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 1, PRESENCE_BYTES as u8];
+        let mut encoded = vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 2, PRESENCE_BYTES as u8];
         encoded.resize(4 + PRESENCE_BYTES, 0);
         if let Some(field) = field {
             encoded[4 + (field >> 3)] |= 1 << (field & 7);
@@ -604,18 +604,18 @@ mod tests {
         for encoded in [
             Vec::new(),
             vec![STYLE_MAGIC_0],
-            vec![0, STYLE_MAGIC_1, 1, PRESENCE_BYTES as u8],
-            vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 2, PRESENCE_BYTES as u8],
-            vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 1, 0],
+            vec![0, STYLE_MAGIC_1, 2, PRESENCE_BYTES as u8],
+            vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 1, PRESENCE_BYTES as u8],
+            vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 2, 0],
         ] {
-            assert!(StyleDecoder::new(&encoded, 1, PRESENCE_BYTES, 41).is_err());
+            assert!(StyleDecoder::new(&encoded, 2, PRESENCE_BYTES, 42).is_err());
         }
     }
 
     #[test]
     fn rejects_truncation_trailing_data_and_unknown_presence_bits() {
         let mut target = Style::default();
-        assert!(style_input::decode_into(&mut target, &packet(Some(29), &[])).is_err());
+        assert!(style_input::decode_into(&mut target, &packet(Some(30), &[])).is_err());
         assert!(style_input::decode_into(&mut target, &packet(None, &[0])).is_err());
         assert!(style_input::decode_into(&mut target, &packet(Some(47), &[])).is_err());
     }
@@ -625,7 +625,7 @@ mod tests {
         let mut target = Style::default();
         let impossible_count = u32::MAX.to_le_bytes();
         assert!(
-            style_input::decode_into(&mut target, &packet(Some(38), &impossible_count)).is_err()
+            style_input::decode_into(&mut target, &packet(Some(39), &impossible_count)).is_err()
         );
     }
 
@@ -637,6 +637,6 @@ mod tests {
         payload.extend_from_slice(&1u32.to_le_bytes());
         payload.push(0xff);
         let mut target = Style::default();
-        assert!(style_input::decode_into(&mut target, &packet(Some(38), &payload)).is_err());
+        assert!(style_input::decode_into(&mut target, &packet(Some(39), &payload)).is_err());
     }
 }

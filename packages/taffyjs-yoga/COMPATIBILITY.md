@@ -61,12 +61,12 @@ When an upstream enum type also contains values that are Unsupported for one pro
 
 ## Upstream work in progress
 
-The compatibility tables describe what the current package can do with its pinned Taffy dependency, revision [`55cda62a`](https://github.com/DioxusLabs/taffy/commit/55cda62a5df9a5d04c0023be6f6dd607b1474fe9). Upstream work is tracked separately so that a possible compatibility improvement is visible without presenting unshipped code as available behavior.
+The compatibility tables describe what the current package can do with its pinned Taffy dependency, revision [`8d13fdc8`](https://github.com/DioxusLabs/taffy/commit/8d13fdc88468c83f01b13b36fadc0349950c6f51). Upstream work is tracked separately so that a possible compatibility improvement is visible without presenting unshipped code as available behavior.
 
 | Capability            | Upstream status                                                                                                                                                                                                                   |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Display.Contents`    | [DioxusLabs/taffy#944](https://github.com/DioxusLabs/taffy/pull/944) is open as of 2026-08-16. It proposes native `Display::Contents` support and recursive child flattening in `TaffyTree`.                                      |
-| `PositionType.Static` | [DioxusLabs/taffy#1009](https://github.com/DioxusLabs/taffy/pull/1009) is open as of 2026-08-16. It proposes native `Position::Static` support and the containing-block machinery needed by absolute descendants of static nodes. |
+| `Display.Contents`    | [DioxusLabs/taffy#944](https://github.com/DioxusLabs/taffy/pull/944) is open as of 2026-08-23. It proposes native `Display::Contents` support and recursive child flattening in `TaffyTree`.                                      |
+| `PositionType.Static` | [DioxusLabs/taffy#1009](https://github.com/DioxusLabs/taffy/pull/1009) is open as of 2026-08-23. It proposes native `Position::Static` support and the containing-block machinery needed by absolute descendants of static nodes. |
 
 An upstream pull request is not a support promise or an ETA. Before reclassification, the capability must ship in the Taffy revision this package pins, `@taffyjs/node` must update and expose the needed native surface, and Yoga 3.2.1 differential tests must verify the complete observable behavior. Until then, each current classification above remains authoritative.
 

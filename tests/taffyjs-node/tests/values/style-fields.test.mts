@@ -55,6 +55,7 @@ test("default Style contains every public field and value", () => {
     direction: 0,
     overflow: { x: 0, y: 0 },
     scrollbarWidth: 0,
+    contain: 0,
     float: 2,
     clear: 3,
     position: 0,

@@ -4,6 +4,7 @@ export {
   AvailableSpaceKind,
   BoxSizing,
   Clear,
+  Contain,
   DetailedLayoutInfoKind,
   Direction,
   Display,

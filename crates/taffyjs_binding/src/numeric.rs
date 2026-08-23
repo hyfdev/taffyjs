@@ -54,6 +54,12 @@ numeric_codes! {
         Hidden = 2,
         Scroll = 3,
     }
+    enum ContainCode {
+        None = 0,
+        Layout = 1,
+        Paint = 2,
+        Content = 3,
+    }
     enum FloatCode {
         Left = 0,
         Right = 1,

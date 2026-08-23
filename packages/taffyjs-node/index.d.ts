@@ -43,6 +43,18 @@ declare const Overflow: Readonly<{
   readonly Scroll: 3;
 }>;
 type Overflow = EnumValue<typeof Overflow>;
+/** Lists the supported contain choices as stable numeric constants. */
+declare const Contain: Readonly<{
+  /** Selects the None choice from the Contain numeric family. */
+  readonly None: 0;
+  /** Selects the Layout choice from the Contain numeric family. */
+  readonly Layout: 1;
+  /** Selects the Paint choice from the Contain numeric family. */
+  readonly Paint: 2;
+  /** Selects the Content choice from the Contain numeric family. */
+  readonly Content: 3;
+}>;
+type Contain = EnumValue<typeof Contain>;
 /** Lists the supported float choices as stable numeric constants. */
 declare const Float: Readonly<{
   /** Selects the Left choice from the Float numeric family. */
@@ -576,6 +588,7 @@ interface Style {
   /** Reports the node's stored direction style value. */ readonly direction: Direction;
   /** Reports the node's stored overflow style value. */ readonly overflow: Point<Overflow>;
   /** Reports the node's stored scrollbar width style value. */ readonly scrollbarWidth: number;
+  /** Reports the node's stored layout and paint containment style value. */ readonly contain: Contain;
   /** Reports the node's stored float style value. */ readonly float: Float;
   /** Reports which preceding floats this node must clear. */ readonly clear: Clear;
   /** Reports the node's stored position style value. */ readonly position: Position;
@@ -629,8 +642,8 @@ interface DetailedGridTracksInfo {
   /** Reports the negative implicit tracks value stored in DetailedGridTracksInfo. */ readonly negativeImplicitTracks: number;
   /** Reports the explicit tracks value stored in DetailedGridTracksInfo. */ readonly explicitTracks: number;
   /** Reports the positive implicit tracks value stored in DetailedGridTracksInfo. */ readonly positiveImplicitTracks: number;
-  /** Reports the gutters value stored in DetailedGridTracksInfo. */ readonly gutters: readonly number[];
-  /** Reports the sizes value stored in DetailedGridTracksInfo. */ readonly sizes: readonly number[];
+  /** Reports each track's start and end position relative to the Grid container's border box. */ readonly positions: readonly Line<number>[];
+  /** Reports the names attached to each Grid line; empty when the axis has no named lines. */ readonly lineNames: readonly (readonly string[])[];
 }
 /** Reports detached readonly detailed grid item info from a completed Grid layout. */
 interface DetailedGridItemInfo {
@@ -745,7 +758,7 @@ interface Layout {
   /** Reports this node's stable traversal order in the stored layout. */ readonly order: number;
   /** Reports this node's position relative to its parent. */ readonly location: Point<number>;
   /** Reports this node's outer width and height. */ readonly size: Size<number>;
-  /** Reports the width and height of this node's laid-out content. The node's own end padding counts only for a scroll container, and content that overflows past the scroll origin does not count. */ readonly contentSize: Size<number>;
+  /** Reports the scrollable overflow rectangle relative to this node's scroll origin; right and bottom are the reachable content extents, while negative left and top values represent unreachable start-side overflow. */ readonly scrollableOverflowRect: Rect<number>;
   /** Reports the width and height reserved for scrollbars. */ readonly scrollbarSize: Size<number>;
   /** Reports this node's resolved border widths. */ readonly border: Rect<number>;
   /** Reports this node's resolved padding widths. */ readonly padding: Rect<number>;
@@ -762,6 +775,7 @@ interface StyleInput {
   /** Supplies the node's direction style when present. */ direction?: Direction | undefined;
   /** Supplies the node's overflow style when present. */ overflow?: PartialPointInput<Overflow> | undefined;
   /** Supplies the node's scrollbar width style when present. */ scrollbarWidth?: number | undefined;
+  /** Supplies the node's layout and paint containment style when present. */ contain?: Contain | undefined;
   /** Supplies the node's float style when present. */ float?: Float | undefined;
   /** Sets which preceding floats this node must clear. */ clear?: Clear | undefined;
   /** Supplies the node's position style when present. */ position?: Position | undefined;
@@ -870,4 +884,4 @@ declare class TaffyTree<TContext = unknown> {
   computeLayout(options: ComputeLayoutOptions<TContext>): void;
 }
 //#endregion
-export { AlignContent, AlignItems, type AutoInput, AvailableSpace, type AvailableSpaceInput, AvailableSpaceKind, BoxSizing, type ChildRangeInput, Clear, type ComputeLayoutOptions, type DetailedGridInfo, type DetailedGridItemInfo, type DetailedGridTracksInfo, type DetailedLayoutInfo, DetailedLayoutInfoKind, Dimension, type DimensionInput, Direction, Display, type EnumValue, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, type GridPlacementInput, GridPlacementKind, type GridTemplateArea, type GridTemplateAreaInput, type GridTemplateAreas, type GridTemplateAreasInput, GridTemplateComponent, type GridTemplateComponentInput, GridTemplateComponentKind, type GridTemplateRepetition, type GridTemplateRepetitionInput, type Layout, type LengthInput, type LengthPercentage, type LengthPercentageAuto, type LengthPercentageAutoInput, type LengthPercentageInput, LengthUnit, type Line, type LineInput, type MaxTrackSizingFunction, type MaxTrackSizingFunctionInput, type MeasureArgs, type MeasureFunction, type MinTrackSizingFunction, type MinTrackSizingFunctionInput, type NodeId, Overflow, type PartialLineInput, type PartialPointInput, type PartialRectInput, type PartialSizeInput, type PercentInput, type Point, type PointInput, Position, type Rect, type RectInput, RepetitionCount, type RepetitionCountInput, RepetitionCountKind, type Size, type SizeInput, type Style, type StyleInput, type StyleUpdate, TaffyTree, TextAlign, TrackSizingFunction, type TrackSizingFunctionInput, TrackSizingKind };
+export { AlignContent, AlignItems, type AutoInput, AvailableSpace, type AvailableSpaceInput, AvailableSpaceKind, BoxSizing, type ChildRangeInput, Clear, type ComputeLayoutOptions, Contain, type DetailedGridInfo, type DetailedGridItemInfo, type DetailedGridTracksInfo, type DetailedLayoutInfo, DetailedLayoutInfoKind, Dimension, type DimensionInput, Direction, Display, type EnumValue, FlexDirection, FlexWrap, Float, GridAutoFlow, GridPlacement, type GridPlacementInput, GridPlacementKind, type GridTemplateArea, type GridTemplateAreaInput, type GridTemplateAreas, type GridTemplateAreasInput, GridTemplateComponent, type GridTemplateComponentInput, GridTemplateComponentKind, type GridTemplateRepetition, type GridTemplateRepetitionInput, type Layout, type LengthInput, type LengthPercentage, type LengthPercentageAuto, type LengthPercentageAutoInput, type LengthPercentageInput, LengthUnit, type Line, type LineInput, type MaxTrackSizingFunction, type MaxTrackSizingFunctionInput, type MeasureArgs, type MeasureFunction, type MinTrackSizingFunction, type MinTrackSizingFunctionInput, type NodeId, Overflow, type PartialLineInput, type PartialPointInput, type PartialRectInput, type PartialSizeInput, type PercentInput, type Point, type PointInput, Position, type Rect, type RectInput, RepetitionCount, type RepetitionCountInput, RepetitionCountKind, type Size, type SizeInput, type Style, type StyleInput, type StyleUpdate, TaffyTree, TextAlign, TrackSizingFunction, type TrackSizingFunctionInput, TrackSizingKind };

@@ -2,7 +2,7 @@
 
 This is the current reference for Rust/JavaScript conversion and safety in `@taffyjs/node`. It describes the implemented Taffy boundary. Product choices that should constrain future work are recorded in [@taffyjs/node decisions](taffyjs-node-decisions.md).
 
-Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScript changes. The primary upstream references are [TaffyTree](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/taffy_tree.rs), [Style](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/style/mod.rs), [geometry](https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/geometry.rs), and [napi-rs conversions](https://napi.rs/docs/concepts/type-conversions).
+Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScript changes. The primary upstream references are [TaffyTree](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/taffy_tree.rs), [Style](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/style/mod.rs), [geometry](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/geometry.rs), and [napi-rs conversions](https://napi.rs/docs/concepts/type-conversions).
 
 ## Scope and ownership
 
@@ -58,6 +58,8 @@ Indices and Rust integer payloads must be finite exact integers in their public 
 
 Fieldless families such as `Display`, `Overflow`, and `AlignItems` use stable numeric literal members exposed through frozen PascalCase objects. Public code should use the names, while an exact valid raw code remains accepted. Rust conversion checks exact family membership and does not derive codes from Rust declaration order.
 
+`Contain` uses the same finite numeric-family boundary for the four combinations Taffy can store: `None`, `Layout`, `Paint`, and `Content` (`Layout | Paint`). This exposes Taffy's layout-affecting containment flags without importing CSS parsing or accepting unknown bits.
+
 ### Lengths, available space, and other tagged values
 
 Length inputs accept a direct number as shorthand for an absolute length. The complete tagged form remains supported through values such as `Dimension.Length(20)`, `Dimension.Percent(50)`, and `Dimension.Auto`, and tagged length outputs remain valid later inputs. Percent helpers use user-facing percentages, so `50` maps to Taffy's `0.5`. CSS strings are not length values.
@@ -81,6 +83,8 @@ Non-Style scalar and fixed-object inputs use concrete napi-rs types where their 
 ## Output conversion
 
 Borrowed Rust values never escape. Direct Style reads, Layout, child arrays, detailed Grid data, available space, and nested records are copied into complete detached JavaScript values. A measure callback's Style is first cloned into an owned Rust snapshot and is converted into a complete detached JavaScript value only when its `getStyle()` function is called.
+
+Layout snapshots expose Taffy's `scrollable_overflow_rect` as `scrollableOverflowRect`; `right` and `bottom` are the reachable content extents formerly represented by `contentSize`, while negative `left` and `top` preserve start-side overflow that the old size could not express. Detailed Grid track snapshots expose per-track `positions` and resolved `lineNames`, replacing the old derived `sizes` and `gutters` arrays and preserving content-alignment offsets and logical RTL order.
 
 Binding-produced records and arrays are recursively readonly in TypeScript because mutation cannot update Taffy. Runtime objects remain ordinary mutable, unfrozen objects, and each read or callback `getStyle()` call returns an independent snapshot. There are no live native views, output caches, lazy properties, selectors, prepared queries, or batch snapshots; the callback function is an explicit on-demand operation rather than a property that hides an already materialized object.
 

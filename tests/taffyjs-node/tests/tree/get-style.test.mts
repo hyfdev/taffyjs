@@ -10,6 +10,7 @@ const STYLE_FIELDS = [
   "direction",
   "overflow",
   "scrollbarWidth",
+  "contain",
   "float",
   "clear",
   "position",

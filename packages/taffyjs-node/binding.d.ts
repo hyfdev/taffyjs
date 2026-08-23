@@ -69,12 +69,17 @@ export interface DetailedGridOutput {
   items: Array<DetailedGridItemOutput>;
 }
 
+export interface DetailedGridTrackPositionOutput {
+  start: number;
+  end: number;
+}
+
 export interface DetailedGridTracksOutput {
   negativeImplicitTracks: number;
   explicitTracks: number;
   positiveImplicitTracks: number;
-  gutters: Array<number>;
-  sizes: Array<number>;
+  positions: Array<DetailedGridTrackPositionOutput>;
+  lineNames: Array<Array<string>>;
 }
 
 export interface DetailedLayoutOutput {
@@ -159,6 +164,7 @@ export interface StyleOutput {
   direction: number;
   overflow: OverflowOutput;
   scrollbarWidth: number;
+  contain: number;
   float: number;
   clear: number;
   position: number;
