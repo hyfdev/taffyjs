@@ -1,33 +1,24 @@
-import { codingAgentChatScenarios } from "./coding-agent-chat/benchmark.ts";
-import { nestedUiScenarios } from "./nested-ui/benchmark.ts";
+import { coldStartScenario } from "./cold-start/benchmark.ts";
+import { dashboardFlexScenario, dashboardGridScenario } from "./dashboard/benchmark.ts";
+import { incrementalFrameScenarios } from "./incremental-frame/benchmark.ts";
+import { nestingDepthScenarios } from "./nesting-depth/benchmark.ts";
+import { measuredRenderScenario, oneShotRenderScenarios } from "./one-shot-render/benchmark.ts";
 import type { BenchmarkProfile, BenchmarkScenario, BenchmarkTarget } from "./scenario.ts";
-import { styledNodeConstructionScenario } from "./styled-node-construction/benchmark.ts";
-import { wideWrappingCollectionScenario } from "./wide-wrapping-collection/benchmark.ts";
 
 export const benchmarkProfiles: readonly BenchmarkProfile[] = [
   {
     id: "local",
     rounds: 1,
-    settings: {
-      time: 500,
-      iterations: 10,
-      warmupTime: 100,
-      warmupIterations: 5,
-    },
+    settings: { time: 500, iterations: 10, warmupTime: 100, warmupIterations: 5 },
     maxRelativeMarginOfError: null,
     maxRoundMedianSpread: null,
   },
   {
     id: "publication",
-    rounds: 1,
-    settings: {
-      time: 1_000,
-      iterations: 20,
-      warmupTime: 250,
-      warmupIterations: 10,
-    },
-    maxRelativeMarginOfError: 30,
-    maxRoundMedianSpread: null,
+    rounds: 2,
+    settings: { time: 2_500, iterations: 25, warmupTime: 400, warmupIterations: 10 },
+    maxRelativeMarginOfError: 10,
+    maxRoundMedianSpread: 0.25,
   },
 ];
 
@@ -69,11 +60,12 @@ export const benchmarkTargets: readonly BenchmarkTarget[] = [
   },
 ];
 
-export const benchmarkBaselineTargetId = "yoga-layout";
-
 export const benchmarkScenarios: readonly BenchmarkScenario[] = [
-  ...nestedUiScenarios,
-  wideWrappingCollectionScenario,
-  styledNodeConstructionScenario,
-  ...codingAgentChatScenarios,
+  ...incrementalFrameScenarios,
+  ...oneShotRenderScenarios,
+  measuredRenderScenario,
+  ...nestingDepthScenarios,
+  dashboardGridScenario,
+  dashboardFlexScenario,
+  coldStartScenario,
 ];

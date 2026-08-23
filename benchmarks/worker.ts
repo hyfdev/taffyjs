@@ -4,9 +4,11 @@ import { Bench } from "tinybench";
 
 import type {
   BenchmarkScenario,
+  BenchmarkTarget,
   BenchmarkTransaction,
   BenchmarkWorkerResult,
   TaffyApi,
+  TransactionOutcome,
   YogaApi,
 } from "./scenario.ts";
 import { benchmarkProfiles, benchmarkScenarios, benchmarkTargets } from "./suite.ts";
@@ -18,49 +20,66 @@ const profile = benchmarkProfiles.find(({ id }) => id === profileId);
 assert.ok(target, `Unknown benchmark target ${targetId ?? "<missing>"}`);
 assert.ok(scenario, `Unknown benchmark scenario ${scenarioId ?? "<missing>"}`);
 assert.ok(profile, `Unknown benchmark profile ${profileId ?? "<missing>"}`);
+assert.ok(
+  scenario.targetIds.includes(target.id),
+  `${scenario.id} does not run ${target.packageName}`,
+);
 
 const importedApi: unknown = await import(target.packageName);
-const targetApiKind = target.apiKind;
 
-function createTransaction(scenario: BenchmarkScenario): BenchmarkTransaction {
-  if (targetApiKind === "taffy") {
-    return scenario.createTaffyTransaction(importedApi as TaffyApi);
-  }
-  return scenario.createYogaTransaction(importedApi as YogaApi);
+function createTransaction(
+  scenario: BenchmarkScenario,
+  target: BenchmarkTarget,
+): BenchmarkTransaction {
+  const transaction =
+    target.apiKind === "taffy"
+      ? scenario.createTaffyTransaction?.(importedApi as TaffyApi)
+      : scenario.createYogaTransaction?.(importedApi as YogaApi);
+  assert.ok(transaction, `${scenario.id} has no ${target.apiLabel} implementation`);
+  return transaction;
 }
 
-const validationTransaction = createTransaction(scenario);
-const observations: number[][] = [];
+/** Checks that this implementation completed the transaction and repeated it identically. */
+function assertCompleted(
+  scenario: BenchmarkScenario,
+  target: BenchmarkTarget,
+  first: TransactionOutcome,
+  second: TransactionOutcome,
+): void {
+  const where = `${scenario.id}/${target.id}`;
+  assert.ok(Number.isFinite(first.checksum), `${where} produced a non-finite layout`);
+  assert.notEqual(first.checksum, 0, `${where} produced an empty layout`);
+  assert.equal(
+    first.nodeCount,
+    scenario.parameters.nodeCount,
+    `${where} laid out ${first.nodeCount} nodes, expected ${scenario.parameters.nodeCount}`,
+  );
+  assert.ok(first.readCount > 0, `${where} read no layout output`);
+  assert.equal(second.checksum, first.checksum, `${where} is not deterministic between runs`);
+  assert.equal(second.readCount, first.readCount, `${where} read a different amount twice`);
+}
+
+const validation = createTransaction(scenario, target);
+let outcome: TransactionOutcome;
 try {
-  const validationRuns = scenario.validationRuns ?? 1;
-  for (let run = 0; run < validationRuns; run += 1) {
-    const observation = Array.from(validationTransaction.run());
-    assert.ok(observation.length > 0, `${scenario.id}/${target.id} returned no layout values`);
-    assert.ok(
-      observation.every(Number.isFinite),
-      `${scenario.id}/${target.id} returned a non-finite layout value`,
-    );
-    observations.push(observation);
-  }
+  const first = validation.run();
+  const second = validation.run();
+  assertCompleted(scenario, target, first, second);
+  outcome = second;
 } finally {
-  validationTransaction.dispose?.();
+  validation.dispose?.();
 }
 
-const transaction = createTransaction(scenario);
+const transaction = createTransaction(scenario, target);
 const bench = new Bench({ ...profile.settings, throws: true });
 let blackhole = 0;
 bench.add(target.id, () => {
-  const observation = transaction.run();
-  blackhole = observation[0] + observation[observation.length - 1] + observation.length;
+  blackhole += transaction.run().checksum;
 });
 
 try {
   await bench.warmup();
-  const garbageCollector = (
-    globalThis as typeof globalThis & {
-      gc?: () => void;
-    }
-  ).gc;
+  const garbageCollector = (globalThis as typeof globalThis & { gc?: () => void }).gc;
   assert.ok(garbageCollector, "Benchmark workers require --expose-gc");
   garbageCollector();
   await bench.run();
@@ -74,16 +93,15 @@ assert.ok(task?.result, `${scenario.id}/${target.id} did not produce a result`);
 assert.equal(task.result.error, undefined, `${scenario.id}/${target.id} failed`);
 assert.ok(task.result.samples.length > 0, `${scenario.id}/${target.id} produced no samples`);
 
-const sortedSamples = [...task.result.samples].sort((left, right) => left - right);
-const middle = Math.floor(sortedSamples.length / 2);
+const sorted = [...task.result.samples].sort((left, right) => left - right);
+const middle = Math.floor(sorted.length / 2);
 const medianMs =
-  sortedSamples.length % 2 === 0
-    ? (sortedSamples[middle - 1] + sortedSamples[middle]) / 2
-    : sortedSamples[middle];
+  sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+
 const output: BenchmarkWorkerResult = {
   targetId: target.id,
   scenarioId: scenario.id,
-  observations,
+  outcome,
   result: {
     hz: task.result.hz,
     meanMs: task.result.mean,

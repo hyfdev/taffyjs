@@ -1,3 +1,7 @@
+---
+aside: false
+---
+
 <script setup lang="ts">
 import BenchmarkResults from "../.vitepress/components/BenchmarkResults.vue";
 </script>
@@ -6,8 +10,6 @@ import BenchmarkResults from "../.vitepress/components/BenchmarkResults.vue";
 
 These measurements describe the current implementations, not their final performance potential; several known optimization opportunities have not yet been implemented.
 
-These results compare complete public JavaScript layout transactions in Node.js. Every scenario runs through `@taffyjs/node`, `@taffyjs/wasm`, `@taffyjs/yoga`, `@taffyjs/yoga-wasm`, and `yoga-layout`. The two public API shapes use explicit implementations of the same semantic workload, including their real tree construction, conversion, layout, output-read, callback, and lifecycle costs.
-
-Each scenario asks a different question and stands on its own. Relative throughput uses `yoga-layout` as the `1.00×` reference. Results from different scenarios are not combined into an overall score or winner.
+Each scenario names a transaction and measures every package that can express it. `+2.0×` is twice as fast as that scenario's reference, `-2.0×` takes twice as long; a dash means the package has no way to write the workload. Every number comes from one machine in one run, so compare the ratios rather than the milliseconds.
 
 <BenchmarkResults />

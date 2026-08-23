@@ -1,337 +1,198 @@
 <script setup lang="ts">
-import publishedResult from "../../../../benchmarks/results/published.json";
+import { data } from "../benchmark-results.data";
 
-type ParameterValue = string | number | boolean;
+const { scenarios, environment } = data;
 
-interface BenchmarkTarget {
-  readonly id: string;
-  readonly packageName: string;
-  readonly apiKind: "taffy" | "yoga";
-  readonly apiLabel: string;
-  readonly runtimeLabel: string;
-}
+const packages = [
+  "yoga-layout",
+  "@taffyjs/node",
+  "@taffyjs/wasm",
+  "@taffyjs/yoga",
+  "@taffyjs/yoga-wasm",
+] as const;
 
-interface BenchmarkResult {
-  readonly targetId: string;
-  readonly packageName: string;
-  readonly hz: number;
-  readonly meanMs: number;
-  readonly medianMs: number;
-}
+const overview = scenarios.map((scenario) => ({
+  id: scenario.id,
+  title: scenario.title,
+  scale: scenario.scale,
+  baselinePackageName: scenario.baselinePackageName,
+  cells: packages.map((packageName) =>
+    scenario.rows.find((row) => row.packageName === packageName),
+  ),
+}));
 
-interface BenchmarkScenario {
-  readonly id: string;
-  readonly name: string;
-  readonly question: string;
-  readonly description: string;
-  readonly transaction: string;
-  readonly parameters: Readonly<Record<string, ParameterValue>>;
-  readonly results: readonly BenchmarkResult[];
-}
+const rankedScenarios = scenarios.map((scenario) => ({
+  ...scenario,
+  rankedRows: [...scenario.rows].sort((left, right) => left.medianMs - right.medianMs),
+}));
 
-interface BenchmarkReport {
-  readonly schemaVersion: number;
-  readonly generatedAt: string;
-  readonly source: {
-    readonly commit: string;
-    readonly dirty: boolean;
-  };
-  readonly environment: {
-    readonly node: string;
-    readonly platform: string;
-    readonly release: string;
-    readonly arch: string;
-    readonly cpu: string;
-  };
-  readonly profile: {
-    readonly rounds: number;
-    readonly maxRelativeMarginOfError: number | null;
-    readonly maxRoundMedianSpread: number | null;
-  };
-  readonly baselineTargetId: string;
-  readonly targets: readonly BenchmarkTarget[];
-  readonly scenarios: readonly BenchmarkScenario[];
-}
-
-const report = publishedResult as BenchmarkReport;
-if (report.schemaVersion !== 2) {
-  throw new Error(`Unsupported benchmark result schema ${report.schemaVersion}`);
-}
-if (report.source.dirty) {
-  throw new Error("Published benchmark results must come from a clean worktree");
-}
-
-if (report.scenarios.length === 0) {
-  throw new Error("Published benchmark results contain no scenarios");
-}
-
-const baselineTarget = report.targets.find(({ id }) => id === report.baselineTargetId);
-if (!baselineTarget) {
-  throw new Error(`Published benchmark results are missing target ${report.baselineTargetId}`);
-}
-
-const scenarios = report.scenarios.map((scenario) => {
-  const baselineResult = scenario.results.find(({ targetId }) => targetId === baselineTarget.id);
-  if (!baselineResult) {
-    throw new Error(`${scenario.id} is missing its ${baselineTarget.packageName} result`);
-  }
-  return {
-    ...scenario,
-    rows: report.targets.map((target) => {
-      const result = scenario.results.find(({ targetId }) => targetId === target.id);
-      if (!result) {
-        throw new Error(`${scenario.id} is missing its ${target.packageName} result`);
-      }
-      return {
-        target,
-        result,
-        relativeThroughput: result.hz / baselineResult.hz,
-      };
-    }),
-  };
-});
-
-const throughputFormatter = new Intl.NumberFormat("en-US", {
+const errorFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-const durationFormatter = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 3,
-  maximumFractionDigits: 3,
-});
-const relativeFormatter = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 3,
-});
-const parameterFormatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 3,
-});
+const countFormatter = new Intl.NumberFormat("en-US");
 
-function formatParameterName(name: string): string {
-  return name.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+function formatDuration(milliseconds: number): string {
+  const digits = milliseconds >= 100 ? 0 : milliseconds >= 10 ? 1 : milliseconds >= 1 ? 2 : 3;
+  return milliseconds.toFixed(digits);
 }
 
-function formatParameterValue(value: ParameterValue): string {
-  return typeof value === "number" ? parameterFormatter.format(value) : String(value);
+function formatMagnitude(factor: number): string {
+  if (factor >= 100) return String(Math.round(factor));
+  if (factor >= 10) return factor.toFixed(0);
+  return factor.toFixed(1);
+}
+
+function formatRelativeTime(row: { relativeTime: number; isBaseline: boolean }): string {
+  if (row.isBaseline) return "1.00×";
+  if (row.relativeTime >= 1) return `-${formatMagnitude(row.relativeTime)}×`;
+  return `+${formatMagnitude(1 / row.relativeTime)}×`;
 }
 
 const operatingSystem =
-  report.environment.platform === "darwin"
-    ? `macOS (Darwin ${report.environment.release}, ${report.environment.arch})`
-    : `${report.environment.platform} ${report.environment.release} (${report.environment.arch})`;
+  environment.platform === "darwin"
+    ? `macOS (Darwin ${environment.release}, ${environment.arch})`
+    : `${environment.platform} ${environment.release} (${environment.arch})`;
 </script>
 
 <template>
-  <div class="benchmark-results">
-    <p class="benchmark-method">
-      The publication profile uses {{ report.profile.rounds }} isolated
-      {{ report.profile.rounds === 1 ? "round" : "rounds" }} per target. Each round must stay at or
-      below {{ report.profile.maxRelativeMarginOfError }}% relative margin of error<template
-        v-if="report.profile.rounds > 1 && report.profile.maxRoundMedianSpread !== null"
-        >, and the round medians must stay within {{ report.profile.maxRoundMedianSpread * 100 }}%
-        of their median</template
-      >.
-    </p>
+  <div class="benchmark">
+    <div class="benchmark-scroll">
+      <table class="benchmark-overview">
+        <caption>
+          Every scenario against every package
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="benchmark-scenario-name"></th>
+            <th v-for="packageName in packages" :key="packageName" scope="col">
+              <code>{{ packageName }}</code>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="scenario in overview" :key="scenario.id">
+            <th scope="row" class="benchmark-scenario-name">
+              <a :href="`#${scenario.id}`">{{ scenario.title }}</a>
+              <em>{{ scenario.scale }}</em>
+            </th>
+            <td v-for="(cell, index) in scenario.cells" :key="index">
+              <template v-if="cell">
+                <span class="benchmark-relative">{{ formatRelativeTime(cell) }}</span>
+                <span class="benchmark-absolute">{{ formatDuration(cell.medianMs) }} ms</span>
+              </template>
+              <span v-else class="benchmark-absent" title="This package cannot express the workload"
+                >—</span
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <section
-      v-for="scenario in scenarios"
-      :key="scenario.id"
-      class="benchmark-scenario"
-      :aria-labelledby="`${scenario.id}-heading`"
-    >
-      <h2 :id="`${scenario.id}-heading`">{{ scenario.name }}</h2>
-      <p class="benchmark-question">{{ scenario.question }}</p>
-      <p class="benchmark-description">{{ scenario.description }}</p>
-
-      <div class="benchmark-boundary">
-        <div class="benchmark-boundary-item">
-          <h4>Timed transaction</h4>
-          <p>{{ scenario.transaction }}</p>
-        </div>
-        <div class="benchmark-boundary-item">
-          <h4>Scale</h4>
-          <dl class="benchmark-parameters">
-            <div v-for="(value, name) in scenario.parameters" :key="name">
-              <dt>{{ formatParameterName(name) }}</dt>
-              <dd>{{ formatParameterValue(value) }}</dd>
-            </div>
-          </dl>
-        </div>
-      </div>
-
-      <div
-        class="benchmark-table-region"
-        role="region"
-        :aria-label="`${scenario.name} results`"
-        tabindex="0"
-      >
+    <section v-for="scenario in rankedScenarios" :key="scenario.id" class="benchmark-detail">
+      <h2 :id="scenario.id">
+        {{ scenario.title }}<span>{{ scenario.scale }}</span>
+      </h2>
+      <p class="benchmark-note">{{ scenario.description }}</p>
+      <div class="benchmark-scroll">
         <table>
           <caption>
             {{
-              scenario.name
+              scenario.title
             }}
-            throughput and latency by package
+            results by package
           </caption>
           <thead>
             <tr>
-              <th scope="col">Package</th>
-              <th scope="col">API</th>
-              <th scope="col">Runtime</th>
-              <th scope="col">ops/s</th>
-              <th scope="col">Median</th>
+              <th scope="col" class="benchmark-package"></th>
               <th scope="col">
-                vs yoga-layout
-                <span>yoga-layout = 1.00×</span>
+                vs
+                <code>{{ scenario.baselinePackageName }}</code>
               </th>
+              <th scope="col">Median</th>
+              <th scope="col">p99</th>
+              <th scope="col">Measure calls</th>
+              <th scope="col">Values read</th>
+              <th scope="col">± RME</th>
+              <th scope="col">Samples</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in scenario.rows" :key="row.target.id">
-              <th scope="row">
-                <code>{{ row.target.packageName }}</code>
+            <tr
+              v-for="row in scenario.rankedRows"
+              :key="row.targetId"
+              :class="{ 'is-baseline': row.isBaseline }"
+            >
+              <th scope="row" class="benchmark-package">
+                <code>{{ row.packageName }}</code>
               </th>
-              <td class="benchmark-label">{{ row.target.apiLabel }}</td>
-              <td class="benchmark-label">{{ row.target.runtimeLabel }}</td>
-              <td>{{ throughputFormatter.format(row.result.hz) }}</td>
-              <td>{{ durationFormatter.format(row.result.medianMs) }} ms</td>
-              <td>{{ relativeFormatter.format(row.relativeThroughput) }}×</td>
+              <td class="benchmark-relative">{{ formatRelativeTime(row) }}</td>
+              <td>{{ formatDuration(row.medianMs) }} ms</td>
+              <td class="benchmark-dim">{{ formatDuration(row.p99Ms) }} ms</td>
+              <td class="benchmark-dim">{{ countFormatter.format(row.measureCalls) }}</td>
+              <td class="benchmark-dim">{{ countFormatter.format(row.readCount) }}</td>
+              <td class="benchmark-dim">
+                ±{{ errorFormatter.format(row.relativeMarginOfError) }}%
+              </td>
+              <td class="benchmark-dim">{{ row.sampleCount }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section class="benchmark-run" aria-labelledby="benchmark-run-heading">
-      <h2 id="benchmark-run-heading">Run details</h2>
-      <dl>
-        <div>
-          <dt>Node.js</dt>
-          <dd>{{ report.environment.node }}</dd>
-        </div>
-        <div>
-          <dt>Operating system</dt>
-          <dd>{{ operatingSystem }}</dd>
-        </div>
-        <div>
-          <dt>CPU</dt>
-          <dd>{{ report.environment.cpu }}</dd>
-        </div>
-        <div>
-          <dt>Commit</dt>
-          <dd>
-            <code>{{ report.source.commit }}</code>
-          </dd>
-        </div>
-      </dl>
-    </section>
+    <p class="benchmark-run">
+      <span><b>CPU</b> {{ environment.cpu }}</span>
+      <span><b>OS</b> {{ operatingSystem }}</span>
+      <span><b>Node.js</b> {{ environment.node }}</span>
+      <span><b>Commit</b> {{ data.commit.slice(0, 10) }}</span>
+    </p>
   </div>
 </template>
 
 <style scoped>
-.benchmark-method {
-  margin: 28px 0 8px;
-  padding: 14px 18px;
-  border-left: 3px solid var(--vp-c-brand-1);
-  background: var(--vp-c-bg-soft);
-  color: var(--vp-c-text-2);
-}
-
-.benchmark-scenario {
+.benchmark {
   margin-top: 28px;
-  padding-top: 34px;
-  border-top: 1px solid var(--vp-c-divider);
 }
 
-.benchmark-scenario > h2 {
+.benchmark-scroll {
+  overflow-x: auto;
+}
+
+.benchmark table {
+  display: table;
+  width: 100%;
   margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.benchmark-question {
-  margin: 10px 0 0;
-  color: var(--vp-c-text-1);
-  font-size: 1.08rem;
-  font-weight: 600;
-  line-height: 1.55;
-}
-
-.benchmark-description {
-  margin: 8px 0 0;
-  color: var(--vp-c-text-2);
-}
-
-.benchmark-boundary {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.65fr);
-  margin: 20px 0;
-  border: 1px solid var(--vp-c-divider);
-  background: var(--vp-c-bg-soft);
-}
-
-.benchmark-boundary-item {
-  min-width: 0;
-  padding: 18px 20px;
-}
-
-.benchmark-boundary-item + .benchmark-boundary-item {
-  border-left: 1px solid var(--vp-c-divider);
-}
-
-.benchmark-boundary h4 {
-  margin: 0 0 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.benchmark-boundary p {
-  margin: 0;
-  line-height: 1.65;
-}
-
-.benchmark-parameters {
-  display: grid;
-  gap: 7px;
-  margin: 0;
-}
-
-.benchmark-parameters div {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.benchmark-parameters dt {
-  color: var(--vp-c-text-2);
-}
-
-.benchmark-parameters dd {
-  margin: 0;
-  font-family: var(--vp-font-family-mono);
+  border-collapse: collapse;
   font-variant-numeric: tabular-nums;
 }
 
-.benchmark-table-region {
-  overflow-x: auto;
-  border: 1px solid var(--vp-c-divider);
-  outline: none;
+.benchmark tr,
+.benchmark tr:nth-child(2n) {
+  border-top: 0;
+  background: transparent;
 }
 
-.benchmark-table-region:focus-visible {
-  box-shadow: 0 0 0 2px var(--vp-c-brand-1);
+.benchmark th {
+  background: transparent;
 }
 
-.benchmark-table-region table {
-  display: table;
-  width: 100%;
-  min-width: 900px;
-  margin: 0;
-  border-collapse: collapse;
+.benchmark code {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
 }
 
-.benchmark-table-region caption {
+.benchmark code::before,
+.benchmark code::after {
+  content: none;
+}
+
+.benchmark caption {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -339,113 +200,202 @@ const operatingSystem =
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-  border: 0;
 }
 
-.benchmark-table-region th,
-.benchmark-table-region td {
-  padding: 12px 14px;
+.benchmark th,
+.benchmark td {
+  padding: 0 10px;
   border: 0;
-  border-bottom: 1px solid var(--vp-c-divider);
   text-align: right;
+}
+
+.benchmark thead th {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--vp-c-text-3);
+  color: var(--vp-c-text-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+  vertical-align: bottom;
   white-space: nowrap;
 }
 
-.benchmark-table-region .benchmark-label {
+.benchmark thead th code {
+  font-size: 0.76rem;
+}
+
+.benchmark th.benchmark-package {
+  width: 220px;
+  padding-left: 0;
   text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
-.benchmark-table-region thead th {
-  background: var(--vp-c-bg-soft);
-  color: var(--vp-c-text-2);
-  font-size: 0.78rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+.benchmark tbody th.benchmark-package {
+  border-bottom: 1px solid var(--vp-c-divider);
 }
 
-.benchmark-table-region thead span {
+.benchmark th.benchmark-package code {
   display: block;
-  margin-top: 2px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--vp-c-text-1);
+  font-size: 0.85rem;
 }
 
-.benchmark-table-region tbody tr:last-child th,
-.benchmark-table-region tbody tr:last-child td {
+.benchmark tbody td {
+  border-bottom: 1px solid var(--vp-c-divider);
+  font-family: var(--vp-font-family-mono);
+}
+
+.benchmark tbody tr:hover th.benchmark-package,
+.benchmark tbody tr:hover td {
+  background: var(--vp-c-bg-soft);
+}
+
+.benchmark tbody tr.is-baseline th.benchmark-package,
+.benchmark tbody tr.is-baseline td {
+  border-bottom: 1px solid var(--vp-c-text-3);
+  color: var(--vp-c-text-2);
+}
+
+.benchmark tbody tr:last-child th.benchmark-package,
+.benchmark tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.benchmark-table-region th:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
+.benchmark-dim {
+  color: var(--vp-c-text-3);
+}
+
+.benchmark-overview {
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+.benchmark th.benchmark-scenario-name {
+  width: 260px;
+  padding-left: 0;
   text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--vp-c-divider);
 }
 
-.benchmark-table-region tbody th {
-  background: var(--vp-c-bg);
+.benchmark th.benchmark-scenario-name a {
+  display: block;
+  color: var(--vp-c-text-1);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.benchmark-table-region td {
+.benchmark th.benchmark-scenario-name a:hover {
+  color: var(--vp-c-brand-1);
+}
+
+.benchmark th.benchmark-scenario-name em {
+  display: block;
+  color: var(--vp-c-text-3);
   font-family: var(--vp-font-family-mono);
-  font-variant-numeric: tabular-nums;
+  font-size: 0.68rem;
+  font-style: normal;
+}
+
+.benchmark-absent {
+  color: var(--vp-c-text-3);
+}
+
+.benchmark-overview thead th {
+  text-align: center;
+  white-space: normal;
+}
+
+.benchmark-overview thead th code {
+  font-size: 0.72rem;
+}
+
+.benchmark-overview td {
+  height: 58px;
+  text-align: center;
+}
+
+.benchmark-overview .benchmark-relative {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.benchmark-overview .benchmark-absolute {
+  display: block;
+  margin-top: 3px;
+  color: var(--vp-c-text-3);
+  font-size: 0.72rem;
+}
+
+.benchmark-detail {
+  margin-top: 34px;
+}
+
+.benchmark-detail h2 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 1.15rem;
+  letter-spacing: -0.005em;
+}
+
+.benchmark-detail h2 span {
+  margin-left: 8px;
+  color: var(--vp-c-text-3);
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.benchmark-note {
+  margin: 6px 0 0;
+  color: var(--vp-c-text-2);
+  font-size: 0.9rem;
+}
+
+.benchmark-detail table {
+  min-width: 700px;
+  margin-top: 10px;
+}
+
+.benchmark-detail td {
+  height: 40px;
+  font-size: 0.85rem;
+}
+
+.benchmark-detail td.benchmark-relative {
+  font-weight: 600;
 }
 
 .benchmark-run {
-  margin-top: 52px;
-  padding-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 40px 0 0;
+  padding-top: 16px;
   border-top: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-3);
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.75rem;
 }
 
-.benchmark-run h2 {
-  margin: 0 0 18px;
-  padding: 0;
-  border: 0;
-}
-
-.benchmark-run dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 28px;
-  margin: 0;
-}
-
-.benchmark-run div {
-  min-width: 0;
-}
-
-.benchmark-run dt {
-  margin-bottom: 3px;
+.benchmark-run b {
   color: var(--vp-c-text-2);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-family: var(--vp-font-family-base);
+  font-weight: 500;
 }
 
-.benchmark-run dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 700px) {
-  .benchmark-boundary {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .benchmark-boundary-item + .benchmark-boundary-item {
-    border-top: 1px solid var(--vp-c-divider);
-    border-left: 0;
-  }
-
-  .benchmark-table-region table {
-    min-width: 900px;
-  }
-
-  .benchmark-run dl {
-    grid-template-columns: minmax(0, 1fr);
+@media (max-width: 640px) {
+  .benchmark th.benchmark-package {
+    width: 170px;
   }
 }
 </style>

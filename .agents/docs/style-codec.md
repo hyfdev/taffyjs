@@ -34,7 +34,7 @@ A bounded prototype compared the versioned fixed bitmap with a per-field tag str
 
 JSON is smaller and faster for string-heavy data but cannot carry these semantics: it converts `NaN` to `null`, loses negative zero, and has no direct absent-versus-present distinction. The tag stream saves nine bytes on an empty value and is otherwise the same size and speed as the bitmap, while requiring field-tag dispatch and termination rules. The fixed bitmap is selected because its constant ten-byte header is negligible at this boundary, its payload order matches generated straight-line code in both languages, and it has fewer decoding states to validate.
 
-Acceptance performance is measured through the complete public API rather than by encoding alone, by the `styled-node-construction-500-leaves` scenario in [the benchmark suite](../../benchmarks/styled-node-construction/benchmark.ts).
+Acceptance performance is measured through the complete public API rather than by encoding alone, by the one-shot render scenarios in [the benchmark suite](../../benchmarks/one-shot-render/benchmark.ts), which create every node from a style and read the whole box model back.
 
 ## Verification boundary
 
