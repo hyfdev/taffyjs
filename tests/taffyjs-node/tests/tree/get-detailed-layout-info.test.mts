@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   AvailableSpace,
   DetailedLayoutInfoKind,
+  Direction,
   Display,
   GridPlacement,
   GridTemplateComponent,
@@ -122,6 +123,38 @@ test("grid-payload", () => {
     { rowStart: 1, rowEnd: 2, columnStart: 1, columnEnd: 2 },
     { rowStart: 2, rowEnd: 3, columnStart: 2, columnEnd: 3 },
   ]);
+});
+
+test("rtl-logical-order-and-implicit-line-names", () => {
+  const tree = new TaffyTree();
+  tree.disableRounding();
+  const child = tree.newLeaf({
+    gridColumn: { start: GridPlacement.Line(4), end: GridPlacement.Line(5) },
+    size: { height: 5 },
+  });
+  const root = tree.newWithChildren([child], {
+    display: Display.Grid,
+    direction: Direction.Rtl,
+    size: { width: 100, height: 20 },
+    gridTemplateColumns: [singleLengthTrack(10), singleLengthTrack(20)],
+    gridAutoColumns: [TrackSizingFunction.Length(7)],
+    gridTemplateColumnNames: [["inline-start"], ["middle"], ["inline-end"]],
+  });
+
+  compute(tree, root);
+  const columns = gridValue(tree.getDetailedLayoutInfo(root)).columns;
+  assert.deepEqual(columns, {
+    negativeImplicitTracks: 0,
+    explicitTracks: 2,
+    positiveImplicitTracks: 2,
+    positions: [
+      { start: 90, end: 100 },
+      { start: 70, end: 90 },
+      { start: 63, end: 70 },
+      { start: 56, end: 63 },
+    ],
+    lineNames: [["inline-start"], ["middle"], ["inline-end"], [], []],
+  });
 });
 
 test("deep-detached", () => {
