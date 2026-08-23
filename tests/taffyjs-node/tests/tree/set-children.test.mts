@@ -125,6 +125,9 @@ test("failure-atomic", () => {
   );
   assert.deepEqual(topology(tree, nodes), before);
 
+  assert.throws(() => tree.setChildren(parent, [third, -1n as never, first]), TypeError);
+  assert.deepEqual(topology(tree, nodes), before);
+
   assert.throws(() => tree.setChildren(parent, {} as unknown as readonly NodeId[]), TypeError);
   assert.deepEqual(topology(tree, nodes), before);
 });
