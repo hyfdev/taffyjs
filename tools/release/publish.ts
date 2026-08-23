@@ -5,42 +5,49 @@ import { resolve, sep } from "node:path";
 import { npmRegistry, releaseGroups } from "./config.ts";
 import {
   capture,
+  isMainModule,
   parseRemoteTagCommit,
   pnpmCommand,
   readJson,
   root,
   run,
   sha512Integrity,
-  wait,
 } from "./lib.ts";
 import type { ReleaseBundleManifest, ReleaseBundlePackage } from "./assemble.ts";
 
-const options = parseOptions(process.argv.slice(2));
-const bundleDirectory = safePath(options.bundle);
-const manifest = await readJson<ReleaseBundleManifest>(
-  resolve(bundleDirectory, "release-manifest.json"),
-);
-await verifyBundle(bundleDirectory, manifest);
+if (isMainModule(import.meta.url)) {
+  await main();
+}
 
-if (!options.publish) {
-  console.log(
-    `Validated ${manifest.packages.length} ${manifest.group} tarballs for ${manifest.tag}; pass --publish only from the trusted workflow`,
+async function main(): Promise<void> {
+  const options = parseOptions(process.argv.slice(2));
+  const bundleDirectory = safePath(options.bundle);
+  const manifest = await readJson<ReleaseBundleManifest>(
+    resolve(bundleDirectory, "release-manifest.json"),
   );
-  process.exit(0);
+  await verifyBundle(bundleDirectory, manifest);
+
+  if (!options.publish) {
+    console.log(
+      `Validated ${manifest.packages.length} ${manifest.group} tarballs for ${manifest.tag}; pass --publish only from the trusted workflow`,
+    );
+    return;
+  }
+
+  const githubSha = process.env.GITHUB_SHA;
+  if (!githubSha) throw new Error("Publishing requires GITHUB_SHA");
+  assert.equal(githubSha, manifest.commit, "The release bundle must belong to the workflow commit");
+  assert.equal(process.env.GITHUB_REF, "refs/heads/main", "Publishing is restricted to main");
+  await assertRemoteTag(manifest.tag, manifest.commit, true);
+
+  await publishReleasePackages(manifest.packages, {
+    registryIntegrity,
+    publish: async (packageArtifact) => publishPackage(bundleDirectory, packageArtifact),
+  });
+
+  await pushReleaseTag(manifest);
+  await writeSummary(bundleDirectory, manifest);
 }
-
-const githubSha = process.env.GITHUB_SHA;
-if (!githubSha) throw new Error("Publishing requires GITHUB_SHA");
-assert.equal(githubSha, manifest.commit, "The release bundle must belong to the workflow commit");
-assert.equal(process.env.GITHUB_REF, "refs/heads/main", "Publishing is restricted to main");
-await assertRemoteTag(manifest.tag, manifest.commit, true);
-
-for (const packageArtifact of manifest.packages) {
-  await publishPackage(bundleDirectory, packageArtifact);
-}
-
-await pushReleaseTag(manifest);
-await writeSummary(bundleDirectory, manifest);
 
 async function verifyBundle(
   bundleDirectory: string,
@@ -64,47 +71,51 @@ async function verifyBundle(
   }
 }
 
+// A successful publish command is the write boundary. Registry reads are
+// eventually consistent, so they are used only by an attempt's initial preflight.
+export async function publishReleasePackages(
+  packages: readonly ReleaseBundlePackage[],
+  operations: {
+    readonly registryIntegrity: (name: string, version: string) => Promise<string | null>;
+    readonly publish: (packageArtifact: ReleaseBundlePackage) => Promise<void>;
+  },
+): Promise<void> {
+  const missing: ReleaseBundlePackage[] = [];
+  for (const packageArtifact of packages) {
+    const existingIntegrity = await operations.registryIntegrity(
+      packageArtifact.name,
+      packageArtifact.version,
+    );
+    if (existingIntegrity === null) {
+      missing.push(packageArtifact);
+    } else {
+      assert.equal(
+        existingIntegrity,
+        packageArtifact.integrity,
+        `${packageArtifact.name}@${packageArtifact.version} already exists with different bytes`,
+      );
+      console.log(`Skipping verified ${packageArtifact.name}@${packageArtifact.version}`);
+    }
+  }
+
+  for (const packageArtifact of missing) await operations.publish(packageArtifact);
+}
+
 async function publishPackage(
   bundleDirectory: string,
   packageArtifact: ReleaseBundlePackage,
 ): Promise<void> {
-  const existingIntegrity = await registryIntegrity(packageArtifact.name, packageArtifact.version);
-  if (existingIntegrity !== null) {
-    assert.equal(
-      existingIntegrity,
-      packageArtifact.integrity,
-      `${packageArtifact.name}@${packageArtifact.version} already exists with different bytes`,
-    );
-    console.log(`Skipping verified ${packageArtifact.name}@${packageArtifact.version}`);
-    return;
-  }
-
-  await retry(`publish ${packageArtifact.name}@${packageArtifact.version}`, 3, async () => {
-    try {
-      await run(pnpmCommand, [
-        "publish",
-        resolve(bundleDirectory, packageArtifact.tarball),
-        "--access",
-        "public",
-        "--no-git-checks",
-        "--ignore-scripts",
-        "--provenance",
-        "--registry",
-        npmRegistry,
-      ]);
-    } catch (error) {
-      const integrity = await registryIntegrity(packageArtifact.name, packageArtifact.version);
-      if (integrity === packageArtifact.integrity) return;
-      throw error;
-    }
-  });
-
-  await retry(`verify ${packageArtifact.name}@${packageArtifact.version}`, 5, async () => {
-    assert.equal(
-      await registryIntegrity(packageArtifact.name, packageArtifact.version),
-      packageArtifact.integrity,
-    );
-  });
+  await run(pnpmCommand, [
+    "publish",
+    resolve(bundleDirectory, packageArtifact.tarball),
+    "--access",
+    "public",
+    "--no-git-checks",
+    "--ignore-scripts",
+    "--provenance",
+    "--registry",
+    npmRegistry,
+  ]);
 }
 
 async function registryIntegrity(name: string, version: string): Promise<string | null> {
@@ -121,17 +132,14 @@ async function registryIntegrity(name: string, version: string): Promise<string 
   return integrity;
 }
 
-// npm publication cannot be undone, so the tag is recorded as soon as the
-// complete group reached the registry.
+// The tag marks completion only after every required publish command succeeds.
 async function pushReleaseTag(manifest: ReleaseBundleManifest): Promise<void> {
   if (await assertRemoteTag(manifest.tag, manifest.commit, true)) {
     console.log(`Verified existing release tag ${manifest.tag}`);
     return;
   }
-  await run("git", ["tag", "--force", manifest.tag, manifest.commit]);
-  await retry(`push release tag ${manifest.tag}`, 3, async () => {
-    await run("git", ["push", "origin", `refs/tags/${manifest.tag}`]);
-  });
+  await run("git", ["tag", manifest.tag, manifest.commit]);
+  await run("git", ["push", "origin", `refs/tags/${manifest.tag}`]);
   await assertRemoteTag(manifest.tag, manifest.commit, false);
 }
 
@@ -159,27 +167,6 @@ async function remoteTagCommit(tag: string): Promise<string | null> {
     `${reference}^{}`,
   ]);
   return parseRemoteTagCommit(output, tag);
-}
-
-async function retry(
-  label: string,
-  attempts: number,
-  operation: () => Promise<void>,
-): Promise<void> {
-  let lastError: unknown;
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    try {
-      await operation();
-      return;
-    } catch (error) {
-      lastError = error;
-      if (attempt < attempts) {
-        console.warn(`${label} failed on attempt ${attempt}; retrying`);
-        await wait(2_000 * attempt);
-      }
-    }
-  }
-  throw lastError;
 }
 
 async function writeSummary(

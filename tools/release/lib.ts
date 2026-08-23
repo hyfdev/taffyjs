@@ -69,10 +69,6 @@ export async function sha512Integrity(path: string): Promise<string> {
   return `sha512-${createHash("sha512").update(contents).digest("base64")}`;
 }
 
-export async function wait(milliseconds: number): Promise<void> {
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
-}
-
 export function packageSlug(name: string): string {
   return name.replace(/^@/, "").replaceAll("/", "-");
 }

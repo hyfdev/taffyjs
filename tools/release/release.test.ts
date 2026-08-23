@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { rewriteNodeLoaderVersion, shouldCopyStagePath } from "./assemble.ts";
+import {
+  rewriteNodeLoaderVersion,
+  shouldCopyStagePath,
+  type ReleaseBundlePackage,
+} from "./assemble.ts";
 import { bootstrapState } from "./bootstrap-registry.ts";
 import { bootstrapVersion, isReleasePath, npmRegistry } from "./config.ts";
 import { parseRemoteTagCommit, root } from "./lib.ts";
@@ -12,6 +16,7 @@ import {
   revokeTemporaryAuthentication,
   type CommandRunner,
 } from "./npm-trust.ts";
+import { publishReleasePackages } from "./publish.ts";
 import {
   automaticBump,
   incrementVersion,
@@ -68,6 +73,71 @@ void test("remote release tags resolve lightweight and annotated commits", () =>
     commit,
   );
   assert.equal(parseRemoteTagCommit("", "v0.0.1"), null);
+});
+
+void test("publication preflights every package before the first registry write", async () => {
+  const missing = releasePackage("@taffyjs/missing", "sha512-missing");
+  const conflicting = releasePackage("@taffyjs/conflicting", "sha512-expected");
+  const published: string[] = [];
+
+  await assert.rejects(
+    () =>
+      publishReleasePackages([missing, conflicting], {
+        registryIntegrity: async (name) => (name === missing.name ? null : "sha512-unexpected"),
+        publish: async ({ name }) => {
+          published.push(name);
+        },
+      }),
+    /already exists with different bytes/,
+  );
+
+  assert.deepEqual(published, []);
+});
+
+void test("publication skips matching versions and does not read them again after writing", async () => {
+  const existing = releasePackage("@taffyjs/existing", "sha512-existing");
+  const firstMissing = releasePackage("@taffyjs/first-missing", "sha512-first-missing");
+  const secondMissing = releasePackage("@taffyjs/second-missing", "sha512-second-missing");
+  const events: string[] = [];
+
+  await publishReleasePackages([existing, firstMissing, secondMissing], {
+    registryIntegrity: async (name) => {
+      events.push(`read ${name}`);
+      return name === existing.name ? existing.integrity : null;
+    },
+    publish: async ({ name }) => {
+      events.push(`publish ${name}`);
+    },
+  });
+
+  assert.deepEqual(events, [
+    `read ${existing.name}`,
+    `read ${firstMissing.name}`,
+    `read ${secondMissing.name}`,
+    `publish ${firstMissing.name}`,
+    `publish ${secondMissing.name}`,
+  ]);
+});
+
+void test("publication stops at a command failure without retrying or continuing", async () => {
+  const first = releasePackage("@taffyjs/first", "sha512-first");
+  const failing = releasePackage("@taffyjs/failing", "sha512-failing");
+  const unattempted = releasePackage("@taffyjs/unattempted", "sha512-unattempted");
+  const attempts: string[] = [];
+
+  await assert.rejects(
+    () =>
+      publishReleasePackages([first, failing, unattempted], {
+        registryIntegrity: async () => null,
+        publish: async ({ name }) => {
+          attempts.push(name);
+          if (name === failing.name) throw new Error("publish failed");
+        },
+      }),
+    /publish failed/,
+  );
+
+  assert.deepEqual(attempts, [first.name, failing.name]);
 });
 
 void test("bootstrap revokes only the npm login it creates", async () => {
@@ -211,6 +281,17 @@ void test("release relevance follows changed files rather than optional commit s
 
 function commit(subject: string, paths: readonly string[]): ConventionalCommit {
   return { hash: "1234567890abcdef", subject, body: "", paths };
+}
+
+function releasePackage(name: string, integrity: string): ReleaseBundlePackage {
+  return {
+    name,
+    kind: "binding",
+    version: "0.0.2",
+    tarball: `${name.replaceAll("/", "-")}.tgz`,
+    integrity,
+    files: ["package.json"],
+  };
 }
 
 function parsed(subject: string) {
