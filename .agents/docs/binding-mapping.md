@@ -110,7 +110,7 @@ Each native measured `computeLayout` creates one Rust `MeasureSession` that reus
 
 Validate complete input, every involved NodeId's bigint/`u64` representation, topology, index, and range before the first ordinary mutation. Failed single-value and collection mutations must not leave partial wrapper or native state. Measured computation is the documented exception because callback failure happens after computation has started.
 
-Shape failures use `TypeError`, numeric range failures use `RangeError`, and ordinary Taffy operation failures use `Error`. The documented topology, child-index, and busy codes are part of the public contract; exact prose is not.
+Shape failures and NodeId bigint/`u64` representation failures use `TypeError`, other numeric range failures use `RangeError`, and ordinary Taffy operation failures use `Error`. The documented topology, child-index, and busy codes are part of the public contract; exact prose is not.
 
 Known JavaScript-controlled panic paths are prevented before Taffy. On native targets, the Rust owner catches unexpected panics as a final boundary and prevents later access to a possibly inconsistent tree; panic handling is not normal error control flow. `wasm32-wasip1` is compiled with aborting panics, so `@taffyjs/wasm` does not promise that this final unexpected-panic containment is recoverable. Expected validation and callback errors are still controlled before any abort path and are tested to leave the tree reusable.
 
