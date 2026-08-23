@@ -5,7 +5,7 @@ type Layout = {
   order: number;
   location: { x: number; y: number };
   size: { width: number; height: number };
-  contentSize: { width: number; height: number };
+  scrollableOverflowRect: { left: number; right: number; top: number; bottom: number };
   scrollbarSize: { width: number; height: number };
   border: { left: number; right: number; top: number; bottom: number };
   padding: { left: number; right: number; top: number; bottom: number };
@@ -16,7 +16,7 @@ const ZERO_LAYOUT: Layout = {
   order: 0,
   location: { x: 0, y: 0 },
   size: { width: 0, height: 0 },
-  contentSize: { width: 0, height: 0 },
+  scrollableOverflowRect: { left: 0, right: 0, top: 0, bottom: 0 },
   scrollbarSize: { width: 0, height: 0 },
   border: { left: 0, right: 0, top: 0, bottom: 0 },
   padding: { left: 0, right: 0, top: 0, bottom: 0 },
@@ -77,7 +77,7 @@ test("complete-values", () => {
     order: 0,
     location: { x: 3, y: 7 },
     size: { width: 30, height: 40 },
-    contentSize: { width: 11, height: 15 },
+    scrollableOverflowRect: { left: 0, right: 11, top: 0, bottom: 15 },
     scrollbarSize: { width: 13, height: 13 },
     border: { left: 9, right: 10, top: 11, bottom: 12 },
     padding: { left: 5, right: 6, top: 7, bottom: 8 },
@@ -93,7 +93,7 @@ test("exact-keys", () => {
     "order",
     "location",
     "size",
-    "contentSize",
+    "scrollableOverflowRect",
     "scrollbarSize",
     "border",
     "padding",
@@ -101,7 +101,7 @@ test("exact-keys", () => {
   ]);
   assert.deepEqual(Object.keys(layout.location), ["x", "y"]);
   assert.deepEqual(Object.keys(layout.size), ["width", "height"]);
-  assert.deepEqual(Object.keys(layout.contentSize), ["width", "height"]);
+  assert.deepEqual(Object.keys(layout.scrollableOverflowRect), ["left", "right", "top", "bottom"]);
   assert.deepEqual(Object.keys(layout.scrollbarSize), ["width", "height"]);
   for (const field of ["border", "padding", "margin"] as const) {
     assert.deepEqual(Object.keys(layout[field]), ["left", "right", "top", "bottom"]);
@@ -110,7 +110,7 @@ test("exact-keys", () => {
     layout,
     layout.location,
     layout.size,
-    layout.contentSize,
+    layout.scrollableOverflowRect,
     layout.scrollbarSize,
     layout.border,
     layout.padding,
@@ -135,7 +135,7 @@ test("detached", () => {
   assert.notEqual(first, second);
   assert.notEqual(first.location, second.location);
   assert.notEqual(first.size, second.size);
-  assert.notEqual(first.contentSize, second.contentSize);
+  assert.notEqual(first.scrollableOverflowRect, second.scrollableOverflowRect);
   assert.notEqual(first.scrollbarSize, second.scrollbarSize);
   assert.notEqual(first.border, second.border);
   assert.notEqual(first.padding, second.padding);
@@ -197,7 +197,7 @@ test("shared-converter", () => {
   for (const field of [
     "location",
     "size",
-    "contentSize",
+    "scrollableOverflowRect",
     "scrollbarSize",
     "border",
     "padding",

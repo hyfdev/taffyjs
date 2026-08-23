@@ -40,8 +40,8 @@ function wrapperState(tree: TaffyTree, nodes: readonly NodeId[]) {
 
 test("algorithms", () => {
   // Pinned upstream routing, cache, and hidden-layout sources for these values:
-  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/tree/taffy_tree.rs#L284-L329
-  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/mod.rs#L278-L290
+  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/taffy_tree.rs#L284-L329
+  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/mod.rs#L278-L290
   const cases = [
     ["Flex", Display.Flex, {}],
     ["Grid", Display.Grid, {}],
@@ -66,7 +66,11 @@ test("algorithms", () => {
     const childLayout = tree.getUnroundedLayout(child);
     assert.deepEqual(rootLayout.location, { x: 0, y: 0 }, name);
     assert.deepEqual(rootLayout.size, { width: 100, height: 50 }, name);
-    assert.deepEqual(rootLayout.contentSize, { width: 30, height: 10 }, name);
+    assert.deepEqual(
+      rootLayout.scrollableOverflowRect,
+      { left: 0, right: 30, top: 0, bottom: 10 },
+      name,
+    );
     assert.deepEqual(childLayout.location, { x: 0, y: 0 }, name);
     assert.deepEqual(childLayout.size, { width: 30, height: 10 }, name);
   }
@@ -84,13 +88,13 @@ test("algorithms", () => {
     const layout = noneTree.getUnroundedLayout(node);
     assert.deepEqual(layout.location, { x: 0, y: 0 });
     assert.deepEqual(layout.size, { width: 0, height: 0 });
-    assert.deepEqual(layout.contentSize, { width: 0, height: 0 });
+    assert.deepEqual(layout.scrollableOverflowRect, { left: 0, right: 0, top: 0, bottom: 0 });
   }
 });
 
 test("percentage-content", () => {
-  // Pinned upstream block percentage and content-size source for these values:
-  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/block.rs#L566-L746
+  // Pinned upstream block percentage and scrollable-overflow source for these values:
+  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/block.rs#L566-L746
   const tree = new TaffyTree();
   const child = tree.newLeaf({
     size: { width: Dimension.Percent(50), height: 80 },
@@ -102,13 +106,18 @@ test("percentage-content", () => {
 
   tree.computeLayout({ root, availableSpace: maxContentSpace() });
   assert.deepEqual(tree.getUnroundedLayout(child).size, { width: 100, height: 80 });
-  assert.deepEqual(tree.getUnroundedLayout(root).contentSize, { width: 100, height: 80 });
+  assert.deepEqual(tree.getUnroundedLayout(root).scrollableOverflowRect, {
+    left: 0,
+    right: 100,
+    top: 0,
+    bottom: 80,
+  });
 });
 
-test("content-size-overflow", () => {
-  // Pinned upstream content-size sources for these values:
-  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/common/content_size.rs
-  // https://github.com/DioxusLabs/taffy/blob/55cda62a5df9a5d04c0023be6f6dd607b1474fe9/src/compute/block.rs#L566-L746
+test("scrollable-overflow", () => {
+  // Pinned upstream scrollable-overflow sources for these values:
+  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/common/scrollable_overflow.rs
+  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/block.rs
   const padded = new TaffyTree();
   padded.disableRounding();
   const paddedChild = padded.newLeaf({ size: { width: 30, height: 20 } });
@@ -118,7 +127,12 @@ test("content-size-overflow", () => {
     padding: 10,
   });
   padded.computeLayout({ root: paddedRoot, availableSpace: { width: 40, height: 30 } });
-  assert.deepEqual(padded.getUnroundedLayout(paddedRoot).contentSize, { width: 40, height: 30 });
+  assert.deepEqual(padded.getUnroundedLayout(paddedRoot).scrollableOverflowRect, {
+    left: 0,
+    right: 40,
+    top: 0,
+    bottom: 30,
+  });
 
   const overflowing = new TaffyTree();
   overflowing.disableRounding();
@@ -132,9 +146,11 @@ test("content-size-overflow", () => {
     size: { width: 10, height: 10 },
   });
   overflowing.computeLayout({ root: overflowingRoot, availableSpace: { width: 10, height: 10 } });
-  assert.deepEqual(overflowing.getUnroundedLayout(overflowingRoot).contentSize, {
-    width: 10,
-    height: 10,
+  assert.deepEqual(overflowing.getUnroundedLayout(overflowingRoot).scrollableOverflowRect, {
+    left: -20,
+    right: 10,
+    top: -20,
+    bottom: 10,
   });
 });
 

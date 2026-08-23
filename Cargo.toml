@@ -11,7 +11,7 @@ rust-version = "1.88"
 napi = { version = "=3.12.0", features = ["napi8"] }
 napi-build = "=2.4.0"
 napi-derive = "=3.6.2"
-taffy = { git = "https://github.com/DioxusLabs/taffy", rev = "55cda62a5df9a5d04c0023be6f6dd607b1474fe9" }
+taffy = { git = "https://github.com/DioxusLabs/taffy", rev = "8d13fdc88468c83f01b13b36fadc0349950c6f51" }
 
 [profile.release]
 lto = true

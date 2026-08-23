@@ -59,6 +59,7 @@ The fields used most often around Block layout are:
 - `border` and `padding` contribute to its box.
 - `boxSizing` selects how an explicit size relates to border and padding.
 - `overflow` and `scrollbarWidth` affect overflow and the stored scrollbar size.
+- `contain` can establish an independent formatting context through `Contain.Layout`, `Contain.Paint`, or their combined `Contain.Content` value. Layout containment also suppresses the box's natural baseline; Taffy does not implement non-layout paint effects such as clipping or stacking contexts.
 
 Each geometry field accepts either one supported semantic length for every side or axis, or a partial named record. TaffyJS does not parse CSS shorthand strings.
 

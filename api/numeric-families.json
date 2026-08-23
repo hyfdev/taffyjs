@@ -36,6 +36,15 @@
       ]
     },
     {
+      "name": "Contain",
+      "members": [
+        { "name": "None", "value": 0 },
+        { "name": "Layout", "value": 1 },
+        { "name": "Paint", "value": 2 },
+        { "name": "Content", "value": 3 }
+      ]
+    },
+    {
       "name": "Float",
       "members": [
         { "name": "Left", "value": 0 },

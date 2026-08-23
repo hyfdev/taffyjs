@@ -9,7 +9,7 @@ export interface Layout {
   /** Reports this node's stable traversal order in the stored layout. */ readonly order: number;
   /** Reports this node's position relative to its parent. */ readonly location: Point<number>;
   /** Reports this node's outer width and height. */ readonly size: Size<number>;
-  /** Reports the width and height of this node's laid-out content. The node's own end padding counts only for a scroll container, and content that overflows past the scroll origin does not count. */ readonly contentSize: Size<number>;
+  /** Reports the scrollable overflow rectangle relative to this node's scroll origin; right and bottom are the reachable content extents, while negative left and top values represent unreachable start-side overflow. */ readonly scrollableOverflowRect: Rect<number>;
   /** Reports the width and height reserved for scrollbars. */ readonly scrollbarSize: Size<number>;
   /** Reports this node's resolved border widths. */ readonly border: Rect<number>;
   /** Reports this node's resolved padding widths. */ readonly padding: Rect<number>;
@@ -21,25 +21,27 @@ const LOCATION_X_SLOT = 1;
 const LOCATION_Y_SLOT = 2;
 const SIZE_WIDTH_SLOT = 3;
 const SIZE_HEIGHT_SLOT = 4;
-const CONTENT_SIZE_WIDTH_SLOT = 5;
-const CONTENT_SIZE_HEIGHT_SLOT = 6;
-const SCROLLBAR_SIZE_WIDTH_SLOT = 7;
-const SCROLLBAR_SIZE_HEIGHT_SLOT = 8;
-const BORDER_LEFT_SLOT = 9;
-const BORDER_RIGHT_SLOT = 10;
-const BORDER_TOP_SLOT = 11;
-const BORDER_BOTTOM_SLOT = 12;
-const PADDING_LEFT_SLOT = 13;
-const PADDING_RIGHT_SLOT = 14;
-const PADDING_TOP_SLOT = 15;
-const PADDING_BOTTOM_SLOT = 16;
-const MARGIN_LEFT_SLOT = 17;
-const MARGIN_RIGHT_SLOT = 18;
-const MARGIN_TOP_SLOT = 19;
-const MARGIN_BOTTOM_SLOT = 20;
+const SCROLLABLE_OVERFLOW_RECT_LEFT_SLOT = 5;
+const SCROLLABLE_OVERFLOW_RECT_RIGHT_SLOT = 6;
+const SCROLLABLE_OVERFLOW_RECT_TOP_SLOT = 7;
+const SCROLLABLE_OVERFLOW_RECT_BOTTOM_SLOT = 8;
+const SCROLLBAR_SIZE_WIDTH_SLOT = 9;
+const SCROLLBAR_SIZE_HEIGHT_SLOT = 10;
+const BORDER_LEFT_SLOT = 11;
+const BORDER_RIGHT_SLOT = 12;
+const BORDER_TOP_SLOT = 13;
+const BORDER_BOTTOM_SLOT = 14;
+const PADDING_LEFT_SLOT = 15;
+const PADDING_RIGHT_SLOT = 16;
+const PADDING_TOP_SLOT = 17;
+const PADDING_BOTTOM_SLOT = 18;
+const MARGIN_LEFT_SLOT = 19;
+const MARGIN_RIGHT_SLOT = 20;
+const MARGIN_TOP_SLOT = 21;
+const MARGIN_BOTTOM_SLOT = 22;
 
-export const layoutCodecLength = 21;
-export const layoutCodecByteLength = 168;
+export const layoutCodecLength = 23;
+export const layoutCodecByteLength = 184;
 
 export function decodeLayout(output: Float64Array): Layout {
   return {
@@ -52,9 +54,11 @@ export function decodeLayout(output: Float64Array): Layout {
       width: output[SIZE_WIDTH_SLOT],
       height: output[SIZE_HEIGHT_SLOT],
     },
-    contentSize: {
-      width: output[CONTENT_SIZE_WIDTH_SLOT],
-      height: output[CONTENT_SIZE_HEIGHT_SLOT],
+    scrollableOverflowRect: {
+      left: output[SCROLLABLE_OVERFLOW_RECT_LEFT_SLOT],
+      right: output[SCROLLABLE_OVERFLOW_RECT_RIGHT_SLOT],
+      top: output[SCROLLABLE_OVERFLOW_RECT_TOP_SLOT],
+      bottom: output[SCROLLABLE_OVERFLOW_RECT_BOTTOM_SLOT],
     },
     scrollbarSize: {
       width: output[SCROLLBAR_SIZE_WIDTH_SLOT],

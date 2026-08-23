@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/style-codec.schema.json",
   "formatVersion": 1,
-  "wireVersion": 1,
+  "wireVersion": 2,
   "fields": [
     {
       "name": "display",
@@ -41,6 +41,12 @@
       "name": "scrollbarWidth",
       "category": "number",
       "description": "Supplies the node's scrollbar width style when present."
+    },
+    {
+      "name": "contain",
+      "category": "enum",
+      "numericFamily": "Contain",
+      "description": "Supplies the node's layout and paint containment style when present."
     },
     {
       "name": "float",

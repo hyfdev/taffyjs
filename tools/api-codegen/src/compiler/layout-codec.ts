@@ -30,7 +30,7 @@ export interface LayoutCodecModel {
 
 // Pinned deliberately. Changing the slot count changes the public Layout shape, so this pin and
 // the maintained model must be updated together rather than one drifting behind the other.
-const pinnedSlotCount = 21;
+const pinnedSlotCount = 23;
 const identifier = /^[a-z][A-Za-z0-9]*$/u;
 const shapeDefinitions: Readonly<
   Record<RawLayoutShape, { readonly typeName: string; readonly components: readonly string[] }>

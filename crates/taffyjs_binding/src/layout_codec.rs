@@ -4,28 +4,30 @@
 
 use taffy::Layout;
 
-pub(crate) const OUTPUT_LENGTH: usize = 21;
+pub(crate) const OUTPUT_LENGTH: usize = 23;
 pub(crate) const ORDER_SLOT: usize = 0;
 pub(crate) const LOCATION_X_SLOT: usize = 1;
 pub(crate) const LOCATION_Y_SLOT: usize = 2;
 pub(crate) const SIZE_WIDTH_SLOT: usize = 3;
 pub(crate) const SIZE_HEIGHT_SLOT: usize = 4;
-pub(crate) const CONTENT_SIZE_WIDTH_SLOT: usize = 5;
-pub(crate) const CONTENT_SIZE_HEIGHT_SLOT: usize = 6;
-pub(crate) const SCROLLBAR_SIZE_WIDTH_SLOT: usize = 7;
-pub(crate) const SCROLLBAR_SIZE_HEIGHT_SLOT: usize = 8;
-pub(crate) const BORDER_LEFT_SLOT: usize = 9;
-pub(crate) const BORDER_RIGHT_SLOT: usize = 10;
-pub(crate) const BORDER_TOP_SLOT: usize = 11;
-pub(crate) const BORDER_BOTTOM_SLOT: usize = 12;
-pub(crate) const PADDING_LEFT_SLOT: usize = 13;
-pub(crate) const PADDING_RIGHT_SLOT: usize = 14;
-pub(crate) const PADDING_TOP_SLOT: usize = 15;
-pub(crate) const PADDING_BOTTOM_SLOT: usize = 16;
-pub(crate) const MARGIN_LEFT_SLOT: usize = 17;
-pub(crate) const MARGIN_RIGHT_SLOT: usize = 18;
-pub(crate) const MARGIN_TOP_SLOT: usize = 19;
-pub(crate) const MARGIN_BOTTOM_SLOT: usize = 20;
+pub(crate) const SCROLLABLE_OVERFLOW_RECT_LEFT_SLOT: usize = 5;
+pub(crate) const SCROLLABLE_OVERFLOW_RECT_RIGHT_SLOT: usize = 6;
+pub(crate) const SCROLLABLE_OVERFLOW_RECT_TOP_SLOT: usize = 7;
+pub(crate) const SCROLLABLE_OVERFLOW_RECT_BOTTOM_SLOT: usize = 8;
+pub(crate) const SCROLLBAR_SIZE_WIDTH_SLOT: usize = 9;
+pub(crate) const SCROLLBAR_SIZE_HEIGHT_SLOT: usize = 10;
+pub(crate) const BORDER_LEFT_SLOT: usize = 11;
+pub(crate) const BORDER_RIGHT_SLOT: usize = 12;
+pub(crate) const BORDER_TOP_SLOT: usize = 13;
+pub(crate) const BORDER_BOTTOM_SLOT: usize = 14;
+pub(crate) const PADDING_LEFT_SLOT: usize = 15;
+pub(crate) const PADDING_RIGHT_SLOT: usize = 16;
+pub(crate) const PADDING_TOP_SLOT: usize = 17;
+pub(crate) const PADDING_BOTTOM_SLOT: usize = 18;
+pub(crate) const MARGIN_LEFT_SLOT: usize = 19;
+pub(crate) const MARGIN_RIGHT_SLOT: usize = 20;
+pub(crate) const MARGIN_TOP_SLOT: usize = 21;
+pub(crate) const MARGIN_BOTTOM_SLOT: usize = 22;
 
 pub(crate) fn write_output(value: &Layout, output: &mut [f64; OUTPUT_LENGTH]) {
     output[ORDER_SLOT] = f64::from(value.order);
@@ -33,8 +35,10 @@ pub(crate) fn write_output(value: &Layout, output: &mut [f64; OUTPUT_LENGTH]) {
     output[LOCATION_Y_SLOT] = f64::from(value.location.y);
     output[SIZE_WIDTH_SLOT] = f64::from(value.size.width);
     output[SIZE_HEIGHT_SLOT] = f64::from(value.size.height);
-    output[CONTENT_SIZE_WIDTH_SLOT] = f64::from(value.content_size.width);
-    output[CONTENT_SIZE_HEIGHT_SLOT] = f64::from(value.content_size.height);
+    output[SCROLLABLE_OVERFLOW_RECT_LEFT_SLOT] = f64::from(value.scrollable_overflow_rect.left);
+    output[SCROLLABLE_OVERFLOW_RECT_RIGHT_SLOT] = f64::from(value.scrollable_overflow_rect.right);
+    output[SCROLLABLE_OVERFLOW_RECT_TOP_SLOT] = f64::from(value.scrollable_overflow_rect.top);
+    output[SCROLLABLE_OVERFLOW_RECT_BOTTOM_SLOT] = f64::from(value.scrollable_overflow_rect.bottom);
     output[SCROLLBAR_SIZE_WIDTH_SLOT] = f64::from(value.scrollbar_size.width);
     output[SCROLLBAR_SIZE_HEIGHT_SLOT] = f64::from(value.scrollbar_size.height);
     output[BORDER_LEFT_SLOT] = f64::from(value.border.left);

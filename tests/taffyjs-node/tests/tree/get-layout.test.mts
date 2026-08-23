@@ -6,7 +6,7 @@ type Layout = {
   order: number;
   location: { x: number; y: number };
   size: { width: number; height: number };
-  contentSize: { width: number; height: number };
+  scrollableOverflowRect: { left: number; right: number; top: number; bottom: number };
   scrollbarSize: { width: number; height: number };
   border: { left: number; right: number; top: number; bottom: number };
   padding: { left: number; right: number; top: number; bottom: number };
@@ -17,7 +17,7 @@ const ZERO_LAYOUT: Layout = {
   order: 0,
   location: { x: 0, y: 0 },
   size: { width: 0, height: 0 },
-  contentSize: { width: 0, height: 0 },
+  scrollableOverflowRect: { left: 0, right: 0, top: 0, bottom: 0 },
   scrollbarSize: { width: 0, height: 0 },
   border: { left: 0, right: 0, top: 0, bottom: 0 },
   padding: { left: 0, right: 0, top: 0, bottom: 0 },
@@ -38,7 +38,7 @@ test("exact-zero", () => {
     "order",
     "location",
     "size",
-    "contentSize",
+    "scrollableOverflowRect",
     "scrollbarSize",
     "border",
     "padding",

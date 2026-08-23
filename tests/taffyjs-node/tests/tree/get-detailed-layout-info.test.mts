@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   AvailableSpace,
   DetailedLayoutInfoKind,
+  Direction,
   Display,
   GridPlacement,
   GridTemplateComponent,
@@ -15,8 +16,8 @@ type Tracks = {
   negativeImplicitTracks: number;
   explicitTracks: number;
   positiveImplicitTracks: number;
-  gutters: number[];
-  sizes: number[];
+  positions: Array<{ start: number; end: number }>;
+  lineNames: string[][];
 };
 type GridInfo = {
   rows: Tracks;
@@ -55,6 +56,8 @@ function explicitGrid(tree: TaffyTree) {
     display: Display.Grid,
     gridTemplateRows: [singleLengthTrack(12.25), singleLengthTrack(8.5)],
     gridTemplateColumns: [singleLengthTrack(7.75), singleLengthTrack(3.25)],
+    gridTemplateRowNames: [["row-start"], [], ["row-end"]],
+    gridTemplateColumnNames: [["column-start"], ["middle"], ["column-end"]],
   });
   return { first, second, root };
 }
@@ -100,20 +103,58 @@ test("grid-payload", () => {
     negativeImplicitTracks: 0,
     explicitTracks: 2,
     positiveImplicitTracks: 0,
-    gutters: [0, 0, 0],
-    sizes: [Math.fround(12.25), Math.fround(8.5)],
+    positions: [
+      { start: 0, end: Math.fround(12.25) },
+      { start: Math.fround(12.25), end: Math.fround(20.75) },
+    ],
+    lineNames: [["row-start"], [], ["row-end"]],
   });
   assert.deepEqual(grid.columns, {
     negativeImplicitTracks: 0,
     explicitTracks: 2,
     positiveImplicitTracks: 0,
-    gutters: [0, 0, 0],
-    sizes: [Math.fround(7.75), Math.fround(3.25)],
+    positions: [
+      { start: 0, end: Math.fround(7.75) },
+      { start: Math.fround(7.75), end: 11 },
+    ],
+    lineNames: [["column-start"], ["middle"], ["column-end"]],
   });
   assert.deepEqual(grid.items, [
     { rowStart: 1, rowEnd: 2, columnStart: 1, columnEnd: 2 },
     { rowStart: 2, rowEnd: 3, columnStart: 2, columnEnd: 3 },
   ]);
+});
+
+test("rtl-logical-order-and-implicit-line-names", () => {
+  const tree = new TaffyTree();
+  tree.disableRounding();
+  const child = tree.newLeaf({
+    gridColumn: { start: GridPlacement.Line(4), end: GridPlacement.Line(5) },
+    size: { height: 5 },
+  });
+  const root = tree.newWithChildren([child], {
+    display: Display.Grid,
+    direction: Direction.Rtl,
+    size: { width: 100, height: 20 },
+    gridTemplateColumns: [singleLengthTrack(10), singleLengthTrack(20)],
+    gridAutoColumns: [TrackSizingFunction.Length(7)],
+    gridTemplateColumnNames: [["inline-start"], ["middle"], ["inline-end"]],
+  });
+
+  compute(tree, root);
+  const columns = gridValue(tree.getDetailedLayoutInfo(root)).columns;
+  assert.deepEqual(columns, {
+    negativeImplicitTracks: 0,
+    explicitTracks: 2,
+    positiveImplicitTracks: 2,
+    positions: [
+      { start: 90, end: 100 },
+      { start: 70, end: 90 },
+      { start: 63, end: 70 },
+      { start: 56, end: 63 },
+    ],
+    lineNames: [["inline-start"], ["middle"], ["inline-end"], [], []],
+  });
 });
 
 test("deep-detached", () => {
@@ -125,10 +166,14 @@ test("deep-detached", () => {
 
   assert.notEqual(first, second);
   assert.notEqual(first.rows, second.rows);
-  assert.notEqual(first.rows.sizes, second.rows.sizes);
+  assert.notEqual(first.rows.positions, second.rows.positions);
+  assert.notEqual(first.rows.positions[0], second.rows.positions[0]);
+  assert.notEqual(first.rows.lineNames, second.rows.lineNames);
+  assert.notEqual(first.rows.lineNames[0], second.rows.lineNames[0]);
   assert.notEqual(first.items, second.items);
   assert.notEqual(first.items[0], second.items[0]);
-  first.rows.sizes[0] = 99;
+  first.rows.positions[0].start = 99;
+  first.rows.lineNames[0][0] = "changed";
   first.items[0].rowStart = 99;
   assert.deepEqual(tree.getDetailedLayoutInfo(root), {
     kind: DetailedLayoutInfoKind.Grid,

@@ -5,6 +5,7 @@ import {
   AvailableSpace,
   BoxSizing,
   Clear,
+  Contain,
   Dimension,
   Direction,
   Display,
@@ -44,6 +45,7 @@ const fieldCases = [
     { x: Overflow.Clip, y: Overflow.Visible },
   ],
   ["scrollbarWidth", 3, 4],
+  ["contain", Contain.Layout, Contain.Content],
   ["float", Float.Left, Float.Right],
   ["clear", Clear.Left, Clear.Both],
   ["position", Position.Absolute, Position.Relative],
@@ -113,7 +115,7 @@ const allStyleUpdateFieldsCovered: [MissingStyleUpdateField] extends [never] ? t
 
 test("applies every top-level field and skips equal or undefined values", () => {
   assert.equal(allStyleUpdateFieldsCovered, true);
-  assert.equal(fieldCases.length, 41);
+  assert.equal(fieldCases.length, 42);
 
   for (const [field, initial, next] of fieldCases) {
     const tree = new TaffyTree();

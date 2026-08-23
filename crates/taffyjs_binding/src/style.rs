@@ -1,15 +1,15 @@
 use napi_derive::napi;
 use taffy::geometry::{Rect, Size};
 use taffy::style::{
-    AlignContent, AlignItems, BoxSizing, Clear, Direction, Display, FlexDirection, FlexWrap, Float,
-    GridAutoFlow, Overflow, Position, Style, TextAlign,
+    AlignContent, AlignItems, BoxSizing, Clear, Contain, Direction, Display, FlexDirection,
+    FlexWrap, Float, GridAutoFlow, Overflow, Position, Style, TextAlign,
 };
 
 use crate::error::BindingResult;
 use crate::numeric::{
-    AlignContentCode, AlignItemsCode, BoxSizingCode, ClearCode, DirectionCode, DisplayCode,
-    FlexDirectionCode, FlexWrapCode, FloatCode, GridAutoFlowCode, OverflowCode, PositionCode,
-    TextAlignCode,
+    AlignContentCode, AlignItemsCode, BoxSizingCode, ClearCode, ContainCode, DirectionCode,
+    DisplayCode, FlexDirectionCode, FlexWrapCode, FloatCode, GridAutoFlowCode, OverflowCode,
+    PositionCode, TextAlignCode,
 };
 use crate::{grid, length, number};
 
@@ -48,6 +48,7 @@ pub struct StyleOutput {
     pub direction: u8,
     pub overflow: OverflowOutput,
     pub scrollbar_width: f64,
+    pub contain: u8,
     #[napi(js_name = "float")]
     pub r#float: u8,
     pub clear: u8,
@@ -122,6 +123,15 @@ pub(crate) fn overflow(value: f64) -> BindingResult<Overflow> {
         OverflowCode::Clip => Overflow::Clip,
         OverflowCode::Hidden => Overflow::Hidden,
         OverflowCode::Scroll => Overflow::Scroll,
+    })
+}
+
+pub(crate) fn contain(value: f64) -> BindingResult<Contain> {
+    Ok(match integer::<ContainCode>(value)? {
+        ContainCode::None => Contain::NONE,
+        ContainCode::Layout => Contain::LAYOUT,
+        ContainCode::Paint => Contain::PAINT,
+        ContainCode::Content => Contain::CONTENT,
     })
 }
 
@@ -260,6 +270,20 @@ fn overflow_output(value: Overflow) -> u8 {
         Overflow::Clip => OverflowCode::Clip as u8,
         Overflow::Hidden => OverflowCode::Hidden as u8,
         Overflow::Scroll => OverflowCode::Scroll as u8,
+    }
+}
+
+fn contain_output(value: Contain) -> u8 {
+    if value == Contain::NONE {
+        ContainCode::None as u8
+    } else if value == Contain::LAYOUT {
+        ContainCode::Layout as u8
+    } else if value == Contain::PAINT {
+        ContainCode::Paint as u8
+    } else if value == Contain::CONTENT {
+        ContainCode::Content as u8
+    } else {
+        panic!("unsupported Taffy containment")
     }
 }
 
@@ -419,6 +443,7 @@ pub(crate) fn output(style: &Style) -> StyleOutput {
             y: overflow_output(style.overflow.y),
         },
         scrollbar_width: f64::from(style.scrollbar_width),
+        contain: contain_output(style.contain),
         r#float: float_output(style.float),
         clear: clear_output(style.clear),
         position: position_output(style.position),

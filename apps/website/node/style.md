@@ -11,7 +11,7 @@ These fields describe the node itself or are shared by more than one layout mode
 | Fields                                                                                     | Purpose                                                                  |
 | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | `display`, `itemIsTable`, `itemIsReplaced`                                                 | Select layout participation and Taffy's table or replaced-item behavior. |
-| `boxSizing`, `direction`, `overflow`, `scrollbarWidth`                                     | Control box sizing, writing direction, and overflow contributions.       |
+| `boxSizing`, `direction`, `overflow`, `scrollbarWidth`, `contain`                          | Control box sizing, writing direction, overflow, and containment.        |
 | `position`, `inset`                                                                        | Keep a node in normal flow or position it relatively or absolutely.      |
 | `size`, `minSize`, `maxSize`, `aspectRatio`                                                | Supply preferred and limiting dimensions.                                |
 | `margin`, `padding`, `border`, `gap`                                                       | Supply spacing around, inside, and between boxes.                        |

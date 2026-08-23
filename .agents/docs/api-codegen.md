@@ -36,7 +36,7 @@ Verification follows the repository-wide rule below: `check:codegen` detects sta
 
 ## Generated Style codec
 
-`api/style-codec.json` and `api/schemas/style-codec.schema.json` are the maintained versioned model for the 41 public Style input fields, their canonical order, their encoding categories, their referenced numeric families, and their public descriptions. The compiler resolves numeric-family references and derives field indexes and the presence-map width once. Neither target keeps a handwritten second field inventory.
+`api/style-codec.json` and `api/schemas/style-codec.schema.json` are the maintained versioned model for the 42 public Style input fields, their canonical order, their encoding categories, their referenced numeric families, and their public descriptions. The compiler resolves numeric-family references and derives field indexes and the presence-map width once. Neither target keeps a handwritten second field inventory.
 
 The TypeScript emitter writes `packages/taffyjs-node/src/style-input.ts`, which owns the public `StyleInput` and `StyleUpdate` declarations and a straight-line encoder that reads each known property once in canonical order. The Rust emitter writes `crates/taffyjs_binding/src/style_input.rs`, which applies the matching fields in the same order through `decode_into`. Handwritten `style-codec.ts` and `style_codec.rs` own only the closed category encodings, validation primitives, buffer mechanics, and Taffy-specific conversion used by those generated call sites.
 
@@ -44,7 +44,7 @@ The wire version is distinct from the maintained input format version. A change 
 
 ## Generated Layout codec
 
-The complete public `Layout` field tree and its fixed 21-number private transport have one versioned description in `api/layout-codec.json`. Input order is the public property and slot order. The compiler validates the supported scalar and geometry shapes, resolves JavaScript and Rust field paths, assigns every slot once, and derives the 168-byte buffer size.
+The complete public `Layout` field tree and its fixed 23-number private transport have one versioned description in `api/layout-codec.json`. Input order is the public property and slot order. The compiler validates the supported scalar and geometry shapes, resolves JavaScript and Rust field paths, assigns every slot once, and derives the 184-byte buffer size.
 
 The TypeScript emitter owns the public `Layout` declaration, slot constants, and straight-line reconstruction of fresh ordinary objects. The Rust emitter owns the same slot constants and the straight-line writer from Taffy's stored `Layout`. The authored tree wrapper owns one module-local `Float64Array` scratch buffer built over an explicit `ArrayBuffer`; the private binding writers synchronously fill it and never retain a pointer to it. The explicit `ArrayBuffer` is required because JavaScriptCore materializes the backing buffer of a length-constructed typed array lazily and Bun loses the first pointer write into any such buffer. Native targets fill the buffer through the borrowed slice; the Wasm target fills the same slots through `napi_set_element`, because a Wasm module cannot receive a pointer into the JavaScript heap. Both targets share one public method name, so the wrapper and the generated decoder never branch on the runtime.
 

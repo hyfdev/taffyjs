@@ -1,6 +1,6 @@
 # @taffyjs/yoga-wasm
 
-`@taffyjs/yoga-wasm` is an ESM Yoga 3.2.1 compatibility facade backed by `@taffyjs/wasm`. It uses the same TypeScript facade, public entries, declarations, and compatibility classifications as `@taffyjs/yoga`; only the TaffyJS runtime backend changes. Taffy is at revision [`55cda62a`](https://github.com/DioxusLabs/taffy/commit/55cda62a5df9a5d04c0023be6f6dd607b1474fe9).
+`@taffyjs/yoga-wasm` is an ESM Yoga 3.2.1 compatibility facade backed by `@taffyjs/wasm`. It uses the same TypeScript facade, public entries, declarations, and compatibility classifications as `@taffyjs/yoga`; only the TaffyJS runtime backend changes. Taffy is at revision [`8d13fdc8`](https://github.com/DioxusLabs/taffy/commit/8d13fdc88468c83f01b13b36fadc0349950c6f51).
 
 The [Design](../../apps/website/yoga-wasm/design.md) explains why the Yoga-facing model and runtime transport remain separate choices.
 

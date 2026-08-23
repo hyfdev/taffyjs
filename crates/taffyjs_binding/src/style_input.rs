@@ -9,7 +9,7 @@ use crate::style;
 use crate::style_codec::{StyleDecoder, replace, replace_f32, replace_optional_f32};
 
 pub(crate) fn decode_into(target: &mut Style, encoded: &[u8]) -> BindingResult<bool> {
-    let mut decoder = StyleDecoder::new(encoded, 1, 6, 41)?;
+    let mut decoder = StyleDecoder::new(encoded, 2, 6, 42)?;
     let mut changed = false;
     if decoder.field(0) {
         let value = style::display(f64::from(decoder.enumeration("Style.display")?))?;
@@ -45,163 +45,167 @@ pub(crate) fn decode_into(target: &mut Style, encoded: &[u8]) -> BindingResult<b
         );
     }
     if decoder.field(7) {
+        let value = style::contain(f64::from(decoder.enumeration("Style.contain")?))?;
+        changed |= replace(&mut target.contain, value);
+    }
+    if decoder.field(8) {
         let value = style::float(f64::from(decoder.enumeration("Style.float")?))?;
         changed |= replace(&mut target.float, value);
     }
-    if decoder.field(8) {
+    if decoder.field(9) {
         let value = style::clear(f64::from(decoder.enumeration("Style.clear")?))?;
         changed |= replace(&mut target.clear, value);
     }
-    if decoder.field(9) {
+    if decoder.field(10) {
         let value = style::position(f64::from(decoder.enumeration("Style.position")?))?;
         changed |= replace(&mut target.position, value);
     }
-    if decoder.field(10) {
+    if decoder.field(11) {
         changed |= decoder.length_percentage_auto_rect(&mut target.inset, "Style.inset")?;
     }
-    if decoder.field(11) {
+    if decoder.field(12) {
         changed |= decoder.dimension_size(&mut target.size, "Style.size")?;
     }
-    if decoder.field(12) {
+    if decoder.field(13) {
         changed |= decoder.dimension_size(&mut target.min_size, "Style.minSize")?;
     }
-    if decoder.field(13) {
+    if decoder.field(14) {
         changed |= decoder.dimension_size(&mut target.max_size, "Style.maxSize")?;
     }
-    if decoder.field(14) {
+    if decoder.field(15) {
         changed |= replace_optional_f32(
             &mut target.aspect_ratio,
             decoder.nullable_number("Style.aspectRatio")?,
         );
     }
-    if decoder.field(15) {
+    if decoder.field(16) {
         changed |= decoder.length_percentage_auto_rect(&mut target.margin, "Style.margin")?;
     }
-    if decoder.field(16) {
+    if decoder.field(17) {
         changed |= decoder.length_percentage_rect(&mut target.padding, "Style.padding")?;
     }
-    if decoder.field(17) {
+    if decoder.field(18) {
         changed |= decoder.length_percentage_rect(&mut target.border, "Style.border")?;
     }
-    if decoder.field(18) {
+    if decoder.field(19) {
         let value = decoder
             .nullable_enumeration("Style.alignItems")?
             .map(|value| style::align_items(f64::from(value)))
             .transpose()?;
         changed |= replace(&mut target.align_items, value);
     }
-    if decoder.field(19) {
+    if decoder.field(20) {
         let value = decoder
             .nullable_enumeration("Style.alignSelf")?
             .map(|value| style::align_items(f64::from(value)))
             .transpose()?;
         changed |= replace(&mut target.align_self, value);
     }
-    if decoder.field(20) {
+    if decoder.field(21) {
         let value = decoder
             .nullable_enumeration("Style.justifyItems")?
             .map(|value| style::align_items(f64::from(value)))
             .transpose()?;
         changed |= replace(&mut target.justify_items, value);
     }
-    if decoder.field(21) {
+    if decoder.field(22) {
         let value = decoder
             .nullable_enumeration("Style.justifySelf")?
             .map(|value| style::align_items(f64::from(value)))
             .transpose()?;
         changed |= replace(&mut target.justify_self, value);
     }
-    if decoder.field(22) {
+    if decoder.field(23) {
         let value = decoder
             .nullable_enumeration("Style.alignContent")?
             .map(|value| style::align_content(f64::from(value)))
             .transpose()?;
         changed |= replace(&mut target.align_content, value);
     }
-    if decoder.field(23) {
+    if decoder.field(24) {
         let value = decoder
             .nullable_enumeration("Style.justifyContent")?
             .map(|value| style::align_content(f64::from(value)))
             .transpose()?;
         changed |= replace(&mut target.justify_content, value);
     }
-    if decoder.field(24) {
+    if decoder.field(25) {
         changed |= decoder.length_percentage_size(&mut target.gap, "Style.gap")?;
     }
-    if decoder.field(25) {
+    if decoder.field(26) {
         let value = style::text_align(f64::from(decoder.enumeration("Style.textAlign")?))?;
         changed |= replace(&mut target.text_align, value);
     }
-    if decoder.field(26) {
+    if decoder.field(27) {
         let value = style::flex_direction(f64::from(decoder.enumeration("Style.flexDirection")?))?;
         changed |= replace(&mut target.flex_direction, value);
     }
-    if decoder.field(27) {
+    if decoder.field(28) {
         let value = style::flex_wrap(f64::from(decoder.enumeration("Style.flexWrap")?))?;
         changed |= replace(&mut target.flex_wrap, value);
     }
-    if decoder.field(28) {
+    if decoder.field(29) {
         changed |= replace(
             &mut target.flex_basis,
             decoder.dimension("Style.flexBasis")?,
         );
     }
-    if decoder.field(29) {
+    if decoder.field(30) {
         changed |= replace_f32(&mut target.flex_grow, decoder.number("Style.flexGrow")?);
     }
-    if decoder.field(30) {
+    if decoder.field(31) {
         changed |= replace_f32(&mut target.flex_shrink, decoder.number("Style.flexShrink")?);
     }
-    if decoder.field(31) {
+    if decoder.field(32) {
         changed |= replace(
             &mut target.grid_template_rows,
             decoder.grid_template_components("Style.gridTemplateRows")?,
         );
     }
-    if decoder.field(32) {
+    if decoder.field(33) {
         changed |= replace(
             &mut target.grid_template_columns,
             decoder.grid_template_components("Style.gridTemplateColumns")?,
         );
     }
-    if decoder.field(33) {
+    if decoder.field(34) {
         changed |= replace(
             &mut target.grid_auto_rows,
             decoder.track_sizing_functions("Style.gridAutoRows")?,
         );
     }
-    if decoder.field(34) {
+    if decoder.field(35) {
         changed |= replace(
             &mut target.grid_auto_columns,
             decoder.track_sizing_functions("Style.gridAutoColumns")?,
         );
     }
-    if decoder.field(35) {
+    if decoder.field(36) {
         let value = style::grid_auto_flow(f64::from(decoder.enumeration("Style.gridAutoFlow")?))?;
         changed |= replace(&mut target.grid_auto_flow, value);
     }
-    if decoder.field(36) {
+    if decoder.field(37) {
         changed |= replace(
             &mut target.grid_template_areas,
             decoder.nullable_grid_template_areas("Style.gridTemplateAreas")?,
         );
     }
-    if decoder.field(37) {
+    if decoder.field(38) {
         changed |= replace(
             &mut target.grid_template_column_names,
             decoder.string_matrix("Style.gridTemplateColumnNames")?,
         );
     }
-    if decoder.field(38) {
+    if decoder.field(39) {
         changed |= replace(
             &mut target.grid_template_row_names,
             decoder.string_matrix("Style.gridTemplateRowNames")?,
         );
     }
-    if decoder.field(39) {
+    if decoder.field(40) {
         changed |= decoder.grid_placement_line(&mut target.grid_row, "Style.gridRow")?;
     }
-    if decoder.field(40) {
+    if decoder.field(41) {
         changed |= decoder.grid_placement_line(&mut target.grid_column, "Style.gridColumn")?;
     }
     decoder.finish()?;
