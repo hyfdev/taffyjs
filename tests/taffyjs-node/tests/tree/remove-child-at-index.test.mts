@@ -90,7 +90,6 @@ test("failure-atomic", () => {
   const tree = new TaffyTree();
   const [first, second] = [tree.newLeaf(), tree.newLeaf()];
   const parent = tree.newWithChildren([first, second]);
-  const foreign = new TaffyTree().newLeaf();
   const nodes = [first, second, parent];
   const before = topology(tree, nodes);
 
@@ -99,8 +98,6 @@ test("failure-atomic", () => {
     () => tree.removeChildAtIndex(parent, -1),
     () => tree.removeChildAtIndex(parent, 0.5),
     () => tree.removeChildAtIndex(parent, "0" as unknown as number),
-    () => tree.removeChildAtIndex(0n as never, 0),
-    () => tree.removeChildAtIndex(foreign, 0),
   ];
 
   for (const rejectedCall of rejectedCalls) {

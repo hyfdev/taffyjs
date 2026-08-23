@@ -11,7 +11,6 @@ import {
 } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type CodedError = Error & { code?: string };
 type Tracks = {
   negativeImplicitTracks: number;
   explicitTracks: number;
@@ -64,16 +63,6 @@ function gridValue(value: Detail): GridInfo {
   assert.equal(value.kind, DetailedLayoutInfoKind.Grid);
   assert.equal("value" in value, true);
   return (value as { kind: number; value: GridInfo }).value;
-}
-
-function captureError(body: () => unknown): CodedError {
-  try {
-    body();
-  } catch (error) {
-    assert.ok(error instanceof Error);
-    return error;
-  }
-  assert.fail("Expected operation to throw");
 }
 
 test("new-none", () => {
@@ -145,28 +134,6 @@ test("deep-detached", () => {
     kind: DetailedLayoutInfoKind.Grid,
     value: second,
   });
-});
-
-test("invalid-id", () => {
-  const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(captureError(() => tree.getDetailedLayoutInfo(1 as never)).constructor, TypeError);
-  assert.equal(
-    captureError(() => tree.getDetailedLayoutInfo(0n as never)).code,
-    "ERR_TAFFY_INVALID_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.getDetailedLayoutInfo(foreign)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-
-  const stale = tree.newLeaf();
-  tree.clear();
-  assert.equal(
-    captureError(() => tree.getDetailedLayoutInfo(stale)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
 });
 
 test("stale-upstream", () => {

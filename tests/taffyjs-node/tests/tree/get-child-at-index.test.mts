@@ -55,22 +55,3 @@ test("integer", () => {
     TypeError,
   );
 });
-
-test("invalid-parent", () => {
-  const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(captureError(() => tree.getChildAtIndex(1 as never, 0)).constructor, TypeError);
-  assert.equal(
-    captureError(() => tree.getChildAtIndex(0n as never, 0)).code,
-    "ERR_TAFFY_INVALID_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.getChildAtIndex(foreign, 0)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-
-  const stale = tree.newLeaf();
-  tree.clear();
-  assert.equal(captureError(() => tree.getChildAtIndex(stale, 0)).code, "ERR_TAFFY_STALE_NODE_ID");
-});

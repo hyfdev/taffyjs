@@ -125,7 +125,7 @@ void tree.computeLayoutWithMeasure;
 
 const primitive: bigint = node;
 const nodeMap = new Map<NodeId, string>([[node, "node"]]);
-// @ts-expect-error Plain bigint values cannot be forged into NodeId.
+// @ts-expect-error Plain bigint values do not satisfy the branded NodeId type.
 const forged: NodeId = 1n;
 // @ts-expect-error bigint arithmetic removes the NodeId marker.
 const changed: NodeId = node + 1n;

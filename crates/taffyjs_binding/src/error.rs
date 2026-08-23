@@ -56,21 +56,6 @@ pub(crate) fn child_index_out_of_bounds_error(message: impl Into<String>) -> Bin
 }
 
 #[allow(dead_code)]
-pub(crate) fn invalid_node_id_error(message: impl Into<String>) -> BindingError {
-    coded_error("ERR_TAFFY_INVALID_NODE_ID", message)
-}
-
-#[allow(dead_code)]
-pub(crate) fn foreign_node_id_error(message: impl Into<String>) -> BindingError {
-    coded_error("ERR_TAFFY_FOREIGN_NODE_ID", message)
-}
-
-#[allow(dead_code)]
-pub(crate) fn stale_node_id_error(message: impl Into<String>) -> BindingError {
-    coded_error("ERR_TAFFY_STALE_NODE_ID", message)
-}
-
-#[allow(dead_code)]
 pub(crate) fn invalid_topology_error(message: impl Into<String>) -> BindingError {
     coded_error("ERR_TAFFY_INVALID_TOPOLOGY", message)
 }

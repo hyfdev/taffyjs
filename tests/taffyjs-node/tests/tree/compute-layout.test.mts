@@ -188,30 +188,6 @@ test("rounding", () => {
   assert.deepEqual(tree.getUnroundedLayout(node).size, { width: 10.5, height: 6.25 });
 });
 
-test("invalid-root", () => {
-  const tree = new TaffyTree();
-  const node = tree.newLeaf();
-  const foreign = new TaffyTree().newLeaf();
-  const options = (root: NodeId) => ({ root, availableSpace: maxContentSpace() });
-
-  assert.equal(captureError(() => tree.computeLayout(options(1 as never))).constructor, TypeError);
-  assert.equal(
-    captureError(() => tree.computeLayout(options(0n as never))).code,
-    "ERR_TAFFY_INVALID_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.computeLayout(options(foreign))).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-  assert.deepEqual(tree.getLayout(node).size, { width: 0, height: 0 });
-
-  tree.clear();
-  assert.equal(
-    captureError(() => tree.computeLayout(options(node))).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-});
-
 test("invalid-space", () => {
   const tree = new TaffyTree();
   const node = tree.newLeaf({

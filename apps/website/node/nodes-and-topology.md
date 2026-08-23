@@ -1,6 +1,6 @@
 # Nodes and Topology
 
-A `TaffyTree<TContext>` is an independent owner. Its `NodeId` values are opaque bigints that only name live nodes in that same tree.
+A `TaffyTree<TContext>` is an independent owner. Its `NodeId` values are Taffy's raw `u64` keys represented as TypeScript-branded bigints and must only be used while live with the tree that returned them.
 
 ## Create nodes
 
@@ -59,16 +59,17 @@ Indices and range endpoints must be non-negative integers within the relevant bo
 
 Removing the node marks its former parent and ancestors dirty, like the child-detachment methods in the previous section, so the next compute accounts for the removal.
 
-`clear()` removes every node, context value, and per-node measure function. All IDs previously created by the tree become stale. The tree itself remains reusable, and its rounding mode is retained.
+`clear()` removes every node, context value, and per-node measure function. All IDs previously created by the tree become stale and must not be used again. The tree itself remains reusable, and its rounding mode is retained.
 
 ## `NodeId` lifetime
 
-`NodeId` is a TypeScript-branded `bigint`. It works as a stable JavaScript identity while the node remains live, including as a `Map` or `Set` key. Its bit layout is not a public format, and arithmetic produces a plain bigint rather than another valid `NodeId`.
+`NodeId` is a TypeScript-branded `bigint` whose runtime value is exactly Taffy's raw NodeId. It works as a stable JavaScript identity while the node remains live, including as a `Map` or `Set` key. Treat the value as opaque and nonpersistent: arithmetic produces a plain bigint rather than a supported `NodeId`.
 
-The binding distinguishes three mistakes:
+Identity is scoped to one tree:
 
-- A bigint that was not issued as a node ID fails with `ERR_TAFFY_INVALID_NODE_ID`.
-- An ID issued by another tree fails with `ERR_TAFFY_FOREIGN_NODE_ID`.
-- An ID left behind by `remove` or `clear` fails with `ERR_TAFFY_STALE_NODE_ID`.
+- Independent trees may issue equal NodeId values, so equality across trees has no node-identity meaning.
+- Passing another tree's value can operate on a numerically matching node in the receiving tree.
+- Passing a forged or stale in-range value is unsupported and has no stable error classification.
+- A value that is not a bigint in the `u64` range is rejected with `TypeError`.
 
-Native storage slots may be reused, but an old public ID never starts naming the replacement node. See [Errors](./errors.md) for the error classes and failure guarantees.
+SlotMap normally changes a key's generation when a removed storage slot is reused, so ordinary reuse produces a different NodeId without wrapper bookkeeping. TaffyJS adds no owner token, creation serial, or live-node registry and makes no stronger anti-revival guarantee. See [Errors](./errors.md) for the supported error boundary.

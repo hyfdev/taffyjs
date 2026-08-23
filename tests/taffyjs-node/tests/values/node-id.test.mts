@@ -2,19 +2,8 @@ import assert from "node:assert/strict";
 import { TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type CodedError = Error & { code?: string };
-
 const SLOT_MASK = (1n << 32n) - 1n;
-
-function captureError(body: () => unknown): CodedError {
-  try {
-    body();
-  } catch (error) {
-    assert.ok(error instanceof Error);
-    return error;
-  }
-  assert.fail("Expected operation to throw");
-}
+const U64_LIMIT = 1n << 64n;
 
 test("js-identity", () => {
   const tree = new TaffyTree();
@@ -30,36 +19,24 @@ test("js-identity", () => {
   assert.equal([child].includes(tree.getChildAtIndex(parent, 0)), true);
 });
 
-test("malformed", () => {
+test("u64-representation", () => {
   const tree = new TaffyTree();
 
-  assert.equal(captureError(() => tree.getStyle(1 as never)).constructor, TypeError);
-  for (const value of [-1n, 0n, 1n, 1n << 256n]) {
-    const error = captureError(() => tree.getStyle(value as never));
-    assert.equal(error.constructor, Error);
-    assert.equal(error.code, "ERR_TAFFY_INVALID_NODE_ID");
+  for (const value of [1, -1n, U64_LIMIT]) {
+    assert.throws(() => tree.getStyle(value as never), TypeError);
+    assert.throws(() => tree.getNodeContext(value as never), TypeError);
   }
 });
 
-test("foreign", () => {
+test("tree-local-values", () => {
   const first = new TaffyTree();
   const second = new TaffyTree();
-  const node = first.newLeaf();
+  const firstNode = first.newLeaf({ flexGrow: 1 });
+  const secondNode = second.newLeaf({ flexGrow: 2 });
 
-  const error = captureError(() => second.getStyle(node));
-  assert.equal(error.constructor, Error);
-  assert.equal(error.code, "ERR_TAFFY_FOREIGN_NODE_ID");
-  assert.deepEqual(first.getStyle(node), first.getStyle(node));
-});
-
-test("stale-clear", () => {
-  const tree = new TaffyTree();
-  const node = tree.newLeaf();
-  tree.clear();
-
-  const error = captureError(() => tree.getStyle(node));
-  assert.equal(error.constructor, Error);
-  assert.equal(error.code, "ERR_TAFFY_STALE_NODE_ID");
+  assert.equal(firstNode, secondNode, "independent trees can issue the same raw key");
+  assert.equal(first.getStyle(firstNode).flexGrow, 1);
+  assert.equal(second.getStyle(secondNode).flexGrow, 2);
 });
 
 test("slot-reuse", () => {
@@ -70,6 +47,5 @@ test("slot-reuse", () => {
 
   assert.equal(first & SLOT_MASK, second & SLOT_MASK, "fixture reuses the native slot");
   assert.notEqual(first, second);
-  assert.throws(() => tree.getStyle(first), { code: "ERR_TAFFY_STALE_NODE_ID" });
   assert.deepEqual(tree.getStyle(second), tree.getStyle(second));
 });

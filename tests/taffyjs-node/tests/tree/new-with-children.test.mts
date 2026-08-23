@@ -81,25 +81,6 @@ test("attached", () => {
   assert.deepEqual(tree.getChildren(firstParent), [child]);
 });
 
-test("invalid-id", () => {
-  const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(
-    captureError(() => tree.newWithChildren([foreign], { display: 999 } as never)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-  assert.equal(tree.getNodeCount(), 0);
-
-  const stale = tree.newLeaf();
-  tree.clear();
-  assert.equal(
-    captureError(() => tree.newWithChildren([stale], { display: 999 } as never)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-  assert.equal(tree.getNodeCount(), 0);
-});
-
 test("failure-atomic", () => {
   const tree = new TaffyTree();
   const first = tree.newLeaf();

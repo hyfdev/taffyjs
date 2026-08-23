@@ -24,11 +24,15 @@ Additive convenience or measured performance APIs may coexist with the direct me
 
 ## Safe boundary with Taffy-owned semantics
 
-[VOUCHED @hyfdev 2026-08-14]
+[VOUCHED @hyfdev 2026-08-23]
 
-Supported `@taffyjs/node` calls must prevent JavaScript-controlled values, ownership mistakes, callback re-entry, and known Taffy panic paths from violating Rust or native state. Expected misuse produces controlled JavaScript errors. Direct platform-package use is an unsupported implementation path and does not receive this guarantee.
+**Ruling:** Supported `@taffyjs/node` calls with representable values and live NodeIds from the receiving tree must prevent JavaScript-controlled values, callback re-entry, and known Taffy panic paths from violating Rust or native process safety. A NodeId's origin and liveness are caller preconditions rather than facts the wrapper authenticates: foreign, forged, and stale in-range `u64` values do not receive controlled ownership or lifetime errors. Direct platform-package use remains an unsupported implementation path.
 
-After the binding has produced a complete representable Rust value and satisfied its explicit identity, absence, ownership, lifetime, and safety rules, Taffy owns the semantic result. The direct binding does not add JavaScript-side clamping, CSS policy, Yoga normalization, or defensive defaults merely because a safely representable value is unusual.
+**Limits:** The public boundary still rejects values that cannot be represented as the required Rust type, including a non-bigint or out-of-range NodeId, and the native owner still contains an unexpected Taffy panic so it cannot unwind through Node-API; a contained panic may poison that tree. Once the binding has produced complete representable Rust values and satisfied its explicit absence, lifetime, and safety rules, Taffy owns the semantic result. The direct binding does not add JavaScript-side clamping, CSS policy, Yoga normalization, defensive defaults, an owner registry, or a liveness registry merely because a safely representable value is unusual.
+
+**Why:** Yunfei distinguished native process safety from defending against callers that use a node key outside its documented tree and lifetime. Protecting the latter duplicated Taffy's identity machinery and added state and checks to every ordinary node operation; the direct binding should instead reuse Taffy's raw NodeId contract.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-23; explicitly replaced the earlier ownership-mistake guarantee while approving the raw NodeId design and requested this revised direction be re-vouched.
 
 ## Public data model
 
@@ -42,15 +46,15 @@ The private representation passed from JavaScript to Rust is a separate implemen
 
 ## Generated compact Style codec
 
-[VOUCHED @hyfdev 2026-08-22]
+[VOUCHED @hyfdev 2026-08-23]
 
 **Ruling:** The creation methods use `newLeaf(style?)`, `newLeafWithContext(context, style?)`, and `newWithChildren(children, style?)`: required context or children precede the optional Style input, omission and explicit `undefined` select defaults, and the old argument order is not retained as an overload. Every Style-taking public method keeps its ordinary object input while the shared Node/Wasm wrapper encodes that input once into one versioned compact private value and performs one binding call. One maintained model under `api/` owns the Style field inventory, order, encoding categories, and generated `StyleInput` and `StyleUpdate` declarations, TypeScript encoder, and Rust `decode_into` application. Creation and `setStyle` decode into defaults; update decodes into a clone and writes only when changed. Unknown top-level Style fields are ignored, known invalid values are errors, and all decoding and validation complete before mutation.
 
-**Limits:** `setStyle(node, style)` and `updateStyle(node, update)` retain their signatures, and this change does not alter the private binding methods or compact wire format. The implementation remains specific to Style. It does not add a public buffer API, fallback parser, `StylePatch`, general serializer, binding language, runtime schema interpreter, or buffer pool. A fixed common buffer may be reused only while one synchronous call owns it; recursive calls and oversized inputs require temporary storage that cannot grow global retained capacity. Native should borrow the typed-array view and WASI should receive only the compact used bytes. Getter, Proxy, reentrancy, NodeId precedence, partial-update, null, empty-collection, and floating-point change semantics remain public behavior.
+**Limits:** `setStyle(node, style)` and `updateStyle(node, update)` retain their signatures, and this change does not alter the private binding methods or compact wire format. The implementation remains specific to Style. It does not add a public buffer API, fallback parser, `StylePatch`, general serializer, binding language, runtime schema interpreter, or buffer pool. A fixed common buffer may be reused only while one synchronous call owns it; recursive calls and oversized inputs require temporary storage that cannot grow global retained capacity. Native should borrow the typed-array view and WASI should receive only the compact used bytes. Getter, Proxy, reentrancy, partial-update, null, empty-collection, and floating-point change semantics remain public behavior. A NodeId's bigint and `u64` representation is checked before Style encoding, but owner and liveness are caller preconditions and have no error-precedence guarantee.
 
 **Why:** Yunfei selected required context or children first and optional Style last so callers can omit default styling without placeholder objects, and chose a one-time argument-order change while the published version is `0.0.1`. The codec design is based on same-machine evidence that rich JavaScript-object conversion dominated Style-heavy public transactions, especially across Emnapi/WASI. A prototype found the fixed presence bitmap and a field-tag stream effectively equal for nonempty values, while JSON lost `NaN`, negative zero, and absence semantics. The fixed bitmap matches generated straight-line code with fewer decoding states. Complete end-to-end Native and WASI benchmarks are the acceptance evidence rather than decoder-only timing. Yunfei chose ignored unknown top-level fields on the ground that the binding should read only the fields it needs and that supplying correct field names is the caller's responsibility.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-21 and 2026-08-22; explicitly required the compact Style codec end to end, selected the reordered optional-Style creation signatures for the `0.0.1` API, and chose ignored unknown top-level Style fields over a field-name check. Implementation and measured format details are in [Compact Style codec](style-codec.md).
+**Source:** Yunfei (`@hyfdev`), 2026-08-21 through 2026-08-23; explicitly required the compact Style codec end to end, selected the reordered optional-Style creation signatures for the `0.0.1` API, chose ignored unknown top-level Style fields over a field-name check, and then replaced owner/liveness error precedence with the raw NodeId precondition. Implementation and measured format details are in [Compact Style codec](style-codec.md).
 
 ## On-demand Style in measure callbacks
 
@@ -66,11 +70,15 @@ The private representation passed from JavaScript to Rust is a separate implemen
 
 ## Value-based NodeId
 
-[VOUCHED @hyfdev 2026-08-14]
+[VOUCHED @hyfdev 2026-08-23]
 
-Public `NodeId` is an opaque bigint with a TypeScript marker and a private per-tree encoding, not Taffy's raw `u64` and not a JavaScript node object. Stable bigint equality must work in ordinary JavaScript collections without a native call.
+**Ruling:** Public `NodeId` must be an opaque TypeScript-branded bigint whose runtime value is exactly Taffy's raw `u64` NodeId, not a JavaScript node object or a binding-defined composite identity. The wrapper must not add a tree token, creation serial, owner registry, or liveness registry. Stable bigint equality and ordinary JavaScript `Map` and `Set` use work without a native call within one tree.
 
-The public wrapper keeps one current-node registry and validates owner, creation serial, and raw ID before native access. Native code does not duplicate that registry. IDs are not persistent or transferable across trees, workers, module evaluations, or separately installed package copies.
+**Limits:** A NodeId must be used only while its node is live and only with the `TaffyTree` that returned it. Equality has meaning only within that tree: independent trees may issue equal values, and a foreign value that numerically matches a live target key may operate on that target node. Forged, foreign, and stale in-range values are unsupported; the binding guarantees only bigint-to-`u64` representation checks and native panic containment, not authentication or stable errors for those values. SlotMap's generation normally changes the raw value when a removed slot is reused, but the package adds no stronger anti-revival guarantee. NodeIds are not persistent handles or transferable together with native tree ownership across workers, module evaluations, or package copies.
+
+**Why:** Yunfei judged cross-tree detection, anti-forgery, duplicate lifetime tracking, and protection beyond SlotMap's generation behavior to be unnecessary complexity for this direct binding. Reusing the native value removes per-tree randomness, per-node registry memory, serial bookkeeping, and wrapper lookups while preserving the identity behavior needed by supported same-tree calls.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-23; after a full NodeId review, explicitly chose the raw Taffy NodeId value, accepted tree-and-lifetime scope as a caller precondition, and requested implementation and a new vouch.
 
 ## Explicit layout and JavaScript context
 
@@ -178,15 +186,15 @@ Asynchronous, off-thread, cancellable, or transactionally rolled-back measuremen
 
 ### All-or-nothing selective batch errors
 
-[VOUCHED @hyfdev 2026-08-13]
+[VOUCHED @hyfdev 2026-08-23]
 
-**Ruling:** A selective-query batch must return positionally corresponding values only when every request is well formed and every NodeId is valid. Any unknown selector, wrong index count, invalid index, or invalid, stale, or foreign NodeId makes the complete batch throw a controlled JavaScript error without returning partial results. An out-of-bounds index, inactive tagged variant, or null parent remains a valid absent value and produces `undefined` only at that request's result position. The wrapper must first copy all caller-controlled batch entries and request arguments into an ordinary internal snapshot, then validate the entire snapshot, and immediately enter one native operation without consulting the caller's original values again.
+**Ruling:** A selective-query batch must return positionally corresponding values only when every request is well formed. Any unknown selector, wrong index count, invalid index, or NodeId that is not representable as a bigint `u64` makes the complete batch throw a controlled JavaScript error without returning partial results. An out-of-bounds index, inactive tagged variant, or null parent remains a valid absent value and produces `undefined` only at that request's result position. Every NodeId is required by precondition to be live and from the receiving tree; the batch does not authenticate owner or liveness. The wrapper must copy all caller-controlled batch entries and request arguments into an ordinary internal snapshot before validation and must not consult the original values again after entering native code.
 
-**Limits:** This decides whole-batch failure versus per-request error results and the required snapshot-before-validation safety order. It does not fix exact error classes, batch size limits, the private native input representation, or which malformed request is reported when several are present. The batch is read-only, so this ruling does not define rollback or partial mutation behavior.
+**Limits:** This decides whole-batch failure versus per-request error results and the required snapshot-before-validation order for supported inputs. It does not fix exact error classes, batch size limits, the private native input representation, or which malformed request is reported when several are present. A forged, foreign, or stale in-range key is outside the supported batch contract and may alias a target-tree node or encounter Taffy's invalid-key behavior. The batch is read-only, so this ruling does not define rollback or partial mutation behavior.
 
-**Why:** Per-request error values would complicate every batch result type and let callers accidentally consume partial output. Snapshotting before validation prevents a later array accessor or Proxy trap from mutating the tree and making a NodeId that was validated earlier stale before native code uses it.
+**Why:** Per-request error values would complicate every batch result type and let callers accidentally consume partial output. Snapshotting keeps ordinary request conversion deterministic without creating a second defensive identity model. Yunfei later removed owner and liveness validation from the NodeId contract, so batching must not reintroduce it.
 
-**Source:** Yunfei (`@hyfdev`), 2026-08-13; accepted whole-batch failure for malformed requests while retaining per-position `undefined` for valid absent values and asked that the decision be recorded.
+**Source:** Yunfei (`@hyfdev`), 2026-08-13 and 2026-08-23; accepted whole-batch failure for malformed requests and per-position `undefined` for valid absent values, then explicitly replaced owner and liveness validation with the raw NodeId precondition and requested the affected direction be re-vouched.
 
 ### Detached selective-query results
 

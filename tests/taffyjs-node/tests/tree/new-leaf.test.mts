@@ -1,12 +1,6 @@
 import assert from "node:assert/strict";
-import { BoxSizing, Dimension, Display, type NodeId, TaffyTree } from "@taffyjs/node";
+import { BoxSizing, Dimension, Display, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
-
-const U64_MASK = (1n << 64n) - 1n;
-
-function creationSerial(node: NodeId) {
-  return (node >> 64n) & U64_MASK;
-}
 
 test("default-style", () => {
   const tree = new TaffyTree();
@@ -56,7 +50,6 @@ test("conversion-atomic", () => {
   assert.throws(() => tree.newLeaf({ display: 999 } as never), RangeError);
   assert.equal(tree.getNodeCount(), 1);
 
-  const first = tree.newLeaf();
-  assert.equal(creationSerial(first), 2n, "failed conversion does not consume a serial");
+  tree.newLeaf();
   assert.equal(tree.getNodeCount(), 2);
 });

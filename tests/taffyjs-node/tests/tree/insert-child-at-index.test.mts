@@ -78,44 +78,6 @@ test("index-errors", () => {
   assert.equal(tree.getParent(child), null);
 });
 
-test("id-roles", () => {
-  const tree = new TaffyTree();
-  const parent = tree.newLeaf();
-  const child = tree.newLeaf();
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(
-    captureError(() => tree.insertChildAtIndex(1 as never, 0, child)).constructor,
-    TypeError,
-  );
-  assert.equal(
-    captureError(() => tree.insertChildAtIndex(parent, 0, 0n as never)).code,
-    "ERR_TAFFY_INVALID_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.insertChildAtIndex(foreign, 0, child)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.insertChildAtIndex(parent, 0, foreign)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-
-  const staleParent = tree.newLeaf();
-  const staleChild = tree.newLeaf();
-  tree.clear();
-  const currentParent = tree.newLeaf();
-  const currentChild = tree.newLeaf();
-  assert.equal(
-    captureError(() => tree.insertChildAtIndex(staleParent, 0, currentChild)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.insertChildAtIndex(currentParent, 0, staleChild)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-});
-
 test("failure-atomic", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf();

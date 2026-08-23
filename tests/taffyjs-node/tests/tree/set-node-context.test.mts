@@ -2,21 +2,10 @@ import assert from "node:assert/strict";
 import { AvailableSpace, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type CodedError = Error & { code?: string };
 type MeasureArgs = { node: NodeId; context: unknown };
 
 function availableSpace() {
   return { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent };
-}
-
-function captureError(body: () => unknown): CodedError {
-  try {
-    body();
-  } catch (error) {
-    assert.ok(error instanceof Error);
-    return error;
-  }
-  assert.fail("Expected operation to throw");
 }
 
 function computeWithMeasure(tree: TaffyTree, root: NodeId, measure: (args: MeasureArgs) => void) {
@@ -97,31 +86,4 @@ test("measure-delivery", () => {
     assert.equal(args.context, replacement);
   });
   assert.equal(calls > 0, true);
-});
-
-test("invalid-atomic", () => {
-  const tree = new TaffyTree();
-  const original = { unchanged: true };
-  const replacement = { unchanged: false };
-  const node = tree.newLeafWithContext(original);
-  const foreign = new TaffyTree().newLeaf();
-  tree.computeLayout({ root: node, availableSpace: availableSpace() });
-  assert.equal(tree.isDirty(node), false);
-
-  for (const invalid of [1 as never, 0n as never, foreign]) {
-    captureError(() => tree.setNodeContext(invalid, replacement));
-    assert.equal(tree.getNodeContext(node), original);
-    assert.equal(tree.isDirty(node), false);
-  }
-
-  const stale = tree.newLeaf();
-  tree.clear();
-  const current = tree.newLeafWithContext(original);
-  tree.computeLayout({ root: current, availableSpace: availableSpace() });
-  assert.equal(
-    captureError(() => tree.setNodeContext(stale, replacement)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-  assert.equal(tree.getNodeContext(current), original);
-  assert.equal(tree.isDirty(current), false);
 });

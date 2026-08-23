@@ -1010,66 +1010,11 @@ function decodeLayout(output) {
 }
 //#endregion
 //#region src/node-id.ts
-const U64_BITS = 64n;
-const TOKEN_SHIFT = 128n;
-const U64_MAX = (1n << U64_BITS) - 1n;
-const NODE_ID_LIMIT = 1n << 256n;
-function codedError(code, message) {
-	return Object.assign(new Error(message), { code });
+const U64_MAX = (1n << 64n) - 1n;
+function toRawNodeId(value) {
+	if (typeof value !== "bigint" || value < 0n || value > U64_MAX) throw new TypeError("NodeId must be a non-negative u64 bigint");
+	return value;
 }
-function randomToken() {
-	const bytes = /* @__PURE__ */ new Uint8Array(16);
-	globalThis.crypto.getRandomValues(bytes);
-	let token = 0n;
-	for (const byte of bytes) token = token << 8n | BigInt(byte);
-	return token;
-}
-function isEncodedNodeId(value) {
-	if (value < 0n || value >= NODE_ID_LIMIT) return false;
-	return (value >> U64_BITS & U64_MAX) !== 0n;
-}
-var NodeIdRegistry = class {
-	#token;
-	#nextSerial = 1n;
-	#serialByRaw = /* @__PURE__ */ new Map();
-	constructor() {
-		this.#token = randomToken();
-	}
-	reserveSerial() {
-		const serial = this.#nextSerial;
-		if (serial < 1n || serial > U64_MAX) throw new RangeError("The per-tree NodeId creation serial is exhausted");
-		return serial;
-	}
-	register(raw, serial) {
-		if (serial !== this.#nextSerial || raw < 0n || raw > U64_MAX || this.#serialByRaw.has(raw)) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
-		const node = this.#token << TOKEN_SHIFT | serial << U64_BITS | raw;
-		this.#serialByRaw.set(raw, serial);
-		this.#nextSerial = serial + 1n;
-		return node;
-	}
-	resolve(value) {
-		if (typeof value !== "bigint") throw new TypeError("NodeId must be a bigint");
-		if (!isEncodedNodeId(value)) throw codedError("ERR_TAFFY_INVALID_NODE_ID", "The bigint is not a valid NodeId");
-		if (value >> TOKEN_SHIFT !== this.#token) throw codedError("ERR_TAFFY_FOREIGN_NODE_ID", "The NodeId belongs to another TaffyTree");
-		const serial = value >> U64_BITS & U64_MAX;
-		const raw = value & U64_MAX;
-		if (this.#serialByRaw.get(raw) !== serial) throw codedError("ERR_TAFFY_STALE_NODE_ID", "The NodeId no longer names a current node");
-		return raw;
-	}
-	fromRaw(raw) {
-		const serial = this.#serialByRaw.get(raw);
-		if (serial === void 0) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
-		return this.#token << TOKEN_SHIFT | serial << U64_BITS | raw;
-	}
-	unregister(node, raw) {
-		const serial = node >> U64_BITS & U64_MAX;
-		if ((node & U64_MAX) !== raw || this.#serialByRaw.get(raw) !== serial) throw codedError("ERR_TAFFY_INTERNAL", "The native and public node registries diverged");
-		this.#serialByRaw.delete(raw);
-	}
-	clear() {
-		this.#serialByRaw.clear();
-	}
-};
 //#endregion
 //#region src/style-codec.ts
 const COMMON_STYLE_BUFFER_SIZE = 1024;
@@ -1775,10 +1720,9 @@ function checkedChildIndex(index) {
 /** Owns one independent node tree, its contexts, styles, and stored layouts. */
 var TaffyTree = class {
 	#inner;
-	#nodes = new NodeIdRegistry();
 	#contexts = /* @__PURE__ */ new Map();
 	#measures = /* @__PURE__ */ new Map();
-	/** Creates an independent Taffy tree with its own NodeId namespace. */
+	/** Creates an independent Taffy tree. */
 	constructor() {
 		this.#inner = new BindingTaffyTree();
 	}
@@ -1796,76 +1740,67 @@ var TaffyTree = class {
 	}
 	/** Returns the current number of children for one parent. */
 	getChildCount(parent) {
-		return this.#inner.rawGetChildCount(this.#nodes.resolve(parent));
+		return this.#inner.rawGetChildCount(toRawNodeId(parent));
 	}
 	/** Returns the current parent or null for a root node. */
 	getParent(node) {
-		const rawParent = this.#inner.rawGetParent(this.#nodes.resolve(node));
-		return rawParent === null ? null : this.#nodes.fromRaw(rawParent);
+		return this.#inner.rawGetParent(toRawNodeId(node));
 	}
 	/** Returns a detached readonly snapshot of the ordered children. */
 	getChildren(parent) {
-		return this.#inner.rawGetChildren(this.#nodes.resolve(parent)).map((child) => this.#nodes.fromRaw(child));
+		return this.#inner.rawGetChildren(toRawNodeId(parent));
 	}
 	/** Returns the child at the requested parent index. */
 	getChildAtIndex(parent, index) {
-		const rawChild = this.#inner.rawGetChildAtIndex(this.#nodes.resolve(parent), checkedChildIndex(index));
-		return this.#nodes.fromRaw(rawChild);
+		return this.#inner.rawGetChildAtIndex(toRawNodeId(parent), checkedChildIndex(index));
 	}
 	/** Appends an existing node to the parent child list. */
 	addChild(parent, child) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawChild = this.#nodes.resolve(child);
+		const rawParent = toRawNodeId(parent);
+		const rawChild = toRawNodeId(child);
 		this.#inner.rawAddChild(rawParent, rawChild);
 	}
 	/** Inserts an existing child at the requested parent index. */
 	insertChildAtIndex(parent, index, child) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawChild = this.#nodes.resolve(child);
+		const rawParent = toRawNodeId(parent);
+		const rawChild = toRawNodeId(child);
 		this.#inner.rawInsertChildAtIndex(rawParent, checkedChildIndex(index), rawChild);
 	}
 	/** Replaces the complete ordered child list for one parent. */
 	setChildren(parent, children) {
-		const rawParent = this.#nodes.resolve(parent);
+		const rawParent = toRawNodeId(parent);
 		if (!Array.isArray(children)) throw new TypeError("children must be an array");
-		const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
+		const rawChildren = Array.from(children, (child) => toRawNodeId(child));
 		this.#inner.rawSetChildren(rawParent, rawChildren);
 	}
 	/** Detaches the selected child from its current parent. */
 	removeChild(parent, child) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawChild = this.#nodes.resolve(child);
+		const rawParent = toRawNodeId(parent);
+		const rawChild = toRawNodeId(child);
 		this.#inner.rawRemoveChild(rawParent, rawChild);
 	}
 	/** Detaches and returns the child at the requested index. */
 	removeChildAtIndex(parent, index) {
-		const rawChild = this.#inner.rawRemoveChildAtIndex(this.#nodes.resolve(parent), checkedChildIndex(index));
-		return this.#nodes.fromRaw(rawChild);
+		return this.#inner.rawRemoveChildAtIndex(toRawNodeId(parent), checkedChildIndex(index));
 	}
 	/** Detaches children in the supplied half-open index range. */
 	removeChildrenRange(parent, range) {
-		this.#inner.rawRemoveChildrenRange(this.#nodes.resolve(parent), range);
+		this.#inner.rawRemoveChildrenRange(toRawNodeId(parent), range);
 	}
 	/** Replaces and returns the child at the requested index. */
 	replaceChildAtIndex(parent, index, newChild) {
-		const rawParent = this.#nodes.resolve(parent);
-		const rawNewChild = this.#nodes.resolve(newChild);
-		const rawOldChild = this.#inner.rawReplaceChildAtIndex(rawParent, checkedChildIndex(index), rawNewChild);
-		return this.#nodes.fromRaw(rawOldChild);
+		const rawParent = toRawNodeId(parent);
+		const rawNewChild = toRawNodeId(newChild);
+		return this.#inner.rawReplaceChildAtIndex(rawParent, checkedChildIndex(index), rawNewChild);
 	}
 	/** Creates a leaf node, using Taffy's defaults when style is omitted. */
 	newLeaf(style = DEFAULT_STYLE_INPUT) {
-		return withEncodedStyle(style, (encoded) => {
-			const serial = this.#nodes.reserveSerial();
-			return this.#nodes.register(this.#inner.rawNewLeaf(encoded), serial);
-		});
+		return withEncodedStyle(style, (encoded) => this.#inner.rawNewLeaf(encoded));
 	}
 	/** Creates a leaf node with JavaScript context and an optional style. */
 	newLeafWithContext(context, style = DEFAULT_STYLE_INPUT) {
 		return withEncodedStyle(style, (encoded) => {
-			const serial = this.#nodes.reserveSerial();
-			const raw = this.#inner.rawNewLeafWithContext(encoded, context !== void 0);
-			const node = this.#nodes.register(raw, serial);
+			const node = this.#inner.rawNewLeafWithContext(encoded, context !== void 0);
 			if (context !== void 0) this.#contexts.set(node, context);
 			return node;
 		});
@@ -1873,35 +1808,31 @@ var TaffyTree = class {
 	/** Creates a parent from ordered children and an optional style. */
 	newWithChildren(children, style = DEFAULT_STYLE_INPUT) {
 		if (!Array.isArray(children)) throw new TypeError("children must be an array");
-		const rawChildren = Array.from(children, (child) => this.#nodes.resolve(child));
-		return withEncodedStyle(style, (encoded) => {
-			const serial = this.#nodes.reserveSerial();
-			return this.#nodes.register(this.#inner.rawNewWithChildren(encoded, rawChildren), serial);
-		});
+		const rawChildren = Array.from(children, (child) => toRawNodeId(child));
+		return withEncodedStyle(style, (encoded) => this.#inner.rawNewWithChildren(encoded, rawChildren));
 	}
-	/** Removes one node, its context and measure function, and invalidates its public NodeId. */
+	/** Removes one node and releases its context and measure function. The NodeId must not be used again. */
 	remove(node) {
-		const raw = this.#nodes.resolve(node);
+		const raw = toRawNodeId(node);
 		this.#inner.rawRemove(raw);
-		this.#nodes.unregister(node, raw);
 		this.#contexts.delete(node);
 		this.#measures.delete(node);
 	}
 	/** Returns the JavaScript context currently associated with one node. */
 	getNodeContext(node) {
-		this.#nodes.resolve(node);
+		toRawNodeId(node);
 		return this.#contexts.get(node);
 	}
 	/** Replaces or clears the JavaScript context for one node. */
 	setNodeContext(node, context) {
-		const raw = this.#nodes.resolve(node);
+		const raw = toRawNodeId(node);
 		this.#inner.rawSetNodeContext(raw, context !== void 0);
 		if (context === void 0) this.#contexts.delete(node);
 		else this.#contexts.set(node, context);
 	}
 	/** Sets or clears this node's synchronous measure function; every call marks it dirty, including when the function identity is unchanged. */
 	setMeasure(node, measure) {
-		const raw = this.#nodes.resolve(node);
+		const raw = toRawNodeId(node);
 		if (measure !== void 0 && typeof measure !== "function") throw new TypeError("measure must be a function or undefined");
 		this.#inner.rawSetMeasure(raw, measure !== void 0);
 		if (measure === void 0) this.#measures.delete(node);
@@ -1909,50 +1840,49 @@ var TaffyTree = class {
 	}
 	/** Replaces a node style and marks affected layout state dirty. */
 	setStyle(node, style) {
-		const raw = this.#nodes.resolve(node);
+		const raw = toRawNodeId(node);
 		withEncodedStyle(style, (encoded) => this.#inner.rawSetStyle(raw, encoded));
 	}
 	/** Updates supplied style fields and geometry components, preserving omitted values. */
 	updateStyle(node, update) {
-		const raw = this.#nodes.resolve(node);
+		const raw = toRawNodeId(node);
 		withEncodedStyle(update, (encoded) => this.#inner.rawUpdateStyle(raw, encoded));
 	}
 	/** Returns a detached readable snapshot of the node style. */
 	getStyle(node) {
-		return this.#inner.rawGetStyle(this.#nodes.resolve(node));
+		return this.#inner.rawGetStyle(toRawNodeId(node));
 	}
 	/** Returns the most recently stored layout selected by the tree's current rounding mode. */
 	getLayout(node) {
-		this.#inner.rawWriteLayout(this.#nodes.resolve(node), layoutCodecBuffer);
+		this.#inner.rawWriteLayout(toRawNodeId(node), layoutCodecBuffer);
 		return decodeLayout(layoutCodecBuffer);
 	}
 	/** Returns the most recently stored unrounded layout snapshot. */
 	getUnroundedLayout(node) {
-		this.#inner.rawWriteUnroundedLayout(this.#nodes.resolve(node), layoutCodecBuffer);
+		this.#inner.rawWriteUnroundedLayout(toRawNodeId(node), layoutCodecBuffer);
 		return decodeLayout(layoutCodecBuffer);
 	}
 	/** Returns detailed Grid tracks and item placement when available. */
 	getDetailedLayoutInfo(node) {
-		return this.#inner.rawGetDetailedLayoutInfo(this.#nodes.resolve(node));
+		return this.#inner.rawGetDetailedLayoutInfo(toRawNodeId(node));
 	}
 	/** Explicitly marks a node for layout recomputation. */
 	markDirty(node) {
-		this.#inner.rawMarkDirty(this.#nodes.resolve(node));
+		this.#inner.rawMarkDirty(toRawNodeId(node));
 	}
 	/** Reports whether a node currently needs layout recomputation. */
 	isDirty(node) {
-		return this.#inner.rawIsDirty(this.#nodes.resolve(node));
+		return this.#inner.rawIsDirty(toRawNodeId(node));
 	}
 	/** Removes every node, context value, and per-node measure function from this tree. */
 	clear() {
 		this.#inner.rawClear();
-		this.#nodes.clear();
 		this.#contexts.clear();
 		this.#measures.clear();
 	}
 	/** Computes and stores layout synchronously with configured per-node measures and an optional global fallback. */
 	computeLayout(options) {
-		const root = this.#nodes.resolve(options.root);
+		const root = toRawNodeId(options.root);
 		const measure = options.measure;
 		if (measure !== void 0 && typeof measure !== "function") throw new TypeError("measure must be a function or undefined");
 		if (this.#measures.size === 0 && measure === void 0) {
@@ -1964,7 +1894,7 @@ var TaffyTree = class {
 	#computeMeasuredLayout(root, availableSpace, fallback) {
 		this.#inner.rawComputeLayoutWithMeasure(root, availableSpace, (getStyle) => {
 			const constraints = decodeConstraints(constraintRecord);
-			const node = this.#nodes.fromRaw(constraints.node);
+			const node = constraints.node;
 			const measure = this.#measures.get(node) ?? fallback;
 			if (measure === void 0) throw new Error("Native measure marker has no JavaScript measure function");
 			return measure({

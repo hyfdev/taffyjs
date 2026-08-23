@@ -6,14 +6,8 @@ import { test } from "vite-plus/test";
 
 type MeasureArgs = { node: NodeId; context: unknown };
 
-const U64_MASK = (1n << 64n) - 1n;
-
 function availableSpace() {
   return { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent };
-}
-
-function creationSerial(node: NodeId) {
-  return (node >> 64n) & U64_MASK;
 }
 
 function measure(tree: TaffyTree, root: NodeId, callback: (args: MeasureArgs) => void) {
@@ -116,7 +110,6 @@ test("conversion-atomic", () => {
   assert.equal(tree.getNodeCount(), 1);
 
   const first = tree.newLeafWithContext(context);
-  assert.equal(creationSerial(first), 2n, "failed conversion does not consume a serial");
   assert.equal(tree.getNodeCount(), 2);
   assert.equal(tree.getNodeContext(first), context);
 });
