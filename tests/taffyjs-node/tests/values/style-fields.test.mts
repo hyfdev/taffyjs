@@ -77,6 +77,7 @@ test("default Style contains every public field and value", () => {
     textAlign: 0,
     flexDirection: 0,
     flexWrap: 0,
+    flexLineCount: 1,
     flexBasis: auto(),
     flexGrow: 0,
     flexShrink: 1,

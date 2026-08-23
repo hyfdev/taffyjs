@@ -107,7 +107,7 @@ This case is complete as an API-alignment example. Its reference value is that t
 
 `Style<DefaultCheapStr>` is one complete owned value. `new_leaf` moves a Style into the new node. `set_style` replaces the node's entire Style and then marks the node dirty; it does not merge the supplied value with the previous Style. `style` returns a borrowed reference to the complete stored Style, and `compute_layout_with_measure` passes a borrowed reference to that same complete value during measurement.
 
-Taffy's examples normally construct a small set of fields and use `..Default::default()` for the rest. The binding currently exposes 42 semantic Style fields after excluding Taffy's Rust-only phantom field and the separately open `flex_line_count` surface. Their transitive types cover booleans, numeric values, optional values, closed keywords and finite containment flags, alignment records, generic `Point`, `Size`, `Rect`, and `Line` records, semantic length variants, nested grid collections, custom grid identifiers, and integer counts and indices.
+Taffy's examples normally construct a small set of fields and use `..Default::default()` for the rest. The binding exposes 43 semantic Style fields after excluding Taffy's Rust-only phantom field. Their transitive types cover booleans, numeric values, optional values, closed keywords and finite containment flags, alignment records, generic `Point`, `Size`, `Rect`, and `Line` records, semantic length variants, nested grid collections, custom grid identifiers, and integer counts and indices.
 
 The `calc` feature is enabled by Taffy's default features, which this repository keeps enabled, but its public length types represent calc values through opaque pointers. The high-level `TaffyTree` implementation resolves every calc pointer to `0.0`; it does not expose an application resolver. Raw calc pointers therefore cannot define a JavaScript Style value, so the selected public high-level Style vocabulary excludes calc.
 
@@ -229,7 +229,9 @@ The scalar acceptance cases therefore include ordinary rounding and truthful rea
 
 ### Selected semantic-length input and output representation
 
-The complete semantic-length form uses a numeric literal discriminator and an ordinary record. Input additionally accepts a direct number as shorthand for the common absolute-length case. The shorthand is equivalent to the complete `Length` record and does not replace `Dimension.Length(value)`. Percent and Auto remain explicit, output always uses the complete tagged form, and CSS strings and Taffy's private compact tags remain outside the public API. `LengthUnit` is a binding-owned numeric family with `Length`, `Percent`, and `Auto` members, using the same stable-code, `EnumValue`, and naming rules as the other closed numeric families.
+The complete semantic-length form uses a numeric literal discriminator and an ordinary record. Input additionally accepts a direct number as shorthand for the common absolute-length case. The shorthand is equivalent to the complete `Length` record and does not replace `Dimension.Length(value)`. Every other meaning remains explicit, output always uses the complete tagged form, and CSS strings and Taffy's private compact tags remain outside the public API.
+
+`LengthUnit` is a binding-owned numeric family with stable codes for `Length`, `Percent`, `Auto`, `MinContent`, `MaxContent`, `FitContent`, `FitContentLength`, `FitContentPercent`, `Stretch`, and `Content`. `LengthPercentage` admits only the first two branches, `LengthPercentageAuto` adds only `Auto`, and `Dimension` admits all ten. This distinction is part of the public field contract: `size` and `flexBasis` use `Dimension`, while `minSize` and `maxSize` remain `LengthPercentageAuto`.
 
 The conceptual declarations are:
 
@@ -238,6 +240,13 @@ export const LengthUnit = Object.freeze({
   Length: 0,
   Percent: 1,
   Auto: 2,
+  MinContent: 3,
+  MaxContent: 4,
+  FitContent: 5,
+  FitContentLength: 6,
+  FitContentPercent: 7,
+  Stretch: 8,
+  Content: 9,
 } as const);
 export type LengthUnit = EnumValue<typeof LengthUnit>;
 
@@ -258,7 +267,15 @@ export interface AutoInput {
 
 export type LengthPercentageInput = number | LengthInput | PercentInput;
 export type LengthPercentageAutoInput = LengthPercentageInput | AutoInput;
-export type DimensionInput = LengthPercentageAutoInput;
+export type DimensionInput =
+  | LengthPercentageAutoInput
+  | { unit: typeof LengthUnit.MinContent }
+  | { unit: typeof LengthUnit.MaxContent }
+  | { unit: typeof LengthUnit.FitContent }
+  | { unit: typeof LengthUnit.FitContentLength; value: number }
+  | { unit: typeof LengthUnit.FitContentPercent; value: number }
+  | { unit: typeof LengthUnit.Stretch }
+  | { unit: typeof LengthUnit.Content };
 
 export type LengthPercentage =
   | {
@@ -276,12 +293,14 @@ export type LengthPercentageAuto =
       readonly unit: typeof LengthUnit.Auto;
     };
 
-export type Dimension = LengthPercentageAuto;
+export type Dimension = Readonly<Exclude<DimensionInput, number>>;
 ```
 
-The value-side `Dimension` namespace continues to provide `Dimension.Length(value)`, `Dimension.Percent(value)`, and `Dimension.Auto`. The helpers return the same ordinary records that callers may write directly; they are not native owners or classes. A direct numeric input is only an additive shorthand for `Dimension.Length(value)`. The namespace and members retain the vouched singular PascalCase family style.
+The value-side `Dimension` namespace provides `Length(value)`, `Percent(value)`, `Auto`, `MinContent`, `MaxContent`, `FitContent`, `FitContentLength(value)`, `FitContentPercent(value)`, `Stretch`, and `Content`. The helpers return the same ordinary records that callers may write directly; they are not native owners or classes. A direct numeric input is only an additive shorthand for `Dimension.Length(value)`. `FitContentLength` names an application-defined concrete length consistently with the rest of TaffyJS even though the corresponding upstream Rust constructor is named `fit_content_px`.
 
-Both a direct number and `Dimension.Length(value)` apply the selected ordinary `f64`-to-`f32` conversion and produce the same Taffy absolute length. `Dimension.Percent(50)` converts the user-facing percentage magnitude to Taffy's fractional representation before the final `f32` storage conversion. The reverse mapping reports a percentage magnitude through output. The binding does not require a normal range and does not reject negative, `NaN`, or infinite length and percent payloads. Output reports the stored unit and semantic value using readonly versions of the tagged records and does not retain the caller's input form, object, numeric precision, or spelling. Its discriminator remains the same numeric-literal `LengthUnit`, so a caller can use `switch (value.unit)` with ordinary TypeScript narrowing and can pass the output value back into a later Style input. Object identity is not meaningful. Invalid unit codes, missing required length or percent payloads, strings, and other unsupported JavaScript types fail conversion before Style replacement. An extra input property named `value` does not change an Auto variant and is not reproduced in output; the declaration does not add `value?: never` solely to catch that structural extra field.
+Both a direct number and `Dimension.Length(value)` apply the selected ordinary `f64`-to-`f32` conversion and produce the same Taffy absolute length. `Dimension.Percent(50)` and `Dimension.FitContentPercent(50)` convert the user-facing percentage magnitude to Taffy's fractional representation before the final `f32` storage conversion. The reverse mapping reports percentage magnitudes through output. All four numeric-payload branches retain the binding's ordinary negative, `NaN`, infinite, and conversion-overflow behavior.
+
+Output reports the stored unit and semantic value using readonly versions of the tagged records and does not retain the caller's input form, object, numeric precision, or spelling. Its discriminator remains the same numeric-literal `LengthUnit`, so a caller can use `switch (value.unit)` with ordinary TypeScript narrowing and can pass the output value back into a later Style input. Object identity is not meaningful. Invalid unit codes, missing payloads for `Length`, `Percent`, `FitContentLength`, or `FitContentPercent`, strings, intrinsic branches in a narrower length field, and other unsupported JavaScript types fail conversion before Style replacement. An extra numeric `value` does not change a fieldless branch and is not reproduced in output; the declaration does not add `value?: never` solely to catch that structural extra field. `Content` is principally a flex-basis value; Taffy stores it in `size` but specifies that it behaves as `Auto` there.
 
 For example, output use remains direct:
 
@@ -291,9 +310,16 @@ const width = tree.getStyle(node).size.width;
 switch (width.unit) {
   case LengthUnit.Length:
   case LengthUnit.Percent:
+  case LengthUnit.FitContentLength:
+  case LengthUnit.FitContentPercent:
     console.log(width.value);
     break;
   case LengthUnit.Auto:
+  case LengthUnit.MinContent:
+  case LengthUnit.MaxContent:
+  case LengthUnit.FitContent:
+  case LengthUnit.Stretch:
+  case LengthUnit.Content:
     break;
 }
 
@@ -302,13 +328,19 @@ tree.setStyle(otherNode, { size: { width } });
 
 Keeping a numeric unit on output makes every returned meaning explicit; it does not require the shorter numeric input to preserve that shape. Logs and JSON therefore show the numeric code already accepted for the closed-enum design. If self-describing serialization later becomes a requirement, it should trigger a reconsideration of the output vocabulary instead of changing the input shorthand.
 
-The input shorthand is unambiguous because the API defines a direct number as an absolute length, while Percent and Auto use objects. Complete tagged records are still necessary for output and for explicitly carrying the unit with its payload. The binding does not use packed numbers, bigint encodings, or raw `CompactLength` bits as public values.
+The input shorthand is unambiguous because the API defines a direct number as an absolute length, while every other branch uses an object. Complete tagged records are still necessary for output and for explicitly carrying the unit with its payload. The binding does not use packed numbers, bigint encodings, or raw `CompactLength` bits as public values.
 
-Homogeneous `Rect` and `Size` semantic-length fields accept one contained value and copy it to every component. For example, `padding: 10` and `padding: Dimension.Length(10)` both set all four sides to an absolute length of ten, `margin: Dimension.Percent(5)` sets all four sides to five percent, and `gap: 10` sets both axes. The already selected partial record form remains available for component-specific values. Output always expands to a complete readonly `Rect` or `Size` and never preserves which input form was used.
+Homogeneous `Rect` and `Size` semantic-length fields accept one value from that field's own length category and copy it to every component. For example, `padding: 10` and `padding: Dimension.Length(10)` both set all four sides to an absolute length of ten, `margin: Dimension.Percent(5)` sets all four sides to five percent, `gap: 10` sets both axes, and `size: Dimension.MinContent` sets both preferred axes to min-content. The form does not widen the field category: `minSize: Dimension.MinContent` remains invalid. The already selected partial record form remains available for component-specific values. Output always expands to a complete readonly `Rect` or `Size` and never preserves which input form was used.
 
 This homogeneous form is not a claim of full CSS shorthand support. The initial binding does not parse CSS text, accept one-to-four-value strings or arrays, or infer analogous scalar meanings for `Line`, grid placement, and other records. A later CSS-facing layer may add those grammars without changing the canonical Taffy value mapping.
 
-Acceptance cases cover numeric shorthand and `Dimension.Length(value)` equivalence, every valid unit and its required payload, `Dimension` helper and direct-object equivalence, 50-to-0.5 percent conversion, actual stored-value output, output-union narrowing by the shared unit tag, direct output-to-input round-trip, negative and non-finite payload pass-through, invalid unit and payload rejection before mutation, unsupported-type rejection, homogeneous `Rect` and `Size` expansion, partial component defaults, and complete readonly aggregate output.
+Acceptance cases cover numeric shorthand and `Dimension.Length(value)` equivalence, every valid unit and its required payload, `Dimension` helper and direct-object equivalence, percentage scaling for ordinary and fit-content percentages, actual stored-value output, output-union narrowing by the shared unit tag, direct output-to-input round-trip, negative and non-finite payload pass-through, rejection of intrinsic branches in `minSize` and `maxSize`, invalid unit and payload rejection before mutation, unsupported-type rejection, homogeneous `Rect` and `Size` expansion, partial component defaults, and complete readonly aggregate output. Layout cases prove the intrinsic keywords reach Taffy's Block and Flex algorithms rather than merely round-tripping through Style.
+
+### Selected balanced flex wrapping
+
+The public `FlexWrap` numeric family maps `Balance` and `BalanceReverse` directly to Taffy's matching variants, alongside `NoWrap`, `Wrap`, and `WrapReverse`. `flexLineCount` is a complete public Style field stored as Taffy's `u16`; JavaScript input must therefore be an exact integer from 0 through 65,535. Taffy documents values of at least one and defaults to one, while its algorithms normalize zero to one. The binding preserves the representable zero instead of introducing a separate JavaScript clamp.
+
+Balance requests that Flex items be distributed more evenly across lines; `BalanceReverse` additionally reverses the cross-axis line direction. `flexLineCount` requests the minimum line count for balanced wrapping and also affects cross-axis measurement constraints for ordinary multi-line wrapping, following Taffy's stored semantics. It has no layout effect for `NoWrap`. Acceptance cases cover both balanced variants, exact `u16` bounds, invalid integer input, complete Style readback, update behavior, and a layout whose line distribution differs because of the requested count.
 
 ### Selected alignment representation
 

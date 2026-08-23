@@ -8,10 +8,13 @@ const publicTypeByCategory = {
   "partial-rect-length-percentage-auto":
     "LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput>",
   "partial-size-dimension": "DimensionInput | PartialSizeInput<DimensionInput>",
+  "partial-size-length-percentage-auto":
+    "LengthPercentageAutoInput | PartialSizeInput<LengthPercentageAutoInput>",
   "partial-rect-length-percentage":
     "LengthPercentageInput | PartialRectInput<LengthPercentageInput>",
   "partial-size-length-percentage":
     "LengthPercentageInput | PartialSizeInput<LengthPercentageInput>",
+  "unsigned-16": "number",
   dimension: "DimensionInput",
   "grid-template-component-array": "readonly GridTemplateComponentInput[]",
   "track-sizing-array": "readonly TrackSizingFunctionInput[]",
@@ -54,10 +57,14 @@ function encoderCall(field: StyleField): string {
       return `encoder.partialRectLengthPercentageAuto(value, ${name});`;
     case "partial-size-dimension":
       return `encoder.partialSizeDimension(value, ${name});`;
+    case "partial-size-length-percentage-auto":
+      return `encoder.partialSizeLengthPercentageAuto(value, ${name});`;
     case "partial-rect-length-percentage":
       return `encoder.partialRectLengthPercentage(value, ${name});`;
     case "partial-size-length-percentage":
       return `encoder.partialSizeLengthPercentage(value, ${name});`;
+    case "unsigned-16":
+      return `encoder.unsigned16(value, ${name});`;
     case "dimension":
       return `encoder.dimension(value, ${name});`;
     case "grid-template-component-array":

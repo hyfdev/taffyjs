@@ -91,7 +91,9 @@
       "members": [
         { "name": "NoWrap", "value": 0 },
         { "name": "Wrap", "value": 1 },
-        { "name": "WrapReverse", "value": 2 }
+        { "name": "WrapReverse", "value": 2 },
+        { "name": "Balance", "value": 3 },
+        { "name": "BalanceReverse", "value": 4 }
       ]
     },
     {
@@ -148,7 +150,14 @@
       "members": [
         { "name": "Length", "value": 0 },
         { "name": "Percent", "value": 1 },
-        { "name": "Auto", "value": 2 }
+        { "name": "Auto", "value": 2 },
+        { "name": "MinContent", "value": 3 },
+        { "name": "MaxContent", "value": 4 },
+        { "name": "FitContent", "value": 5 },
+        { "name": "FitContentLength", "value": 6 },
+        { "name": "FitContentPercent", "value": 7 },
+        { "name": "Stretch", "value": 8 },
+        { "name": "Content", "value": 9 }
       ]
     },
     {

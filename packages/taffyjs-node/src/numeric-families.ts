@@ -141,6 +141,10 @@ export const FlexWrap = Object.freeze({
   Wrap: 1,
   /** Selects the WrapReverse choice from the FlexWrap numeric family. */
   WrapReverse: 2,
+  /** Selects the Balance choice from the FlexWrap numeric family. */
+  Balance: 3,
+  /** Selects the BalanceReverse choice from the FlexWrap numeric family. */
+  BalanceReverse: 4,
 } as const);
 
 export type FlexWrap = EnumValue<typeof FlexWrap>;
@@ -239,6 +243,20 @@ export const LengthUnit = Object.freeze({
   Percent: 1,
   /** Selects the Auto choice from the LengthUnit numeric family. */
   Auto: 2,
+  /** Selects the MinContent choice from the LengthUnit numeric family. */
+  MinContent: 3,
+  /** Selects the MaxContent choice from the LengthUnit numeric family. */
+  MaxContent: 4,
+  /** Selects the FitContent choice from the LengthUnit numeric family. */
+  FitContent: 5,
+  /** Selects the FitContentLength choice from the LengthUnit numeric family. */
+  FitContentLength: 6,
+  /** Selects the FitContentPercent choice from the LengthUnit numeric family. */
+  FitContentPercent: 7,
+  /** Selects the Stretch choice from the LengthUnit numeric family. */
+  Stretch: 8,
+  /** Selects the Content choice from the LengthUnit numeric family. */
+  Content: 9,
 } as const);
 
 export type LengthUnit = EnumValue<typeof LengthUnit>;

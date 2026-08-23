@@ -1,6 +1,5 @@
 import {
   Dimension as TaffyDimension,
-  type DimensionInput,
   type LengthPercentageAutoInput,
   type LengthPercentageInput,
 } from "@taffyjs/node";
@@ -122,7 +121,7 @@ export function normalizeAspectRatio(value: number | undefined): number | undefi
   return normalized === undefined || normalized === 0 ? undefined : normalized;
 }
 
-export function toDimension(value: YogaValue): DimensionInput {
+export function toDimension(value: YogaValue): LengthPercentageAutoInput {
   switch (value.unit) {
     case Unit.Point:
       return TaffyDimension.Length(value.value);
@@ -134,14 +133,14 @@ export function toDimension(value: YogaValue): DimensionInput {
   }
 }
 
-export function toSizeDimension(value: YogaValue): DimensionInput {
+export function toSizeDimension(value: YogaValue): LengthPercentageAutoInput {
   if ((value.unit === Unit.Point || value.unit === Unit.Percent) && value.value < 0) {
     return TaffyDimension.Auto;
   }
   return toDimension(value);
 }
 
-export function toMinDimension(value: YogaValue): DimensionInput {
+export function toMinDimension(value: YogaValue): LengthPercentageAutoInput {
   return value.unit === Unit.Undefined ? TaffyDimension.Length(0) : toDimension(value);
 }
 

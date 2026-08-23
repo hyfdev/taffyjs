@@ -260,6 +260,16 @@ New public state owners, compatibility layers, retained JavaScript values, callb
 
 **Source:** Yunfei (`@hyfdev`), 2026-08-16 and 2026-08-17; first required the Apple arm64 benchmark host and broader napi-rs parity, then explicitly chose the maintained templates' 13 native targets after comparing that baseline with napi-rs core and Rolldown coverage.
 
+### Intrinsic sizing and balanced flex wrapping
+
+**Ruling:** The public Tree Style must expose Taffy's full non-calc `Dimension` surface for `size` and `flexBasis`, including min-content, max-content, bare and length- or percentage-limited fit-content, stretch, and content. It must also expose `FlexWrap.Balance`, `FlexWrap.BalanceReverse`, and `flexLineCount`.
+
+**Limits:** `minSize` and `maxSize` remain `LengthPercentageAuto` and must not accept intrinsic sizing keywords. This ruling does not expose calc pointers, CSS strings, Rust helper methods, or capabilities outside the public Tree Style. `Content` remains storable in `size`, where upstream Taffy specifies that it behaves as auto outside `flexBasis`.
+
+**Why:** Yunfei identified these as the missing public Tree layout capabilities in scope and instructed that all of them be exposed. No additional rationale was stated.
+
+**Source:** Yunfei (`@hyfdev`), 2026-08-23; explicit instruction to expose the enumerated capabilities after narrowing the review to the public Tree surface. See [semantic-length mapping](binding-cases.md#selected-semantic-length-input-and-output-representation) and the canonical [tagged values](../../api/tagged-values.json) and [Style fields](../../api/style-codec.json).
+
 ### Generated numeric input shorthand
 
 [VOUCHED @hyfdev 2026-08-15]

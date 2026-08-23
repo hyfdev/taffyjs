@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import {
   AlignItems,
   AvailableSpace,
+  AvailableSpaceKind,
   Clear,
   Dimension,
   DetailedLayoutInfoKind,
   Display,
+  FlexWrap,
   Float,
   GridPlacement,
   Position,
@@ -14,6 +16,7 @@ import {
   TrackSizingFunction,
   GridTemplateComponent,
   Overflow,
+  type MeasureFunction,
   type StyleInput,
 } from "@taffyjs/node";
 import { test } from "vite-plus/test";
@@ -149,6 +152,97 @@ test("flex", () => {
     ],
   );
   assert.deepEqual(tree.getUnroundedLayout(second).location, { x: 50.5, y: 0 });
+});
+
+test("balanced flex wrapping honors flexLineCount", () => {
+  const tree = new TaffyTree();
+  tree.disableRounding();
+  const children = [31, 32, 33, 34].map((width) => tree.newLeaf({ size: { width, height: 30 } }));
+  const root = tree.newWithChildren(children, {
+    display: Display.Flex,
+    flexWrap: FlexWrap.Balance,
+    flexLineCount: 3,
+    size: { width: 100 },
+  });
+
+  tree.computeLayout({ root, availableSpace: maxContentSpace() });
+
+  assert.deepEqual(tree.getUnroundedLayout(root).size, { width: 100, height: 90 });
+  assert.deepEqual(
+    children.map((child) => tree.getUnroundedLayout(child).location),
+    [
+      { x: 0, y: 0 },
+      { x: 31, y: 0 },
+      { x: 0, y: 30 },
+      { x: 0, y: 60 },
+    ],
+  );
+});
+
+test("intrinsic Dimension values drive block sizing", () => {
+  const tree = new TaffyTree();
+  tree.disableRounding();
+  const children = [
+    Dimension.Stretch,
+    Dimension.FitContent,
+    Dimension.MinContent,
+    Dimension.MaxContent,
+    Dimension.FitContentLength(30),
+    Dimension.FitContentPercent(25),
+    Dimension.Content,
+  ].map((width) => tree.newLeaf({ size: { width } }));
+  const root = tree.newWithChildren(children, {
+    display: Display.Block,
+    size: { width: 120 },
+  });
+  const measure: MeasureFunction<unknown> = ({ knownDimensions, availableSpace }) => {
+    let intrinsicWidth: number;
+    switch (availableSpace.width.kind) {
+      case AvailableSpaceKind.MinContent:
+        intrinsicWidth = 20;
+        break;
+      case AvailableSpaceKind.MaxContent:
+        intrinsicWidth = 40;
+        break;
+      case AvailableSpaceKind.Definite:
+        intrinsicWidth = Math.max(20, Math.min(availableSpace.width.value, 40));
+        break;
+    }
+    const width = knownDimensions.width ?? intrinsicWidth;
+    return {
+      width,
+      height: knownDimensions.height ?? (width < 40 ? 20 : 10),
+    };
+  };
+
+  tree.computeLayout({ root, availableSpace: maxContentSpace(), measure });
+
+  assert.deepEqual(
+    children.map((child) => tree.getUnroundedLayout(child).size.width),
+    [120, 40, 20, 40, 30, 30, 120],
+  );
+});
+
+test("Dimension.Content uses content as the flex basis", () => {
+  const tree = new TaffyTree();
+  tree.disableRounding();
+  const child = tree.newLeaf({
+    size: { width: 10 },
+    flexBasis: Dimension.Content,
+    flexShrink: 0,
+  });
+  const root = tree.newWithChildren([child], {
+    display: Display.Flex,
+    size: { width: 100 },
+  });
+
+  tree.computeLayout({
+    root,
+    availableSpace: maxContentSpace(),
+    measure: () => ({ width: 40, height: 10 }),
+  });
+
+  assert.equal(tree.getUnroundedLayout(child).size.width, 40);
 });
 
 test("auto-margin-alignment", () => {

@@ -39,6 +39,11 @@ Invalid codes throw `RangeError`. Values are not coerced from strings, booleans,
 - `Dimension.Length(value)` is a concrete length.
 - `Dimension.Percent(value)` uses a percentage magnitude, so `50` means 50 percent.
 - `Dimension.Auto` leaves the size automatic.
+- `Dimension.MinContent` and `Dimension.MaxContent` select intrinsic content sizes.
+- `Dimension.FitContent` uses the available-space fit-content formula.
+- `Dimension.FitContentLength(value)` and `Dimension.FitContentPercent(value)` cap fit-content with a concrete or percentage limit.
+- `Dimension.Stretch` uses the stretch-fit size.
+- `Dimension.Content` asks Flexbox to base `flexBasis` on content; in `size`, Taffy treats it like `Auto`.
 
 `AvailableSpace` describes a computation constraint:
 
@@ -68,11 +73,20 @@ const width = tree.getStyle(node).size.width;
 switch (width.unit) {
   case LengthUnit.Length:
   case LengthUnit.Percent:
+  case LengthUnit.FitContentLength:
+  case LengthUnit.FitContentPercent:
     console.log(width.value);
     break;
   case LengthUnit.Auto:
+  case LengthUnit.MinContent:
+  case LengthUnit.MaxContent:
+  case LengthUnit.FitContent:
+  case LengthUnit.Stretch:
+  case LengthUnit.Content:
     break;
 }
 ```
+
+The full `Dimension` family is accepted by `size` and `flexBasis`. `minSize` and `maxSize` deliberately remain limited to concrete lengths, percentages, and `Auto`.
 
 The generated declaration file is the exhaustive source for every numeric member and tagged TypeScript shape. This page groups the exports by how they are used rather than duplicating that declaration.

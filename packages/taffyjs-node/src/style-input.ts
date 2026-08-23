@@ -65,12 +65,12 @@ export interface StyleInput {
     | PartialSizeInput<DimensionInput>
     | undefined;
   /** Supplies the node's min size style when present. */ minSize?:
-    | DimensionInput
-    | PartialSizeInput<DimensionInput>
+    | LengthPercentageAutoInput
+    | PartialSizeInput<LengthPercentageAutoInput>
     | undefined;
   /** Supplies the node's max size style when present. */ maxSize?:
-    | DimensionInput
-    | PartialSizeInput<DimensionInput>
+    | LengthPercentageAutoInput
+    | PartialSizeInput<LengthPercentageAutoInput>
     | undefined;
   /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ aspectRatio?:
     | number
@@ -121,6 +121,9 @@ export interface StyleInput {
     | FlexDirection
     | undefined;
   /** Supplies the node's flex wrap style when present. */ flexWrap?: FlexWrap | undefined;
+  /** Supplies the requested minimum flex line count as an exact integer from 0 through 65535 when present. */ flexLineCount?:
+    | number
+    | undefined;
   /** Supplies the node's flex basis style when present. */ flexBasis?: DimensionInput | undefined;
   /** Supplies the node's flex grow style when present. */ flexGrow?: number | undefined;
   /** Supplies the node's flex shrink style when present. */ flexShrink?: number | undefined;
@@ -161,7 +164,7 @@ export interface StyleInput {
 export type StyleUpdate = StyleInput;
 
 export function withEncodedStyle<T>(style: StyleInput, use: (encoded: Uint8Array) => T): T {
-  return withStyleEncoder(style, 2, 6, (encoder) => {
+  return withStyleEncoder(style, 3, 6, (encoder) => {
     const display = style.display;
     if (display !== undefined) {
       encoder.field(0);
@@ -244,13 +247,13 @@ export function withEncodedStyle<T>(style: StyleInput, use: (encoded: Uint8Array
     if (minSize !== undefined) {
       encoder.field(13);
       const value = minSize;
-      encoder.partialSizeDimension(value, "Style.minSize");
+      encoder.partialSizeLengthPercentageAuto(value, "Style.minSize");
     }
     const maxSize = style.maxSize;
     if (maxSize !== undefined) {
       encoder.field(14);
       const value = maxSize;
-      encoder.partialSizeDimension(value, "Style.maxSize");
+      encoder.partialSizeLengthPercentageAuto(value, "Style.maxSize");
     }
     const aspectRatio = style.aspectRatio;
     if (aspectRatio !== undefined) {
@@ -334,83 +337,89 @@ export function withEncodedStyle<T>(style: StyleInput, use: (encoded: Uint8Array
     if (flexWrap !== undefined) {
       encoder.field(28);
       const value = flexWrap;
-      encoder.enumeration(value, 7, "Style.flexWrap");
+      encoder.enumeration(value, 31, "Style.flexWrap");
+    }
+    const flexLineCount = style.flexLineCount;
+    if (flexLineCount !== undefined) {
+      encoder.field(29);
+      const value = flexLineCount;
+      encoder.unsigned16(value, "Style.flexLineCount");
     }
     const flexBasis = style.flexBasis;
     if (flexBasis !== undefined) {
-      encoder.field(29);
+      encoder.field(30);
       const value = flexBasis;
       encoder.dimension(value, "Style.flexBasis");
     }
     const flexGrow = style.flexGrow;
     if (flexGrow !== undefined) {
-      encoder.field(30);
+      encoder.field(31);
       const value = flexGrow;
       encoder.number(value, "Style.flexGrow");
     }
     const flexShrink = style.flexShrink;
     if (flexShrink !== undefined) {
-      encoder.field(31);
+      encoder.field(32);
       const value = flexShrink;
       encoder.number(value, "Style.flexShrink");
     }
     const gridTemplateRows = style.gridTemplateRows;
     if (gridTemplateRows !== undefined) {
-      encoder.field(32);
+      encoder.field(33);
       const value = gridTemplateRows;
       encoder.gridTemplateComponents(value, "Style.gridTemplateRows");
     }
     const gridTemplateColumns = style.gridTemplateColumns;
     if (gridTemplateColumns !== undefined) {
-      encoder.field(33);
+      encoder.field(34);
       const value = gridTemplateColumns;
       encoder.gridTemplateComponents(value, "Style.gridTemplateColumns");
     }
     const gridAutoRows = style.gridAutoRows;
     if (gridAutoRows !== undefined) {
-      encoder.field(34);
+      encoder.field(35);
       const value = gridAutoRows;
       encoder.trackSizingFunctions(value, "Style.gridAutoRows");
     }
     const gridAutoColumns = style.gridAutoColumns;
     if (gridAutoColumns !== undefined) {
-      encoder.field(35);
+      encoder.field(36);
       const value = gridAutoColumns;
       encoder.trackSizingFunctions(value, "Style.gridAutoColumns");
     }
     const gridAutoFlow = style.gridAutoFlow;
     if (gridAutoFlow !== undefined) {
-      encoder.field(36);
+      encoder.field(37);
       const value = gridAutoFlow;
       encoder.enumeration(value, 15, "Style.gridAutoFlow");
     }
     const gridTemplateAreas = style.gridTemplateAreas;
     if (gridTemplateAreas !== undefined) {
-      encoder.field(37);
+      encoder.field(38);
       const value = gridTemplateAreas;
       encoder.nullableGridTemplateAreas(value, "Style.gridTemplateAreas");
     }
     const gridTemplateColumnNames = style.gridTemplateColumnNames;
     if (gridTemplateColumnNames !== undefined) {
-      encoder.field(38);
+      encoder.field(39);
       const value = gridTemplateColumnNames;
       encoder.stringMatrix(value, "Style.gridTemplateColumnNames");
     }
     const gridTemplateRowNames = style.gridTemplateRowNames;
     if (gridTemplateRowNames !== undefined) {
-      encoder.field(39);
+      encoder.field(40);
       const value = gridTemplateRowNames;
       encoder.stringMatrix(value, "Style.gridTemplateRowNames");
     }
     const gridRow = style.gridRow;
     if (gridRow !== undefined) {
-      encoder.field(40);
+      encoder.field(41);
       const value = gridRow;
       encoder.partialLineGridPlacement(value, "Style.gridRow");
     }
     const gridColumn = style.gridColumn;
     if (gridColumn !== undefined) {
-      encoder.field(41);
+      encoder.field(42);
       const value = gridColumn;
       encoder.partialLineGridPlacement(value, "Style.gridColumn");
     }

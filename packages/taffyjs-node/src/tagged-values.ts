@@ -21,6 +21,43 @@ export type AutoInput = {
   /** Selects the Auto branch. */ unit: typeof LengthUnit.Auto;
 };
 
+/** Supplies the complete `Dimension.MinContent` input form. */
+type DimensionMinContentInput = {
+  /** Selects the MinContent branch. */ unit: typeof LengthUnit.MinContent;
+};
+
+/** Supplies the complete `Dimension.MaxContent` input form. */
+type DimensionMaxContentInput = {
+  /** Selects the MaxContent branch. */ unit: typeof LengthUnit.MaxContent;
+};
+
+/** Supplies the complete `Dimension.FitContent` input form. */
+type DimensionFitContentInput = {
+  /** Selects the FitContent branch. */ unit: typeof LengthUnit.FitContent;
+};
+
+/** Supplies the complete `Dimension.FitContentLength(value)` input form. */
+type DimensionFitContentLengthInput = {
+  /** Selects the FitContentLength branch. */ unit: typeof LengthUnit.FitContentLength;
+  /** Supplies the numeric payload for `Dimension.FitContentLength(value)`. */ value: number;
+};
+
+/** Supplies the complete `Dimension.FitContentPercent(value)` input form. */
+type DimensionFitContentPercentInput = {
+  /** Selects the FitContentPercent branch. */ unit: typeof LengthUnit.FitContentPercent;
+  /** Supplies the numeric payload for `Dimension.FitContentPercent(value)`. */ value: number;
+};
+
+/** Supplies the complete `Dimension.Stretch` input form. */
+type DimensionStretchInput = {
+  /** Selects the Stretch branch. */ unit: typeof LengthUnit.Stretch;
+};
+
+/** Supplies the complete `Dimension.Content` input form. */
+type DimensionContentInput = {
+  /** Selects the Content branch. */ unit: typeof LengthUnit.Content;
+};
+
 /** Accepts a number as shorthand for `Dimension.Length(value)`, or a complete tagged `LengthPercentageInput` value. */
 export type LengthPercentageInput = number | LengthInput | PercentInput;
 
@@ -37,12 +74,43 @@ export type LengthPercentageAuto =
   | Readonly<AutoInput>;
 
 /** Accepts a number as shorthand for `Dimension.Length(value)`, or a complete tagged `DimensionInput` value. */
-export type DimensionInput = number | LengthInput | PercentInput | AutoInput;
+export type DimensionInput =
+  | number
+  | LengthInput
+  | PercentInput
+  | AutoInput
+  | DimensionMinContentInput
+  | DimensionMaxContentInput
+  | DimensionFitContentInput
+  | DimensionFitContentLengthInput
+  | DimensionFitContentPercentInput
+  | DimensionStretchInput
+  | DimensionContentInput;
 
 /** Represents a complete tagged `Dimension` value returned by the binding. */
-export type Dimension = Readonly<LengthInput> | Readonly<PercentInput> | Readonly<AutoInput>;
+export type Dimension =
+  | Readonly<LengthInput>
+  | Readonly<PercentInput>
+  | Readonly<AutoInput>
+  | Readonly<DimensionMinContentInput>
+  | Readonly<DimensionMaxContentInput>
+  | Readonly<DimensionFitContentInput>
+  | Readonly<DimensionFitContentLengthInput>
+  | Readonly<DimensionFitContentPercentInput>
+  | Readonly<DimensionStretchInput>
+  | Readonly<DimensionContentInput>;
 
 const dimensionAuto = Object.freeze({ unit: LengthUnit.Auto } as const);
+
+const dimensionMinContent = Object.freeze({ unit: LengthUnit.MinContent } as const);
+
+const dimensionMaxContent = Object.freeze({ unit: LengthUnit.MaxContent } as const);
+
+const dimensionFitContent = Object.freeze({ unit: LengthUnit.FitContent } as const);
+
+const dimensionStretch = Object.freeze({ unit: LengthUnit.Stretch } as const);
+
+const dimensionContent = Object.freeze({ unit: LengthUnit.Content } as const);
 
 /** Provides complete tagged forms for dimension inputs, including `Dimension.Length(value)`, the form represented by numeric shorthand. */
 export const Dimension = Object.freeze({
@@ -53,6 +121,17 @@ export const Dimension = Object.freeze({
     return { unit: LengthUnit.Percent, value };
   },
   Auto: dimensionAuto,
+  MinContent: dimensionMinContent,
+  MaxContent: dimensionMaxContent,
+  FitContent: dimensionFitContent,
+  FitContentLength(value: number): DimensionFitContentLengthInput {
+    return { unit: LengthUnit.FitContentLength, value };
+  },
+  FitContentPercent(value: number): DimensionFitContentPercentInput {
+    return { unit: LengthUnit.FitContentPercent, value };
+  },
+  Stretch: dimensionStretch,
+  Content: dimensionContent,
 });
 
 /** Supplies the complete `AvailableSpace.Definite(value)` input form. */

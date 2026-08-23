@@ -52,10 +52,14 @@ function fieldUpdate(field: StyleField): readonly string[] {
       return [`changed |= decoder.length_percentage_auto_rect(&mut ${target}, ${name})?;`];
     case "partial-size-dimension":
       return [`changed |= decoder.dimension_size(&mut ${target}, ${name})?;`];
+    case "partial-size-length-percentage-auto":
+      return [`changed |= decoder.length_percentage_auto_size(&mut ${target}, ${name})?;`];
     case "partial-rect-length-percentage":
       return [`changed |= decoder.length_percentage_rect(&mut ${target}, ${name})?;`];
     case "partial-size-length-percentage":
       return [`changed |= decoder.length_percentage_size(&mut ${target}, ${name})?;`];
+    case "unsigned-16":
+      return replacement("replace", target, `decoder.unsigned_16(${name})?`, true);
     case "dimension":
       return replacement("replace", target, `decoder.dimension(${name})?`, true);
     case "grid-template-component-array":
