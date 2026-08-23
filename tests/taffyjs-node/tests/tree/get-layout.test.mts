@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type CodedError = Error & { code?: string };
 type Layout = {
   order: number;
   location: { x: number; y: number };
@@ -27,16 +26,6 @@ const ZERO_LAYOUT: Layout = {
 
 function maxContentSpace() {
   return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
-}
-
-function captureError(body: () => unknown): CodedError {
-  try {
-    body();
-  } catch (error) {
-    assert.ok(error instanceof Error);
-    return error;
-  }
-  assert.fail("Expected operation to throw");
 }
 
 test("exact-zero", () => {
@@ -128,22 +117,4 @@ test("numeric-widening", () => {
   assert.equal(layout.size.height, Math.fround(8.5000001));
   assert.equal(typeof layout.order, "number");
   assert.equal(Number.isSafeInteger(layout.order), true);
-});
-
-test("invalid-id", () => {
-  const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(captureError(() => tree.getLayout(1 as never)).constructor, TypeError);
-  assert.equal(captureError(() => tree.getLayout(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
-  assert.equal(captureError(() => tree.getLayout(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
-
-  const stale = tree.newLeaf();
-  tree.clear();
-  assert.equal(captureError(() => tree.getLayout(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
-
-  const removedTree = new TaffyTree();
-  const removed = removedTree.newLeaf({});
-  removedTree.remove(removed);
-  assert.equal(captureError(() => removedTree.getLayout(removed)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

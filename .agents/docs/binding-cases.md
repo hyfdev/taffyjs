@@ -34,7 +34,9 @@ Readonly TypeScript fields describe the snapshot boundary to TypeScript consumer
 
 `NodeId` derives equality from its single stored `u64`. Two separately created TaffyTree instances can issue equal NodeId values. Passing one tree's NodeId to another tree can therefore access the other tree's node when the numeric keys match instead of producing an error. Using a NodeId after removal can index missing storage and panic.
 
-The JavaScript binding must do more than Rust's `NodeId == NodeId`: it must know which tree issued a public NodeId and whether the node still exists before calling Taffy.
+The raw value is a SlotMap key containing a slot and generation. Ordinary removal and reuse changes that generation, so an old key normally does not name the replacement. This prevents accidental aliasing inside the SlotMap but does not attach a tree owner to the key, guarantee against eventual generation wrap, or make every stale access return `Result`: several pinned TaffyTree methods directly index their SlotMaps.
+
+The binding deliberately inherits this identity model. A live NodeId from the receiving tree is a caller precondition, not a property authenticated by the JavaScript wrapper.
 
 ### JavaScript boundary
 
@@ -51,7 +53,7 @@ const layout = tree.getLayout(child);
 
 The public `TaffyTree` wrapper stores one private native tree in `#inner`, which remains the sole layout-state owner. `child` and `root` are bigint values that JavaScript can retain and pass back to tree methods; they do not own a second Style, Layout, or child list.
 
-The public type is a bigint with a private phantom type marker and a private numeric encoding:
+The public type is a bigint with a private phantom type marker:
 
 ```ts
 declare const phantomMarker: unique symbol;
@@ -61,32 +63,31 @@ export type NodeId = bigint & {
 };
 ```
 
-The private `unique symbol` is a phantom marker: it keeps an ordinary bigint from satisfying `NodeId` accidentally during type checking but has no runtime representation. It does not stop JavaScript from constructing or modifying a bigint, so runtime checks remain mandatory.
+The private `unique symbol` keeps an ordinary bigint from satisfying `NodeId` accidentally during type checking but has no runtime representation. At runtime the value is exactly Taffy's raw `u64` NodeId. The public wrapper checks that an input is a bigint in the `u64` range, and the native boundary repeats that lossless conversion check; neither check proves issuance, ownership, or liveness.
 
-The bigint logically contains a tree identity, a binding-issued serial for that node creation, and the raw Taffy NodeId. The exact field widths and encoding are not public. Each public tree wrapper keeps a private registry such as:
+There is no public-to-raw translation or node registry:
 
 ```ts
 #inner: BindingTaffyTree;
-#nodes: PrivateNodeRegistry;
+#contexts: Map<NodeId, TContext>;
+#measures: Map<NodeId, MeasureFunction<TContext>>;
 ```
 
-This registry contains one entry for each node currently stored in the TaffyTree. It is binding identity metadata, not a copy of Style, Layout, parent, children, or cache state.
+The latter two maps retain JavaScript-owned values only for nodes that use them; they are not a live-node index. Creation returns the native bigint unchanged, native node queries return the same values unchanged, and consuming methods pass the checked `u64` bigint directly back to native.
 
-Before native access, the wrapper confirms that each NodeId is a bigint with the complete private format, was issued by the target tree, and still matches the current registry entry for its raw Taffy NodeId. An ordinary object, a malformed bigint, a NodeId from another tree, and a NodeId for a removed node produce controlled JavaScript errors through @taffyjs/node.
+Independent trees commonly issue equal values when they perform the same allocation sequence. If a foreign value numerically matches a live key in the receiving tree, the operation addresses that receiving-tree node. If a forged, foreign, or stale in-range key does not match a live node, behavior follows the pinned Taffy operation and is unsupported rather than receiving an `invalid`, `foreign`, or `stale` classification.
 
-The JavaScript registry is the sole NodeId-validity registry for the supported API, so its single current-node lookup happens immediately before the synchronous native call in the ordinary value-object path. The baseline does not add a second lookup or a dedicated defensive copy solely for a getter or Proxy trap that mutates the same tree during argument conversion; that re-entrant value-object behavior is outside the initial guarantee. This is an internal implementation constraint rather than additional public NodeId behavior. Direct calls to the separate private platform packages bypass the wrapper and are deliberately outside the public API and its safety guarantee.
+This Taffy revision can panic on a missing SlotMap key because several high-level methods index directly even when their signatures return `TaffyResult`. Every native tree operation already runs inside `TreeOwner::access`; its `catch_unwind` boundary turns such an unexpected panic into an internal failure and poisons the tree before further native use. That is process-safety containment, not supported invalid-key behavior, and it does not require a duplicate live-node table.
 
-A successful creation adds the corresponding registry entry, a successful removal deletes it, and clearing the tree clears the registry. A supported operation must not report success while exposing disagreement between the native tree and that registry. If a later node receives the same raw Taffy NodeId, it receives a new binding-issued serial and therefore a different public NodeId. The old bigint remains an ordinary JavaScript value but no longer passes the registry check.
-
-The registry does not need weak keys or automatic cleanup when application code drops a NodeId. TaffyTree itself continues to own that node until explicit removal, clearing, or collection of the whole tree. The registry therefore grows with the nodes still stored in the tree, not with the number of nodes ever created. A bigint NodeId does not retain a reference to its tree, so collecting the tree also collects its registry.
+Style encoding still checks that consumed NodeIds are representable bigints before reading caller-controlled Style properties. It does not check owner or liveness first. A getter or Proxy that removes a node during conversion and later causes native invalid-key behavior is caller-controlled re-entry outside the supported ordinary-value path, consistent with the earlier correction in this case.
 
 ### Equality in JavaScript
 
-Every query that returns the same current node recreates the same bigint value. JavaScript can therefore use `===`, `Map`, `Set`, and `includes` directly. Equality states that two values name the same binding-issued node identity; it does not prove that the node is still present. Liveness is checked when a tree operation consumes the NodeId, so no separate `isSameNode` API is needed for ordinary identity comparisons.
+Every query that returns the same current node returns the same bigint value. JavaScript can therefore use `===`, `Map`, `Set`, and `includes` directly within one tree. Equality across different trees has no node-identity meaning, and equality never proves that a node is still present. No separate `isSameNode` API is needed because supported identity comparisons already have the receiving tree as their scope.
 
 ### Conclusion
 
-This case is closed as an API mapping exercise. It fixes the outer state owner, stored-layout behavior, owned snapshot boundary, public NodeId value model, JavaScript equality behavior, cross-tree and stale-node rejection, registry lifetime, internal-ID reuse behavior, and the no-data-cache boundary. Those conclusions are implemented; the private NodeId bit layout remains an internal detail. The current vouched product wording is kept in [@taffyjs/node decisions](taffyjs-node-decisions.md), and the reusable implementation rules are in [Taffy-to-Node binding mapping](binding-mapping.md#nodeid).
+This case is closed as an API mapping exercise. It fixes the outer state owner, stored-layout behavior, owned snapshot boundary, raw public NodeId value model, same-tree JavaScript equality behavior, caller-owned tree and lifetime preconditions, ordinary SlotMap reuse behavior, panic containment, and the no-data-cache boundary. Those conclusions are implemented; callers still treat the raw bigint as opaque and nonpersistent. The current vouched product wording is kept in [@taffyjs/node decisions](taffyjs-node-decisions.md), and the reusable implementation rules are in [Taffy-to-Node binding mapping](binding-mapping.md#nodeid).
 
 ### Evidence
 
@@ -116,7 +117,7 @@ The direct analogue of default-based Rust Style construction is a plain `StyleIn
 
 Fixed-shape geometry records used directly as Style fields are partial on input for the same default-based construction. Each missing or explicit-`undefined` `Point`, `Size`, `Rect`, or `Line` component comes from that component of the enclosing field's `Style::DEFAULT` value. Thus `size: { width: value }` gets the default `auto` height, `padding: { left: value }` gets zero for the other three sides, and `inset: { left: value }` gets `auto` for the other three sides. This never reads the stored Style. Unknown enumerable string components are rejected because every component is optional and a misspelling would otherwise silently select the default. This rule does not make tagged semantic values, grid payloads, or arbitrary nested records recursively partial.
 
-The public boundary treats Style as an ordinary data object. The generated encoder reads every known property once, ignores unknown top-level properties without enumeration, and keeps its byte storage owned through the synchronous native call. Methods consuming NodeIds resolve them before encoding so getter or Proxy re-entry cannot change stale or foreign ID precedence; nested Style operations receive separate temporary storage.
+The public boundary treats Style as an ordinary data object. The generated encoder reads every known property once, ignores unknown top-level properties without enumeration, and keeps its byte storage owned through the synchronous native call. Methods consuming NodeIds check their bigint and `u64` representation before encoding; owner and liveness remain caller preconditions, so getter or Proxy re-entry receives no stale or foreign error precedence. Nested Style operations receive separate temporary storage.
 
 The first checkpoint selects the following container rules:
 
@@ -127,7 +128,7 @@ The first checkpoint selects the following container rules:
 | `null`                   | Reject `null` when a field's public value cannot be empty. Accept it for a publicly nullable field, currently backed by Taffy `Option<T>`, where it explicitly means `None`; omission and `undefined` still mean “use this Taffy version's default.” | This preserves explicit absence for `aspectRatio`, alignment fields, and `gridTemplateAreas`. If a nullable field defaults to `Some(value)`, omission and `undefined` select that value while `null` still selects `None`.                                                                                                   |
 | Unknown fields           | Ignore unknown top-level Style properties without enumerating them; continue to reject unknown components of partial geometry records.                                                                                                               | The binding reads only the fields it needs, and supplying correct field names is the caller's responsibility, so a misspelled top-level field selects that field's default. Partial geometry records stay strict because a misspelled component would instead default or preserve one part of a field the caller did supply. |
 | `setStyle`               | Replace the complete stored Style with the default-plus-supplied value.                                                                                                                                                                              | This preserves `TaffyTree::set_style`; merging with the previous Style would require a native read and define a different operation.                                                                                                                                                                                         |
-| Conversion and mutation  | Resolve consumed NodeIds, encode known Style properties once, then call native synchronously; compact decoding and complete candidate validation finish before replacing tree state.                                                                 | The operation preserves public error precedence and reaches mutation only with a complete Rust value, without a second property walk or rich-object conversion.                                                                                                                                                              |
+| Conversion and mutation  | Check consumed NodeIds are representable `u64` bigints, encode known Style properties once, then call native synchronously; compact decoding and complete candidate validation finish before replacing tree state.                                   | Representation errors retain deterministic precedence and mutation receives a complete Rust value without adding owner/liveness lookup, a second property walk, or rich-object conversion.                                                                                                                                   |
 
 Under these rules, input and complete output have deliberately different outer shapes:
 

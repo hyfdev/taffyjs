@@ -14,7 +14,7 @@ The benefit is that a Taffy concept has one meaning. Reading Taffy's documentati
 
 ## Keep one owner for layout state
 
-Taffy owns the tree topology, styles, layout cache, computation state, and results. JavaScript receives readable inputs, safe node IDs, and detached result objects, but it does not maintain a second copy of the native tree.
+Taffy owns the tree topology, styles, layout cache, computation state, results, and raw node-key lifetime. JavaScript receives readable inputs, opaque bigint NodeIds, and detached result objects, but it does not maintain a second copy of the native tree or a NodeId registry.
 
 That boundary matters when an application grows. A JavaScript shadow tree would need to stay synchronized after every mutation and failure. It could also disagree with the state that Taffy actually used. With one owner, a layout result always comes from the native tree that performed the calculation.
 

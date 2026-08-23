@@ -268,7 +268,7 @@ type DetailedLayoutInfoKind = EnumValue<typeof DetailedLayoutInfoKind>;
 //#endregion
 //#region src/node-id.d.ts
 declare const phantomMarker: unique symbol;
-/** Identifies a node in one TaffyTree without exposing its native identity. */
+/** Identifies a live node within the TaffyTree that returned it. */
 type NodeId = bigint & {
   readonly [phantomMarker]: never;
 };
@@ -804,7 +804,7 @@ type StyleUpdate = StyleInput;
 /** Owns one independent node tree, its contexts, styles, and stored layouts. */
 declare class TaffyTree<TContext = unknown> {
   #private;
-  /** Creates an independent Taffy tree with its own NodeId namespace. */
+  /** Creates an independent Taffy tree. */
   constructor();
   /** Enables pixel rounding for subsequently computed public layouts. */
   enableRounding(): void;
@@ -840,7 +840,7 @@ declare class TaffyTree<TContext = unknown> {
   newLeafWithContext(context: TContext | undefined, style?: StyleInput): NodeId;
   /** Creates a parent from ordered children and an optional style. */
   newWithChildren(children: readonly NodeId[], style?: StyleInput): NodeId;
-  /** Removes one node, its context and measure function, and invalidates its public NodeId. */
+  /** Removes one node and releases its context and measure function. The NodeId must not be used again. */
   remove(node: NodeId): void;
   /** Returns the JavaScript context currently associated with one node. */
   getNodeContext(node: NodeId): TContext | undefined;

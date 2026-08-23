@@ -8,25 +8,25 @@ Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScri
 
 `@taffyjs/node` exposes Taffy's high-level `TaffyTree` workflow: create nodes, mutate topology and style, attach JavaScript context, compute layout, and read stored results. Low-level custom-tree traits, cache internals, CSS parsing, Yoga compatibility, and Rust implementation helpers are outside this package.
 
-Taffy remains the only owner of topology, Style, Layout, cache, and computation state. The authored JavaScript wrapper owns only data that Taffy cannot represent safely for JavaScript: public NodeId validity metadata, arbitrary JavaScript context values, and per-node JavaScript measure functions. There is no JavaScript shadow tree or cache of Taffy-owned data.
+Taffy remains the only owner of topology, Style, Layout, cache, and computation state. The authored JavaScript wrapper owns only data that Taffy cannot retain safely for JavaScript: arbitrary JavaScript context values and per-node JavaScript measure functions. There is no JavaScript shadow tree, NodeId registry, or cache of Taffy-owned data.
 
 The napi-rs class and generated loader are private implementation modules. `packages/taffyjs-node/src/binding.ts` is the only maintained TypeScript file that imports the generated loader; the wrapper and private native tests use that entry. Public consumers import only `@taffyjs/node`; direct platform-package access bypasses the wrapper's guarantees.
 
 ## Public and native calls
 
-The public `TaffyTree<TContext>` is implemented in TypeScript and owns one private native tree. Public methods validate wrapper-owned state, then synchronously call a small raw native operation. Public method names are not sent through Node-API; the native busy diagnostic is selected inside each Rust method.
+The public `TaffyTree<TContext>` is implemented in TypeScript and owns one private native tree. Public methods validate representability and wrapper-owned callback or context state, then synchronously call a small raw native operation. Public method names are not sent through Node-API; the native busy diagnostic is selected inside each Rust method.
 
 Layout remains explicit. `getLayout` and `getUnroundedLayout` return what Taffy currently stores, including zero before the first compute and an older value after a mutation. Only `computeLayout` performs layout work; its options may include a call-scoped global measurement fallback.
 
 ## NodeId
 
-`NodeId` is an opaque TypeScript-branded `bigint`. Its private encoding contains a per-tree random token, a binding-issued creation serial, and Taffy's raw NodeId. The bit layout is not a persistence or arithmetic format.
+`NodeId` is an opaque TypeScript-branded `bigint` whose runtime value is exactly Taffy's raw `u64` NodeId. The TypeScript marker prevents accidental mixing with general bigints in checked code but has no runtime representation. The wrapper checks only that a consumed value is a bigint within the `u64` range; the native boundary repeats the lossless conversion check.
 
-Each public tree keeps one `raw NodeId -> current serial` map. Every consumed ID must be a well-formed bigint, belong to that tree, and match the current serial. Removal deletes its entry; clear deletes all entries; reuse of a native slot receives a new serial. Repeated reads of the same live node recreate the same bigint, so `===`, `Map`, `Set`, and `includes` work normally.
+Taffy's raw NodeId is the `u64` representation of its SlotMap key. SlotMap normally changes the key generation when a removed slot is reused, so a replacement receives a different raw value without wrapper bookkeeping. Repeated reads of the same live node return the same bigint, so `===`, `Map`, `Set`, and `includes` work normally within one tree.
 
-NodeId arrays are fully checked before native mutation. The native layer trusts the supported wrapper path and does not maintain a second owner or serial table.
+The wrapper and native layer maintain no owner, serial, or liveness table. A live NodeId from the receiving tree is a caller precondition. Independent trees can issue equal values; using one tree's value with another can operate on a numerically matching target-tree node. Forged, foreign, and stale in-range keys are unsupported and receive no stable classification.
 
-Malformed, foreign, and stale IDs use `ERR_TAFFY_INVALID_NODE_ID`, `ERR_TAFFY_FOREIGN_NODE_ID`, and `ERR_TAFFY_STALE_NODE_ID`. A copied bigint is not transferable with its tree across workers or separate package instances.
+The pinned Taffy revision directly indexes its SlotMaps in several high-level methods, so a non-live in-range key can panic instead of returning `TaffyError`. Every native tree operation runs inside `TreeOwner::access`, whose unwind boundary converts an unexpected panic to an internal failure and poisons that tree before it can be used again. This preserves native process safety without recreating a node registry; it does not make the invalid call supported. A copied bigint is not a transferable native tree handle across workers or separate package instances.
 
 ## Input conversion
 
@@ -108,9 +108,9 @@ Each native measured `computeLayout` creates one Rust `MeasureSession` that reus
 
 ## Mutation, errors, and panic containment
 
-Validate complete input, every involved NodeId, topology, index, and range before the first ordinary mutation. Failed single-value and collection mutations must not leave partial wrapper or native state. Measured computation is the documented exception because callback failure happens after computation has started.
+Validate complete input, every involved NodeId's bigint/`u64` representation, topology, index, and range before the first ordinary mutation. Failed single-value and collection mutations must not leave partial wrapper or native state. Measured computation is the documented exception because callback failure happens after computation has started.
 
-Shape failures use `TypeError`, numeric range failures use `RangeError`, and ordinary Taffy operation failures use `Error`. Stable NodeId and busy codes are part of the public contract; exact prose is not.
+Shape failures and NodeId bigint/`u64` representation failures use `TypeError`, other numeric range failures use `RangeError`, and ordinary Taffy operation failures use `Error`. The documented topology, child-index, and busy codes are part of the public contract; exact prose is not.
 
 Known JavaScript-controlled panic paths are prevented before Taffy. On native targets, the Rust owner catches unexpected panics as a final boundary and prevents later access to a possibly inconsistent tree; panic handling is not normal error control flow. `wasm32-wasip1` is compiled with aborting panics, so `@taffyjs/wasm` does not promise that this final unexpected-panic containment is recoverable. Expected validation and callback errors are still controlled before any abort path and are tested to leave the tree reusable.
 

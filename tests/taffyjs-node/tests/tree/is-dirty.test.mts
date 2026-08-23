@@ -2,8 +2,6 @@ import assert from "node:assert/strict";
 import { AlignContent, AvailableSpace, Display, type NodeId, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type CodedError = Error & { code?: string };
-
 function availableSpace() {
   return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
 }
@@ -26,16 +24,6 @@ function assertParentDirty(tree: TaffyTree, child: NodeId, parent: NodeId, root:
   assert.equal(tree.isDirty(child), false, "unchanged child stays clean");
   assert.equal(tree.isDirty(parent), true, "changed parent is dirty");
   assert.equal(tree.isDirty(root), true, "ancestor is dirty");
-}
-
-function captureError(body: () => unknown): CodedError {
-  try {
-    body();
-  } catch (error) {
-    assert.ok(error instanceof Error);
-    return error;
-  }
-  assert.fail("Expected operation to throw");
 }
 
 test("lifecycle", () => {
@@ -147,17 +135,4 @@ test("child-nuance", () => {
   compute(tree, root);
   assert.notEqual(tree.getUnroundedLayout(child).location.x, before);
   assert.equal(tree.isDirty(child), false);
-});
-
-test("invalid-id", () => {
-  const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(captureError(() => tree.isDirty(1 as never)).constructor, TypeError);
-  assert.equal(captureError(() => tree.isDirty(0n as never)).code, "ERR_TAFFY_INVALID_NODE_ID");
-  assert.equal(captureError(() => tree.isDirty(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
-
-  const stale = tree.newLeaf();
-  tree.clear();
-  assert.equal(captureError(() => tree.isDirty(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

@@ -2,20 +2,8 @@ import assert from "node:assert/strict";
 import { AvailableSpace, TaffyTree } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type CodedError = Error & { code?: string };
-
 function availableSpace() {
   return { width: AvailableSpace.MinContent, height: AvailableSpace.MinContent };
-}
-
-function captureError(body: () => unknown): CodedError {
-  try {
-    body();
-  } catch (error) {
-    assert.ok(error instanceof Error);
-    return error;
-  }
-  assert.fail("Expected operation to throw");
 }
 
 test("absence", () => {
@@ -64,20 +52,4 @@ test("manual-dirty", () => {
 
   tree.markDirty(node);
   assert.equal(tree.isDirty(node), true);
-});
-
-test("invalid-id", () => {
-  const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(captureError(() => tree.getNodeContext(1 as never)).constructor, TypeError);
-  assert.equal(
-    captureError(() => tree.getNodeContext(0n as never)).code,
-    "ERR_TAFFY_INVALID_NODE_ID",
-  );
-  assert.equal(captureError(() => tree.getNodeContext(foreign)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
-
-  const stale = tree.newLeaf();
-  tree.clear();
-  assert.equal(captureError(() => tree.getNodeContext(stale)).code, "ERR_TAFFY_STALE_NODE_ID");
 });

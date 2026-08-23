@@ -73,41 +73,6 @@ test("dirty", () => {
   assert.equal(tree.isDirty(root), true);
 });
 
-test("id-roles", () => {
-  const tree = new TaffyTree();
-  const child = tree.newLeaf();
-  const parent = tree.newWithChildren([child]);
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(captureError(() => tree.removeChild(1 as never, child)).constructor, TypeError);
-  assert.equal(
-    captureError(() => tree.removeChild(parent, 0n as never)).code,
-    "ERR_TAFFY_INVALID_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.removeChild(foreign, child)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.removeChild(parent, foreign)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-
-  const staleParent = tree.newLeaf();
-  const staleChild = tree.newLeaf();
-  tree.clear();
-  const currentParent = tree.newLeaf();
-  const currentChild = tree.newLeaf();
-  assert.equal(
-    captureError(() => tree.removeChild(staleParent, currentChild)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.removeChild(currentParent, staleChild)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-});
-
 test("failure-atomic", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf();

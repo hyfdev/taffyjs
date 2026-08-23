@@ -13,20 +13,8 @@ import {
 } from "@taffyjs/node";
 import { test } from "vite-plus/test";
 
-type CodedError = Error & { code?: string };
-
 function maxContentSpace() {
   return { width: AvailableSpace.MaxContent, height: AvailableSpace.MaxContent };
-}
-
-function captureError(body: () => unknown): CodedError {
-  try {
-    body();
-  } catch (error) {
-    assert.ok(error instanceof Error);
-    return error;
-  }
-  assert.fail("Expected operation to throw");
 }
 
 function reentrantStyle(run: () => void, flexGrow: number): StyleInput {
@@ -167,11 +155,8 @@ test("all five Style operations isolate recursive calls and oversized storage", 
   }
 });
 
-test("stale and foreign IDs win before Style getters", () => {
+test("NodeId representation is checked before Style getters", () => {
   const tree = new TaffyTree();
-  const foreign = new TaffyTree().newLeaf();
-  const stale = tree.newLeaf();
-  tree.remove(stale);
   let getterCalls = 0;
   const style = {
     get display(): never {
@@ -180,12 +165,9 @@ test("stale and foreign IDs win before Style getters", () => {
     },
   };
 
-  assert.equal(captureError(() => tree.setStyle(foreign, style)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
-  assert.equal(captureError(() => tree.updateStyle(stale, style)).code, "ERR_TAFFY_STALE_NODE_ID");
-  assert.equal(
-    captureError(() => tree.newWithChildren([foreign], style)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
+  assert.throws(() => tree.setStyle(-1n as never, style), TypeError);
+  assert.throws(() => tree.updateStyle((1n << 64n) as never, style), TypeError);
+  assert.throws(() => tree.newWithChildren([1 as never], style), TypeError);
   assert.equal(getterCalls, 0);
 });
 

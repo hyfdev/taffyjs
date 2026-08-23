@@ -32,6 +32,8 @@ impl TreeOwner {
             .tree
             .try_borrow_mut()
             .map_err(|_| busy_error(public_method))?;
+        // Taffy's high-level methods directly index SlotMaps in several paths. This boundary also
+        // contains their panic when an unsupported forged, foreign, or stale raw NodeId misses.
         match catch_unwind(AssertUnwindSafe(|| operation(&mut tree))) {
             Ok(result) => result,
             Err(_) => {
@@ -70,6 +72,21 @@ mod tests {
         let owner = TreeOwner::new();
         let first = owner.access::<()>("test", |_| injected_unexpected_panic());
         assert_eq!(first.unwrap_err().code, Some("ERR_TAFFY_INTERNAL"));
+        let second = owner.access("getNodeCount", |tree| Ok(tree.total_node_count()));
+        assert_eq!(second.unwrap_err().code, Some("ERR_TAFFY_TREE_POISONED"));
+    }
+
+    #[test]
+    fn invalid_taffy_node_panic_is_contained() {
+        let owner = TreeOwner::new();
+        let invalid = taffy::NodeId::from(0u64);
+        let first = owner.access("getStyle", |tree| {
+            tree.style(invalid)
+                .map(|_| ())
+                .map_err(|_| internal_error())
+        });
+        assert_eq!(first.unwrap_err().code, Some("ERR_TAFFY_INTERNAL"));
+
         let second = owner.access("getNodeCount", |tree| Ok(tree.total_node_count()));
         assert_eq!(second.unwrap_err().code, Some("ERR_TAFFY_TREE_POISONED"));
     }

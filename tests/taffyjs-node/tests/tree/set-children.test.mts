@@ -112,21 +112,6 @@ test("topology-reject", () => {
   );
 });
 
-test("invalid-middle", () => {
-  const tree = new TaffyTree();
-  const first = tree.newLeaf();
-  const last = tree.newLeaf();
-  const parent = tree.newWithChildren([first]);
-  const foreign = new TaffyTree().newLeaf();
-  const before = topology(tree, [first, last, parent]);
-
-  assert.equal(
-    captureError(() => tree.setChildren(parent, [last, foreign, first])).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-  assert.deepEqual(topology(tree, [first, last, parent]), before);
-});
-
 test("failure-atomic", () => {
   const tree = new TaffyTree();
   const [first, second, third] = [tree.newLeaf(), tree.newLeaf(), tree.newLeaf()];
@@ -138,6 +123,9 @@ test("failure-atomic", () => {
     captureError(() => tree.setChildren(parent, [third, third])).code,
     "ERR_TAFFY_INVALID_TOPOLOGY",
   );
+  assert.deepEqual(topology(tree, nodes), before);
+
+  assert.throws(() => tree.setChildren(parent, [third, -1n as never, first]), TypeError);
   assert.deepEqual(topology(tree, nodes), before);
 
   assert.throws(() => tree.setChildren(parent, {} as unknown as readonly NodeId[]), TypeError);

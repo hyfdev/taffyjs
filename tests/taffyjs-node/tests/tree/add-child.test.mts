@@ -82,38 +82,6 @@ test("topology-reject", () => {
   );
 });
 
-test("id-roles", () => {
-  const tree = new TaffyTree();
-  const parent = tree.newLeaf();
-  const child = tree.newLeaf();
-  const foreign = new TaffyTree().newLeaf();
-
-  assert.equal(captureError(() => tree.addChild(1 as never, child)).constructor, TypeError);
-  assert.equal(
-    captureError(() => tree.addChild(parent, 0n as never)).code,
-    "ERR_TAFFY_INVALID_NODE_ID",
-  );
-  assert.equal(captureError(() => tree.addChild(foreign, child)).code, "ERR_TAFFY_FOREIGN_NODE_ID");
-  assert.equal(
-    captureError(() => tree.addChild(parent, foreign)).code,
-    "ERR_TAFFY_FOREIGN_NODE_ID",
-  );
-
-  const staleParent = tree.newLeaf();
-  const staleChild = tree.newLeaf();
-  tree.clear();
-  const currentParent = tree.newLeaf();
-  const currentChild = tree.newLeaf();
-  assert.equal(
-    captureError(() => tree.addChild(staleParent, currentChild)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-  assert.equal(
-    captureError(() => tree.addChild(currentParent, staleChild)).code,
-    "ERR_TAFFY_STALE_NODE_ID",
-  );
-});
-
 test("failure-atomic", () => {
   const tree = new TaffyTree();
   const child = tree.newLeaf({ flexGrow: 1 });
