@@ -186,6 +186,7 @@ export interface StyleOutput {
   textAlign: number;
   flexDirection: number;
   flexWrap: number;
+  flexLineCount: number;
   flexBasis: LengthOutput;
   flexGrow: number;
   flexShrink: number;

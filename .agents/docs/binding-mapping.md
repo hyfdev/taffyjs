@@ -58,11 +58,15 @@ Indices and Rust integer payloads must be finite exact integers in their public 
 
 Fieldless families such as `Display`, `Overflow`, and `AlignItems` use stable numeric literal members exposed through frozen PascalCase objects. Public code should use the names, while an exact valid raw code remains accepted. Rust conversion checks exact family membership and does not derive codes from Rust declaration order.
 
+`FlexWrap` includes Taffy's balanced and balanced-reverse variants. The companion `flexLineCount` field is checked as an exact `u16`; the binding preserves every representable value, including zero, while Taffy's layout algorithms interpret zero as one.
+
 `Contain` uses the same finite numeric-family boundary for the four combinations Taffy can store: `None`, `Layout`, `Paint`, and `Content` (`Layout | Paint`). This exposes Taffy's layout-affecting containment flags without importing CSS parsing or accepting unknown bits.
 
 ### Lengths, available space, and other tagged values
 
-Length inputs accept a direct number as shorthand for an absolute length. The complete tagged form remains supported through values such as `Dimension.Length(20)`, `Dimension.Percent(50)`, and `Dimension.Auto`, and tagged length outputs remain valid later inputs. Percent helpers use user-facing percentages, so `50` maps to Taffy's `0.5`. CSS strings are not length values.
+Length inputs accept a direct number as shorthand for an absolute length. The complete tagged form remains supported through values such as `Dimension.Length(20)`, `Dimension.Percent(50)`, and `Dimension.Auto`, and tagged length outputs remain valid later inputs. Full `Dimension` values also include `MinContent`, `MaxContent`, bare `FitContent`, `FitContentLength(value)`, `FitContentPercent(value)`, `Stretch`, and `Content`. Percent helpers use user-facing percentages, so `50` maps to Taffy's `0.5`. CSS strings are not length values.
+
+Only `size` and `flexBasis` accept that full `Dimension` family. `minSize` and `maxSize` remain `LengthPercentageAuto`; spacing fields retain their narrower length categories. `Content` is principally a flex-basis value and is stored unchanged in `size`, where Taffy defines it to behave like `Auto`.
 
 Available-space inputs accept a direct number as shorthand for `Definite`. The complete forms remain supported through `AvailableSpace.Definite(value)`, `AvailableSpace.MinContent`, and `AvailableSpace.MaxContent`, and tagged available-space outputs remain valid later inputs. Every JavaScript number, including negative values, `NaN`, and infinities, retains the existing definite-value conversion behavior; no number is reserved for a special variant.
 

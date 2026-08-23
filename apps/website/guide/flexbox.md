@@ -45,9 +45,11 @@ The children are the same nodes, in the same order, with the same styles. The ch
 
 ## The related controls
 
-`flexBasis` supplies the starting main-axis size when present. `flexGrow` divides positive free space. `flexShrink` controls how items contract when their bases do not fit. `size`, `minSize`, and `maxSize` still constrain the result.
+`flexBasis` supplies the starting main-axis size when present. Use `Dimension.Content` to derive that basis from the item's measured content. `flexGrow` divides positive free space. `flexShrink` controls how items contract when their bases do not fit. `size`, `minSize`, and `maxSize` still constrain the result.
 
-`FlexWrap.Wrap` allows items to form additional lines when they do not fit on one line; `WrapReverse` reverses the cross-axis line direction. Without wrapping, `FlexWrap.NoWrap` keeps one line.
+`FlexWrap.Wrap` allows items to form additional lines when they do not fit on one line; `WrapReverse` reverses the cross-axis line direction. `FlexWrap.Balance` distributes items more evenly across lines, and `BalanceReverse` combines that distribution with reversed cross-axis line direction. Without wrapping, `FlexWrap.NoWrap` keeps one line.
+
+`flexLineCount` requests at least that many lines for balanced wrapping. For any multi-line wrapping mode, it also tells Taffy how many lines to use when dividing definite cross-axis space for measurement. The default is `1`; use a positive integer up to 65,535. It has no layout effect with `FlexWrap.NoWrap`.
 
 Alignment names describe where remaining space goes:
 

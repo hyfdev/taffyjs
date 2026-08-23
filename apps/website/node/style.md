@@ -17,6 +17,8 @@ These fields describe the node itself or are shared by more than one layout mode
 | `margin`, `padding`, `border`, `gap`                                                       | Supply spacing around, inside, and between boxes.                        |
 | `alignItems`, `alignSelf`, `justifyItems`, `justifySelf`, `alignContent`, `justifyContent` | Align items, individual nodes, or groups of lines and tracks.            |
 
+`size` accepts every `Dimension` helper, including intrinsic sizing, fit-content, stretch, and content. `minSize` and `maxSize` accept only concrete lengths, percentages, and `Dimension.Auto`.
+
 Geometry fields accept either one supported value for every component or a partial named record. For example, `padding: 12` applies to all four sides. With creation or `setStyle`, `padding: { left: 12, right: 12 }` fills the other sides from defaults; with `updateStyle`, it preserves the other stored sides.
 
 The optional fields `aspectRatio`, the six alignment fields, and `gridTemplateAreas` accept `null` to store Taffy's absent value. Other fields reject `null`.
@@ -32,10 +34,11 @@ Block layout also uses the shared sizing, box-model, overflow, and positioning f
 
 ## Flexbox fields
 
-| Fields                                | Purpose                                                |
-| ------------------------------------- | ------------------------------------------------------ |
-| `flexDirection`, `flexWrap`           | Select the main axis and whether items form new lines. |
-| `flexBasis`, `flexGrow`, `flexShrink` | Set the starting main size and distribute free space.  |
+| Fields                                | Purpose                                                            |
+| ------------------------------------- | ------------------------------------------------------------------ |
+| `flexDirection`, `flexWrap`           | Select the main axis and how items form and order lines.           |
+| `flexLineCount`                       | Request a minimum line count and influence multi-line measurement. |
+| `flexBasis`, `flexGrow`, `flexShrink` | Set the starting main size and distribute free space.              |
 
 The shared alignment fields control placement along the main and cross axes. See the [Flexbox guide](../guide/flexbox.md) for how these fields work together.
 

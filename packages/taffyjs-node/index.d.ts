@@ -117,6 +117,10 @@ declare const FlexWrap: Readonly<{
   readonly Wrap: 1;
   /** Selects the WrapReverse choice from the FlexWrap numeric family. */
   readonly WrapReverse: 2;
+  /** Selects the Balance choice from the FlexWrap numeric family. */
+  readonly Balance: 3;
+  /** Selects the BalanceReverse choice from the FlexWrap numeric family. */
+  readonly BalanceReverse: 4;
 }>;
 type FlexWrap = EnumValue<typeof FlexWrap>;
 /** Lists the supported grid auto flow choices as stable numeric constants. */
@@ -207,6 +211,20 @@ declare const LengthUnit: Readonly<{
   readonly Percent: 1;
   /** Selects the Auto choice from the LengthUnit numeric family. */
   readonly Auto: 2;
+  /** Selects the MinContent choice from the LengthUnit numeric family. */
+  readonly MinContent: 3;
+  /** Selects the MaxContent choice from the LengthUnit numeric family. */
+  readonly MaxContent: 4;
+  /** Selects the FitContent choice from the LengthUnit numeric family. */
+  readonly FitContent: 5;
+  /** Selects the FitContentLength choice from the LengthUnit numeric family. */
+  readonly FitContentLength: 6;
+  /** Selects the FitContentPercent choice from the LengthUnit numeric family. */
+  readonly FitContentPercent: 7;
+  /** Selects the Stretch choice from the LengthUnit numeric family. */
+  readonly Stretch: 8;
+  /** Selects the Content choice from the LengthUnit numeric family. */
+  readonly Content: 9;
 }>;
 type LengthUnit = EnumValue<typeof LengthUnit>;
 /** Lists the supported available space kind choices as stable numeric constants. */
@@ -300,6 +318,36 @@ type PercentInput = {
 type AutoInput = {
   /** Selects the Auto branch. */ unit: typeof LengthUnit.Auto;
 };
+/** Supplies the complete `Dimension.MinContent` input form. */
+type DimensionMinContentInput = {
+  /** Selects the MinContent branch. */ unit: typeof LengthUnit.MinContent;
+};
+/** Supplies the complete `Dimension.MaxContent` input form. */
+type DimensionMaxContentInput = {
+  /** Selects the MaxContent branch. */ unit: typeof LengthUnit.MaxContent;
+};
+/** Supplies the complete `Dimension.FitContent` input form. */
+type DimensionFitContentInput = {
+  /** Selects the FitContent branch. */ unit: typeof LengthUnit.FitContent;
+};
+/** Supplies the complete `Dimension.FitContentLength(value)` input form. */
+type DimensionFitContentLengthInput = {
+  /** Selects the FitContentLength branch. */ unit: typeof LengthUnit.FitContentLength;
+  /** Supplies the numeric payload for `Dimension.FitContentLength(value)`. */ value: number;
+};
+/** Supplies the complete `Dimension.FitContentPercent(value)` input form. */
+type DimensionFitContentPercentInput = {
+  /** Selects the FitContentPercent branch. */ unit: typeof LengthUnit.FitContentPercent;
+  /** Supplies the numeric payload for `Dimension.FitContentPercent(value)`. */ value: number;
+};
+/** Supplies the complete `Dimension.Stretch` input form. */
+type DimensionStretchInput = {
+  /** Selects the Stretch branch. */ unit: typeof LengthUnit.Stretch;
+};
+/** Supplies the complete `Dimension.Content` input form. */
+type DimensionContentInput = {
+  /** Selects the Content branch. */ unit: typeof LengthUnit.Content;
+};
 /** Accepts a number as shorthand for `Dimension.Length(value)`, or a complete tagged `LengthPercentageInput` value. */
 type LengthPercentageInput = number | LengthInput | PercentInput;
 /** Represents a complete tagged `LengthPercentage` value returned by the binding. */
@@ -309,15 +357,32 @@ type LengthPercentageAutoInput = number | LengthInput | PercentInput | AutoInput
 /** Represents a complete tagged `LengthPercentageAuto` value returned by the binding. */
 type LengthPercentageAuto = Readonly<LengthInput> | Readonly<PercentInput> | Readonly<AutoInput>;
 /** Accepts a number as shorthand for `Dimension.Length(value)`, or a complete tagged `DimensionInput` value. */
-type DimensionInput = number | LengthInput | PercentInput | AutoInput;
+type DimensionInput = number | LengthInput | PercentInput | AutoInput | DimensionMinContentInput | DimensionMaxContentInput | DimensionFitContentInput | DimensionFitContentLengthInput | DimensionFitContentPercentInput | DimensionStretchInput | DimensionContentInput;
 /** Represents a complete tagged `Dimension` value returned by the binding. */
-type Dimension = Readonly<LengthInput> | Readonly<PercentInput> | Readonly<AutoInput>;
+type Dimension = Readonly<LengthInput> | Readonly<PercentInput> | Readonly<AutoInput> | Readonly<DimensionMinContentInput> | Readonly<DimensionMaxContentInput> | Readonly<DimensionFitContentInput> | Readonly<DimensionFitContentLengthInput> | Readonly<DimensionFitContentPercentInput> | Readonly<DimensionStretchInput> | Readonly<DimensionContentInput>;
 /** Provides complete tagged forms for dimension inputs, including `Dimension.Length(value)`, the form represented by numeric shorthand. */
 declare const Dimension: Readonly<{
   Length(value: number): LengthInput;
   Percent(value: number): PercentInput;
   Auto: Readonly<{
     readonly unit: 2;
+  }>;
+  MinContent: Readonly<{
+    readonly unit: 3;
+  }>;
+  MaxContent: Readonly<{
+    readonly unit: 4;
+  }>;
+  FitContent: Readonly<{
+    readonly unit: 5;
+  }>;
+  FitContentLength(value: number): DimensionFitContentLengthInput;
+  FitContentPercent(value: number): DimensionFitContentPercentInput;
+  Stretch: Readonly<{
+    readonly unit: 8;
+  }>;
+  Content: Readonly<{
+    readonly unit: 9;
   }>;
 }>;
 /** Supplies the complete `AvailableSpace.Definite(value)` input form. */
@@ -594,8 +659,8 @@ interface Style {
   /** Reports the node's stored position style value. */ readonly position: Position;
   /** Reports the node's stored inset style value. */ readonly inset: Rect<LengthPercentageAuto>;
   /** Reports the node's stored size style value. */ readonly size: Size<Dimension>;
-  /** Reports the node's stored min size style value. */ readonly minSize: Size<Dimension>;
-  /** Reports the node's stored max size style value. */ readonly maxSize: Size<Dimension>;
+  /** Reports the node's stored min size style value. */ readonly minSize: Size<LengthPercentageAuto>;
+  /** Reports the node's stored max size style value. */ readonly maxSize: Size<LengthPercentageAuto>;
   /** Reports the node's stored aspect ratio style value. */ readonly aspectRatio: number | null;
   /** Reports the node's stored margin style value. */ readonly margin: Rect<LengthPercentageAuto>;
   /** Reports the node's stored padding style value. */ readonly padding: Rect<LengthPercentage>;
@@ -610,6 +675,7 @@ interface Style {
   /** Reports the node's stored text align style value. */ readonly textAlign: TextAlign;
   /** Reports the node's stored flex direction style value. */ readonly flexDirection: FlexDirection;
   /** Reports the node's stored flex wrap style value. */ readonly flexWrap: FlexWrap;
+  /** Reports the stored unsigned 16-bit minimum flex line count. */ readonly flexLineCount: number;
   /** Reports the node's stored flex basis style value. */ readonly flexBasis: Dimension;
   /** Reports the node's stored flex grow style value. */ readonly flexGrow: number;
   /** Reports the node's stored flex shrink style value. */ readonly flexShrink: number;
@@ -781,8 +847,8 @@ interface StyleInput {
   /** Supplies the node's position style when present. */ position?: Position | undefined;
   /** Supplies the node's inset style when present. */ inset?: LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput> | undefined;
   /** Supplies the node's size style when present. */ size?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
-  /** Supplies the node's min size style when present. */ minSize?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
-  /** Supplies the node's max size style when present. */ maxSize?: DimensionInput | PartialSizeInput<DimensionInput> | undefined;
+  /** Supplies the node's min size style when present. */ minSize?: LengthPercentageAutoInput | PartialSizeInput<LengthPercentageAutoInput> | undefined;
+  /** Supplies the node's max size style when present. */ maxSize?: LengthPercentageAutoInput | PartialSizeInput<LengthPercentageAutoInput> | undefined;
   /** Omission uses a default for replacement and preserves on update; null stores Taffy None. */ aspectRatio?: number | null | undefined;
   /** Supplies the node's margin style when present. */ margin?: LengthPercentageAutoInput | PartialRectInput<LengthPercentageAutoInput> | undefined;
   /** Supplies the node's padding style when present. */ padding?: LengthPercentageInput | PartialRectInput<LengthPercentageInput> | undefined;
@@ -797,6 +863,7 @@ interface StyleInput {
   /** Supplies the node's text align style when present. */ textAlign?: TextAlign | undefined;
   /** Supplies the node's flex direction style when present. */ flexDirection?: FlexDirection | undefined;
   /** Supplies the node's flex wrap style when present. */ flexWrap?: FlexWrap | undefined;
+  /** Supplies the requested minimum flex line count as an exact integer from 0 through 65535 when present. */ flexLineCount?: number | undefined;
   /** Supplies the node's flex basis style when present. */ flexBasis?: DimensionInput | undefined;
   /** Supplies the node's flex grow style when present. */ flexGrow?: number | undefined;
   /** Supplies the node's flex shrink style when present. */ flexShrink?: number | undefined;

@@ -187,7 +187,7 @@ export class StyleEncoder {
   partialRectLengthPercentageAuto(value: unknown, name: string): void {
     if (this.#isLengthInput(value, name)) {
       this.#u8(SCALAR_GEOMETRY);
-      this.#length(value, true, name);
+      this.#length(value, true, false, name);
       return;
     }
     const object = geometryObject(value, RECT_FIELDS, name);
@@ -201,30 +201,44 @@ export class StyleEncoder {
         (top === undefined ? 0 : 4) |
         (bottom === undefined ? 0 : 8),
     );
-    if (left !== undefined) this.#length(left, true, `${name}.left`);
-    if (right !== undefined) this.#length(right, true, `${name}.right`);
-    if (top !== undefined) this.#length(top, true, `${name}.top`);
-    if (bottom !== undefined) this.#length(bottom, true, `${name}.bottom`);
+    if (left !== undefined) this.#length(left, true, false, `${name}.left`);
+    if (right !== undefined) this.#length(right, true, false, `${name}.right`);
+    if (top !== undefined) this.#length(top, true, false, `${name}.top`);
+    if (bottom !== undefined) this.#length(bottom, true, false, `${name}.bottom`);
   }
 
   partialSizeDimension(value: unknown, name: string): void {
     if (this.#isLengthInput(value, name)) {
       this.#u8(SCALAR_GEOMETRY);
-      this.#length(value, true, name);
+      this.#length(value, true, true, name);
       return;
     }
     const object = geometryObject(value, SIZE_FIELDS, name);
     const width = object.width;
     const height = object.height;
     this.#u8((width === undefined ? 0 : 1) | (height === undefined ? 0 : 2));
-    if (width !== undefined) this.#length(width, true, `${name}.width`);
-    if (height !== undefined) this.#length(height, true, `${name}.height`);
+    if (width !== undefined) this.#length(width, true, true, `${name}.width`);
+    if (height !== undefined) this.#length(height, true, true, `${name}.height`);
+  }
+
+  partialSizeLengthPercentageAuto(value: unknown, name: string): void {
+    if (this.#isLengthInput(value, name)) {
+      this.#u8(SCALAR_GEOMETRY);
+      this.#length(value, true, false, name);
+      return;
+    }
+    const object = geometryObject(value, SIZE_FIELDS, name);
+    const width = object.width;
+    const height = object.height;
+    this.#u8((width === undefined ? 0 : 1) | (height === undefined ? 0 : 2));
+    if (width !== undefined) this.#length(width, true, false, `${name}.width`);
+    if (height !== undefined) this.#length(height, true, false, `${name}.height`);
   }
 
   partialRectLengthPercentage(value: unknown, name: string): void {
     if (this.#isLengthInput(value, name)) {
       this.#u8(SCALAR_GEOMETRY);
-      this.#length(value, false, name);
+      this.#length(value, false, false, name);
       return;
     }
     const object = geometryObject(value, RECT_FIELDS, name);
@@ -238,28 +252,32 @@ export class StyleEncoder {
         (top === undefined ? 0 : 4) |
         (bottom === undefined ? 0 : 8),
     );
-    if (left !== undefined) this.#length(left, false, `${name}.left`);
-    if (right !== undefined) this.#length(right, false, `${name}.right`);
-    if (top !== undefined) this.#length(top, false, `${name}.top`);
-    if (bottom !== undefined) this.#length(bottom, false, `${name}.bottom`);
+    if (left !== undefined) this.#length(left, false, false, `${name}.left`);
+    if (right !== undefined) this.#length(right, false, false, `${name}.right`);
+    if (top !== undefined) this.#length(top, false, false, `${name}.top`);
+    if (bottom !== undefined) this.#length(bottom, false, false, `${name}.bottom`);
   }
 
   partialSizeLengthPercentage(value: unknown, name: string): void {
     if (this.#isLengthInput(value, name)) {
       this.#u8(SCALAR_GEOMETRY);
-      this.#length(value, false, name);
+      this.#length(value, false, false, name);
       return;
     }
     const object = geometryObject(value, SIZE_FIELDS, name);
     const width = object.width;
     const height = object.height;
     this.#u8((width === undefined ? 0 : 1) | (height === undefined ? 0 : 2));
-    if (width !== undefined) this.#length(width, false, `${name}.width`);
-    if (height !== undefined) this.#length(height, false, `${name}.height`);
+    if (width !== undefined) this.#length(width, false, false, `${name}.width`);
+    if (height !== undefined) this.#length(height, false, false, `${name}.height`);
   }
 
   dimension(value: unknown, name: string): void {
-    this.#length(value, true, name);
+    this.#length(value, true, true, name);
+  }
+
+  unsigned16(value: unknown, name: string): void {
+    this.#u16(inputInteger(value, 0, 0xffff, name));
   }
 
   gridTemplateComponents(value: unknown, name: string): void {
@@ -329,7 +347,7 @@ export class StyleEncoder {
     return true;
   }
 
-  #length(value: unknown, allowAuto: boolean, name: string): void {
+  #length(value: unknown, allowAuto: boolean, allowIntrinsic: boolean, name: string): void {
     if (typeof value === "number") {
       this.#u8(LengthUnit.Length);
       this.#f64(value);
@@ -337,12 +355,31 @@ export class StyleEncoder {
     }
     const object = inputObject(value, name);
     const unit = inputInteger(object.unit, 0, 0xff, `${name}.unit`);
-    if (unit !== LengthUnit.Length && unit !== LengthUnit.Percent && unit !== LengthUnit.Auto) {
+    if (
+      unit !== LengthUnit.Length &&
+      unit !== LengthUnit.Percent &&
+      unit !== LengthUnit.Auto &&
+      (!allowIntrinsic ||
+        (unit !== LengthUnit.MinContent &&
+          unit !== LengthUnit.MaxContent &&
+          unit !== LengthUnit.FitContent &&
+          unit !== LengthUnit.FitContentLength &&
+          unit !== LengthUnit.FitContentPercent &&
+          unit !== LengthUnit.Stretch &&
+          unit !== LengthUnit.Content))
+    ) {
       throw rangeError(`${name}.unit`, "a supported length unit");
     }
     const payload = object.value;
     if (payload !== undefined) inputNumber(payload, `${name}.value`);
-    if (unit === LengthUnit.Auto) {
+    if (
+      unit === LengthUnit.Auto ||
+      unit === LengthUnit.MinContent ||
+      unit === LengthUnit.MaxContent ||
+      unit === LengthUnit.FitContent ||
+      unit === LengthUnit.Stretch ||
+      unit === LengthUnit.Content
+    ) {
       if (!allowAuto) throw typeError(name, "a non-Auto length");
       this.#u8(unit);
       return;
@@ -416,7 +453,7 @@ export class StyleEncoder {
     ) {
       this.#f64(inputNumber(payload, `${name}.value`));
     } else if (kind === TrackSizingKind.FitContent) {
-      this.#length(payload, false, `${name}.value`);
+      this.#length(payload, false, false, `${name}.value`);
     }
   }
 

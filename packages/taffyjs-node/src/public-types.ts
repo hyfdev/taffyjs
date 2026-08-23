@@ -340,8 +340,8 @@ export interface Style {
   /** Reports the node's stored position style value. */ readonly position: Position;
   /** Reports the node's stored inset style value. */ readonly inset: Rect<LengthPercentageAuto>;
   /** Reports the node's stored size style value. */ readonly size: Size<Dimension>;
-  /** Reports the node's stored min size style value. */ readonly minSize: Size<Dimension>;
-  /** Reports the node's stored max size style value. */ readonly maxSize: Size<Dimension>;
+  /** Reports the node's stored min size style value. */ readonly minSize: Size<LengthPercentageAuto>;
+  /** Reports the node's stored max size style value. */ readonly maxSize: Size<LengthPercentageAuto>;
   /** Reports the node's stored aspect ratio style value. */ readonly aspectRatio: number | null;
   /** Reports the node's stored margin style value. */ readonly margin: Rect<LengthPercentageAuto>;
   /** Reports the node's stored padding style value. */ readonly padding: Rect<LengthPercentage>;
@@ -356,6 +356,7 @@ export interface Style {
   /** Reports the node's stored text align style value. */ readonly textAlign: TextAlign;
   /** Reports the node's stored flex direction style value. */ readonly flexDirection: FlexDirection;
   /** Reports the node's stored flex wrap style value. */ readonly flexWrap: FlexWrap;
+  /** Reports the stored unsigned 16-bit minimum flex line count. */ readonly flexLineCount: number;
   /** Reports the node's stored flex basis style value. */ readonly flexBasis: Dimension;
   /** Reports the node's stored flex grow style value. */ readonly flexGrow: number;
   /** Reports the node's stored flex shrink style value. */ readonly flexShrink: number;

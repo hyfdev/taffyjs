@@ -11,7 +11,7 @@ import {
   Position as TaffyPosition,
   type AlignContent as TaffyAlignContentValue,
   type AlignItems as TaffyAlignItemsValue,
-  type DimensionInput,
+  type LengthPercentageAutoInput,
   type StyleInput,
 } from "@taffyjs/node";
 import { resolveEdge, resolveGutter, type YogaDeclarations } from "./declarations.js";
@@ -169,7 +169,7 @@ function rect<T>(read: (edge: Edge.Left | Edge.Top | Edge.Right | Edge.Bottom) =
 function effectiveFlexBasis(
   declarations: YogaDeclarations,
   config: TranslationConfig,
-): DimensionInput {
+): LengthPercentageAutoInput {
   if (
     declarations.flexBasis.unit === Unit.Auto &&
     declarations.flex !== undefined &&
@@ -356,7 +356,7 @@ function rootMinimumOverride(
   minimum: YogaValue,
   maximum: YogaValue,
   ownerSize: number | undefined,
-): DimensionInput | undefined {
+): LengthPercentageAutoInput | undefined {
   const declaredLength = resolveLength(declared, ownerSize);
   const minimumLength = resolveLength(minimum, ownerSize);
   const maximumLength = resolveLength(maximum, ownerSize);

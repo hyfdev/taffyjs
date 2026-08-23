@@ -45,6 +45,13 @@ enum EncodedLength {
     Length(f64),
     Percent(f64),
     Auto,
+    MinContent,
+    MaxContent,
+    FitContent,
+    FitContentLength(f64),
+    FitContentPercent(f64),
+    Stretch,
+    Content,
 }
 
 fn reserved_vec<T>(count: usize, name: &str) -> BindingResult<Vec<T>> {
@@ -188,24 +195,42 @@ impl<'a> StyleDecoder<'a> {
         Ok(changed)
     }
 
-    pub(crate) fn dimension_size<T: Copy + PartialEq + From<LengthPercentageAuto>>(
+    pub(crate) fn dimension_size(
         &mut self,
-        current: &mut Size<T>,
+        current: &mut Size<Dimension>,
         name: &str,
     ) -> BindingResult<bool> {
         let mask = self.geometry_mask(0b11, true, name)?;
         if mask == SCALAR_GEOMETRY {
-            let value = self.length_percentage_auto(name)?.into();
+            let value = self.dimension(name)?;
             return Ok(replace(&mut current.width, value) | replace(&mut current.height, value));
         }
         let mut changed = false;
         if mask & 1 != 0 {
-            let value = self.length_percentage_auto(name)?.into();
-            changed |= replace(&mut current.width, value);
+            changed |= replace(&mut current.width, self.dimension(name)?);
         }
         if mask & 2 != 0 {
-            let value = self.length_percentage_auto(name)?.into();
-            changed |= replace(&mut current.height, value);
+            changed |= replace(&mut current.height, self.dimension(name)?);
+        }
+        Ok(changed)
+    }
+
+    pub(crate) fn length_percentage_auto_size(
+        &mut self,
+        current: &mut Size<LengthPercentageAuto>,
+        name: &str,
+    ) -> BindingResult<bool> {
+        let mask = self.geometry_mask(0b11, true, name)?;
+        if mask == SCALAR_GEOMETRY {
+            let value = self.length_percentage_auto(name)?;
+            return Ok(replace(&mut current.width, value) | replace(&mut current.height, value));
+        }
+        let mut changed = false;
+        if mask & 1 != 0 {
+            changed |= replace(&mut current.width, self.length_percentage_auto(name)?);
+        }
+        if mask & 2 != 0 {
+            changed |= replace(&mut current.height, self.length_percentage_auto(name)?);
         }
         Ok(changed)
     }
@@ -260,11 +285,26 @@ impl<'a> StyleDecoder<'a> {
     }
 
     pub(crate) fn dimension(&mut self, name: &str) -> BindingResult<Dimension> {
-        Ok(match self.encoded_length(true, name)? {
+        Ok(match self.encoded_length(true, true, name)? {
             EncodedLength::Length(value) => Dimension::length(number::to_f32(value)),
             EncodedLength::Percent(value) => Dimension::percent(number::to_f32(value / 100.0)),
             EncodedLength::Auto => Dimension::auto(),
+            EncodedLength::MinContent => Dimension::min_content(),
+            EncodedLength::MaxContent => Dimension::max_content(),
+            EncodedLength::FitContent => Dimension::fit_content(),
+            EncodedLength::FitContentLength(value) => {
+                Dimension::fit_content_px(number::to_f32(value))
+            }
+            EncodedLength::FitContentPercent(value) => {
+                Dimension::fit_content_percent(number::to_f32(value / 100.0))
+            }
+            EncodedLength::Stretch => Dimension::stretch(),
+            EncodedLength::Content => Dimension::content(),
         })
+    }
+
+    pub(crate) fn unsigned_16(&mut self, name: &str) -> BindingResult<u16> {
+        self.u16(name)
     }
 
     pub(crate) fn grid_template_components(
@@ -350,31 +390,50 @@ impl<'a> StyleDecoder<'a> {
     }
 
     fn length_percentage(&mut self, name: &str) -> BindingResult<LengthPercentage> {
-        Ok(match self.encoded_length(false, name)? {
+        Ok(match self.encoded_length(false, false, name)? {
             EncodedLength::Length(value) => LengthPercentage::length(number::to_f32(value)),
             EncodedLength::Percent(value) => {
                 LengthPercentage::percent(number::to_f32(value / 100.0))
             }
             EncodedLength::Auto => return Err(type_error(format!("{name} cannot be Auto"))),
+            _ => return Err(type_error(format!("{name} has an invalid length tag"))),
         })
     }
 
     fn length_percentage_auto(&mut self, name: &str) -> BindingResult<LengthPercentageAuto> {
-        Ok(match self.encoded_length(true, name)? {
+        Ok(match self.encoded_length(true, false, name)? {
             EncodedLength::Length(value) => LengthPercentageAuto::length(number::to_f32(value)),
             EncodedLength::Percent(value) => {
                 LengthPercentageAuto::percent(number::to_f32(value / 100.0))
             }
             EncodedLength::Auto => LengthPercentageAuto::auto(),
+            _ => return Err(type_error(format!("{name} has an invalid length tag"))),
         })
     }
 
-    fn encoded_length(&mut self, allow_auto: bool, name: &str) -> BindingResult<EncodedLength> {
+    fn encoded_length(
+        &mut self,
+        allow_auto: bool,
+        allow_intrinsic: bool,
+        name: &str,
+    ) -> BindingResult<EncodedLength> {
         match i64::from(self.u8(name)?).try_into() {
             Ok(LengthUnitCode::Length) => Ok(EncodedLength::Length(self.f64(name)?)),
             Ok(LengthUnitCode::Percent) => Ok(EncodedLength::Percent(self.f64(name)?)),
             Ok(LengthUnitCode::Auto) if allow_auto => Ok(EncodedLength::Auto),
             Ok(LengthUnitCode::Auto) => Err(type_error(format!("{name} cannot be Auto"))),
+            Ok(LengthUnitCode::MinContent) if allow_intrinsic => Ok(EncodedLength::MinContent),
+            Ok(LengthUnitCode::MaxContent) if allow_intrinsic => Ok(EncodedLength::MaxContent),
+            Ok(LengthUnitCode::FitContent) if allow_intrinsic => Ok(EncodedLength::FitContent),
+            Ok(LengthUnitCode::FitContentLength) if allow_intrinsic => {
+                Ok(EncodedLength::FitContentLength(self.f64(name)?))
+            }
+            Ok(LengthUnitCode::FitContentPercent) if allow_intrinsic => {
+                Ok(EncodedLength::FitContentPercent(self.f64(name)?))
+            }
+            Ok(LengthUnitCode::Stretch) if allow_intrinsic => Ok(EncodedLength::Stretch),
+            Ok(LengthUnitCode::Content) if allow_intrinsic => Ok(EncodedLength::Content),
+            Ok(_) => Err(type_error(format!("{name} has an invalid length tag"))),
             Err(_) => Err(type_error(format!("{name} has an invalid length tag"))),
         }
     }
@@ -590,7 +649,7 @@ mod tests {
     const PRESENCE_BYTES: usize = 6;
 
     fn packet(field: Option<usize>, payload: &[u8]) -> Vec<u8> {
-        let mut encoded = vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 2, PRESENCE_BYTES as u8];
+        let mut encoded = vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 3, PRESENCE_BYTES as u8];
         encoded.resize(4 + PRESENCE_BYTES, 0);
         if let Some(field) = field {
             encoded[4 + (field >> 3)] |= 1 << (field & 7);
@@ -604,18 +663,18 @@ mod tests {
         for encoded in [
             Vec::new(),
             vec![STYLE_MAGIC_0],
-            vec![0, STYLE_MAGIC_1, 2, PRESENCE_BYTES as u8],
-            vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 1, PRESENCE_BYTES as u8],
-            vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 2, 0],
+            vec![0, STYLE_MAGIC_1, 3, PRESENCE_BYTES as u8],
+            vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 2, PRESENCE_BYTES as u8],
+            vec![STYLE_MAGIC_0, STYLE_MAGIC_1, 3, 0],
         ] {
-            assert!(StyleDecoder::new(&encoded, 2, PRESENCE_BYTES, 42).is_err());
+            assert!(StyleDecoder::new(&encoded, 3, PRESENCE_BYTES, 43).is_err());
         }
     }
 
     #[test]
     fn rejects_truncation_trailing_data_and_unknown_presence_bits() {
         let mut target = Style::default();
-        assert!(style_input::decode_into(&mut target, &packet(Some(30), &[])).is_err());
+        assert!(style_input::decode_into(&mut target, &packet(Some(31), &[])).is_err());
         assert!(style_input::decode_into(&mut target, &packet(None, &[0])).is_err());
         assert!(style_input::decode_into(&mut target, &packet(Some(47), &[])).is_err());
     }

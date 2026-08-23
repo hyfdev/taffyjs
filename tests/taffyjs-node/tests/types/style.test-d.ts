@@ -2,6 +2,7 @@ import {
   AlignItems,
   Dimension,
   Display,
+  FlexWrap,
   GridPlacement,
   GridTemplateComponent,
   RepetitionCount,
@@ -17,7 +18,8 @@ const track = TrackSizingFunction.Fr(2);
 const mutableRows = [GridTemplateComponent.Single(track)];
 const input: StyleInput = {
   display: Display.Grid,
-  size: { width: 100, height: Dimension.Percent(50) },
+  size: { width: Dimension.MinContent, height: Dimension.FitContentPercent(50) },
+  minSize: { width: Dimension.Auto },
   margin: Dimension.Auto,
   alignItems: AlignItems.Center,
   gridTemplateRows: mutableRows,
@@ -26,6 +28,9 @@ const input: StyleInput = {
   ],
   gridRow: { start: GridPlacement.Line(1), end: GridPlacement.Span(2) },
   aspectRatio: null,
+  flexWrap: FlexWrap.Balance,
+  flexLineCount: 2,
+  flexBasis: Dimension.Content,
 };
 input.flexGrow = 1;
 mutableRows.push(GridTemplateComponent.Single(TrackSizingFunction.Auto));
@@ -58,6 +63,10 @@ tree.newLeaf({ unknownField: true });
 tree.newLeaf({ display: 99 });
 // @ts-expect-error A numeric length needs its value.
 tree.newLeaf({ flexBasis: { unit: 0 } });
+// @ts-expect-error Intrinsic Dimension keywords are not valid for minSize.
+tree.newLeaf({ minSize: { width: Dimension.MinContent } });
+// @ts-expect-error Intrinsic Dimension keywords are not valid for maxSize.
+tree.newLeaf({ maxSize: Dimension.FitContentLength(20) });
 // @ts-expect-error Non-nullable Style fields reject null.
 tree.newLeaf({ padding: null });
 // @ts-expect-error Nullable Style output fields are never undefined.

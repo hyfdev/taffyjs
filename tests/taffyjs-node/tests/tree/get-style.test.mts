@@ -32,6 +32,7 @@ const STYLE_FIELDS = [
   "textAlign",
   "flexDirection",
   "flexWrap",
+  "flexLineCount",
   "flexBasis",
   "flexGrow",
   "flexShrink",

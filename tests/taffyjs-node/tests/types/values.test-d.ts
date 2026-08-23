@@ -69,12 +69,18 @@ if (typeof available !== "number") {
 
 declare const dimension: DimensionInput;
 if (typeof dimension !== "number") {
-  if (dimension.unit !== LengthUnit.Auto) {
-    const value: number = dimension.value;
-    void value;
-  } else {
-    // @ts-expect-error Auto has no value payload.
-    void dimension.value;
+  switch (dimension.unit) {
+    case LengthUnit.Length:
+    case LengthUnit.Percent:
+    case LengthUnit.FitContentLength:
+    case LengthUnit.FitContentPercent: {
+      const value: number = dimension.value;
+      void value;
+      break;
+    }
+    default:
+      // @ts-expect-error Fieldless Dimension variants have no value payload.
+      void dimension.value;
   }
 }
 

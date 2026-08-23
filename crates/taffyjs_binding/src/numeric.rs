@@ -91,6 +91,8 @@ numeric_codes! {
         NoWrap = 0,
         Wrap = 1,
         WrapReverse = 2,
+        Balance = 3,
+        BalanceReverse = 4,
     }
     enum GridAutoFlowCode {
         Row = 0,
@@ -136,6 +138,13 @@ numeric_codes! {
         Length = 0,
         Percent = 1,
         Auto = 2,
+        MinContent = 3,
+        MaxContent = 4,
+        FitContent = 5,
+        FitContentLength = 6,
+        FitContentPercent = 7,
+        Stretch = 8,
+        Content = 9,
     }
     enum AvailableSpaceKindCode {
         Definite = 0,

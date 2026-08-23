@@ -105,7 +105,11 @@ const FlexWrap = Object.freeze({
 	/** Selects the Wrap choice from the FlexWrap numeric family. */
 	Wrap: 1,
 	/** Selects the WrapReverse choice from the FlexWrap numeric family. */
-	WrapReverse: 2
+	WrapReverse: 2,
+	/** Selects the Balance choice from the FlexWrap numeric family. */
+	Balance: 3,
+	/** Selects the BalanceReverse choice from the FlexWrap numeric family. */
+	BalanceReverse: 4
 });
 /** Lists the supported grid auto flow choices as stable numeric constants. */
 const GridAutoFlow = Object.freeze({
@@ -191,7 +195,21 @@ const LengthUnit = Object.freeze({
 	/** Selects the Percent choice from the LengthUnit numeric family. */
 	Percent: 1,
 	/** Selects the Auto choice from the LengthUnit numeric family. */
-	Auto: 2
+	Auto: 2,
+	/** Selects the MinContent choice from the LengthUnit numeric family. */
+	MinContent: 3,
+	/** Selects the MaxContent choice from the LengthUnit numeric family. */
+	MaxContent: 4,
+	/** Selects the FitContent choice from the LengthUnit numeric family. */
+	FitContent: 5,
+	/** Selects the FitContentLength choice from the LengthUnit numeric family. */
+	FitContentLength: 6,
+	/** Selects the FitContentPercent choice from the LengthUnit numeric family. */
+	FitContentPercent: 7,
+	/** Selects the Stretch choice from the LengthUnit numeric family. */
+	Stretch: 8,
+	/** Selects the Content choice from the LengthUnit numeric family. */
+	Content: 9
 });
 /** Lists the supported available space kind choices as stable numeric constants. */
 const AvailableSpaceKind = Object.freeze({
@@ -387,6 +405,11 @@ const GridTemplateComponent = Object.freeze({
 //#endregion
 //#region src/tagged-values.ts
 const dimensionAuto = Object.freeze({ unit: LengthUnit.Auto });
+const dimensionMinContent = Object.freeze({ unit: LengthUnit.MinContent });
+const dimensionMaxContent = Object.freeze({ unit: LengthUnit.MaxContent });
+const dimensionFitContent = Object.freeze({ unit: LengthUnit.FitContent });
+const dimensionStretch = Object.freeze({ unit: LengthUnit.Stretch });
+const dimensionContent = Object.freeze({ unit: LengthUnit.Content });
 /** Provides complete tagged forms for dimension inputs, including `Dimension.Length(value)`, the form represented by numeric shorthand. */
 const Dimension = Object.freeze({
 	Length(value) {
@@ -401,7 +424,24 @@ const Dimension = Object.freeze({
 			value
 		};
 	},
-	Auto: dimensionAuto
+	Auto: dimensionAuto,
+	MinContent: dimensionMinContent,
+	MaxContent: dimensionMaxContent,
+	FitContent: dimensionFitContent,
+	FitContentLength(value) {
+		return {
+			unit: LengthUnit.FitContentLength,
+			value
+		};
+	},
+	FitContentPercent(value) {
+		return {
+			unit: LengthUnit.FitContentPercent,
+			value
+		};
+	},
+	Stretch: dimensionStretch,
+	Content: dimensionContent
 });
 const availableSpaceMinContent = Object.freeze({ kind: AvailableSpaceKind.MinContent });
 const availableSpaceMaxContent = Object.freeze({ kind: AvailableSpaceKind.MaxContent });
@@ -1173,7 +1213,7 @@ var StyleEncoder = class {
 	partialRectLengthPercentageAuto(value, name) {
 		if (this.#isLengthInput(value, name)) {
 			this.#u8(SCALAR_GEOMETRY);
-			this.#length(value, true, name);
+			this.#length(value, true, false, name);
 			return;
 		}
 		const object = geometryObject(value, RECT_FIELDS, name);
@@ -1182,28 +1222,41 @@ var StyleEncoder = class {
 		const top = object.top;
 		const bottom = object.bottom;
 		this.#u8((left === void 0 ? 0 : 1) | (right === void 0 ? 0 : 2) | (top === void 0 ? 0 : 4) | (bottom === void 0 ? 0 : 8));
-		if (left !== void 0) this.#length(left, true, `${name}.left`);
-		if (right !== void 0) this.#length(right, true, `${name}.right`);
-		if (top !== void 0) this.#length(top, true, `${name}.top`);
-		if (bottom !== void 0) this.#length(bottom, true, `${name}.bottom`);
+		if (left !== void 0) this.#length(left, true, false, `${name}.left`);
+		if (right !== void 0) this.#length(right, true, false, `${name}.right`);
+		if (top !== void 0) this.#length(top, true, false, `${name}.top`);
+		if (bottom !== void 0) this.#length(bottom, true, false, `${name}.bottom`);
 	}
 	partialSizeDimension(value, name) {
 		if (this.#isLengthInput(value, name)) {
 			this.#u8(SCALAR_GEOMETRY);
-			this.#length(value, true, name);
+			this.#length(value, true, true, name);
 			return;
 		}
 		const object = geometryObject(value, SIZE_FIELDS, name);
 		const width = object.width;
 		const height = object.height;
 		this.#u8((width === void 0 ? 0 : 1) | (height === void 0 ? 0 : 2));
-		if (width !== void 0) this.#length(width, true, `${name}.width`);
-		if (height !== void 0) this.#length(height, true, `${name}.height`);
+		if (width !== void 0) this.#length(width, true, true, `${name}.width`);
+		if (height !== void 0) this.#length(height, true, true, `${name}.height`);
+	}
+	partialSizeLengthPercentageAuto(value, name) {
+		if (this.#isLengthInput(value, name)) {
+			this.#u8(SCALAR_GEOMETRY);
+			this.#length(value, true, false, name);
+			return;
+		}
+		const object = geometryObject(value, SIZE_FIELDS, name);
+		const width = object.width;
+		const height = object.height;
+		this.#u8((width === void 0 ? 0 : 1) | (height === void 0 ? 0 : 2));
+		if (width !== void 0) this.#length(width, true, false, `${name}.width`);
+		if (height !== void 0) this.#length(height, true, false, `${name}.height`);
 	}
 	partialRectLengthPercentage(value, name) {
 		if (this.#isLengthInput(value, name)) {
 			this.#u8(SCALAR_GEOMETRY);
-			this.#length(value, false, name);
+			this.#length(value, false, false, name);
 			return;
 		}
 		const object = geometryObject(value, RECT_FIELDS, name);
@@ -1212,26 +1265,29 @@ var StyleEncoder = class {
 		const top = object.top;
 		const bottom = object.bottom;
 		this.#u8((left === void 0 ? 0 : 1) | (right === void 0 ? 0 : 2) | (top === void 0 ? 0 : 4) | (bottom === void 0 ? 0 : 8));
-		if (left !== void 0) this.#length(left, false, `${name}.left`);
-		if (right !== void 0) this.#length(right, false, `${name}.right`);
-		if (top !== void 0) this.#length(top, false, `${name}.top`);
-		if (bottom !== void 0) this.#length(bottom, false, `${name}.bottom`);
+		if (left !== void 0) this.#length(left, false, false, `${name}.left`);
+		if (right !== void 0) this.#length(right, false, false, `${name}.right`);
+		if (top !== void 0) this.#length(top, false, false, `${name}.top`);
+		if (bottom !== void 0) this.#length(bottom, false, false, `${name}.bottom`);
 	}
 	partialSizeLengthPercentage(value, name) {
 		if (this.#isLengthInput(value, name)) {
 			this.#u8(SCALAR_GEOMETRY);
-			this.#length(value, false, name);
+			this.#length(value, false, false, name);
 			return;
 		}
 		const object = geometryObject(value, SIZE_FIELDS, name);
 		const width = object.width;
 		const height = object.height;
 		this.#u8((width === void 0 ? 0 : 1) | (height === void 0 ? 0 : 2));
-		if (width !== void 0) this.#length(width, false, `${name}.width`);
-		if (height !== void 0) this.#length(height, false, `${name}.height`);
+		if (width !== void 0) this.#length(width, false, false, `${name}.width`);
+		if (height !== void 0) this.#length(height, false, false, `${name}.height`);
 	}
 	dimension(value, name) {
-		this.#length(value, true, name);
+		this.#length(value, true, true, name);
+	}
+	unsigned16(value, name) {
+		this.#u16(inputInteger(value, 0, 65535, name));
 	}
 	gridTemplateComponents(value, name) {
 		const values = inputArray(value, name);
@@ -1289,7 +1345,7 @@ var StyleEncoder = class {
 		inputNumber(unit, `${name}.unit`);
 		return true;
 	}
-	#length(value, allowAuto, name) {
+	#length(value, allowAuto, allowIntrinsic, name) {
 		if (typeof value === "number") {
 			this.#u8(LengthUnit.Length);
 			this.#f64(value);
@@ -1297,10 +1353,10 @@ var StyleEncoder = class {
 		}
 		const object = inputObject(value, name);
 		const unit = inputInteger(object.unit, 0, 255, `${name}.unit`);
-		if (unit !== LengthUnit.Length && unit !== LengthUnit.Percent && unit !== LengthUnit.Auto) throw rangeError(`${name}.unit`, "a supported length unit");
+		if (unit !== LengthUnit.Length && unit !== LengthUnit.Percent && unit !== LengthUnit.Auto && (!allowIntrinsic || unit !== LengthUnit.MinContent && unit !== LengthUnit.MaxContent && unit !== LengthUnit.FitContent && unit !== LengthUnit.FitContentLength && unit !== LengthUnit.FitContentPercent && unit !== LengthUnit.Stretch && unit !== LengthUnit.Content)) throw rangeError(`${name}.unit`, "a supported length unit");
 		const payload = object.value;
 		if (payload !== void 0) inputNumber(payload, `${name}.value`);
-		if (unit === LengthUnit.Auto) {
+		if (unit === LengthUnit.Auto || unit === LengthUnit.MinContent || unit === LengthUnit.MaxContent || unit === LengthUnit.FitContent || unit === LengthUnit.Stretch || unit === LengthUnit.Content) {
 			if (!allowAuto) throw typeError(name, "a non-Auto length");
 			this.#u8(unit);
 			return;
@@ -1343,7 +1399,7 @@ var StyleEncoder = class {
 		if (!maximum && (kind === TrackSizingKind.FitContent || kind === TrackSizingKind.Fr)) throw typeError(name, "a valid minimum track value");
 		this.#u8(kind);
 		if (kind === TrackSizingKind.Length || kind === TrackSizingKind.Percent || kind === TrackSizingKind.Fr) this.#f64(inputNumber(payload, `${name}.value`));
-		else if (kind === TrackSizingKind.FitContent) this.#length(payload, false, `${name}.value`);
+		else if (kind === TrackSizingKind.FitContent) this.#length(payload, false, false, `${name}.value`);
 	}
 	#gridTemplateComponent(value, name) {
 		const object = inputObject(value, name);
@@ -1439,7 +1495,7 @@ var StyleEncoder = class {
 //#endregion
 //#region src/style-input.ts
 function withEncodedStyle(style, use) {
-	return withStyleEncoder(style, 2, 6, (encoder) => {
+	return withStyleEncoder(style, 3, 6, (encoder) => {
 		const display = style.display;
 		if (display !== void 0) {
 			encoder.field(0);
@@ -1522,13 +1578,13 @@ function withEncodedStyle(style, use) {
 		if (minSize !== void 0) {
 			encoder.field(13);
 			const value = minSize;
-			encoder.partialSizeDimension(value, "Style.minSize");
+			encoder.partialSizeLengthPercentageAuto(value, "Style.minSize");
 		}
 		const maxSize = style.maxSize;
 		if (maxSize !== void 0) {
 			encoder.field(14);
 			const value = maxSize;
-			encoder.partialSizeDimension(value, "Style.maxSize");
+			encoder.partialSizeLengthPercentageAuto(value, "Style.maxSize");
 		}
 		const aspectRatio = style.aspectRatio;
 		if (aspectRatio !== void 0) {
@@ -1612,83 +1668,89 @@ function withEncodedStyle(style, use) {
 		if (flexWrap !== void 0) {
 			encoder.field(28);
 			const value = flexWrap;
-			encoder.enumeration(value, 7, "Style.flexWrap");
+			encoder.enumeration(value, 31, "Style.flexWrap");
+		}
+		const flexLineCount = style.flexLineCount;
+		if (flexLineCount !== void 0) {
+			encoder.field(29);
+			const value = flexLineCount;
+			encoder.unsigned16(value, "Style.flexLineCount");
 		}
 		const flexBasis = style.flexBasis;
 		if (flexBasis !== void 0) {
-			encoder.field(29);
+			encoder.field(30);
 			const value = flexBasis;
 			encoder.dimension(value, "Style.flexBasis");
 		}
 		const flexGrow = style.flexGrow;
 		if (flexGrow !== void 0) {
-			encoder.field(30);
+			encoder.field(31);
 			const value = flexGrow;
 			encoder.number(value, "Style.flexGrow");
 		}
 		const flexShrink = style.flexShrink;
 		if (flexShrink !== void 0) {
-			encoder.field(31);
+			encoder.field(32);
 			const value = flexShrink;
 			encoder.number(value, "Style.flexShrink");
 		}
 		const gridTemplateRows = style.gridTemplateRows;
 		if (gridTemplateRows !== void 0) {
-			encoder.field(32);
+			encoder.field(33);
 			const value = gridTemplateRows;
 			encoder.gridTemplateComponents(value, "Style.gridTemplateRows");
 		}
 		const gridTemplateColumns = style.gridTemplateColumns;
 		if (gridTemplateColumns !== void 0) {
-			encoder.field(33);
+			encoder.field(34);
 			const value = gridTemplateColumns;
 			encoder.gridTemplateComponents(value, "Style.gridTemplateColumns");
 		}
 		const gridAutoRows = style.gridAutoRows;
 		if (gridAutoRows !== void 0) {
-			encoder.field(34);
+			encoder.field(35);
 			const value = gridAutoRows;
 			encoder.trackSizingFunctions(value, "Style.gridAutoRows");
 		}
 		const gridAutoColumns = style.gridAutoColumns;
 		if (gridAutoColumns !== void 0) {
-			encoder.field(35);
+			encoder.field(36);
 			const value = gridAutoColumns;
 			encoder.trackSizingFunctions(value, "Style.gridAutoColumns");
 		}
 		const gridAutoFlow = style.gridAutoFlow;
 		if (gridAutoFlow !== void 0) {
-			encoder.field(36);
+			encoder.field(37);
 			const value = gridAutoFlow;
 			encoder.enumeration(value, 15, "Style.gridAutoFlow");
 		}
 		const gridTemplateAreas = style.gridTemplateAreas;
 		if (gridTemplateAreas !== void 0) {
-			encoder.field(37);
+			encoder.field(38);
 			const value = gridTemplateAreas;
 			encoder.nullableGridTemplateAreas(value, "Style.gridTemplateAreas");
 		}
 		const gridTemplateColumnNames = style.gridTemplateColumnNames;
 		if (gridTemplateColumnNames !== void 0) {
-			encoder.field(38);
+			encoder.field(39);
 			const value = gridTemplateColumnNames;
 			encoder.stringMatrix(value, "Style.gridTemplateColumnNames");
 		}
 		const gridTemplateRowNames = style.gridTemplateRowNames;
 		if (gridTemplateRowNames !== void 0) {
-			encoder.field(39);
+			encoder.field(40);
 			const value = gridTemplateRowNames;
 			encoder.stringMatrix(value, "Style.gridTemplateRowNames");
 		}
 		const gridRow = style.gridRow;
 		if (gridRow !== void 0) {
-			encoder.field(40);
+			encoder.field(41);
 			const value = gridRow;
 			encoder.partialLineGridPlacement(value, "Style.gridRow");
 		}
 		const gridColumn = style.gridColumn;
 		if (gridColumn !== void 0) {
-			encoder.field(41);
+			encoder.field(42);
 			const value = gridColumn;
 			encoder.partialLineGridPlacement(value, "Style.gridColumn");
 		}

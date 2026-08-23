@@ -19,7 +19,20 @@
           "publicInput": "PercentInput",
           "payload": { "name": "value", "type": "number" }
         },
-        { "name": "Auto", "publicInput": "AutoInput" }
+        { "name": "Auto", "publicInput": "AutoInput" },
+        { "name": "MinContent" },
+        { "name": "MaxContent" },
+        { "name": "FitContent" },
+        {
+          "name": "FitContentLength",
+          "payload": { "name": "value", "type": "number" }
+        },
+        {
+          "name": "FitContentPercent",
+          "payload": { "name": "value", "type": "number" }
+        },
+        { "name": "Stretch" },
+        { "name": "Content" }
       ],
       "publicAliases": [
         {
@@ -34,7 +47,18 @@
         },
         {
           "name": "Dimension",
-          "branches": ["Length", "Percent", "Auto"],
+          "branches": [
+            "Length",
+            "Percent",
+            "Auto",
+            "MinContent",
+            "MaxContent",
+            "FitContent",
+            "FitContentLength",
+            "FitContentPercent",
+            "Stretch",
+            "Content"
+          ],
           "acceptsNumber": true
         }
       ]

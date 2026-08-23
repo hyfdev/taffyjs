@@ -71,6 +71,7 @@ pub struct StyleOutput {
     pub text_align: u8,
     pub flex_direction: u8,
     pub flex_wrap: u8,
+    pub flex_line_count: u16,
     pub flex_basis: length::LengthOutput,
     pub flex_grow: f64,
     pub flex_shrink: f64,
@@ -222,6 +223,8 @@ pub(crate) fn flex_wrap(value: f64) -> BindingResult<FlexWrap> {
         FlexWrapCode::NoWrap => FlexWrap::NoWrap,
         FlexWrapCode::Wrap => FlexWrap::Wrap,
         FlexWrapCode::WrapReverse => FlexWrap::WrapReverse,
+        FlexWrapCode::Balance => FlexWrap::Balance,
+        FlexWrapCode::BalanceReverse => FlexWrap::BalanceReverse,
     })
 }
 
@@ -387,7 +390,8 @@ fn flex_wrap_output(value: FlexWrap) -> u8 {
         FlexWrap::NoWrap => FlexWrapCode::NoWrap as u8,
         FlexWrap::Wrap => FlexWrapCode::Wrap as u8,
         FlexWrap::WrapReverse => FlexWrapCode::WrapReverse as u8,
-        FlexWrap::Balance | FlexWrap::BalanceReverse => panic!("unsupported Taffy flex wrap"),
+        FlexWrap::Balance => FlexWrapCode::Balance as u8,
+        FlexWrap::BalanceReverse => FlexWrapCode::BalanceReverse as u8,
     }
 }
 
@@ -477,6 +481,7 @@ pub(crate) fn output(style: &Style) -> StyleOutput {
         text_align: text_align_output(style.text_align),
         flex_direction: flex_direction_output(style.flex_direction),
         flex_wrap: flex_wrap_output(style.flex_wrap),
+        flex_line_count: style.flex_line_count,
         flex_basis: length::dimension_output(style.flex_basis),
         flex_grow: f64::from(style.flex_grow),
         flex_shrink: f64::from(style.flex_shrink),

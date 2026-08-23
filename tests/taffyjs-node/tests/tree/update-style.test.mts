@@ -66,8 +66,9 @@ const fieldCases = [
   ["gap", { width: 1, height: 2 }, { width: 3, height: 4 }],
   ["textAlign", TextAlign.LegacyLeft, TextAlign.LegacyRight],
   ["flexDirection", FlexDirection.Column, FlexDirection.RowReverse],
-  ["flexWrap", FlexWrap.Wrap, FlexWrap.WrapReverse],
-  ["flexBasis", 2, 3],
+  ["flexWrap", FlexWrap.Balance, FlexWrap.BalanceReverse],
+  ["flexLineCount", 2, 3],
+  ["flexBasis", Dimension.MinContent, Dimension.Content],
   ["flexGrow", 2, 3],
   ["flexShrink", 2, 3],
   [
@@ -115,7 +116,7 @@ const allStyleUpdateFieldsCovered: [MissingStyleUpdateField] extends [never] ? t
 
 test("applies every top-level field and skips equal or undefined values", () => {
   assert.equal(allStyleUpdateFieldsCovered, true);
-  assert.equal(fieldCases.length, 42);
+  assert.equal(fieldCases.length, 43);
 
   for (const [field, initial, next] of fieldCases) {
     const tree = new TaffyTree();
