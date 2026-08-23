@@ -35,8 +35,8 @@ test("tree-local-values", () => {
   const secondNode = second.newLeaf({ flexGrow: 2 });
 
   assert.equal(firstNode, secondNode, "independent trees can issue the same raw key");
-  assert.equal(first.getStyle(secondNode).flexGrow, 1);
-  assert.equal(second.getStyle(firstNode).flexGrow, 2);
+  assert.equal(first.getStyle(firstNode).flexGrow, 1);
+  assert.equal(second.getStyle(secondNode).flexGrow, 2);
 });
 
 test("slot-reuse", () => {
