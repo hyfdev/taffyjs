@@ -1,6 +1,6 @@
 # `@taffyjs/node`
 
-`@taffyjs/node` is the native Node-API binding for Taffy at revision [`77f38568`](https://github.com/DioxusLabs/taffy/commit/77f385683c1d698c91a23a259f87fdddf26925fb), the Taffy 0.14.0 release commit. It provides an explicit in-memory layout tree for Block, Flexbox, and Grid through readable JavaScript inputs and outputs.
+`@taffyjs/node` is the native Node-API binding for Taffy 0.14.0. It provides an explicit in-memory layout tree for Block, Flexbox, and Grid through readable JavaScript inputs and outputs.
 
 Follow [Getting Started](../guide/getting-started.md) to install the package and compute a first layout.
 

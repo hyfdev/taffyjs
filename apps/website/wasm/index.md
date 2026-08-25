@@ -1,6 +1,6 @@
 # `@taffyjs/wasm`
 
-`@taffyjs/wasm` runs the same TaffyJS API through WebAssembly, over Taffy at revision [`77f38568`](https://github.com/DioxusLabs/taffy/commit/77f385683c1d698c91a23a259f87fdddf26925fb). Choose it for a bundled browser application, or when you want to use WebAssembly explicitly in Node.js instead of loading a native addon.
+`@taffyjs/wasm` runs the same TaffyJS API through WebAssembly, using Taffy 0.14.0. Choose it for a bundled browser application, or when you want to use WebAssembly explicitly in Node.js instead of loading a native addon.
 
 Read the [Design](./design.md) to understand how the package keeps one direct API across native and WebAssembly runtimes.
 
