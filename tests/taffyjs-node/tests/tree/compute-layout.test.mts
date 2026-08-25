@@ -40,8 +40,8 @@ function wrapperState(tree: TaffyTree, nodes: readonly NodeId[]) {
 
 test("algorithms", () => {
   // Pinned upstream routing, cache, and hidden-layout sources for these values:
-  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/taffy_tree.rs#L284-L329
-  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/mod.rs#L278-L290
+  // https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/taffy_tree.rs#L284-L329
+  // https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/mod.rs#L278-L290
   const cases = [
     ["Flex", Display.Flex, {}],
     ["Grid", Display.Grid, {}],
@@ -94,7 +94,7 @@ test("algorithms", () => {
 
 test("percentage-content", () => {
   // Pinned upstream block percentage and scrollable-overflow source for these values:
-  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/block.rs#L566-L746
+  // https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/block.rs#L566-L746
   const tree = new TaffyTree();
   const child = tree.newLeaf({
     size: { width: Dimension.Percent(50), height: 80 },
@@ -116,8 +116,8 @@ test("percentage-content", () => {
 
 test("scrollable-overflow", () => {
   // Pinned upstream scrollable-overflow sources for these values:
-  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/common/scrollable_overflow.rs
-  // https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/block.rs
+  // https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/common/scrollable_overflow.rs
+  // https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/block.rs
   const padded = new TaffyTree();
   padded.disableRounding();
   const paddedChild = padded.newLeaf({ size: { width: 30, height: 20 } });

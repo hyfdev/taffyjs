@@ -44,14 +44,14 @@ function computeChildren(rootStyle: StyleInput, childStyles: readonly StyleInput
   };
 }
 
-// Every fixed layout value below is pinned to the exact Taffy sources at revision 8d13fdc8:
-// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/block.rs
-// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/float.rs
-// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/flexbox.rs
-// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/grid/mod.rs
-// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/grid/placement.rs
-// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/grid/track_sizing.rs
-// https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/mod.rs
+// Every fixed layout value below is pinned to the exact Taffy sources at revision 77f38568:
+// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/block.rs
+// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/float.rs
+// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/flexbox.rs
+// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/grid/mod.rs
+// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/grid/placement.rs
+// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/grid/track_sizing.rs
+// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/mod.rs
 
 test("block-float", () => {
   const block = computeChildren({ display: Display.Block, size: { width: 100 } }, [
@@ -152,6 +152,28 @@ test("flex", () => {
     ],
   );
   assert.deepEqual(tree.getUnroundedLayout(second).location, { x: 50.5, y: 0 });
+});
+
+test("flex descendants can overflow an ancestor max width", () => {
+  const tree = new TaffyTree();
+  const leaf = tree.newLeaf({
+    flexGrow: 1,
+    size: { width: 86 },
+  });
+  const middle = tree.newWithChildren([leaf]);
+  const root = tree.newWithChildren([middle], {
+    maxSize: { width: 8 },
+  });
+
+  tree.computeLayout({
+    root,
+    availableSpace: { width: 900, height: 700 },
+  });
+
+  assert.deepEqual(
+    [root, middle, leaf].map((node) => tree.getUnroundedLayout(node).size.width),
+    [8, 86, 86],
+  );
 });
 
 test("balanced flex wrapping honors flexLineCount", () => {

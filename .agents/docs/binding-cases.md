@@ -8,7 +8,7 @@ The feedback loop is: apply the current rules to concrete upstream behavior; dis
 
 Direct reads still materialize complete snapshots. The measured callback path now preserves the same complete Style capability through on-demand `getStyle()` delivery as recorded in the [read boundary](architecture.md#read-boundary); selective reads remain separate work under the [performance TODO](api-alignment-todos.md#performance).
 
-The evidence baseline for this case is Taffy at revision [`8d13fdc8`](https://github.com/DioxusLabs/taffy/commit/8d13fdc88468c83f01b13b36fadc0349950c6f51), napi 3.12.0, napi-derive 3.6.2, and @napi-rs/cli 3.8.2.
+The evidence baseline for this case is Taffy at revision [`77f38568`](https://github.com/DioxusLabs/taffy/commit/77f385683c1d698c91a23a259f87fdddf26925fb), napi 3.12.0, napi-derive 3.6.2, and @napi-rs/cli 3.8.2.
 
 ## Case 1: TaffyTree layout state and node identities
 
@@ -91,9 +91,9 @@ This case is closed as an API mapping exercise. It fixes the outer state owner, 
 
 ### Evidence
 
-- [TaffyTree and NodeData implementation](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/taffy_tree.rs)
-- [NodeId implementation](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/node.rs)
-- [Layout implementation](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/layout.rs)
+- [TaffyTree and NodeData implementation](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/taffy_tree.rs)
+- [NodeId implementation](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/node.rs)
+- [Layout implementation](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/layout.rs)
 - [ECMAScript Map objects](https://tc39.es/ecma262/multipage/keyed-collections.html#sec-map-objects)
 - [ECMAScript SameValueZero comparison](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevaluezero)
 
@@ -614,15 +614,15 @@ The shared definition and stable codes that this case originally left open are n
 
 ### Evidence
 
-- [Taffy Style definition and defaults](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/style/mod.rs)
-- [Taffy semantic length types](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/style/dimension.rs)
-- [Taffy alignment types](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/style/alignment.rs)
+- [Taffy Style definition and defaults](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/style/mod.rs)
+- [Taffy semantic length types](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/style/dimension.rs)
+- [Taffy alignment types](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/style/alignment.rs)
 - [CSS Box Alignment overflow-position values](https://www.w3.org/TR/css-align-3/#overflow-values)
-- [Taffy geometry types](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/geometry.rs)
-- [Taffy grid Style types](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/style/grid.rs)
+- [Taffy geometry types](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/geometry.rs)
+- [Taffy grid Style types](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/style/grid.rs)
 - [Yoga 3.2.1 JavaScript wrapper](https://github.com/facebook/yoga/blob/v3.2.1/javascript/src/wrapAssembly.ts)
 - [Yoga 3.2.1 native Style normalization](https://github.com/facebook/yoga/blob/v3.2.1/yoga/style/Style.h)
-- [TaffyTree Style operations and measurement](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/taffy_tree.rs)
+- [TaffyTree Style operations and measurement](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/taffy_tree.rs)
 - [napi-rs object conversion](https://napi.rs/docs/concepts/type-conversions)
 - [napi-rs enum conversion](https://napi.rs/docs/concepts/enum)
 - [TypeScript enum objects and const-enum publication pitfalls](https://www.typescriptlang.org/docs/handbook/enums)
@@ -718,10 +718,10 @@ Retaining a callback's owned `getStyle` provider remains supported and does not 
 
 ### Evidence
 
-- [TaffyTree context, dirty-state, and compute operations](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/taffy_tree.rs)
-- [Taffy root and cached layout computation](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/mod.rs)
-- [Taffy leaf measurement](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/compute/leaf.rs)
-- [Taffy per-node cache behavior](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/cache.rs)
+- [TaffyTree context, dirty-state, and compute operations](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/taffy_tree.rs)
+- [Taffy root and cached layout computation](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/mod.rs)
+- [Taffy leaf measurement](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/leaf.rs)
+- [Taffy per-node cache behavior](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/cache.rs)
 - [napi-rs scoped function calls and pending-exception capture](https://github.com/napi-rs/napi-rs/blob/napi-v3.12.0/crates/napi/src/bindgen_runtime/js_values/function.rs)
 - [napi-rs JavaScript exception retention](https://github.com/napi-rs/napi-rs/blob/napi-v3.12.0/crates/napi/src/error.rs)
 - [Yoga 3.2.1 JavaScript measure wrapper](https://github.com/facebook/yoga/blob/v3.2.1/javascript/src/wrapAssembly.ts)

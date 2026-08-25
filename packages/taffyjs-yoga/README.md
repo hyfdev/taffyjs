@@ -1,6 +1,6 @@
 # @taffyjs/yoga
 
-`@taffyjs/yoga` is a Node.js compatibility facade for `yoga-layout@3.2.1`, implemented in TypeScript over `@taffyjs/node`. It keeps Yoga's package entries and public API shape while Taffy, at revision [`8d13fdc8`](https://github.com/DioxusLabs/taffy/commit/8d13fdc88468c83f01b13b36fadc0349950c6f51), remains the only layout engine.
+`@taffyjs/yoga` is a Node.js compatibility facade for `yoga-layout@3.2.1`, implemented in TypeScript over `@taffyjs/node`. It keeps Yoga's package entries and public API shape while Taffy, at revision [`77f38568`](https://github.com/DioxusLabs/taffy/commit/77f385683c1d698c91a23a259f87fdddf26925fb), remains the only layout engine.
 
 The [Design](../../apps/website/yoga/design.md) explains which parts of Yoga the facade preserves, which parts stay owned by Taffy, and how unsupported behavior is reported.
 

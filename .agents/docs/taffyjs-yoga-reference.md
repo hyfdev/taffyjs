@@ -33,8 +33,8 @@ Primary sources:
 - [Yoga pixel-grid processing](https://github.com/facebook/yoga/blob/v3.2.1/yoga/algorithm/PixelGrid.cpp)
 - [Yoga flex-basis experiment branch](https://github.com/facebook/yoga/blob/v3.2.1/yoga/algorithm/CalculateLayout.cpp)
 - [Yoga WebFlexBasis relayout regression](https://github.com/facebook/yoga/blob/v3.2.1/tests/YGRelayoutTest.cpp)
-- [Taffy Style](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/style/mod.rs)
-- [Taffy tree and layout storage](https://github.com/DioxusLabs/taffy/blob/8d13fdc88468c83f01b13b36fadc0349950c6f51/src/tree/taffy_tree.rs)
+- [Taffy Style](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/style/mod.rs)
+- [Taffy tree and layout storage](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/taffy_tree.rs)
 - [Current @taffyjs/node tree wrapper](../../packages/taffyjs-node/src/tree.ts)
 
 The inventory includes package exports, intentional named runtime and type exports, members on the default Yoga object, declared factories and methods, and deliberate behavior added by the JavaScript wrapper. It excludes undocumented Emscripten or Embind implementation artifacts such as the runtime Z property found on factory objects.
