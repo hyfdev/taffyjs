@@ -79,6 +79,7 @@ export interface DetailedGridTracksOutput {
   explicitTracks: number;
   positiveImplicitTracks: number;
   positions: Array<DetailedGridTrackPositionOutput>;
+  emptyAxisLine: number | null;
   lineNames: Array<Array<string>>;
 }
 

@@ -3,12 +3,13 @@ use taffy::{DetailedGridInfo, DetailedGridItemsInfo, DetailedGridTracksInfo, Det
 
 use crate::numeric::DetailedLayoutInfoKindCode;
 
-#[napi(object, object_from_js = false)]
+#[napi(object, use_nullable = true, object_from_js = false)]
 pub struct DetailedGridTracksOutput {
     pub negative_implicit_tracks: u16,
     pub explicit_tracks: u16,
     pub positive_implicit_tracks: u16,
     pub positions: Vec<DetailedGridTrackPositionOutput>,
+    pub empty_axis_line: Option<f64>,
     pub line_names: Vec<Vec<String>>,
 }
 
@@ -52,6 +53,7 @@ fn tracks_output(value: &DetailedGridTracksInfo) -> DetailedGridTracksOutput {
                 end: f64::from(position.end),
             })
             .collect(),
+        empty_axis_line: value.empty_axis_line.map(f64::from),
         line_names: value
             .iter_line_names()
             .map(|names| names.to_vec())

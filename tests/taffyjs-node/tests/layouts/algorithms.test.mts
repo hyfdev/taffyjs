@@ -3,10 +3,12 @@ import {
   AlignItems,
   AvailableSpace,
   AvailableSpaceKind,
+  AlignContent,
   Clear,
   Dimension,
   DetailedLayoutInfoKind,
   Display,
+  FlexDirection,
   FlexWrap,
   Float,
   GridPlacement,
@@ -44,14 +46,14 @@ function computeChildren(rootStyle: StyleInput, childStyles: readonly StyleInput
   };
 }
 
-// Every fixed layout value below is pinned to the exact Taffy sources at revision 77f38568:
-// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/block.rs
-// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/float.rs
-// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/flexbox.rs
-// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/grid/mod.rs
-// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/grid/placement.rs
-// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/grid/track_sizing.rs
-// https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/compute/mod.rs
+// Every fixed layout value below is pinned to the exact Taffy sources at revision b3b38713:
+// https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/compute/block.rs
+// https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/compute/float.rs
+// https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/compute/flexbox.rs
+// https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/compute/grid/mod.rs
+// https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/compute/grid/placement.rs
+// https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/compute/grid/track_sizing.rs
+// https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/compute/mod.rs
 
 test("block-float", () => {
   const block = computeChildren({ display: Display.Block, size: { width: 100 } }, [
@@ -110,6 +112,44 @@ test("block-float", () => {
   assert.deepEqual(positioned.children[1].location, { x: 0, y: 0 });
 });
 
+test("percentage floats that fill a row stay on one line", () => {
+  const tree = new TaffyTree();
+  const children = [
+    tree.newLeaf({
+      display: Display.Block,
+      float: Float.Left,
+      size: { width: Dimension.Percent(30), height: 50 },
+    }),
+    tree.newLeaf({
+      display: Display.Block,
+      float: Float.Left,
+      margin: { left: Dimension.Percent(5) },
+      size: { width: Dimension.Percent(30), height: 50 },
+    }),
+    tree.newLeaf({
+      display: Display.Block,
+      float: Float.Left,
+      margin: { left: Dimension.Percent(5) },
+      size: { width: Dimension.Percent(30), height: 50 },
+    }),
+  ];
+  const root = tree.newWithChildren(children, {
+    display: Display.Block,
+    size: { width: 1628 },
+  });
+
+  tree.computeLayout({ root, availableSpace: maxContentSpace() });
+
+  assert.deepEqual(
+    children.map((child) => tree.getLayout(child).location),
+    [
+      { x: 0, y: 0 },
+      { x: 570, y: 0 },
+      { x: 1140, y: 0 },
+    ],
+  );
+});
+
 test("flex", () => {
   const tree = new TaffyTree();
   const first = tree.newLeaf({
@@ -152,6 +192,26 @@ test("flex", () => {
     ],
   );
   assert.deepEqual(tree.getUnroundedLayout(second).location, { x: 50.5, y: 0 });
+});
+
+test("intrinsic flex columns include negative main-axis margins", () => {
+  const tree = new TaffyTree();
+  const child = tree.newLeaf({
+    flexGrow: 1,
+    flexShrink: 0,
+    margin: { top: -24 },
+    size: { width: 100, height: 100 },
+  });
+  const root = tree.newWithChildren([child], {
+    display: Display.Flex,
+    flexDirection: FlexDirection.Column,
+    size: { width: 300 },
+  });
+
+  tree.computeLayout({ root, availableSpace: maxContentSpace() });
+
+  assert.equal(tree.getLayout(root).size.height, 76);
+  assert.deepEqual(tree.getLayout(child).location, { x: 0, y: -24 });
 });
 
 test("flex descendants can overflow an ancestor max width", () => {
@@ -341,6 +401,7 @@ test("grid", () => {
       { start: 0, end: 20 },
       { start: 20, end: 50 },
     ],
+    emptyAxisLine: null,
     lineNames: [],
   });
   assert.deepEqual(detail.value.columns, {
@@ -351,6 +412,7 @@ test("grid", () => {
       { start: 0, end: 40 },
       { start: 40, end: 100 },
     ],
+    emptyAxisLine: null,
     lineNames: [],
   });
   assert.deepEqual(detail.value.items, [
@@ -382,6 +444,123 @@ test("grid-repetition-line-names", () => {
     { x: placed.location.x, y: placed.location.y, width: placed.size.width },
     { x: 0, y: 0, width: 10 },
   );
+});
+
+test("absolute grid placements resolve unknown named lines before falling back", () => {
+  const tree = new TaffyTree();
+  const absolute = {
+    position: Position.Absolute,
+    inset: { left: 0, right: 0, top: 0, bottom: 0 },
+  };
+  const children = [
+    tree.newLeaf({
+      ...absolute,
+      gridRow: { start: GridPlacement.NamedLine("foo", 1), end: GridPlacement.NamedLine("bar", 1) },
+      gridColumn: {
+        start: GridPlacement.NamedLine("foo", 1),
+        end: GridPlacement.NamedLine("bar", 1),
+      },
+    }),
+    tree.newLeaf({
+      ...absolute,
+      gridRow: { start: GridPlacement.Line(1), end: GridPlacement.NamedLine("bar", 1) },
+      gridColumn: { start: GridPlacement.Line(1), end: GridPlacement.NamedLine("foo", 1) },
+    }),
+    tree.newLeaf({
+      ...absolute,
+      gridRow: { start: GridPlacement.NamedLine("bar", 1), end: GridPlacement.Line(3) },
+      gridColumn: { start: GridPlacement.NamedLine("foo", 1), end: GridPlacement.Line(3) },
+    }),
+    tree.newLeaf({
+      ...absolute,
+      gridRow: { start: GridPlacement.NamedLine("bar", 1), end: GridPlacement.Line(1) },
+      gridColumn: { start: GridPlacement.NamedLine("foo", 1), end: GridPlacement.Line(1) },
+    }),
+  ];
+  const root = tree.newWithChildren(children, {
+    display: Display.Grid,
+    padding: 10,
+    size: { width: 200, height: 150 },
+    gridTemplateRows: [singleTrack(20), singleTrack(50)],
+    gridTemplateColumns: [singleTrack(40), singleTrack(60)],
+  });
+
+  tree.computeLayout({ root, availableSpace: maxContentSpace() });
+
+  assert.deepEqual(
+    children.map((child) => {
+      const { location, size } = tree.getLayout(child);
+      return { location, size };
+    }),
+    [
+      { location: { x: 0, y: 0 }, size: { width: 200, height: 150 } },
+      { location: { x: 10, y: 10 }, size: { width: 190, height: 140 } },
+      { location: { x: 110, y: 80 }, size: { width: 90, height: 70 } },
+      { location: { x: 10, y: 10 }, size: { width: 190, height: 140 } },
+    ],
+  );
+});
+
+test("absolute grid placement on an empty grid uses its single resolved line", () => {
+  const tree = new TaffyTree();
+  const first = tree.newLeaf({
+    position: Position.Absolute,
+    inset: { left: 0, right: 0, top: 0, bottom: 0 },
+    gridRow: { start: GridPlacement.Line(1) },
+    gridColumn: { start: GridPlacement.Line(1) },
+  });
+  const second = tree.newLeaf({
+    position: Position.Absolute,
+    inset: { left: 0, right: 0, top: 0, bottom: 0 },
+    gridRow: { end: GridPlacement.Line(1) },
+    gridColumn: { end: GridPlacement.Line(1) },
+  });
+  const root = tree.newWithChildren([first, second], {
+    display: Display.Grid,
+    alignContent: AlignContent.Center,
+    justifyContent: AlignContent.Center,
+    padding: 5,
+    size: { width: 100, height: 100 },
+  });
+
+  tree.computeLayout({ root, availableSpace: maxContentSpace() });
+
+  assert.deepEqual(
+    [first, second].map((child) => {
+      const { location, size } = tree.getLayout(child);
+      return { location, size };
+    }),
+    [
+      { location: { x: 50, y: 50 }, size: { width: 50, height: 50 } },
+      { location: { x: 0, y: 0 }, size: { width: 50, height: 50 } },
+    ],
+  );
+});
+
+test("auto grid starts do not add a positive implicit track", () => {
+  const tree = new TaffyTree();
+  const child = tree.newLeaf({
+    gridColumn: { end: GridPlacement.Line(1) },
+    size: { width: 10, height: 10 },
+  });
+  const root = tree.newWithChildren([child], {
+    display: Display.Grid,
+    size: { width: 10, height: 10 },
+  });
+
+  tree.computeLayout({ root, availableSpace: maxContentSpace() });
+
+  const detail = tree.getDetailedLayoutInfo(root);
+  assert.equal(detail.kind, DetailedLayoutInfoKind.Grid);
+  assert.ok("value" in detail);
+  assert.deepEqual(detail.value.columns, {
+    negativeImplicitTracks: 1,
+    explicitTracks: 0,
+    positiveImplicitTracks: 0,
+    positions: [{ start: 0, end: 10 }],
+    emptyAxisLine: null,
+    lineNames: [],
+  });
 });
 
 test("measure-context", () => {

@@ -1,6 +1,6 @@
 # `@taffyjs/node`
 
-`@taffyjs/node` is the ESM-only Node-API binding for Taffy 0.14.0. It exposes an explicit in-memory layout tree, readable JavaScript inputs and outputs, and a private platform-specific native implementation.
+`@taffyjs/node` is the ESM-only Node-API binding for Taffy at upstream main revision [`b3b38713`](https://github.com/DioxusLabs/taffy/commit/b3b387132be1dda0e9d08d5044692236532c166d). It exposes an explicit in-memory layout tree, readable JavaScript inputs and outputs, and a private platform-specific native implementation.
 
 Install it with npm:
 

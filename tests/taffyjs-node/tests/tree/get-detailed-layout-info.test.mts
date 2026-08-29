@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  AlignContent,
   AvailableSpace,
   DetailedLayoutInfoKind,
   Direction,
@@ -17,6 +18,7 @@ type Tracks = {
   explicitTracks: number;
   positiveImplicitTracks: number;
   positions: Array<{ start: number; end: number }>;
+  emptyAxisLine: number | null;
   lineNames: string[][];
 };
 type GridInfo = {
@@ -79,13 +81,20 @@ test("new-none", () => {
 test("empty-grid", () => {
   const tree = new TaffyTree();
   const hidden = tree.newLeaf({ display: Display.None });
-  const grid = tree.newWithChildren([hidden], { display: Display.Grid });
+  const grid = tree.newWithChildren([hidden], {
+    display: Display.Grid,
+    alignContent: AlignContent.Center,
+    justifyContent: AlignContent.Center,
+    size: { width: 100, height: 100 },
+  });
   compute(tree, grid);
 
   const value = gridValue(tree.getDetailedLayoutInfo(grid));
   assert.deepEqual(value.items, []);
   assert.equal(value.rows.explicitTracks, 0);
   assert.equal(value.columns.explicitTracks, 0);
+  assert.equal(value.rows.emptyAxisLine, 50);
+  assert.equal(value.columns.emptyAxisLine, 50);
 });
 
 test("grid-payload", () => {
@@ -107,6 +116,7 @@ test("grid-payload", () => {
       { start: 0, end: Math.fround(12.25) },
       { start: Math.fround(12.25), end: Math.fround(20.75) },
     ],
+    emptyAxisLine: null,
     lineNames: [["row-start"], [], ["row-end"]],
   });
   assert.deepEqual(grid.columns, {
@@ -117,6 +127,7 @@ test("grid-payload", () => {
       { start: 0, end: Math.fround(7.75) },
       { start: Math.fround(7.75), end: 11 },
     ],
+    emptyAxisLine: null,
     lineNames: [["column-start"], ["middle"], ["column-end"]],
   });
   assert.deepEqual(grid.items, [
@@ -153,6 +164,7 @@ test("rtl-logical-order-and-implicit-line-names", () => {
       { start: 63, end: 70 },
       { start: 56, end: 63 },
     ],
+    emptyAxisLine: null,
     lineNames: [["inline-start"], ["middle"], ["inline-end"], [], []],
   });
 });

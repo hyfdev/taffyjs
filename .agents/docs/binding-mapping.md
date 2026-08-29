@@ -2,7 +2,7 @@
 
 This is the current reference for Rust/JavaScript conversion and safety in `@taffyjs/node`. It describes the implemented Taffy boundary. Product choices that should constrain future work are recorded in [@taffyjs/node decisions](taffyjs-node-decisions.md).
 
-Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScript changes. The primary upstream references are [TaffyTree](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/tree/taffy_tree.rs), [Style](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/style/mod.rs), [geometry](https://github.com/DioxusLabs/taffy/blob/77f385683c1d698c91a23a259f87fdddf26925fb/src/geometry.rs), and [napi-rs conversions](https://napi.rs/docs/concepts/type-conversions).
+Recheck version-sensitive behavior whenever Taffy, napi-rs, Node.js, or TypeScript changes. The primary upstream references are [TaffyTree](https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/tree/taffy_tree.rs), [Style](https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/style/mod.rs), [geometry](https://github.com/DioxusLabs/taffy/blob/b3b387132be1dda0e9d08d5044692236532c166d/src/geometry.rs), and [napi-rs conversions](https://napi.rs/docs/concepts/type-conversions).
 
 ## Scope and ownership
 
@@ -88,7 +88,7 @@ Non-Style scalar and fixed-object inputs use concrete napi-rs types where their 
 
 Borrowed Rust values never escape. Direct Style reads, Layout, child arrays, detailed Grid data, available space, and nested records are copied into complete detached JavaScript values. A measure callback's Style is first cloned into an owned Rust snapshot and is converted into a complete detached JavaScript value only when its `getStyle()` function is called.
 
-Layout snapshots expose Taffy's `scrollable_overflow_rect` as `scrollableOverflowRect`; `right` and `bottom` are the reachable content extents formerly represented by `contentSize`, while negative `left` and `top` preserve start-side overflow that the old size could not express. Detailed Grid track snapshots expose per-track `positions` and resolved `lineNames`, replacing the old derived `sizes` and `gutters` arrays and preserving content-alignment offsets and logical RTL order.
+Layout snapshots expose Taffy's `scrollable_overflow_rect` as `scrollableOverflowRect`; `right` and `bottom` are the reachable content extents formerly represented by `contentSize`, while negative `left` and `top` preserve start-side overflow that the old size could not express. Detailed Grid track snapshots expose per-track `positions`, the optional `emptyAxisLine` for a content-aligned axis with no tracks, and resolved `lineNames`, replacing the old derived `sizes` and `gutters` arrays and preserving content-alignment offsets and logical RTL order.
 
 Binding-produced records and arrays are recursively readonly in TypeScript because mutation cannot update Taffy. Runtime objects remain ordinary mutable, unfrozen objects, and each read or callback `getStyle()` call returns an independent snapshot. There are no live native views, output caches, lazy properties, selectors, prepared queries, or batch snapshots; the callback function is an explicit on-demand operation rather than a property that hides an already materialized object.
 
