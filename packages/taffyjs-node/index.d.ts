@@ -709,6 +709,7 @@ interface DetailedGridTracksInfo {
   /** Reports the explicit tracks value stored in DetailedGridTracksInfo. */ readonly explicitTracks: number;
   /** Reports the positive implicit tracks value stored in DetailedGridTracksInfo. */ readonly positiveImplicitTracks: number;
   /** Reports each track's start and end position relative to the Grid container's border box. */ readonly positions: readonly Line<number>[];
+  /** Reports the single Grid line position when this axis has no tracks; otherwise null. */ readonly emptyAxisLine: number | null;
   /** Reports the names attached to each Grid line; empty when the axis has no named lines. */ readonly lineNames: readonly (readonly string[])[];
 }
 /** Reports detached readonly detailed grid item info from a completed Grid layout. */

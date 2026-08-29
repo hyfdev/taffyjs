@@ -87,9 +87,11 @@ if (typeof dimension !== "number") {
 declare const detail: DetailedLayoutInfo;
 if (detail.kind === DetailedLayoutInfoKind.Grid) {
   const rows: number = detail.value.rows.explicitTracks;
+  const emptyAxisLine: number | null = detail.value.rows.emptyAxisLine;
   // @ts-expect-error Detailed output arrays are readonly.
   detail.value.rows.positions.push({ start: 0, end: 1 });
   void rows;
+  void emptyAxisLine;
 } else {
   // @ts-expect-error None has no Grid payload.
   void detail.value;

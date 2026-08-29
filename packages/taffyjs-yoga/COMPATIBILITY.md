@@ -61,7 +61,7 @@ When an upstream enum type also contains values that are Unsupported for one pro
 
 ## Upstream work in progress
 
-The compatibility tables describe what the current package can do with its pinned Taffy 0.14.0 dependency. Upstream work is tracked separately so that a possible compatibility improvement is visible without presenting unshipped code as available behavior.
+The compatibility tables describe what the current package can do with its pinned Taffy upstream main revision [`b3b38713`](https://github.com/DioxusLabs/taffy/commit/b3b387132be1dda0e9d08d5044692236532c166d). Upstream work is tracked separately so that a possible compatibility improvement is visible without presenting unshipped code as available behavior.
 
 | Capability            | Upstream status                                                                                                                                                                                                                   |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
